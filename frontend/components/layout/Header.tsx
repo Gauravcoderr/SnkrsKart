@@ -24,6 +24,15 @@ const BRANDS = [
   { name: 'Crocs', slug: 'Crocs', accent: '#179A3A', desc: 'Come As You Are' },
 ];
 
+const POPULAR_SEARCHES = [
+  'Air Jordan 4',
+  'Nike Dunk Low',
+  'New Balance 530',
+  'Adidas Samba',
+  'Air Force 1',
+  'Crocs Classic',
+];
+
 export default function Header() {
   const { itemCount, toggleDrawer } = useCart();
   const router = useRouter();
@@ -32,35 +41,36 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Product[]>([]);
+  const [recommended, setRecommended] = useState<Product[]>([]);
   const [searching, setSearching] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const brandsTimeout = useRef<NodeJS.Timeout>();
   const debounceRef = useRef<NodeJS.Timeout>();
 
-  // Close search on outside click
+  // Lock body scroll when search is open
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setSearchOpen(false);
-        setQuery('');
-        setResults([]);
-      }
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
-  useEffect(() => {
-    if (searchOpen) inputRef.current?.focus();
+    document.body.style.overflow = searchOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
   }, [searchOpen]);
 
-  // Debounced search
+  useEffect(() => {
+    if (searchOpen) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+      // Fetch recommended products on open
+      if (recommended.length === 0) {
+        fetch(`${API}/products/trending`)
+          .then((r) => r.ok ? r.json() : [])
+          .then((data) => setRecommended(Array.isArray(data) ? data.slice(0, 4) : []))
+          .catch(() => {});
+      }
+    }
+  }, [searchOpen, recommended.length]);
+
   const searchProducts = useCallback(async (q: string) => {
     if (!q.trim()) { setResults([]); return; }
     setSearching(true);
     try {
-      const res = await fetch(`${API}/products?search=${encodeURIComponent(q.trim())}&limit=6`);
+      const res = await fetch(`${API}/products?search=${encodeURIComponent(q.trim())}&limit=8`);
       if (res.ok) {
         const data = await res.json();
         setResults(data.products || []);
@@ -75,22 +85,31 @@ export default function Header() {
     debounceRef.current = setTimeout(() => searchProducts(val), 300);
   }
 
-  function goToProduct(slug: string) {
+  function closeSearch() {
     setSearchOpen(false);
     setQuery('');
     setResults([]);
+  }
+
+  function goToProduct(slug: string) {
+    closeSearch();
     router.push(`/products/${slug}`);
   }
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (query.trim()) {
-      setSearchOpen(false);
-      setResults([]);
+      closeSearch();
       router.push(`/products?search=${encodeURIComponent(query.trim())}`);
-      setQuery('');
     }
   }
+
+  function searchFor(term: string) {
+    closeSearch();
+    router.push(`/products?search=${encodeURIComponent(term)}`);
+  }
+
+  const hasQuery = query.trim().length > 0;
 
   return (
     <>
@@ -110,20 +129,14 @@ export default function Header() {
                   <div
                     key="brands"
                     className="relative"
-                    onMouseEnter={() => {
-                      clearTimeout(brandsTimeout.current);
-                      setBrandsOpen(true);
-                    }}
-                    onMouseLeave={() => {
-                      brandsTimeout.current = setTimeout(() => setBrandsOpen(false), 150);
-                    }}
+                    onMouseEnter={() => { clearTimeout(brandsTimeout.current); setBrandsOpen(true); }}
+                    onMouseLeave={() => { brandsTimeout.current = setTimeout(() => setBrandsOpen(false), 150); }}
                   >
                     <button type="button" className="px-3 py-1.5 text-sm font-semibold tracking-widest uppercase text-zinc-600 hover:text-zinc-900 transition-colors relative group">
                       Brands
                       <svg className={`inline-block ml-1 w-3 h-3 text-zinc-400 group-hover:text-zinc-600 transition-transform ${brandsOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                     </button>
 
-                    {/* Brands mega menu */}
                     {brandsOpen && (
                       <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 pt-2">
                         <div className="w-[420px] bg-white rounded-xl border border-zinc-100 shadow-2xl shadow-black/8 overflow-hidden">
@@ -138,10 +151,7 @@ export default function Header() {
                                 onClick={() => setBrandsOpen(false)}
                                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-zinc-50 transition-colors group/item"
                               >
-                                <span
-                                  className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
-                                  style={{ backgroundColor: brand.accent }}
-                                >
+                                <span className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0" style={{ backgroundColor: brand.accent }}>
                                   {brand.name.charAt(0)}
                                 </span>
                                 <div className="flex-1 min-w-0">
@@ -153,11 +163,7 @@ export default function Header() {
                             ))}
                           </div>
                           <div className="px-5 py-3 bg-zinc-50 border-t border-zinc-100">
-                            <Link
-                              href="/products"
-                              onClick={() => setBrandsOpen(false)}
-                              className="text-xs font-semibold tracking-widest uppercase text-zinc-600 hover:text-zinc-900 transition-colors"
-                            >
+                            <Link href="/products" onClick={() => setBrandsOpen(false)} className="text-xs font-semibold tracking-widest uppercase text-zinc-600 hover:text-zinc-900 transition-colors">
                               View All Products →
                             </Link>
                           </div>
@@ -180,90 +186,15 @@ export default function Header() {
 
             {/* Right actions */}
             <div className="flex items-center gap-2">
-              {/* Search */}
-              <div ref={searchRef} className="relative">
-                {searchOpen ? (
-                  <>
-                    {/* Overlay for mobile */}
-                    <div className="fixed inset-0 bg-black/40 md:hidden z-40" onClick={() => { setSearchOpen(false); setQuery(''); setResults([]); }} />
-
-                    {/* Search bar — full-width on mobile, expanded on desktop */}
-                    <form
-                      onSubmit={handleSearchSubmit}
-                      className="fixed top-0 left-0 right-0 z-50 bg-white px-4 py-3 border-b border-zinc-100 md:static md:border-0 md:bg-transparent md:p-0 flex items-center gap-2"
-                    >
-                      <div className="relative flex-1 md:w-96">
-                        <input
-                          ref={inputRef}
-                          value={query}
-                          onChange={(e) => handleQueryChange(e.target.value)}
-                          placeholder="Search for sneakers, brands..."
-                          className="w-full text-sm border border-zinc-200 rounded-xl px-4 py-2.5 pl-10 outline-none focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100 bg-zinc-50 transition"
-                        />
-                        <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-                      </div>
-                      <button
-                        type="button"
-                        className="p-2 text-zinc-400 hover:text-zinc-900 transition shrink-0"
-                        onClick={() => { setSearchOpen(false); setQuery(''); setResults([]); }}
-                        aria-label="Close search"
-                      >
-                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12" /></svg>
-                      </button>
-
-                      {/* Search results dropdown */}
-                      {query.trim().length > 0 && (
-                        <div className="absolute top-full left-0 right-0 md:left-auto md:right-auto md:w-96 mt-1 mx-4 md:mx-0 bg-white rounded-xl border border-zinc-100 shadow-2xl shadow-black/10 overflow-hidden z-50 max-h-[70vh] md:max-h-[400px] overflow-y-auto">
-                          {searching && results.length === 0 && (
-                            <div className="px-4 py-8 text-center text-sm text-zinc-400">Searching...</div>
-                          )}
-                          {!searching && results.length === 0 && query.length > 1 && (
-                            <div className="px-4 py-8 text-center text-sm text-zinc-400">No products found</div>
-                          )}
-                          {results.map((p) => (
-                            <button
-                              key={p.id}
-                              type="button"
-                              onClick={() => goToProduct(p.slug)}
-                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 transition-colors text-left border-b border-zinc-50 last:border-b-0"
-                            >
-                              <img
-                                src={p.images[0]}
-                                alt={p.name}
-                                className="w-14 h-14 sm:w-12 sm:h-12 object-cover rounded-lg bg-zinc-100 shrink-0"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-zinc-900 truncate">{p.name}</p>
-                                <p className="text-xs text-zinc-500">{p.brand} &middot; {p.colorway}</p>
-                              </div>
-                              <span className="text-sm font-semibold text-zinc-900 shrink-0">
-                                {'\u20B9'}{p.price.toLocaleString('en-IN')}
-                              </span>
-                            </button>
-                          ))}
-                          {results.length > 0 && (
-                            <button
-                              type="submit"
-                              className="w-full px-4 py-3 text-xs font-semibold tracking-widest uppercase text-center text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition border-t border-zinc-100"
-                            >
-                              View all results →
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </form>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setSearchOpen(true)}
-                    className="p-2 text-zinc-500 hover:text-zinc-900 transition-colors"
-                    aria-label="Search"
-                  >
-                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-                  </button>
-                )}
-              </div>
+              {/* Search trigger */}
+              <button
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                className="p-2 text-zinc-500 hover:text-zinc-900 transition-colors"
+                aria-label="Search"
+              >
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+              </button>
 
               {/* Cart */}
               <button
@@ -298,33 +229,150 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Mobile Menu */}
+      {/* ── Search Overlay (Superkicks-style) ────────────────────────────────── */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-[60]">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/50" onClick={closeSearch} />
+
+          {/* Panel */}
+          <div className="relative bg-white w-full animate-slide-down">
+            {/* Search bar row */}
+            <div className="border-b border-zinc-200">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <form onSubmit={handleSearchSubmit} className="flex items-center h-14 gap-3">
+                  <svg className="w-5 h-5 text-zinc-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+                  <input
+                    ref={inputRef}
+                    value={query}
+                    onChange={(e) => handleQueryChange(e.target.value)}
+                    placeholder="Search Sneakers"
+                    className="flex-1 text-base outline-none bg-transparent placeholder-zinc-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={closeSearch}
+                    aria-label="Close search"
+                    className="p-1.5 text-zinc-400 hover:text-zinc-900 transition"
+                  >
+                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* Content area */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 max-h-[calc(100vh-56px)] overflow-y-auto">
+              {hasQuery ? (
+                /* ── Search results ────────────────────────────────────── */
+                <div>
+                  {searching && results.length === 0 && (
+                    <div className="py-12 text-center text-sm text-zinc-400">Searching...</div>
+                  )}
+                  {!searching && results.length === 0 && query.length > 1 && (
+                    <div className="py-12 text-center">
+                      <p className="text-zinc-400 text-sm">No results found for &quot;{query}&quot;</p>
+                      <p className="text-zinc-300 text-xs mt-1">Try a different search term</p>
+                    </div>
+                  )}
+                  {results.length > 0 && (
+                    <>
+                      <p className="text-xs font-bold tracking-[0.15em] uppercase text-zinc-400 mb-4">
+                        Results
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {results.map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => goToProduct(p.slug)}
+                            className="text-left group rounded-xl border border-zinc-100 hover:border-zinc-200 hover:shadow-md transition-all bg-white overflow-hidden"
+                          >
+                            <div className="aspect-square bg-zinc-50 p-3 flex items-center justify-center">
+                              <img src={p.images[0]} alt={p.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+                            </div>
+                            <div className="p-3">
+                              <p className="text-xs text-zinc-500">{p.brand}</p>
+                              <p className="text-sm font-semibold text-zinc-900 truncate mt-0.5">{p.name}</p>
+                              <p className="text-xs text-zinc-400 truncate">{p.colorway}</p>
+                              <p className="text-sm font-bold text-zinc-900 mt-1.5">{'\u20B9'}{p.price.toLocaleString('en-IN')}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                      <div className="mt-6 text-center">
+                        <button
+                          type="button"
+                          onClick={() => { closeSearch(); router.push(`/products?search=${encodeURIComponent(query.trim())}`); }}
+                          className="text-sm font-semibold text-zinc-900 hover:text-zinc-600 underline underline-offset-4 transition"
+                        >
+                          View all results for &quot;{query}&quot;
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                /* ── Default state: popular searches + recommended ──── */
+                <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8">
+                  {/* Left: Popular searches */}
+                  <div>
+                    <p className="text-xs font-bold tracking-[0.15em] uppercase text-zinc-400 mb-3">
+                      Popular Searches
+                    </p>
+                    <div className="space-y-1">
+                      {POPULAR_SEARCHES.map((term) => (
+                        <button
+                          key={term}
+                          type="button"
+                          onClick={() => searchFor(term)}
+                          className="block w-full text-left px-3 py-2 text-sm text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 rounded-lg transition"
+                        >
+                          {term}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Right: Recommended products */}
+                  <div>
+                    <p className="text-xs font-bold tracking-[0.15em] uppercase text-zinc-400 mb-4">
+                      Recommended For You
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      {recommended.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => goToProduct(p.slug)}
+                          className="text-left group rounded-xl border border-zinc-100 hover:border-zinc-200 hover:shadow-md transition-all bg-white overflow-hidden"
+                        >
+                          <div className="aspect-square bg-zinc-50 p-3 flex items-center justify-center">
+                            <img src={p.images[0]} alt={p.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+                          </div>
+                          <div className="p-3">
+                            <p className="text-xs text-zinc-500">{p.brand}</p>
+                            <p className="text-sm font-semibold text-zinc-900 truncate mt-0.5">{p.name}</p>
+                            <p className="text-xs text-zinc-400 truncate">{p.colorway}</p>
+                            <p className="text-sm font-bold text-zinc-900 mt-1.5">{'\u20B9'}{p.price.toLocaleString('en-IN')}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Mobile Menu ──────────────────────────────────────────────────────── */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
           <div className="absolute top-16 left-0 right-0 bg-white border-b border-zinc-100 shadow-xl">
             <nav className="p-6 flex flex-col gap-4">
-              {/* Mobile search */}
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (query.trim()) {
-                    router.push(`/products?search=${encodeURIComponent(query.trim())}`);
-                    setMobileOpen(false);
-                    setQuery('');
-                  }
-                }}
-                className="relative"
-              >
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search sneakers..."
-                  className="w-full text-sm border border-zinc-200 rounded-lg px-3 py-2.5 pl-9 outline-none focus:border-zinc-400 bg-zinc-50"
-                />
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-              </form>
-
               <Link href="/products" onClick={() => setMobileOpen(false)} className="text-lg font-semibold tracking-widest uppercase text-zinc-900 hover:text-zinc-500 transition-colors">
                 Shop
               </Link>
