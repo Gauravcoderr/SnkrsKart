@@ -104,7 +104,7 @@ export default function SizeGuideModal({ open, onClose, gender }: SizeGuideModal
                   <th className="py-3 px-4 text-left text-[10px] font-bold tracking-widest uppercase">UK</th>
                   <th className="py-3 px-4 text-left text-[10px] font-bold tracking-widest uppercase">US</th>
                   <th className="py-3 px-4 text-left text-[10px] font-bold tracking-widest uppercase">EU</th>
-                  <th className="py-3 px-4 text-left text-[10px] font-bold tracking-widest uppercase">CM</th>
+                  <th className="py-3 px-4 text-left text-[10px] font-bold tracking-widest uppercase">CM <span className="normal-case font-normal text-zinc-400">(foot)</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -123,7 +123,7 @@ export default function SizeGuideModal({ open, onClose, gender }: SizeGuideModal
           {/* Footer tip */}
           <div className="px-6 py-3 border-t border-zinc-100 bg-zinc-50 shrink-0">
             <p className="text-[11px] text-zinc-500 leading-relaxed">
-              Tip: If you're between sizes, we recommend going half a size up for a comfortable fit.
+              CM = foot length in centimeters. If you&apos;re between sizes, we recommend going half a size up for a comfortable fit.
             </p>
           </div>
         </Dialog.Content>

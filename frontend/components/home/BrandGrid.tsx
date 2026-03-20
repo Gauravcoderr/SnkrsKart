@@ -6,110 +6,126 @@ interface BrandGridProps {
   brands: Brand[];
 }
 
-const brandMeta: Record<string, { image: string; bg: string; accent: string }> = {
+const brandMeta: Record<string, {
+  image: string;
+  label: string;
+  bg: string;
+  border: string;
+}> = {
   jordan: {
-    image: 'https://images.vegnonveg.com/resized/600X600/14235/jordan-air-jordan-4-retro-hemplight-orewood-brown-69032df6945da.jpg?format=webp',
-    bg: 'from-red-50 via-rose-50 to-rose-100',
-    accent: 'text-rose-600',
+    image: 'https://images.vegnonveg.com/resized/800X800/14383/jordan-air-jordan-1-mid-se-summit-whiteblue-chill-black-6915be658c878.jpg?format=webp',
+    label: 'Jordan',
+    bg: '#111',
+    border: '#e11d48',
   },
   nike: {
-    image: 'https://static.nike.com/a/images/t_PDP_864_v1/f_auto,q_auto:eco/b1bcbca4-e853-4df7-b329-5be3c61ee057/DUNK+LOW+RETRO.png',
-    bg: 'from-orange-50 via-amber-50 to-orange-100',
-    accent: 'text-orange-600',
+    image: 'https://images.vegnonveg.com/resized/800X800/14783/nike-dunk-low-retro-sailfir-6985d59229395.jpg?format=webp',
+    label: 'Nike',
+    bg: '#111',
+    border: '#ea580c',
   },
   adidas: {
-    image: 'https://images.vegnonveg.com/resized/600X600/14808/adidas-originals-adizero-evo-sl-whitecore-black-6985cf7dc9358.jpg?format=webp',
-    bg: 'from-blue-50 via-sky-50 to-blue-100',
-    accent: 'text-blue-600',
+    image: 'https://images.vegnonveg.com/resized/800X800/14808/adidas-originals-adizero-evo-sl-whitecore-black-6985cf7dc9358.jpg?format=webp',
+    label: 'Adidas',
+    bg: '#111',
+    border: '#2563eb',
   },
   'new-balance': {
-    image: 'https://images.vegnonveg.com/resized/600X600/13828/new-balance-9060-new-spruce-68a83ec87633b.jpg?format=webp',
-    bg: 'from-emerald-50 via-teal-50 to-emerald-100',
-    accent: 'text-emerald-600',
+    image: 'https://images.vegnonveg.com/resized/800X800/13828/new-balance-9060-new-spruce-68a83ec87633b.jpg?format=webp',
+    label: 'New Balance',
+    bg: '#111',
+    border: '#059669',
   },
   crocs: {
-    image: 'https://images.vegnonveg.com/resized/600X600/14888/crocs-star-wars-classic-clog-multicolor-69a57de41e6d2.jpg?format=webp',
-    bg: 'from-yellow-50 via-amber-50 to-yellow-100',
-    accent: 'text-amber-600',
+    image: 'https://images.vegnonveg.com/resized/800X800/14886/crocs-crush-clog-lunar-dusk-69a57b7789d80.jpg?format=webp',
+    label: 'Crocs',
+    bg: '#111',
+    border: '#d97706',
   },
 };
 
 export default function BrandGrid({ brands }: BrandGridProps) {
   return (
-    <section className="bg-zinc-50 py-16 lg:py-24">
+    <section className="bg-white py-14 lg:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
         {/* Header */}
-        <div className="flex items-end justify-between mb-10">
+        <div className="flex items-end justify-between mb-8">
           <div>
-            <p className="text-[11px] font-bold tracking-[0.35em] uppercase text-zinc-400 mb-1">
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">
               Premium Partners
             </p>
-            <h2 className="text-3xl font-black tracking-tight uppercase text-zinc-900">
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight uppercase text-zinc-900">
               Shop by Brand
             </h2>
           </div>
           <Link
             href="/products"
-            className="hidden sm:block text-xs font-bold tracking-widest uppercase text-zinc-500 hover:text-zinc-900 transition-colors"
+            className="hidden sm:block text-[11px] font-bold tracking-widest uppercase text-zinc-400 hover:text-zinc-900 transition-colors border-b border-zinc-200 hover:border-zinc-900 pb-0.5"
           >
-            View All &rarr;
+            All Brands &rarr;
           </Link>
         </div>
 
-        {/* Brand cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
+        {/* Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           {brands.map((brand) => {
-            const meta = brandMeta[brand.slug] ?? {
-              image: '',
-              bg: 'from-zinc-50 to-zinc-100',
-              accent: 'text-zinc-600',
-            };
+            const meta = brandMeta[brand.slug];
+            if (!meta) return null;
 
             return (
               <Link
                 key={brand.slug}
                 href={`/products?brand=${brand.slug}`}
-                className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${meta.bg} transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}
+                className="group block"
               >
-                {/* Shoe image */}
-                <div className="relative w-full aspect-square flex items-center justify-center p-5 sm:p-6">
-                  {meta.image ? (
-                    <div className="relative w-full h-full transition-transform duration-500 group-hover:scale-110">
+                {/* Card */}
+                <div
+                  className="relative overflow-hidden rounded-xl aspect-[3/4] flex flex-col"
+                  style={{ backgroundColor: meta.bg }}
+                >
+                  {/* Coloured top bar */}
+                  <div
+                    className="absolute top-0 left-0 right-0 h-[3px] z-10 transition-all duration-300 group-hover:h-[5px]"
+                    style={{ backgroundColor: meta.border }}
+                  />
+
+                  {/* Shoe image — fills upper 80% */}
+                  <div className="relative flex-1 flex items-center justify-center p-4 sm:p-6">
+                    <div className="relative w-full h-full transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-3">
                       <Image
                         src={meta.image}
-                        alt={`${brand.name} shoes`}
+                        alt={`${meta.label} sneakers`}
                         fill
-                        className="object-contain drop-shadow-lg"
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+                        className="object-contain drop-shadow-2xl"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                       />
                     </div>
-                  ) : (
-                    <span className="text-4xl font-black text-zinc-200 uppercase tracking-wider">
-                      {brand.logoText}
-                    </span>
-                  )}
-                </div>
+                  </div>
 
-                {/* Brand info */}
-                <div className="px-3 sm:px-4 pb-3 sm:pb-4 -mt-2">
-                  <p className="text-sm sm:text-base font-black uppercase tracking-wider text-zinc-900 leading-none">
-                    {brand.name}
-                  </p>
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="text-[10px] text-zinc-400 tracking-widest uppercase font-medium">
-                      {brand.productCount} styles
+                  {/* Bottom info */}
+                  <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-2 shrink-0">
+                    <p className="text-white font-black text-sm sm:text-base uppercase tracking-wider leading-none">
+                      {meta.label}
                     </p>
-                    <p
-                      className={`text-[10px] font-bold tracking-widest uppercase ${meta.accent} opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0`}
-                    >
-                      Shop &rarr;
-                    </p>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-zinc-500 text-[10px] tracking-widest uppercase">
+                        {brand.productCount} styles
+                      </p>
+                      <p
+                        className="text-[10px] font-bold tracking-wider uppercase opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0"
+                        style={{ color: meta.border }}
+                      >
+                        Shop &rarr;
+                      </p>
+                    </div>
                   </div>
                 </div>
               </Link>
             );
           })}
         </div>
+
       </div>
     </section>
   );
