@@ -34,10 +34,18 @@ export default function ListenButton({ html }: { html: string }) {
     utterance.pitch = 1;
     utterance.lang = 'en-IN';
 
-    // Try to pick an Indian English voice
+    // Pick a female voice — prefer Indian English female, then any English female
     const voices = window.speechSynthesis.getVoices();
-    const indianVoice = voices.find((v) => v.lang === 'en-IN') || voices.find((v) => v.lang.startsWith('en'));
-    if (indianVoice) utterance.voice = indianVoice;
+    const isFemale = (v: SpeechSynthesisVoice) =>
+      /female|woman|zira|samantha|karen|moira|fiona|veena|rishi|aditi/i.test(v.name) ||
+      (!(/male|david|daniel|james|fred|alex|rishi/i.test(v.name)));
+    const femaleIndian = voices.find((v) => v.lang === 'en-IN' && isFemale(v));
+    const femaleEnglish = voices.find((v) => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'))
+      || voices.find((v) => v.lang.startsWith('en') && /samantha|karen|zira|moira|fiona|veena|victoria|susan/i.test(v.name))
+      || voices.find((v) => v.lang === 'en-US' && isFemale(v))
+      || voices.find((v) => v.lang.startsWith('en') && isFemale(v));
+    const pickedVoice = femaleIndian || femaleEnglish || voices.find((v) => v.lang === 'en-IN') || voices.find((v) => v.lang.startsWith('en'));
+    if (pickedVoice) utterance.voice = pickedVoice;
 
     utterance.onend = () => setPlaying(false);
     utterance.onerror = () => setPlaying(false);
