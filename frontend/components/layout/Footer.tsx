@@ -66,10 +66,16 @@ export default function Footer() {
           <div>
             <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-400 mb-4">Help</h3>
             <ul className="space-y-2">
-              {['Size Guide', 'Shipping Info', 'Returns & Exchanges', 'Track My Order', 'FAQs'].map((item) => (
-                <li key={item}>
-                  <Link href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">
-                    {item}
+              {[
+                { label: 'Size Guide', href: '/size-guide' },
+                { label: 'Shipping Info', href: '/shipping' },
+                { label: 'Returns & Exchanges', href: '/returns' },
+                { label: 'Track My Order', href: '/track-order' },
+                { label: 'FAQs', href: '/faqs' },
+              ].map((item) => (
+                <li key={item.label}>
+                  <Link href={item.href} className="text-sm text-zinc-400 hover:text-white transition-colors">
+                    {item.label}
                   </Link>
                 </li>
               ))}
@@ -120,8 +126,8 @@ export default function Footer() {
             © {new Date().getFullYear()} SNKRS CART. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            <Link href="#" className="text-xs text-zinc-500 hover:text-zinc-300">Privacy Policy</Link>
-            <Link href="#" className="text-xs text-zinc-500 hover:text-zinc-300">Terms of Service</Link>
+            <Link href="/privacy" className="text-xs text-zinc-500 hover:text-zinc-300">Privacy Policy</Link>
+            <Link href="/terms" className="text-xs text-zinc-500 hover:text-zinc-300">Terms of Service</Link>
           </div>
         </div>
       </div>

@@ -115,9 +115,16 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
         {/* Product info */}
         <div className="pt-3 pb-1 px-0.5">
-          <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-400 mb-0.5">
-            {product.brand}
-          </p>
+          <div className="flex items-center justify-between mb-0.5">
+            <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-400">
+              {product.brand}
+            </p>
+            {product.gender && (
+              <span className="text-[10px] font-semibold tracking-wider uppercase text-zinc-400 border border-zinc-200 px-1.5 py-0.5">
+                {product.gender === 'men' ? "Men's" : product.gender === 'women' ? "Women's" : 'Unisex'}
+              </span>
+            )}
+          </div>
           <p className="text-sm font-semibold text-zinc-900 leading-tight">
             {product.name}
           </p>

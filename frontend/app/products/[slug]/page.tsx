@@ -57,9 +57,16 @@ export default async function ProductDetailPage({ params }: PageProps) {
         {/* Product info — right col */}
         <div className="flex flex-col">
           {/* Brand + name */}
-          <p className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">
-            {product.brand}
-          </p>
+          <div className="flex items-center gap-2 mb-1">
+            <p className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-400">
+              {product.brand}
+            </p>
+            {product.gender && (
+              <span className="text-[10px] font-semibold tracking-wider uppercase text-zinc-400 border border-zinc-200 px-1.5 py-0.5">
+                {product.gender === 'men' ? "Men's" : product.gender === 'women' ? "Women's" : 'Unisex'}
+              </span>
+            )}
+          </div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 mb-1">
             {product.name}
           </h1>
