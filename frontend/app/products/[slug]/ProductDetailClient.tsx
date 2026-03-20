@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { Product } from '@/types';
 import SizeSelector from '@/components/product-detail/SizeSelector';
 import AddToCartButton from '@/components/product-detail/AddToCartButton';
+import PurchaseModal from '@/components/product-detail/PurchaseModal';
 import { formatPrice } from '@/lib/utils';
 
 interface ProductDetailClientProps {
@@ -14,6 +15,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [showSizeError, setShowSizeError] = useState(false);
   const [currentPrice, setCurrentPrice] = useState(product.price);
+  const [showModal, setShowModal] = useState(false);
   const [currentOriginalPrice, setCurrentOriginalPrice] = useState(product.originalPrice);
   const sizeSectionRef = useRef<HTMLDivElement>(null);
 
@@ -79,6 +81,15 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         onRequireSize={handleRequireSize}
       />
 
+      {/* Purchase inquiry CTA */}
+      <button
+        type="button"
+        onClick={() => setShowModal(true)}
+        className="w-full py-3.5 border-2 border-zinc-900 text-sm font-bold tracking-widest uppercase text-zinc-900 hover:bg-zinc-900 hover:text-white transition-colors duration-200"
+      >
+        Want to Purchase? — Enquire Now
+      </button>
+
       {/* Trust badges */}
       <div className="grid grid-cols-3 gap-3 pt-2">
         {[
@@ -92,6 +103,15 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </div>
         ))}
       </div>
+      {/* Purchase modal */}
+      {showModal && (
+        <PurchaseModal
+          product={product}
+          selectedSize={selectedSize}
+          currentPrice={currentPrice}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 }
