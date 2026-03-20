@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
-import { Product, IProduct } from '../models/Product';
-import type { FilterQuery } from 'mongoose';
+import { Product } from '../models/Product';
 
-function buildFilter(query: Record<string, string>): FilterQuery<IProduct> {
-  const filter: FilterQuery<IProduct> = {};
+type MongoFilter = Record<string, any>;
+
+function buildFilter(query: Record<string, string>): MongoFilter {
+  const filter: MongoFilter = {};
 
   if (query.brand) {
     const brands = query.brand.split(',').map((b) => b.trim());
