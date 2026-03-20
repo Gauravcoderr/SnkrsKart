@@ -16,8 +16,9 @@ app.use('/api/v1/brands', brandRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀 SNKRS CART API running on http://localhost:${PORT}`);
+app.listen(PORT, () => {
+  console.log(`🚀 SNKRS CART API running on http://localhost:${PORT}`);
+  connectDB().catch((err) => {
+    console.error('❌ DB connection failed:', err);
   });
 });

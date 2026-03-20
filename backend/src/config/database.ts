@@ -11,6 +11,6 @@ export async function connectDB(): Promise<void> {
     console.log('✅ MongoDB connected:', mongoose.connection.host);
   } catch (err) {
     console.error('❌ MongoDB connection failed:', err);
-    process.exit(1);
+    throw err;
   }
 }
