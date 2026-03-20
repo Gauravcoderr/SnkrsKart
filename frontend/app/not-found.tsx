@@ -49,7 +49,7 @@ export default function NotFound() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-[11px] font-bold tracking-widest uppercase px-4 py-2 border border-zinc-200 text-zinc-600 hover:border-zinc-900 hover:text-zinc-900 hover:bg-zinc-900 hover:text-white transition-all duration-150"
+              className="text-[11px] font-bold tracking-widest uppercase px-4 py-2 border border-zinc-200 text-zinc-600 hover:border-zinc-900 hover:bg-zinc-900 hover:text-white transition-all duration-150"
             >
               {link.label}
             </Link>
