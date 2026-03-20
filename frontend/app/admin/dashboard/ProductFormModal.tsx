@@ -249,7 +249,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
             <Field label="Colorway" value={form.colorway} onChange={(v) => set('colorway', v)} />
             <div>
               <label className="block text-sm font-medium text-zinc-400 mb-1.5">Category</label>
-              <select
+              <select aria-label="Category"
                 value={form.category}
                 onChange={(e) => set('category', e.target.value)}
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/20"
@@ -265,7 +265,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
           <div className="grid grid-cols-4 gap-4">
             <div className="col-span-1">
               <label className="block text-sm font-medium text-zinc-400 mb-1.5">Gender</label>
-              <select
+              <select aria-label="Gender"
                 value={form.gender}
                 onChange={(e) => set('gender', e.target.value)}
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/20"
@@ -280,7 +280,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-zinc-400 mb-1.5">Description *</label>
-            <textarea
+            <textarea aria-label="Description" placeholder="Enter product description..."
               value={form.description}
               onChange={(e) => set('description', e.target.value)}
               rows={3}

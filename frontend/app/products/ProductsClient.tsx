@@ -95,6 +95,7 @@ export default function ProductsClient() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
               {/* Mobile filter toggle */}
               <button
+                type="button"
                 className="lg:hidden self-start flex items-center gap-2 border border-zinc-200 px-4 py-2 text-xs font-bold tracking-widest uppercase text-zinc-700 hover:border-zinc-900 transition-colors"
                 onClick={() => setMobileFiltersOpen(true)}
               >
@@ -129,6 +130,7 @@ export default function ProductsClient() {
             {totalPages > 1 && !loading && (
               <div className="flex items-center justify-center gap-2 mt-12">
                 <button
+                  type="button"
                   onClick={() => setPage(page - 1)}
                   disabled={page === 1}
                   className="px-4 py-2 text-sm font-semibold border border-zinc-200 text-zinc-700 hover:border-zinc-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
@@ -138,6 +140,7 @@ export default function ProductsClient() {
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                   <button
                     key={p}
+                    type="button"
                     onClick={() => setPage(p)}
                     className={`w-10 h-10 text-sm font-semibold border transition-colors ${
                       p === page
@@ -149,6 +152,7 @@ export default function ProductsClient() {
                   </button>
                 ))}
                 <button
+                  type="button"
                   onClick={() => setPage(page + 1)}
                   disabled={page === totalPages}
                   className="px-4 py-2 text-sm font-semibold border border-zinc-200 text-zinc-700 hover:border-zinc-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
@@ -171,6 +175,7 @@ export default function ProductsClient() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-sm font-bold tracking-widest uppercase">Filters</h2>
                 <button
+                  type="button"
                   onClick={() => setMobileFiltersOpen(false)}
                   className="p-1 text-zinc-400 hover:text-zinc-900"
                 >
@@ -181,6 +186,7 @@ export default function ProductsClient() {
               </div>
               <FilterSidebar filters={filters} onFilterChange={handleFilterChange} />
               <button
+                type="button"
                 onClick={() => setMobileFiltersOpen(false)}
                 className="mt-6 w-full bg-zinc-900 text-white py-3 text-sm font-bold tracking-widest uppercase"
               >
