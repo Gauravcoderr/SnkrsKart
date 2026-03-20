@@ -31,7 +31,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     availableSizes: product?.availableSizes?.join(', ') || '',
     colors: product?.colors?.join(', ') || '',
     tags: product?.tags?.join(', ') || '',
-    images: product?.images?.join('\n') || '',
+    imageList: product?.images?.length ? [...product.images] : [''],
     hoverImage: product?.hoverImage || '',
     featured: product?.featured || false,
     trending: product?.trending || false,
@@ -68,7 +68,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
         availableSizes: form.availableSizes.split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n)),
         colors: form.colors.split(',').map((c) => c.trim().toLowerCase()).filter(Boolean),
         tags: form.tags.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean),
-        images: form.images.split('\n').map((u) => u.trim()).filter(Boolean),
+        images: form.imageList.map((u) => u.trim()).filter(Boolean),
         hoverImage: form.hoverImage.trim(),
         featured: form.featured,
         trending: form.trending,
@@ -177,17 +177,43 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
 
           {/* Images */}
           <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-1.5">
-              Image URLs (one per line) *
-            </label>
-            <textarea
-              value={form.images}
-              onChange={(e) => set('images', e.target.value)}
-              rows={4}
-              required
-              placeholder={"https://example.com/image1.jpg\nhttps://example.com/image2.jpg"}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 resize-none font-mono"
-            />
+            <label className="block text-sm font-medium text-zinc-400 mb-1.5">Image URLs *</label>
+            <div className="space-y-2">
+              {form.imageList.map((url, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={url}
+                    onChange={(e) => {
+                      const updated = [...form.imageList];
+                      updated[i] = e.target.value;
+                      set('imageList', updated);
+                    }}
+                    placeholder={`Image URL ${i + 1}`}
+                    className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 transition font-mono"
+                  />
+                  {form.imageList.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = form.imageList.filter((_, idx) => idx !== i);
+                        set('imageList', updated);
+                      }}
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2.5 rounded-lg transition text-sm shrink-0"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => set('imageList', [...form.imageList, ''])}
+              className="mt-2 text-xs text-zinc-400 hover:text-white hover:bg-zinc-800 px-3 py-1.5 rounded-lg border border-zinc-700 transition"
+            >
+              + Add Image
+            </button>
           </div>
 
           {/* Hover Image */}
