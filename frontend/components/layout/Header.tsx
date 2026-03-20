@@ -13,7 +13,6 @@ const navLinks = [
   { label: 'Shop', href: '/products' },
   { label: 'Brands', href: '#' },
   { label: 'New In', href: '/products?sort=newest' },
-  { label: 'Sale', href: '/products?minPrice=0&maxPrice=8000' },
 ];
 
 const BRANDS = [
@@ -261,8 +260,8 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Content area */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 max-h-[calc(100vh-56px)] overflow-y-auto">
+            {/* Content area — max to center of screen */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 max-h-[calc(50vh-28px)] overflow-y-auto">
               {hasQuery ? (
                 /* ── Search results ────────────────────────────────────── */
                 <div>
@@ -378,9 +377,6 @@ export default function Header() {
               </Link>
               <Link href="/products?sort=newest" onClick={() => setMobileOpen(false)} className="text-lg font-semibold tracking-widest uppercase text-zinc-900 hover:text-zinc-500 transition-colors">
                 New In
-              </Link>
-              <Link href="/products?minPrice=0&maxPrice=8000" onClick={() => setMobileOpen(false)} className="text-lg font-semibold tracking-widest uppercase text-zinc-900 hover:text-zinc-500 transition-colors">
-                Sale
               </Link>
 
               <div className="pt-4 border-t border-zinc-100">
