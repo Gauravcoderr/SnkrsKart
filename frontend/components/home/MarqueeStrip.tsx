@@ -1,6 +1,6 @@
 export default function MarqueeStrip() {
   const text =
-    'FREE SHIPPING ON ORDERS ABOVE ₹3,000 · JUST DROPPED: ADIDAS SAMBA OG · NEW IN: NEW BALANCE 550 · ASICS GEL-KAYANO 14 IS BACK · SHOP NIKE DUNK LOW → ';
+    'SNKRS CART: 100% AUTHENTIC SNEAKERS • TRUSTED SELLER • SECURE PACKAGING • PAN INDIA SHIPPING • NO FAKES • NO COMPROMISE • ';
 
   return (
     <div className="bg-zinc-900 text-white py-2.5 overflow-hidden">
