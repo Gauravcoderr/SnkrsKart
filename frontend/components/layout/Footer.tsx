@@ -99,6 +99,11 @@ export default function Footer() {
                   Become a Seller
                 </Link>
               </li>
+              <li>
+                <Link href="/blogs" className="text-sm text-zinc-400 hover:text-white transition-colors">
+                  SNKRS Blog
+                </Link>
+              </li>
             </ul>
             <div className="mt-6 space-y-2">
               <a

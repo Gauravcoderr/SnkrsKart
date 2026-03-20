@@ -8,6 +8,7 @@ import { Inquiry } from '../models/Inquiry';
 import { Review } from '../models/Review';
 import { Banner } from '../models/Banner';
 import { Seller } from '../models/Seller';
+import { Blog } from '../models/Blog';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'snkrs-cart-admin-secret-key';
@@ -237,6 +238,61 @@ router.delete('/sellers/:id', adminAuth, async (req: Request, res: Response): Pr
     res.json({ message: 'Deleted' });
   } catch {
     res.status(500).json({ error: 'Failed to delete seller' });
+  }
+});
+
+// ─── Blogs ─────────────────────────────────────────────────────────────────
+
+router.get('/blogs', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const blogs = await Blog.find().sort({ createdAt: -1 }).lean();
+    res.json(blogs);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch blogs' });
+  }
+});
+
+router.get('/blogs/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const blog = await Blog.findById(req.params.id).lean();
+    if (!blog) { res.status(404).json({ error: 'Not found' }); return; }
+    res.json(blog);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch blog' });
+  }
+});
+
+router.post('/blogs', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const data = req.body;
+    if (!data.title) { res.status(400).json({ error: 'Title is required' }); return; }
+    if (!data.slug) data.slug = toSlug(data.title);
+    const existing = await Blog.findOne({ slug: data.slug }).lean();
+    if (existing) { res.status(409).json({ error: 'Slug already exists' }); return; }
+    const blog = await Blog.create(data);
+    res.status(201).json(blog);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to create blog' });
+  }
+});
+
+router.put('/blogs/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const blog = await Blog.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true, runValidators: true });
+    if (!blog) { res.status(404).json({ error: 'Not found' }); return; }
+    res.json(blog);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to update blog' });
+  }
+});
+
+router.delete('/blogs/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const blog = await Blog.findByIdAndDelete(req.params.id);
+    if (!blog) { res.status(404).json({ error: 'Not found' }); return; }
+    res.json({ message: 'Deleted' });
+  } catch {
+    res.status(500).json({ error: 'Failed to delete blog' });
   }
 });
 

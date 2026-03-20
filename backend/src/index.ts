@@ -8,6 +8,7 @@ import bannerRoutes from './routes/banners';
 import inquiryRoutes from './routes/inquiries';
 import reviewRoutes from './routes/reviews';
 import sellerRoutes from './routes/seller';
+import blogRoutes from './routes/blogs';
 import adminRoutes from './routes/admin';
 
 const app = express();
@@ -22,6 +23,7 @@ app.use('/api/v1/banners', bannerRoutes);
 app.use('/api/v1/inquiries', inquiryRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/seller', sellerRoutes);
+app.use('/api/v1/blogs', blogRoutes);
 app.use('/api/v1/admin', adminRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));

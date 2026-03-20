@@ -13,6 +13,7 @@ const navLinks = [
   { label: 'Shop', href: '/products' },
   { label: 'Brands', href: '#' },
   { label: 'New In', href: '/products?sort=newest' },
+  { label: 'Blog', href: '/blogs' },
 ];
 
 const BRANDS = [
@@ -377,6 +378,9 @@ export default function Header() {
               </Link>
               <Link href="/products?sort=newest" onClick={() => setMobileOpen(false)} className="text-lg font-semibold tracking-widest uppercase text-zinc-900 hover:text-zinc-500 transition-colors">
                 New In
+              </Link>
+              <Link href="/blogs" onClick={() => setMobileOpen(false)} className="text-lg font-semibold tracking-widest uppercase text-zinc-900 hover:text-zinc-500 transition-colors">
+                Blog
               </Link>
 
               <div className="pt-4 border-t border-zinc-100">
