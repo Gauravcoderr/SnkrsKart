@@ -10,6 +10,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD,
   },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
 });
 
 router.post('/', async (req: Request, res: Response) => {
@@ -21,14 +24,17 @@ router.post('/', async (req: Request, res: Response) => {
       return;
     }
 
-    // Save to DB
+    // Save to DB first
     await Inquiry.create({ name, email, phone, address, productSlug, productName, productBrand, selectedSize, price });
+
+    // Respond immediately — don't block on email
+    res.json({ success: true });
 
     const priceFormatted = `₹${Number(price).toLocaleString('en-IN')}`;
     const sizeText = selectedSize ? `UK ${selectedSize}` : 'Not specified';
 
-    // Email to customer
-    await transporter.sendMail({
+    // Send emails in background
+    transporter.sendMail({
       from: `"SNKRS CART" <${process.env.GMAIL_USER}>`,
       to: email,
       subject: `We received your interest — ${productName}`,
@@ -52,10 +58,10 @@ router.post('/', async (req: Request, res: Response) => {
           </div>
         </div>
       `,
-    });
+    }).catch((err: unknown) => console.error('Customer email failed:', err));
 
     // Email to store
-    await transporter.sendMail({
+    transporter.sendMail({
       from: `"SNKRS CART" <${process.env.GMAIL_USER}>`,
       to: process.env.GMAIL_USER,
       subject: `New Purchase Inquiry — ${productBrand} ${productName}`,
@@ -75,9 +81,7 @@ router.post('/', async (req: Request, res: Response) => {
           </div>
         </div>
       `,
-    });
-
-    res.json({ success: true });
+    }).catch((err: unknown) => console.error('Store email failed:', err));
   } catch (err) {
     console.error('Inquiry error:', err);
     res.status(500).json({ error: 'Failed to submit inquiry' });
