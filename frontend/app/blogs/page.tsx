@@ -5,27 +5,26 @@ import type { Blog } from '@/types';
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
 
-const TAG_ACCENTS: Record<string, { bg: string; tagBg: string; tagText: string; accent: string; border: string; dot: string; heroGrad: string }> = {
-  jordan:        { bg: 'bg-red-50',     tagBg: 'bg-red-100',     tagText: 'text-red-700',     accent: 'text-red-600',     border: 'border-red-200',    dot: 'bg-red-400',    heroGrad: 'from-red-900 to-red-700'     },
-  nike:          { bg: 'bg-orange-50',  tagBg: 'bg-orange-100',  tagText: 'text-orange-700',  accent: 'text-orange-600',  border: 'border-orange-200', dot: 'bg-orange-400', heroGrad: 'from-orange-900 to-orange-700'},
-  adidas:        { bg: 'bg-blue-50',    tagBg: 'bg-blue-100',    tagText: 'text-blue-700',    accent: 'text-blue-600',    border: 'border-blue-200',   dot: 'bg-blue-400',   heroGrad: 'from-blue-900 to-blue-700'   },
-  'new-balance': { bg: 'bg-amber-50',   tagBg: 'bg-amber-100',   tagText: 'text-amber-700',   accent: 'text-amber-600',   border: 'border-amber-200',  dot: 'bg-amber-400',  heroGrad: 'from-amber-900 to-amber-700' },
-  'new balance': { bg: 'bg-amber-50',   tagBg: 'bg-amber-100',   tagText: 'text-amber-700',   accent: 'text-amber-600',   border: 'border-amber-200',  dot: 'bg-amber-400',  heroGrad: 'from-amber-900 to-amber-700' },
-  crocs:         { bg: 'bg-green-50',   tagBg: 'bg-green-100',   tagText: 'text-green-700',   accent: 'text-green-600',   border: 'border-green-200',  dot: 'bg-green-400',  heroGrad: 'from-green-900 to-green-700' },
-  guide:         { bg: 'bg-violet-50',  tagBg: 'bg-violet-100',  tagText: 'text-violet-700',  accent: 'text-violet-600',  border: 'border-violet-200', dot: 'bg-violet-400', heroGrad: 'from-violet-900 to-violet-700'},
-  india:         { bg: 'bg-emerald-50', tagBg: 'bg-emerald-100', tagText: 'text-emerald-700', accent: 'text-emerald-600', border: 'border-emerald-200',dot: 'bg-emerald-400',heroGrad: 'from-emerald-900 to-emerald-700'},
-  history:       { bg: 'bg-stone-50',   tagBg: 'bg-stone-200',   tagText: 'text-stone-700',   accent: 'text-stone-600',   border: 'border-stone-200',  dot: 'bg-stone-400',  heroGrad: 'from-stone-800 to-stone-700' },
-  trends:        { bg: 'bg-pink-50',    tagBg: 'bg-pink-100',    tagText: 'text-pink-700',    accent: 'text-pink-600',    border: 'border-pink-200',   dot: 'bg-pink-400',   heroGrad: 'from-pink-900 to-pink-700'   },
-  releases:      { bg: 'bg-cyan-50',    tagBg: 'bg-cyan-100',    tagText: 'text-cyan-700',    accent: 'text-cyan-600',    border: 'border-cyan-200',   dot: 'bg-cyan-400',   heroGrad: 'from-cyan-900 to-cyan-700'   },
-  collaboration: { bg: 'bg-purple-50',  tagBg: 'bg-purple-100',  tagText: 'text-purple-700',  accent: 'text-purple-600',  border: 'border-purple-200', dot: 'bg-purple-400', heroGrad: 'from-purple-900 to-purple-700'},
-  'style guide': { bg: 'bg-teal-50',    tagBg: 'bg-teal-100',    tagText: 'text-teal-700',    accent: 'text-teal-600',    border: 'border-teal-200',   dot: 'bg-teal-400',   heroGrad: 'from-teal-900 to-teal-700'   },
-  'care guide':  { bg: 'bg-lime-50',    tagBg: 'bg-lime-100',    tagText: 'text-lime-700',    accent: 'text-lime-600',    border: 'border-lime-200',   dot: 'bg-lime-500',   heroGrad: 'from-lime-900 to-lime-700'   },
+const TAG_ACCENTS: Record<string, { tagBg: string; tagText: string; dot: string; heroGrad: string; stripBg: string }> = {
+  jordan:        { tagBg: 'bg-red-500/20',     tagText: 'text-red-300',     dot: 'bg-red-400',    heroGrad: 'from-red-950 via-red-900/60 to-black',      stripBg: 'bg-red-500'     },
+  nike:          { tagBg: 'bg-orange-500/20',  tagText: 'text-orange-300',  dot: 'bg-orange-400', heroGrad: 'from-orange-950 via-orange-900/60 to-black', stripBg: 'bg-orange-500'  },
+  adidas:        { tagBg: 'bg-blue-500/20',    tagText: 'text-blue-300',    dot: 'bg-blue-400',   heroGrad: 'from-blue-950 via-blue-900/60 to-black',    stripBg: 'bg-blue-500'    },
+  'new-balance': { tagBg: 'bg-amber-500/20',   tagText: 'text-amber-300',   dot: 'bg-amber-400',  heroGrad: 'from-amber-950 via-amber-900/60 to-black',  stripBg: 'bg-amber-500'   },
+  'new balance': { tagBg: 'bg-amber-500/20',   tagText: 'text-amber-300',   dot: 'bg-amber-400',  heroGrad: 'from-amber-950 via-amber-900/60 to-black',  stripBg: 'bg-amber-500'   },
+  crocs:         { tagBg: 'bg-green-500/20',   tagText: 'text-green-300',   dot: 'bg-green-400',  heroGrad: 'from-green-950 via-green-900/60 to-black',  stripBg: 'bg-green-500'   },
+  guide:         { tagBg: 'bg-violet-500/20',  tagText: 'text-violet-300',  dot: 'bg-violet-400', heroGrad: 'from-violet-950 via-violet-900/60 to-black',stripBg: 'bg-violet-500'  },
+  india:         { tagBg: 'bg-emerald-500/20', tagText: 'text-emerald-300', dot: 'bg-emerald-400',heroGrad: 'from-emerald-950 via-emerald-900/60 to-black',stripBg:'bg-emerald-500' },
+  history:       { tagBg: 'bg-stone-500/20',   tagText: 'text-stone-300',   dot: 'bg-stone-400',  heroGrad: 'from-stone-950 via-stone-800/60 to-black',  stripBg: 'bg-stone-500'   },
+  trends:        { tagBg: 'bg-pink-500/20',    tagText: 'text-pink-300',    dot: 'bg-pink-400',   heroGrad: 'from-pink-950 via-pink-900/60 to-black',    stripBg: 'bg-pink-500'    },
+  releases:      { tagBg: 'bg-cyan-500/20',    tagText: 'text-cyan-300',    dot: 'bg-cyan-400',   heroGrad: 'from-cyan-950 via-cyan-900/60 to-black',    stripBg: 'bg-cyan-500'    },
+  collaboration: { tagBg: 'bg-purple-500/20',  tagText: 'text-purple-300',  dot: 'bg-purple-400', heroGrad: 'from-purple-950 via-purple-900/60 to-black',stripBg: 'bg-purple-500'  },
+  'style guide': { tagBg: 'bg-teal-500/20',    tagText: 'text-teal-300',    dot: 'bg-teal-400',   heroGrad: 'from-teal-950 via-teal-900/60 to-black',    stripBg: 'bg-teal-500'    },
+  'care guide':  { tagBg: 'bg-lime-500/20',    tagText: 'text-lime-300',    dot: 'bg-lime-400',   heroGrad: 'from-lime-950 via-lime-900/60 to-black',    stripBg: 'bg-lime-500'    },
 };
 
 const DEFAULT_ACCENT = {
-  bg: 'bg-zinc-50', tagBg: 'bg-zinc-100', tagText: 'text-zinc-600',
-  accent: 'text-zinc-600', border: 'border-zinc-200', dot: 'bg-zinc-400',
-  heroGrad: 'from-zinc-900 to-zinc-700',
+  tagBg: 'bg-white/10', tagText: 'text-white/80', dot: 'bg-zinc-400',
+  heroGrad: 'from-zinc-950 via-zinc-800/60 to-black', stripBg: 'bg-zinc-500',
 };
 
 function getAccent(tags: string[]) {
@@ -56,254 +55,304 @@ function readingTime(content: string): number {
 }
 
 function isNew(dateStr: string): boolean {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  return diff < 7 * 24 * 60 * 60 * 1000; // within 7 days
+  return Date.now() - new Date(dateStr).getTime() < 7 * 24 * 60 * 60 * 1000;
 }
 
 export const metadata = {
   title: 'Sneaker Blog | SNKRS CART',
-  description: 'Latest sneaker news, release guides, style tips, and brand stories from SNKRS CART — India\'s trusted sneaker platform.',
+  description: "Latest sneaker news, release guides, style tips, and brand stories from SNKRS CART — India's trusted sneaker platform.",
   alternates: { canonical: `${SITE_URL}/blogs` },
   openGraph: {
     title: 'Sneaker Blog | SNKRS CART',
     description: 'Latest sneaker news, release guides, and style tips from SNKRS CART.',
-    url: `${SITE_URL}/blogs`,
-    siteName: 'SNKRS CART',
-    type: 'website',
+    url: `${SITE_URL}/blogs`, siteName: 'SNKRS CART', type: 'website',
   },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Sneaker Blog | SNKRS CART',
-    description: 'Latest sneaker content from SNKRS CART.',
-  },
+  twitter: { card: 'summary_large_image', title: 'Sneaker Blog | SNKRS CART', description: 'Latest sneaker content from SNKRS CART.' },
 };
 
 export default async function BlogsPage() {
   const blogs = await fetchBlogs();
 
   const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Blog',
+    '@context': 'https://schema.org', '@type': 'Blog',
     name: 'SNKRS CART Blog',
     description: 'Sneaker news, release guides, and style content from SNKRS CART.',
     url: `${SITE_URL}/blogs`,
-    publisher: {
-      '@type': 'Organization',
-      name: 'SNKRS CART',
-      url: SITE_URL,
-      logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.jpg` },
-    },
+    publisher: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL, logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.jpg` } },
     blogPost: blogs.map((b) => ({
-      '@type': 'BlogPosting',
-      headline: b.title,
-      url: `${SITE_URL}/blogs/${b.slug}`,
-      datePublished: b.createdAt,
+      '@type': 'BlogPosting', headline: b.title,
+      url: `${SITE_URL}/blogs/${b.slug}`, datePublished: b.createdAt,
       author: { '@type': 'Person', name: b.author },
       ...(b.coverImage ? { image: b.coverImage } : {}),
     })),
   };
 
-  const [hero, ...rest] = blogs;
+const WA = process.env.NEXT_PUBLIC_WHATSAPP || '919410903791';
+
+  const [hero, second, ...rest] = blogs;
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      {/* ── Page header ──────────────────────────────────────────── */}
-      <div className="bg-zinc-950 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">SNKRS CART</p>
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-3">Sneaker Blog</h1>
-          <p className="text-zinc-400 text-base max-w-xl">
-            Release guides, brand stories, style tips — everything authentic in Indian sneaker culture.
+      {/* ── Cinematic page header — same dark feel as detail page ── */}
+      <div className="relative bg-zinc-950 overflow-hidden">
+        {/* Subtle grid texture */}
+        <div className="absolute inset-0 opacity-[0.03] bg-[image:repeating-linear-gradient(0deg,#fff_0,#fff_1px,transparent_1px,transparent_40px),repeating-linear-gradient(90deg,#fff_0,#fff_1px,transparent_1px,transparent_40px)]" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+          <p className="text-[11px] font-bold tracking-[0.35em] uppercase text-zinc-500 mb-3">SNKRS CART</p>
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white leading-none mb-4">
+            Sneaker<br />
+            <span className="text-zinc-500">Blog.</span>
+          </h1>
+          <p className="text-zinc-400 text-base sm:text-lg max-w-lg leading-relaxed">
+            Releases, collabs, style guides &amp; brand deep-dives — written for India&apos;s sneaker community.
           </p>
-
-          {/* Trust bar */}
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-6 text-xs text-zinc-500">
-            <span className="flex items-center gap-1.5">
+          {/* Trust signals */}
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-8 text-xs text-zinc-600">
+            <span className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
               Updated weekly
             </span>
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-2">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              100% Original Content
+              Original content only
             </span>
-            <span className="flex items-center gap-1.5">
-              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+            <span className="flex items-center gap-2">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
-              Share on WhatsApp
+              Drop alerts via WhatsApp
             </span>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {blogs.length === 0 ? (
-          <div className="text-center py-24 text-zinc-400">
-            <p className="text-lg font-semibold">No posts yet.</p>
-            <p className="text-sm mt-1">Check back soon for sneaker content.</p>
-          </div>
-        ) : (
-          <>
-            {/* ── Hero card (first post) ──────────────────────────── */}
-            {hero && (() => {
-              const a = getAccent(hero.tags);
-              return (
+      {blogs.length === 0 ? (
+        <div className="text-center py-24 text-zinc-400 max-w-7xl mx-auto px-4">
+          <p className="text-lg font-semibold">No posts yet.</p>
+          <p className="text-sm mt-1">Check back soon for sneaker content.</p>
+        </div>
+      ) : (
+        <>
+          {/* ── Hero post — full-bleed cinematic, same as detail page ── */}
+          {hero && (() => {
+            const a = getAccent(hero.tags);
+            return (
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
                 <Link
                   href={`/blogs/${hero.slug}`}
-                  className="group block rounded-3xl overflow-hidden mb-12 shadow-xl hover:shadow-2xl transition-shadow relative"
+                  className="group relative block rounded-3xl overflow-hidden shadow-2xl hover:shadow-[0_32px_80px_rgba(0,0,0,0.35)] transition-shadow duration-500 min-h-[520px]"
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[420px]">
-                    {/* Image side */}
-                    <div className="relative bg-zinc-900 overflow-hidden lg:min-h-[420px] min-h-[260px]">
-                      {hero.coverImage ? (
-                        <Image
-                          src={hero.coverImage}
-                          alt={hero.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-90"
-                          sizes="(max-width:1024px) 100vw, 50vw"
-                          priority
-                        />
-                      ) : (
-                        <div className={`absolute inset-0 bg-gradient-to-br ${a.heroGrad}`} />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/20 lg:to-black/60" />
+                  {/* Full-bleed background */}
+                  <div className="absolute inset-0 bg-zinc-900">
+                    {hero.coverImage ? (
+                      <Image
+                        src={hero.coverImage}
+                        alt={hero.title}
+                        fill
+                        className="object-cover opacity-70 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700"
+                        sizes="100vw"
+                        priority
+                      />
+                    ) : (
+                      <div className={`absolute inset-0 bg-gradient-to-br ${a.heroGrad}`} />
+                    )}
+                  </div>
 
-                      {/* "Featured" badge */}
-                      <div className="absolute top-4 left-4">
-                        <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/20 text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full">
-                          <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                          Featured
+                  {/* Dark gradient overlay — text comes from bottom */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-black/10" />
+
+                  {/* Top badges */}
+                  <div className="absolute top-5 left-5 flex items-center gap-2 z-10">
+                    <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold tracking-[0.2em] uppercase px-3 py-1.5 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      Featured
+                    </span>
+                    {isNew(hero.createdAt) && (
+                      <span className="bg-white text-zinc-900 text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-full">
+                        NEW
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Content overlaid at bottom */}
+                  <div className="relative z-10 flex flex-col justify-end min-h-[520px] p-8 sm:p-10 lg:p-12">
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {hero.tags.slice(0, 3).map((t) => (
+                        <span key={t} className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full backdrop-blur-sm ${a.tagBg} ${a.tagText} border border-white/10`}>
+                          {t}
                         </span>
-                      </div>
-
-                      {isNew(hero.createdAt) && (
-                        <div className="absolute top-4 right-4">
-                          <span className="bg-white text-zinc-900 text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-full">
-                            NEW
-                          </span>
-                        </div>
-                      )}
+                      ))}
                     </div>
 
-                    {/* Content side */}
-                    <div className={`${a.bg} p-8 lg:p-10 xl:p-12 flex flex-col justify-center`}>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {hero.tags.slice(0, 3).map((t) => (
-                          <span key={t} className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${a.tagBg} ${a.tagText}`}>{t}</span>
-                        ))}
-                      </div>
+                    {/* Title */}
+                    <h2 className="text-2xl sm:text-3xl lg:text-5xl font-black tracking-tight text-white leading-[1.1] mb-4 max-w-3xl drop-shadow-lg">
+                      {hero.title}
+                    </h2>
 
-                      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-zinc-950 leading-[1.15] mb-4">
-                        {hero.title}
-                      </h2>
+                    {/* Excerpt */}
+                    {hero.excerpt && (
+                      <p className="text-sm sm:text-base text-white/70 leading-relaxed line-clamp-2 mb-5 max-w-2xl">
+                        {hero.excerpt}
+                      </p>
+                    )}
 
-                      {hero.excerpt && (
-                        <p className="text-sm sm:text-base text-zinc-600 leading-relaxed line-clamp-3 mb-6">{hero.excerpt}</p>
-                      )}
-
-                      <div className="flex items-center gap-2 text-xs text-zinc-500 mb-6">
+                    {/* Meta + CTA */}
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div className="flex items-center gap-3 text-xs text-white/60">
                         <span className={`w-2 h-2 rounded-full shrink-0 ${a.dot}`} />
-                        <span className="font-semibold text-zinc-700">{hero.author}</span>
+                        <span className="font-semibold text-white/80">{hero.author}</span>
                         <span>&middot;</span>
                         <span>{formatDate(hero.createdAt)}</span>
                         <span>&middot;</span>
                         <span>{readingTime(hero.content)} min read</span>
                       </div>
-
-                      <div className={`inline-flex items-center gap-2 ${a.tagBg} ${a.tagText} px-5 py-2.5 rounded-full text-xs font-black tracking-widest uppercase w-fit group-hover:scale-105 transition-transform`}>
+                      <span className={`inline-flex items-center gap-2 ${a.tagBg} ${a.tagText} backdrop-blur-sm border border-white/10 px-5 py-2.5 rounded-full text-xs font-black tracking-widest uppercase group-hover:scale-105 transition-transform`}>
                         Read Article
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
-                      </div>
+                      </span>
                     </div>
                   </div>
                 </Link>
-              );
-            })()}
+              </div>
+            );
+          })()}
 
-            {/* ── Section label ───────────────────────────────────── */}
-            {rest.length > 0 && (
-              <div className="flex items-center gap-3 mb-6">
-                <p className="text-[11px] font-bold tracking-[0.25em] uppercase text-zinc-400">Latest Posts</p>
+          {/* ── Second post — wide horizontal card ───────────────────── */}
+          {second && (() => {
+            const a = getAccent(second.tags);
+            return (
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
+                <Link
+                  href={`/blogs/${second.slug}`}
+                  className="group relative block rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-500 min-h-[260px]"
+                >
+                  <div className="absolute inset-0 bg-zinc-900">
+                    {second.coverImage ? (
+                      <Image
+                        src={second.coverImage}
+                        alt={second.title}
+                        fill
+                        className="object-cover opacity-60 group-hover:opacity-75 group-hover:scale-105 transition-all duration-700"
+                        sizes="100vw"
+                      />
+                    ) : (
+                      <div className={`absolute inset-0 bg-gradient-to-br ${a.heroGrad}`} />
+                    )}
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-black/20" />
+
+                  {isNew(second.createdAt) && (
+                    <div className="absolute top-4 right-4 z-10">
+                      <span className="bg-white text-zinc-900 text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-full">NEW</span>
+                    </div>
+                  )}
+
+                  <div className="relative z-10 flex flex-col justify-center min-h-[260px] p-7 sm:p-9 max-w-2xl">
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {second.tags.slice(0, 2).map((t) => (
+                        <span key={t} className={`text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full backdrop-blur-sm ${a.tagBg} ${a.tagText} border border-white/10`}>{t}</span>
+                      ))}
+                    </div>
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white leading-tight mb-3">
+                      {second.title}
+                    </h2>
+                    {second.excerpt && (
+                      <p className="text-sm text-white/60 line-clamp-1 mb-4">{second.excerpt}</p>
+                    )}
+                    <div className="flex items-center gap-2 text-xs text-white/50">
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${a.dot}`} />
+                      <span className="font-medium text-white/70">{second.author}</span>
+                      <span>&middot;</span>
+                      <span>{formatDate(second.createdAt)}</span>
+                      <span>&middot;</span>
+                      <span>{readingTime(second.content)} min read</span>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            );
+          })()}
+
+          {/* ── Remaining posts — cinematic overlay cards ─────────── */}
+          {rest.length > 0 && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-10">
+              {/* Section label */}
+              <div className="flex items-center gap-3 mb-5">
+                <p className="text-[11px] font-bold tracking-[0.25em] uppercase text-zinc-400">More Stories</p>
                 <div className="flex-1 h-px bg-zinc-200" />
                 <span className="text-[11px] text-zinc-400">{rest.length} article{rest.length !== 1 ? 's' : ''}</span>
               </div>
-            )}
 
-            {/* ── Grid of remaining posts ──────────────────────────── */}
-            {rest.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {rest.map((blog) => {
                   const a = getAccent(blog.tags);
                   return (
                     <Link
                       key={blog._id}
                       href={`/blogs/${blog.slug}`}
-                      className={`group block rounded-2xl overflow-hidden border ${a.border} ${a.bg} transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5`}
+                      className="group relative block rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5 bg-zinc-900 min-h-[320px]"
                     >
-                      {/* Cover */}
-                      <div className="relative aspect-[16/9] bg-zinc-200 overflow-hidden">
+                      {/* Full-bleed image */}
+                      <div className="absolute inset-0">
                         {blog.coverImage ? (
                           <Image
                             src={blog.coverImage}
                             alt={blog.title}
                             fill
-                            className="object-cover group-hover:scale-110 transition-transform duration-500"
+                            className="object-cover opacity-60 group-hover:opacity-75 group-hover:scale-105 transition-all duration-500"
                             sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
                           />
                         ) : (
-                          <div className={`absolute inset-0 bg-gradient-to-br ${a.heroGrad} flex items-center justify-center`}>
-                            <span className="text-5xl opacity-20">👟</span>
-                          </div>
-                        )}
-
-                        {/* Overlay on hover */}
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-
-                        {/* New badge */}
-                        {isNew(blog.createdAt) && (
-                          <div className="absolute top-3 right-3">
-                            <span className="bg-white text-zinc-900 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full shadow">
-                              NEW
-                            </span>
-                          </div>
+                          <div className={`absolute inset-0 bg-gradient-to-br ${a.heroGrad}`} />
                         )}
                       </div>
 
-                      {/* Body */}
-                      <div className="p-5">
+                      {/* Gradient overlay — content at bottom */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/5" />
+
+                      {/* Accent top strip */}
+                      <div className={`absolute top-0 left-0 right-0 h-0.5 ${a.stripBg} opacity-80`} />
+
+                      {/* NEW badge */}
+                      {isNew(blog.createdAt) && (
+                        <div className="absolute top-3 right-3 z-10">
+                          <span className="bg-white text-zinc-900 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full shadow">NEW</span>
+                        </div>
+                      )}
+
+                      {/* Content */}
+                      <div className="relative z-10 flex flex-col justify-end min-h-[320px] p-5">
+                        {/* Tags */}
                         {blog.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mb-3">
+                          <div className="flex flex-wrap gap-1.5 mb-2.5">
                             {blog.tags.slice(0, 2).map((t) => (
-                              <span key={t} className={`text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${a.tagBg} ${a.tagText}`}>{t}</span>
+                              <span key={t} className={`text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full backdrop-blur-sm ${a.tagBg} ${a.tagText} border border-white/10`}>{t}</span>
                             ))}
                           </div>
                         )}
 
-                        <h2 className="text-sm font-black tracking-tight text-zinc-950 group-hover:text-zinc-600 transition-colors leading-snug mb-2 line-clamp-2">
+                        <h2 className="text-sm sm:text-base font-black tracking-tight text-white leading-snug mb-2.5 line-clamp-2 drop-shadow">
                           {blog.title}
                         </h2>
 
-                        {blog.excerpt && (
-                          <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2 mb-4">
-                            {blog.excerpt}
-                          </p>
-                        )}
-
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 text-[11px] text-zinc-400">
+                          <div className="flex items-center gap-1.5 text-[11px] text-white/50">
                             <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${a.dot}`} />
                             <span>{formatDate(blog.createdAt)}</span>
                             <span>&middot;</span>
-                            <span>{readingTime(blog.content)} min read</span>
+                            <span>{readingTime(blog.content)} min</span>
                           </div>
-                          <svg className="w-4 h-4 text-zinc-300 group-hover:text-zinc-600 group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <svg
+                            className="w-4 h-4 text-white/30 group-hover:text-white/80 group-hover:translate-x-1 transition-all"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                          >
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
@@ -312,24 +361,30 @@ export default async function BlogsPage() {
                   );
                 })}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* ── WhatsApp CTA banner ─────────────────────────────── */}
-            <div className="rounded-3xl bg-[#075E54] overflow-hidden">
-              <div className="px-8 py-10 sm:px-12 sm:py-12 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          {/* ── WhatsApp CTA banner ─────────────────────────────────── */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+            <div className="relative rounded-3xl bg-[#075E54] overflow-hidden">
+              {/* Subtle pattern */}
+              <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_20%_50%,white_1px,transparent_1px),radial-gradient(circle_at_80%_20%,white_1px,transparent_1px)] bg-[length:60px_60px]" />
+              <div className="relative px-8 py-10 sm:px-12 sm:py-14 flex flex-col sm:flex-row items-start sm:items-center gap-8">
                 <div className="flex-1">
-                  <p className="text-[11px] font-bold tracking-widest uppercase text-white/50 mb-2">Never Miss a Drop</p>
-                  <h2 className="text-2xl sm:text-3xl font-black text-white mb-2 leading-tight">Get Sneaker Release Alerts on WhatsApp</h2>
-                  <p className="text-sm text-white/70 max-w-md">
-                    Join India&apos;s most active sneaker community. Latest drops, restocks, exclusive deals — straight to your WhatsApp.
+                  <p className="text-[11px] font-bold tracking-widest uppercase text-white/40 mb-2">Never Miss a Drop</p>
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-3 leading-tight">
+                    Get Release Alerts<br />on WhatsApp
+                  </h2>
+                  <p className="text-sm text-white/60 max-w-sm leading-relaxed">
+                    India&apos;s most active sneaker community — drops, restocks &amp; exclusive deals direct to your phone.
                   </p>
                 </div>
-                <div className="shrink-0 flex flex-col sm:flex-row gap-3">
+                <div className="shrink-0 flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <a
-                    href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP || '919999999999'}?text=${encodeURIComponent('Hey SNKRS CART! I want to get sneaker drop alerts on WhatsApp.')}`}
+                    href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP || '919410903791'}?text=${encodeURIComponent('Hey SNKRS CART! I want to get sneaker drop alerts on WhatsApp.')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full bg-[#25D366] text-white font-black text-sm hover:bg-[#20bb5a] transition-colors shadow-lg"
+                    className="inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-full bg-[#25D366] text-white font-black text-sm hover:bg-[#20bb5a] transition-colors shadow-lg shadow-black/30"
                   >
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
@@ -338,16 +393,16 @@ export default async function BlogsPage() {
                   </a>
                   <Link
                     href="/products"
-                    className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full bg-white/10 text-white font-bold text-sm hover:bg-white/20 transition-colors border border-white/20"
+                    className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-full bg-white/10 text-white font-bold text-sm hover:bg-white/20 transition-colors border border-white/20"
                   >
                     Shop Sneakers
                   </Link>
                 </div>
               </div>
             </div>
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

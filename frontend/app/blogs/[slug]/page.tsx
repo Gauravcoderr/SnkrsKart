@@ -306,7 +306,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
                 <p className="text-sm text-white/70">India&apos;s sneaker community — latest drops, restocks & deals.</p>
               </div>
               <a
-                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP || '919999999999'}?text=${encodeURIComponent('Hey SNKRS CART! I want to get sneaker drop alerts on WhatsApp.')}`}
+                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP || '919410903791'}?text=${encodeURIComponent('Hey SNKRS CART! I want to get sneaker drop alerts on WhatsApp.')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#25D366] text-white font-bold text-sm hover:bg-[#20bb5a] transition-colors shadow-lg"
@@ -435,7 +435,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
 
               {/* WhatsApp mini CTA */}
               <a
-                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP || '919999999999'}?text=${encodeURIComponent('Hey SNKRS CART! I want to get sneaker drop alerts.')}`}
+                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP || '919410903791'}?text=${encodeURIComponent('Hey SNKRS CART! I want to get sneaker drop alerts.')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 rounded-2xl bg-[#075E54] px-5 py-4 hover:bg-[#064d45] transition-colors"
