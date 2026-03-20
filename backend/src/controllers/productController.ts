@@ -61,11 +61,12 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
     const filter = buildFilter(query);
     const sort   = buildSort(query.sort || 'popular');
 
-    const [products, total] = await Promise.all([
+    const [rawProducts, total] = await Promise.all([
       Product.find(filter).sort(sort).skip(skip).limit(limit).lean(),
       Product.countDocuments(filter),
     ]);
 
+    const products = rawProducts.map((p) => ({ ...p, id: (p._id as any).toString() }));
     res.json({ products, total, page, limit, totalPages: Math.ceil(total / limit) });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch products' });
@@ -76,7 +77,7 @@ export const getProductBySlug = async (req: Request, res: Response): Promise<voi
   try {
     const product = await Product.findOne({ slug: req.params.slug }).lean();
     if (!product) { res.status(404).json({ error: 'Product not found' }); return; }
-    res.json(product);
+    res.json({ ...product, id: (product._id as any).toString() });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch product' });
   }
@@ -85,7 +86,7 @@ export const getProductBySlug = async (req: Request, res: Response): Promise<voi
 export const getFeaturedProducts = async (_req: Request, res: Response): Promise<void> => {
   try {
     const products = await Product.find({ featured: true }).sort({ reviewCount: -1 }).limit(6).lean();
-    res.json(products);
+    res.json(products.map((p) => ({ ...p, id: (p._id as any).toString() })));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch featured products' });
   }
@@ -94,7 +95,7 @@ export const getFeaturedProducts = async (_req: Request, res: Response): Promise
 export const getNewArrivals = async (_req: Request, res: Response): Promise<void> => {
   try {
     const products = await Product.find({ newArrival: true }).sort({ createdAt: -1 }).limit(8).lean();
-    res.json(products);
+    res.json(products.map((p) => ({ ...p, id: (p._id as any).toString() })));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch new arrivals' });
   }
@@ -103,7 +104,7 @@ export const getNewArrivals = async (_req: Request, res: Response): Promise<void
 export const getTrendingProducts = async (_req: Request, res: Response): Promise<void> => {
   try {
     const products = await Product.find({ trending: true }).sort({ reviewCount: -1 }).limit(8).lean();
-    res.json(products);
+    res.json(products.map((p) => ({ ...p, id: (p._id as any).toString() })));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch trending products' });
   }
