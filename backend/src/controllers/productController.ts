@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Product } from '../models/Product';
-import { FilterQuery } from 'mongoose';
+import mongoose from 'mongoose';
+type FilterQuery<T> = mongoose.FilterQuery<T>;
 import { IProduct } from '../models/Product';
 
 function buildFilter(query: Record<string, string>): FilterQuery<IProduct> {
