@@ -21,20 +21,15 @@ function generateTokens(userId: string, email: string) {
 }
 
 function setTokenCookies(res: Response, accessToken: string, refreshToken: string) {
-  const isProduction = process.env.NODE_ENV === 'production';
-  res.cookie('access_token', accessToken, {
+  // Cross-origin cookies need secure + sameSite=none when frontend/backend are on different domains
+  const crossOrigin = !!(process.env.FRONTEND_URL && !process.env.FRONTEND_URL.includes('localhost'));
+  const cookieBase = {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
-    maxAge: 15 * 60 * 1000, // 15 min
-  });
-  res.cookie('refresh_token', refreshToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    path: '/api/v1/auth/refresh',
-  });
+    secure: crossOrigin,
+    sameSite: (crossOrigin ? 'none' : 'lax') as 'none' | 'lax',
+  };
+  res.cookie('access_token', accessToken, { ...cookieBase, maxAge: 15 * 60 * 1000 });
+  res.cookie('refresh_token', refreshToken, { ...cookieBase, maxAge: 30 * 24 * 60 * 60 * 1000 });
 }
 
 // ─── Send OTP ──────────────────────────────────────────────────────────────
@@ -220,9 +215,10 @@ router.post('/logout', async (req: Request, res: Response): Promise<void> => {
     } catch { /* ignore */ }
   }
 
-  const isProduction = process.env.NODE_ENV === 'production';
-  res.clearCookie('access_token', { httpOnly: true, secure: isProduction, sameSite: isProduction ? 'none' : 'lax' });
-  res.clearCookie('refresh_token', { httpOnly: true, secure: isProduction, sameSite: isProduction ? 'none' : 'lax', path: '/api/v1/auth/refresh' });
+  const crossOrigin = !!(process.env.FRONTEND_URL && !process.env.FRONTEND_URL.includes('localhost'));
+  const cookieBase = { httpOnly: true, secure: crossOrigin, sameSite: (crossOrigin ? 'none' : 'lax') as 'none' | 'lax' };
+  res.clearCookie('access_token', cookieBase);
+  res.clearCookie('refresh_token', cookieBase);
   res.json({ message: 'Logged out' });
 });
 

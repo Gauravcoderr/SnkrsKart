@@ -69,7 +69,8 @@ export default function CheckoutPage() {
   function validateContact() {
     if (!contact.name.trim()) return 'Full name is required';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())) return 'Valid email is required';
-    if (!/^[+\d][\d\s\-(). ]{7,}$/.test(contact.phone.trim())) return 'Valid phone number is required';
+    const cleanPhone = contact.phone.trim().replace(/[\s\-()]/g, '');
+    if (!/^(\+91|91)?[6-9]\d{9}$/.test(cleanPhone)) return 'Enter a valid Indian phone number (10 digits starting with 6-9)';
     return null;
   }
 
@@ -200,9 +201,12 @@ export default function CheckoutPage() {
                 <input
                   type="tel" required value={contact.phone}
                   onChange={(e) => setC('phone', e.target.value)}
-                  placeholder="+91 XXXXX XXXXX"
+                  placeholder="98765 43210"
+                  maxLength={15}
+                  inputMode="tel"
                   className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors"
                 />
+                <p className="text-[10px] text-zinc-400 mt-1">Indian number — 10 digits starting with 6, 7, 8, or 9</p>
               </div>
               {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
               <button type="submit" className="w-full py-3.5 bg-zinc-900 text-white text-sm font-bold tracking-widest uppercase hover:bg-zinc-700 transition-colors">
