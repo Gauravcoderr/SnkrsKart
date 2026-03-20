@@ -5,14 +5,17 @@ import { useRouter } from 'next/navigation';
 import { Product } from '@/types';
 import ProductFormModal from './ProductFormModal';
 import DeleteConfirmModal from './DeleteConfirmModal';
+import Paginator from '../_components/Paginator';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const PAGE_SIZE = 10;
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
 
   // Modal state
   const [formOpen, setFormOpen] = useState(false);
@@ -119,6 +122,9 @@ export default function AdminDashboard() {
     );
   });
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -135,7 +141,7 @@ export default function AdminDashboard() {
           type="text"
           placeholder="Search products..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           className="w-full sm:w-80 bg-zinc-900 border border-zinc-800 rounded-lg px-3.5 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
         />
         <div className="flex items-center gap-3">
