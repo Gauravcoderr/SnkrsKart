@@ -29,7 +29,7 @@ export default function Footer() {
 
       {/* Links */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 xl:gap-8">
+        <div className="grid [grid-template-columns:repeat(2,minmax(0,160px))] md:grid-cols-4 gap-4 xl:gap-8">
           <div>
             <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-400 mb-4">Shop</h3>
             <ul className="space-y-2">
