@@ -131,7 +131,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           <p className="text-xs text-zinc-400 mt-0.5">{product.colorway}</p>
           <div className="flex items-baseline gap-2 mt-1.5">
             <span className="text-sm font-bold text-zinc-900 transition-all duration-150">{formatPrice(displayPrice)}</span>
-            {displayOriginalPrice && (
+            {displayOriginalPrice && displayOriginalPrice > displayPrice && (
               <span className="text-xs text-zinc-400 line-through">
                 {formatPrice(displayOriginalPrice)}
               </span>

@@ -51,7 +51,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
       {/* Price — dynamic based on selected size */}
       <div className="flex items-baseline gap-3 pb-6 border-b border-zinc-100">
         <span className="text-2xl font-bold text-zinc-900">{formatPrice(currentPrice)}</span>
-        {currentOriginalPrice && (
+        {currentOriginalPrice && currentOriginalPrice > currentPrice && (
           <>
             <span className="text-base text-zinc-400 line-through">{formatPrice(currentOriginalPrice)}</span>
             {discount && <span className="text-sm font-bold text-red-500">−{discount}%</span>}
