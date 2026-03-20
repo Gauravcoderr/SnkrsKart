@@ -3,9 +3,7 @@ import { Inter, Bebas_Neue } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import QueryProvider from '@/components/layout/QueryProvider';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
-import CartDrawer from '@/components/layout/CartDrawer';
+import LayoutShell from '@/components/layout/LayoutShell';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -41,10 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-zinc-50 text-zinc-900 font-sans antialiased">
         <QueryProvider>
           <CartProvider>
-            <Header />
-            <CartDrawer />
-            <main>{children}</main>
-            <Footer />
+            <LayoutShell>{children}</LayoutShell>
           </CartProvider>
         </QueryProvider>
       </body>

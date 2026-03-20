@@ -7,6 +7,7 @@ import brandRoutes from './routes/brands';
 import bannerRoutes from './routes/banners';
 import inquiryRoutes from './routes/inquiries';
 import reviewRoutes from './routes/reviews';
+import adminRoutes from './routes/admin';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -19,6 +20,7 @@ app.use('/api/v1/brands', brandRoutes);
 app.use('/api/v1/banners', bannerRoutes);
 app.use('/api/v1/inquiries', inquiryRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
