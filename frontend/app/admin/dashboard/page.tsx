@@ -151,8 +151,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Product Table */}
-      <div>
-        <div className="overflow-x-auto rounded-xl border border-zinc-800">
+      <div className="overflow-x-auto rounded-xl border border-zinc-800">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-zinc-900 text-zinc-400 text-left">
@@ -164,7 +163,6 @@ export default function AdminDashboard() {
                 <th className="px-4 py-3 font-medium">Gender</th>
                 <th className="px-4 py-3 font-medium">Sizes</th>
                 <th className="px-4 py-3 font-medium">Flags</th>
-                <th className="px-4 py-3 font-medium">SKU</th>
                 <th className="px-4 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
@@ -205,7 +203,6 @@ export default function AdminDashboard() {
                       {p.soldOut && <span className="text-[10px] bg-red-500/10 text-red-400 px-1.5 py-0.5 rounded">Sold Out</span>}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-xs text-zinc-500 font-mono">{p.sku}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       <button
@@ -228,14 +225,13 @@ export default function AdminDashboard() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-4 py-12 text-center text-zinc-500">
+                  <td colSpan={9} className="px-4 py-12 text-center text-zinc-500">
                     {search ? 'No products match your search.' : 'No products yet. Add one!'}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
-        </div>
       </div>
 
       {/* Modals */}

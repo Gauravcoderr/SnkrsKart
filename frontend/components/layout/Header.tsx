@@ -183,69 +183,79 @@ export default function Header() {
               {/* Search */}
               <div ref={searchRef} className="relative">
                 {searchOpen ? (
-                  <form onSubmit={handleSearchSubmit} className="flex items-center">
-                    <div className="relative">
-                      <input
-                        ref={inputRef}
-                        value={query}
-                        onChange={(e) => handleQueryChange(e.target.value)}
-                        placeholder="Search sneakers..."
-                        className="w-52 sm:w-72 text-sm border border-zinc-200 rounded-lg px-3 py-2 pl-9 outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 bg-zinc-50 transition"
-                      />
-                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-                    </div>
-                    <button
-                      type="button"
-                      className="ml-1 p-1.5 text-zinc-400 hover:text-zinc-900 transition"
-                      onClick={() => { setSearchOpen(false); setQuery(''); setResults([]); }}
-                      aria-label="Close search"
-                    >
-                      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12" /></svg>
-                    </button>
+                  <>
+                    {/* Overlay for mobile */}
+                    <div className="fixed inset-0 bg-black/40 md:hidden z-40" onClick={() => { setSearchOpen(false); setQuery(''); setResults([]); }} />
 
-                    {/* Search results dropdown */}
-                    {query.trim().length > 0 && (
-                      <div className="absolute top-full left-0 right-8 mt-1 bg-white rounded-xl border border-zinc-100 shadow-2xl shadow-black/10 overflow-hidden z-50 max-h-[400px] overflow-y-auto">
-                        {searching && results.length === 0 && (
-                          <div className="px-4 py-6 text-center text-sm text-zinc-400">Searching...</div>
-                        )}
-                        {!searching && results.length === 0 && query.length > 1 && (
-                          <div className="px-4 py-6 text-center text-sm text-zinc-400">No products found</div>
-                        )}
-                        {results.map((p) => (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() => goToProduct(p.slug)}
-                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 transition-colors text-left border-b border-zinc-50 last:border-b-0"
-                          >
-                            <img
-                              src={p.images[0]}
-                              alt={p.name}
-                              className="w-12 h-12 object-cover rounded-lg bg-zinc-100 shrink-0"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-zinc-900 truncate">{p.name}</p>
-                              <p className="text-xs text-zinc-500">{p.brand} &middot; {p.colorway}</p>
-                            </div>
-                            <span className="text-sm font-semibold text-zinc-900 shrink-0">
-                              {'\u20B9'}{p.price.toLocaleString('en-IN')}
-                            </span>
-                          </button>
-                        ))}
-                        {results.length > 0 && (
-                          <button
-                            type="submit"
-                            className="w-full px-4 py-2.5 text-xs font-semibold tracking-widest uppercase text-center text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition border-t border-zinc-100"
-                          >
-                            View all results →
-                          </button>
-                        )}
+                    {/* Search bar — full-width on mobile, expanded on desktop */}
+                    <form
+                      onSubmit={handleSearchSubmit}
+                      className="fixed top-0 left-0 right-0 z-50 bg-white px-4 py-3 border-b border-zinc-100 md:static md:border-0 md:bg-transparent md:p-0 flex items-center gap-2"
+                    >
+                      <div className="relative flex-1 md:w-96">
+                        <input
+                          ref={inputRef}
+                          value={query}
+                          onChange={(e) => handleQueryChange(e.target.value)}
+                          placeholder="Search for sneakers, brands..."
+                          className="w-full text-sm border border-zinc-200 rounded-xl px-4 py-2.5 pl-10 outline-none focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100 bg-zinc-50 transition"
+                        />
+                        <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
                       </div>
-                    )}
-                  </form>
+                      <button
+                        type="button"
+                        className="p-2 text-zinc-400 hover:text-zinc-900 transition shrink-0"
+                        onClick={() => { setSearchOpen(false); setQuery(''); setResults([]); }}
+                        aria-label="Close search"
+                      >
+                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                      </button>
+
+                      {/* Search results dropdown */}
+                      {query.trim().length > 0 && (
+                        <div className="absolute top-full left-0 right-0 md:left-auto md:right-auto md:w-96 mt-1 mx-4 md:mx-0 bg-white rounded-xl border border-zinc-100 shadow-2xl shadow-black/10 overflow-hidden z-50 max-h-[70vh] md:max-h-[400px] overflow-y-auto">
+                          {searching && results.length === 0 && (
+                            <div className="px-4 py-8 text-center text-sm text-zinc-400">Searching...</div>
+                          )}
+                          {!searching && results.length === 0 && query.length > 1 && (
+                            <div className="px-4 py-8 text-center text-sm text-zinc-400">No products found</div>
+                          )}
+                          {results.map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => goToProduct(p.slug)}
+                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 transition-colors text-left border-b border-zinc-50 last:border-b-0"
+                            >
+                              <img
+                                src={p.images[0]}
+                                alt={p.name}
+                                className="w-14 h-14 sm:w-12 sm:h-12 object-cover rounded-lg bg-zinc-100 shrink-0"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-zinc-900 truncate">{p.name}</p>
+                                <p className="text-xs text-zinc-500">{p.brand} &middot; {p.colorway}</p>
+                              </div>
+                              <span className="text-sm font-semibold text-zinc-900 shrink-0">
+                                {'\u20B9'}{p.price.toLocaleString('en-IN')}
+                              </span>
+                            </button>
+                          ))}
+                          {results.length > 0 && (
+                            <button
+                              type="submit"
+                              className="w-full px-4 py-3 text-xs font-semibold tracking-widest uppercase text-center text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition border-t border-zinc-100"
+                            >
+                              View all results →
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </form>
+                  </>
                 ) : (
                   <button
+                    type="button"
                     onClick={() => setSearchOpen(true)}
                     className="p-2 text-zinc-500 hover:text-zinc-900 transition-colors"
                     aria-label="Search"

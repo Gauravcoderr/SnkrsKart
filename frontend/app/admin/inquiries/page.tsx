@@ -3,8 +3,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Paginator from '../_components/Paginator';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const PAGE_SIZE = 10;
 
 interface Inquiry {
   _id: string;
@@ -33,7 +35,9 @@ export default function InquiriesPage() {
   const router = useRouter();
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
 
   const fetchInquiries = useCallback(async () => {
     const token = localStorage.getItem('admin_token');
@@ -43,7 +47,10 @@ export default function InquiriesPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.status === 401) { localStorage.removeItem('admin_token'); router.push('/admin/login'); return; }
+      if (!res.ok) { setError(`Server error: ${res.status}`); return; }
       setInquiries(await res.json());
+    } catch (e: any) {
+      setError(e.message || 'Failed to connect to API');
     } finally {
       setLoading(false);
     }
@@ -61,10 +68,29 @@ export default function InquiriesPage() {
     );
   });
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  function handleSearch(val: string) {
+    setSearch(val);
+    setPage(1);
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-5 h-5 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-3">
+        <p className="text-red-400 font-medium text-sm">{error}</p>
+        <button type="button" onClick={() => { setError(''); setLoading(true); fetchInquiries(); }} className="text-xs text-zinc-400 hover:text-white underline">
+          Retry
+        </button>
       </div>
     );
   }
@@ -77,10 +103,10 @@ export default function InquiriesPage() {
           type="text"
           placeholder="Search by name, email, product..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => handleSearch(e.target.value)}
           className="w-full sm:w-80 bg-zinc-900 border border-zinc-800 rounded-lg px-3.5 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
         />
-        <span className="text-sm text-zinc-500">{inquiries.length} total</span>
+        <span className="text-sm text-zinc-500">{filtered.length} of {inquiries.length} total</span>
       </div>
 
       {/* Table */}
@@ -97,7 +123,7 @@ export default function InquiriesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800">
-            {filtered.map((inq) => (
+            {paginated.map((inq) => (
               <tr key={inq._id} className="hover:bg-zinc-900/50 transition">
                 <td className="px-4 py-3">
                   <div className="font-medium text-white">{inq.name}</div>
@@ -126,7 +152,7 @@ export default function InquiriesPage() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
+            {paginated.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-12 text-center text-zinc-500">
                   {search ? 'No inquiries match your search.' : 'No inquiries yet.'}
@@ -136,6 +162,8 @@ export default function InquiriesPage() {
           </tbody>
         </table>
       </div>
+
+      <Paginator page={page} totalPages={totalPages} onPage={setPage} />
     </div>
   );
 }

@@ -2,8 +2,10 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Paginator from '../_components/Paginator';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const PAGE_SIZE = 10;
 
 interface Review {
   _id: string;
@@ -39,6 +41,7 @@ export default function ReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
 
   const [editModal, setEditModal] = useState<EditModal | null>(null);
   const [saving, setSaving] = useState(false);
@@ -105,10 +108,18 @@ export default function ReviewsPage() {
     }
   }
 
+  function handleSearch(val: string) {
+    setSearch(val);
+    setPage(1);
+  }
+
   const filtered = reviews.filter((r) => {
     const q = search.toLowerCase();
     return r.name.toLowerCase().includes(q) || r.productName.toLowerCase().includes(q) || r.comment.toLowerCase().includes(q);
   });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (loading) {
     return (
@@ -125,11 +136,12 @@ export default function ReviewsPage() {
         <input
           type="text"
           placeholder="Search by reviewer, product, comment..."
+          aria-label="Search reviews"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => handleSearch(e.target.value)}
           className="w-full sm:w-80 bg-zinc-900 border border-zinc-800 rounded-lg px-3.5 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
         />
-        <span className="text-sm text-zinc-500">{reviews.length} total</span>
+        <span className="text-sm text-zinc-500">{filtered.length} of {reviews.length} total</span>
       </div>
 
       {/* Table */}
@@ -146,7 +158,7 @@ export default function ReviewsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800">
-            {filtered.map((r) => (
+            {paginated.map((r) => (
               <tr key={r._id} className="hover:bg-zinc-900/50 transition">
                 <td className="px-4 py-3 font-medium text-white whitespace-nowrap">{r.name}</td>
                 <td className="px-4 py-3">
@@ -183,7 +195,7 @@ export default function ReviewsPage() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
+            {paginated.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-12 text-center text-zinc-500">
                   {search ? 'No reviews match your search.' : 'No reviews yet.'}
@@ -194,13 +206,20 @@ export default function ReviewsPage() {
         </table>
       </div>
 
+      <Paginator page={page} totalPages={totalPages} onPage={setPage} />
+
       {/* Edit modal */}
       {editModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-base font-bold text-white">Edit Review</h2>
-              <button type="button" onClick={() => setEditModal(null)} className="text-zinc-500 hover:text-white transition">
+              <button
+                type="button"
+                aria-label="Close edit modal"
+                onClick={() => setEditModal(null)}
+                className="text-zinc-500 hover:text-white transition"
+              >
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M18 6 6 18M6 6l12 12" />
                 </svg>
@@ -209,8 +228,9 @@ export default function ReviewsPage() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-widest">Reviewer Name</label>
+                <label htmlFor="edit-name" className="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-widest">Reviewer Name</label>
                 <input
+                  id="edit-name"
                   type="text"
                   value={editModal.name}
                   onChange={(e) => setEditModal({ ...editModal, name: e.target.value })}
@@ -219,12 +239,13 @@ export default function ReviewsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-widest">Rating</label>
+                <p className="text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-widest">Rating</p>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <button
                       key={s}
                       type="button"
+                      aria-label={`Rate ${s} star${s > 1 ? 's' : ''}`}
                       onClick={() => setEditModal({ ...editModal, rating: s })}
                       className="focus:outline-none"
                     >
@@ -237,8 +258,9 @@ export default function ReviewsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-widest">Comment</label>
+                <label htmlFor="edit-comment" className="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-widest">Comment</label>
                 <textarea
+                  id="edit-comment"
                   value={editModal.comment}
                   onChange={(e) => setEditModal({ ...editModal, comment: e.target.value })}
                   rows={4}
