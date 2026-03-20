@@ -105,8 +105,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
             </div>
           )}
 
-          {/* SKU */}
-          <p className="mt-5 text-xs text-zinc-400">SKU: {product.sku}</p>
+
         </div>
       </div>
 
