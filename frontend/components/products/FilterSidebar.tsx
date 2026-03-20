@@ -8,7 +8,7 @@ interface FilterSidebarProps {
   onFilterChange: (key: keyof FilterState, value: unknown) => void;
 }
 
-const ALL_BRANDS = ['Nike', 'Adidas', 'New Balance', 'Asics', 'Puma', 'Vans'];
+const ALL_BRANDS = ['Jordan', 'Nike', 'Adidas', 'New Balance', 'Crocs'];
 const ALL_SIZES = [5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12];
 const ALL_GENDERS = ['men', 'women', 'unisex'];
 

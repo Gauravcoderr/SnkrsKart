@@ -12,7 +12,7 @@ const navLinks = [
   { label: 'Sale', href: '/products?minPrice=0&maxPrice=8000' },
 ];
 
-const brands = ['Nike', 'Adidas', 'New Balance', 'Asics', 'Puma', 'Vans'];
+const brands = ['Nike', 'Adidas', 'New Balance', 'Jordan', 'Crocs'];
 
 export default function Header() {
   const { itemCount, toggleDrawer } = useCart();
