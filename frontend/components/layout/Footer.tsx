@@ -94,6 +94,11 @@ export default function Footer() {
                   Contact Us
                 </Link>
               </li>
+              <li>
+                <Link href="/sell" className="text-sm text-zinc-400 hover:text-white transition-colors">
+                  Become a Seller
+                </Link>
+              </li>
             </ul>
             <div className="mt-6 space-y-2">
               <a
