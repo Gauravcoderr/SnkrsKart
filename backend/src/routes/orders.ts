@@ -137,6 +137,19 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/v1/orders/lookup?orderNumber=SC-XXX — lookup by order number
+router.get('/lookup', async (req: Request, res: Response) => {
+  try {
+    const { orderNumber } = req.query as { orderNumber?: string };
+    if (!orderNumber) { res.status(400).json({ error: 'orderNumber is required' }); return; }
+    const order = await Order.findOne({ orderNumber: orderNumber.toUpperCase() }).lean();
+    if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
+    res.json(order);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch order' });
+  }
+});
+
 // GET /api/v1/orders/:id — get order by ID (for confirmation page)
 router.get('/:id', async (req: Request, res: Response) => {
   try {

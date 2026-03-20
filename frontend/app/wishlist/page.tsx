@@ -87,7 +87,7 @@ export default function WishlistPage() {
 
               {/* Remove from wishlist */}
               <button
-                onClick={() => toggle(product.id)}
+                onClick={() => toggle(product.slug)}
                 className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center bg-white/90 rounded-full shadow-sm hover:scale-110 transition-transform"
                 aria-label="Remove from wishlist"
               >

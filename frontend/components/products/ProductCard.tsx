@@ -18,7 +18,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const { addItem, openDrawer } = useCart();
   const { toggle, isWishlisted } = useWishlist();
   const [hoveredSize, setHoveredSize] = useState<number | null>(null);
-  const wishlisted = isWishlisted(product.id);
+  const wishlisted = isWishlisted(product.slug);
 
   const hasVariants = (product.variants?.length ?? 0) > 0;
 
@@ -81,7 +81,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             {product.discount && <Badge variant="discount" label={`${product.discount}% OFF`} />}
             <button
               type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(product.id); }}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(product.slug); }}
               aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
               className="w-7 h-7 flex items-center justify-center bg-white/90 rounded-full shadow-sm hover:scale-110 transition-transform"
             >
