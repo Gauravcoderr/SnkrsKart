@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken';
 import { adminAuth, AdminRequest } from '../middleware/adminAuth';
 import { Product } from '../models/Product';
 import { Brand } from '../models/Brand';
+import { Inquiry } from '../models/Inquiry';
+import { Review } from '../models/Review';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'snkrs-cart-admin-secret-key';
@@ -105,6 +107,73 @@ router.delete('/products/:id', adminAuth, async (req: Request, res: Response): P
     res.json({ message: 'Product deleted' });
   } catch {
     res.status(500).json({ error: 'Failed to delete product' });
+  }
+});
+
+// ─── Inquiries ─────────────────────────────────────────────────────────────
+
+router.get('/inquiries', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const inquiries = await Inquiry.find().sort({ createdAt: -1 }).lean();
+    res.json(inquiries);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch inquiries' });
+  }
+});
+
+router.get('/inquiries/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const inquiry = await Inquiry.findById(req.params.id).lean();
+    if (!inquiry) { res.status(404).json({ error: 'Not found' }); return; }
+    res.json(inquiry);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch inquiry' });
+  }
+});
+
+// ─── Reviews ───────────────────────────────────────────────────────────────
+
+router.get('/reviews', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const reviews = await Review.find().sort({ createdAt: -1 }).lean();
+    res.json(reviews);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+});
+
+router.put('/reviews/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, rating, comment } = req.body;
+    const review = await Review.findByIdAndUpdate(
+      req.params.id,
+      { $set: { name, rating, comment } },
+      { new: true, runValidators: true }
+    );
+    if (!review) { res.status(404).json({ error: 'Not found' }); return; }
+    if (review.productSlug !== 'general') {
+      const all = await Review.find({ productSlug: review.productSlug }).lean();
+      const avg = all.reduce((s, r) => s + r.rating, 0) / all.length;
+      await Product.findOneAndUpdate({ slug: review.productSlug }, { rating: Math.round(avg * 10) / 10, reviewCount: all.length });
+    }
+    res.json(review);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to update review' });
+  }
+});
+
+router.delete('/reviews/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const review = await Review.findByIdAndDelete(req.params.id);
+    if (!review) { res.status(404).json({ error: 'Not found' }); return; }
+    if (review.productSlug !== 'general') {
+      const all = await Review.find({ productSlug: review.productSlug }).lean();
+      const newRating = all.length ? Math.round((all.reduce((s, r) => s + r.rating, 0) / all.length) * 10) / 10 : 0;
+      await Product.findOneAndUpdate({ slug: review.productSlug }, { rating: newRating, reviewCount: all.length });
+    }
+    res.json({ message: 'Deleted' });
+  } catch {
+    res.status(500).json({ error: 'Failed to delete review' });
   }
 });
 

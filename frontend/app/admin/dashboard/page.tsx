@@ -54,11 +54,6 @@ export default function AdminDashboard() {
     fetchProducts();
   }, [fetchProducts]);
 
-  function handleLogout() {
-    localStorage.removeItem('admin_token');
-    router.push('/admin/login');
-  }
-
   function handleAdd() {
     setEditProduct(null);
     setFormOpen(true);
@@ -126,35 +121,16 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="text-zinc-400">Loading...</div>
+      <div className="flex items-center justify-center h-64">
+        <div className="w-5 h-5 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-800">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h1 className="text-lg font-bold tracking-tight">SNKRS CART</h1>
-            <span className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full">Admin</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-zinc-500 hidden sm:block">{products.length} products</span>
-            <button
-              onClick={handleLogout}
-              className="text-sm text-zinc-400 hover:text-white transition px-3 py-1.5 rounded-lg hover:bg-zinc-800"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-
+    <div className="text-white">
       {/* Toolbar */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-4">
         <input
           type="text"
           placeholder="Search products..."
@@ -162,16 +138,20 @@ export default function AdminDashboard() {
           onChange={(e) => setSearch(e.target.value)}
           className="w-full sm:w-80 bg-zinc-900 border border-zinc-800 rounded-lg px-3.5 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
         />
-        <button
-          onClick={handleAdd}
-          className="bg-white text-zinc-900 font-semibold text-sm px-5 py-2 rounded-lg hover:bg-zinc-200 transition shrink-0"
-        >
-          + Add Product
-        </button>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-zinc-500">{products.length} products</span>
+          <button
+            type="button"
+            onClick={handleAdd}
+            className="bg-white text-zinc-900 font-semibold text-sm px-5 py-2 rounded-lg hover:bg-zinc-200 transition shrink-0"
+          >
+            + Add Product
+          </button>
+        </div>
       </div>
 
       {/* Product Table */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 pb-8">
+      <div>
         <div className="overflow-x-auto rounded-xl border border-zinc-800">
           <table className="w-full text-sm">
             <thead>
@@ -229,12 +209,14 @@ export default function AdminDashboard() {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       <button
+                        type="button"
                         onClick={() => handleEdit(p)}
                         className="text-xs text-zinc-400 hover:text-white px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition"
                       >
                         Edit
                       </button>
                       <button
+                        type="button"
                         onClick={() => setDeleteProduct(p)}
                         className="text-xs text-red-400 hover:text-red-300 px-2.5 py-1.5 rounded-md hover:bg-red-500/10 transition"
                       >
