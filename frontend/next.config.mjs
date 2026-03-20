@@ -15,6 +15,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'captaincreps.com', pathname: '/**' },
       { protocol: 'https', hostname: 'www.superkicks.in', pathname: '/**' },
       { protocol: 'https', hostname: 'feature.com', pathname: '/**' },
+      { protocol: 'https', hostname: 'sneakerpolitics.com', pathname: '/**' },
     ],
   },
 };
