@@ -1,21 +1,9 @@
 import { Router, Request, Response } from 'express';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { Inquiry } from '../models/Inquiry';
 
 const router = Router();
-
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 router.post('/', async (req: Request, res: Response) => {
   try {
@@ -34,10 +22,11 @@ router.post('/', async (req: Request, res: Response) => {
 
     const priceFormatted = `₹${Number(price).toLocaleString('en-IN')}`;
     const sizeText = selectedSize ? `UK ${selectedSize}` : 'Not specified';
+    const FROM = process.env.RESEND_FROM || 'SNKRS CART <onboarding@resend.dev>';
 
-    // Send emails in background
-    transporter.sendMail({
-      from: `"SNKRS CART" <${process.env.GMAIL_USER}>`,
+    // Email to customer
+    resend.emails.send({
+      from: FROM,
       to: email,
       subject: `We received your interest — ${productName}`,
       html: `
@@ -63,9 +52,9 @@ router.post('/', async (req: Request, res: Response) => {
     }).catch((err: unknown) => console.error('Customer email failed:', err));
 
     // Email to store
-    transporter.sendMail({
-      from: `"SNKRS CART" <${process.env.GMAIL_USER}>`,
-      to: process.env.GMAIL_USER,
+    resend.emails.send({
+      from: FROM,
+      to: process.env.GMAIL_USER || 'infosnkrscart@gmail.com',
       subject: `New Purchase Inquiry — ${productBrand} ${productName}`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:560px;color:#111;">
