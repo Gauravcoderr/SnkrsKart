@@ -260,8 +260,8 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Content area — max to center of screen */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 max-h-[calc(50vh-28px)] overflow-y-auto">
+            {/* Content area — max 75% of screen */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 max-h-[75vh] overflow-y-auto">
               {hasQuery ? (
                 /* ── Search results ────────────────────────────────────── */
                 <div>
