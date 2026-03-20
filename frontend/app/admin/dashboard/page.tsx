@@ -173,7 +173,7 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
-              {filtered.map((p) => (
+              {paginated.map((p) => (
                 <tr key={p.id} className="hover:bg-zinc-900/50 transition">
                   <td className="px-4 py-3">
                     <img
@@ -239,6 +239,8 @@ export default function AdminDashboard() {
             </tbody>
           </table>
       </div>
+
+      <Paginator page={page} totalPages={totalPages} onPage={setPage} />
 
       {/* Modals */}
       {formOpen && (
