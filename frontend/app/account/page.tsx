@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useMutation } from '@tanstack/react-query';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, authHeaders } from '@/context/AuthContext';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -18,7 +18,7 @@ export default function AccountPage() {
     mutationFn: async () => {
       const res = await fetch(`${API}/auth/me`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         credentials: 'include',
         body: JSON.stringify({ name: name.trim(), phone: phone.trim() }),
       });

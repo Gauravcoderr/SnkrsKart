@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/context/AuthContext';
+import { useState, useEffect, useRef } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { useAuth, authHeaders } from '@/context/AuthContext';
 import OtpInput from './OtpInput';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -10,15 +10,14 @@ const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 type Step = 'email' | 'otp' | 'profile';
 
 export default function AuthModal() {
-  const { authModalOpen, closeAuthModal, refreshUser } = useAuth();
-  const queryClient = useQueryClient();
+  const { authModalOpen, closeAuthModal, loginWithData } = useAuth();
+  const pendingTokenRef = useRef<string>('');
 
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [isNewUser, setIsNewUser] = useState(false);
   const [error, setError] = useState('');
   const [countdown, setCountdown] = useState(0);
 
@@ -64,8 +63,7 @@ export default function AuthModal() {
       if (!res.ok) throw { ...data, status: res.status };
       return data;
     },
-    onSuccess: (data) => {
-      setIsNewUser(data.isNewUser);
+    onSuccess: () => {
       setStep('otp');
       setCountdown(60);
       setOtp(Array(6).fill(''));
@@ -94,12 +92,13 @@ export default function AuthModal() {
       if (!res.ok) throw data;
       return data;
     },
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       if (data.user?.isNewUser && !name) {
+        pendingTokenRef.current = data.accessToken;
         setStep('profile');
         return;
       }
-      await refreshUser();
+      loginWithData(data.user, data.accessToken);
       closeAuthModal();
     },
     onError: (err: any) => {
@@ -110,17 +109,20 @@ export default function AuthModal() {
 
   const saveProfileMutation = useMutation({
     mutationFn: async () => {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json', ...authHeaders() as Record<string, string> };
+      if (pendingTokenRef.current) headers['Authorization'] = `Bearer ${pendingTokenRef.current}`;
       const res = await fetch(`${API}/auth/me`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include',
         body: JSON.stringify({ name: name.trim(), phone: phone.trim() }),
       });
       if (!res.ok) throw new Error('Failed to save');
       return res.json();
     },
-    onSuccess: () => {
-      refreshUser();
+    onSuccess: (data) => {
+      loginWithData({ ...data, id: data._id?.toString() || data.id }, pendingTokenRef.current || '');
+      pendingTokenRef.current = '';
       closeAuthModal();
     },
     onError: () => {

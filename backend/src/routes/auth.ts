@@ -166,11 +166,13 @@ router.post('/verify-otp', async (req: Request, res: Response): Promise<void> =>
     setTokenCookies(res, accessToken, refreshToken);
 
     res.json({
+      accessToken,
       user: {
         id: user._id.toString(),
         email: cleanEmail,
         name: name || user.name,
         phone: phone || user.phone,
+        addresses: user.addresses || [],
         isNewUser: !user.name && !name,
       },
     });
@@ -206,7 +208,7 @@ router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
     await User.updateOne({ _id: user._id }, { $set: { refreshToken: hashOtp(refreshToken) } });
 
     setTokenCookies(res, accessToken, refreshToken);
-    res.json({ message: 'Refreshed' });
+    res.json({ message: 'Refreshed', accessToken });
   } catch {
     res.status(500).json({ error: 'Failed to refresh token' });
   }

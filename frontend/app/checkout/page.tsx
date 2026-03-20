@@ -25,7 +25,7 @@ const INDIAN_STATES = [
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotal, clearCart } = useCart();
-  const { user, isLoggedIn, loading: authLoading, openAuthModal, refreshUser } = useAuth();
+  const { user, isLoggedIn, loading: authLoading, openAuthModal, loginWithData } = useAuth();
   const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
   const total = subtotal + shipping;
 
@@ -158,7 +158,7 @@ export default function CheckoutPage() {
         return;
       }
       setOtpVerified(true);
-      await refreshUser();
+      loginWithData(data.user, data.accessToken);
     } catch {
       setOtpError('Something went wrong. Try again.');
     } finally {
