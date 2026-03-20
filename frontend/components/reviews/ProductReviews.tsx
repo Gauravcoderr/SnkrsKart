@@ -53,8 +53,12 @@ export default function ProductReviews({ productSlug, productName, initialReview
       });
       if (!res.ok) throw new Error();
       const newReview: Review = await res.json();
-      setReviews([newReview, ...reviews]);
+      const updatedReviews = [newReview, ...reviews];
+      setReviews(updatedReviews);
       setSubmitted(true);
+      const newCount = updatedReviews.length;
+      const newRating = Math.round((updatedReviews.reduce((s, r) => s + r.rating, 0) / newCount) * 10) / 10;
+      window.dispatchEvent(new CustomEvent('snkrs:review-added', { detail: { newRating, newCount } }));
       setName(''); setComment(''); setRating(0);
     } catch {
       setError('Something went wrong. Please try again.');
