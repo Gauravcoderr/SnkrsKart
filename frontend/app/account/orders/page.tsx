@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { formatPrice } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 
@@ -48,43 +49,42 @@ interface Order {
 
 export default function OrdersPage() {
   const { isLoggedIn, loading: authLoading, openAuthModal } = useAuth();
-  const [myOrders, setMyOrders] = useState<Order[]>([]);
-  const [myOrdersLoading, setMyOrdersLoading] = useState(false);
-
   const [query, setQuery] = useState('');
   const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Fetch user's orders when logged in
-  useEffect(() => {
-    if (!isLoggedIn) return;
-    setMyOrdersLoading(true);
-    fetch(`${BASE_URL}/orders/my`, { credentials: 'include' })
-      .then((r) => r.ok ? r.json() : [])
-      .then((data) => setMyOrders(Array.isArray(data) ? data : []))
-      .catch(() => {})
-      .finally(() => setMyOrdersLoading(false));
-  }, [isLoggedIn]);
+  // Fetch user's orders via React Query
+  const { data: myOrders = [], isLoading: myOrdersLoading } = useQuery<Order[]>({
+    queryKey: ['orders', 'my'],
+    queryFn: async () => {
+      const res = await fetch(`${BASE_URL}/orders/my`, { credentials: 'include' });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: isLoggedIn,
+    staleTime: 2 * 60 * 1000, // 2 min
+  });
 
-  async function handleSearch(e: FormEvent) {
+  // Lookup order by number via mutation
+  const lookupMutation = useMutation({
+    mutationFn: async (orderNumber: string) => {
+      const res = await fetch(`${BASE_URL}/orders/lookup?orderNumber=${encodeURIComponent(orderNumber)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Order not found');
+      return data as Order;
+    },
+    onSuccess: (data) => { setOrder(data); setError(''); },
+    onError: (err: Error) => { setError(err.message); setOrder(null); },
+  });
+
+  function handleSearch(e: FormEvent) {
     e.preventDefault();
     const q = query.trim().toUpperCase();
     if (!q) return;
-    setError('');
-    setOrder(null);
-    setLoading(true);
-    try {
-      const res = await fetch(`${BASE_URL}/orders/lookup?orderNumber=${encodeURIComponent(q)}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Order not found');
-      setOrder(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    lookupMutation.mutate(q);
   }
+
+  const loading = lookupMutation.isPending;
 
   const status = order ? (STATUS_STYLES[order.status] ?? STATUS_STYLES.pending) : null;
 

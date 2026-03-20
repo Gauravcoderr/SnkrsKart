@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -26,8 +27,8 @@ interface AuthState {
   authModalOpen: boolean;
   openAuthModal: () => void;
   closeAuthModal: () => void;
-  refreshUser: () => Promise<void>;
-  logout: () => Promise<void>;
+  refreshUser: () => void;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthState>({
@@ -37,60 +38,62 @@ const AuthContext = createContext<AuthState>({
   authModalOpen: false,
   openAuthModal: () => {},
   closeAuthModal: () => {},
-  refreshUser: async () => {},
-  logout: async () => {},
+  refreshUser: () => {},
+  logout: () => {},
 });
 
+async function fetchMe(): Promise<UserProfile | null> {
+  const res = await fetch(`${API}/auth/me`, { credentials: 'include' });
+  if (res.ok) return res.json();
+
+  if (res.status === 401) {
+    // Try token refresh
+    const refreshRes = await fetch(`${API}/auth/refresh`, { method: 'POST', credentials: 'include' });
+    if (refreshRes.ok) {
+      const retry = await fetch(`${API}/auth/me`, { credentials: 'include' });
+      if (retry.ok) return retry.json();
+    }
+  }
+  return null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
-  const fetchMe = useCallback(async () => {
-    try {
-      const res = await fetch(`${API}/auth/me`, { credentials: 'include' });
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data);
-      } else if (res.status === 401) {
-        // Try refreshing
-        const refreshRes = await fetch(`${API}/auth/refresh`, { method: 'POST', credentials: 'include' });
-        if (refreshRes.ok) {
-          const retryRes = await fetch(`${API}/auth/me`, { credentials: 'include' });
-          if (retryRes.ok) {
-            setUser(await retryRes.json());
-            return;
-          }
-        }
-        setUser(null);
-      }
-    } catch {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { data: user = null, isLoading } = useQuery<UserProfile | null>({
+    queryKey: ['auth', 'me'],
+    queryFn: fetchMe,
+    staleTime: 5 * 60 * 1000, // 5 min
+    retry: false,
+    refetchOnWindowFocus: true,
+  });
 
-  useEffect(() => { fetchMe(); }, [fetchMe]);
-
-  const logout = useCallback(async () => {
-    try {
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
       await fetch(`${API}/auth/logout`, { method: 'POST', credentials: 'include' });
-    } catch { /* ignore */ }
-    setUser(null);
-  }, []);
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(['auth', 'me'], null);
+      queryClient.invalidateQueries({ queryKey: ['orders', 'my'] });
+    },
+  });
+
+  const refreshUser = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+  }, [queryClient]);
 
   return (
     <AuthContext.Provider
       value={{
         user,
         isLoggedIn: !!user,
-        loading,
+        loading: isLoading,
         authModalOpen,
         openAuthModal: () => setAuthModalOpen(true),
         closeAuthModal: () => setAuthModalOpen(false),
-        refreshUser: fetchMe,
-        logout,
+        refreshUser,
+        logout: () => logoutMutation.mutate(),
       }}
     >
       {children}
