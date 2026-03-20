@@ -7,131 +7,112 @@ import Link from 'next/link';
 const SLIDES = [
   {
     brand: 'JORDAN',
-    tag: 'Nike',
+    tag: 'Nike Jordan',
     headline: 'FLY\nHIGHER.',
-    sub: 'Air Jordan Collection',
+    sub: 'Air Jordan 1 Retro · AJKO Chicago',
     cta: 'Shop Jordans',
     href: '/products?brand=Nike',
-    image: 'https://images.unsplash.com/photo-1556906781-9a412961a28d?w=1600&q=90',
+    image: 'https://cdn.shopify.com/s/files/1/0360/6491/9692/files/1_7c1d02fd-72f7-480e-923c-6d71b8a9f988.png?v=1755094202',
     accent: '#C8102E',
     bg: '#0a0a0a',
+    imgBg: '#f5f5f0',
   },
   {
     brand: 'NEW BALANCE',
     tag: 'New Balance',
     headline: 'BUILT\nDIFFERENT.',
-    sub: 'Crafted for the streets',
+    sub: 'BB550 · Oyster White / Olive',
     cta: 'Shop New Balance',
     href: '/products?brand=New+Balance',
-    image: 'https://images.unsplash.com/photo-1539185441755-769473a23570?w=1600&q=90',
+    image: 'https://images.vegnonveg.com/resized/1400X1146/13820/new-balance-bb550-oyster-whiteolive-68a83c48d7350.jpg?format=webp',
     accent: '#CF8B00',
     bg: '#0f0f0f',
+    imgBg: '#f0ede8',
   },
   {
     brand: 'ADIDAS',
     tag: 'Adidas',
     headline: 'NOTHING\nIS\nIMPOSSIBLE.',
-    sub: 'Originals & Performance',
+    sub: 'Samba Wales Bonner · Collegiate Navy',
     cta: 'Shop Adidas',
     href: '/products?brand=Adidas',
-    image: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=1600&q=90',
+    image: 'https://cdn.shopify.com/s/files/1/0360/6491/9692/files/adidasSambaWalesBonnerCollegiateNavy.png?v=1749203390',
     accent: '#ffffff',
     bg: '#111111',
+    imgBg: '#e8eaf0',
   },
   {
     brand: 'CROCS',
     tag: 'Crocs',
     headline: 'COME\nAS\nYOU ARE.',
-    sub: 'Iconic Clogs & Slides',
+    sub: 'Classic Clog · Iconic Comfort',
     cta: 'Shop Crocs',
     href: '/products?brand=Crocs',
-    image: 'https://images.unsplash.com/photo-1643185540617-a9c698f6b81f?w=1600&q=90',
+    image: 'https://images.vegnonveg.com/resized/1400X1146/7946/crocs-classic-lnd-clg-black-639bf1cac2dfc.jpg?format=webp',
     accent: '#FFD700',
     bg: '#0d0d0d',
+    imgBg: '#f5f0e8',
   },
 ];
 
 export default function HeroBanner() {
   const [active, setActive] = useState(0);
-  const [prev, setPrev] = useState<number | null>(null);
   const [transitioning, setTransitioning] = useState(false);
 
   const goTo = useCallback(
     (idx: number) => {
       if (transitioning || idx === active) return;
-      setPrev(active);
-      setActive(idx);
       setTransitioning(true);
-      setTimeout(() => {
-        setPrev(null);
-        setTransitioning(false);
-      }, 700);
+      setActive(idx);
+      setTimeout(() => setTransitioning(false), 600);
     },
     [active, transitioning]
   );
 
   useEffect(() => {
-    const t = setInterval(() => {
-      goTo((active + 1) % SLIDES.length);
-    }, 5000);
+    const t = setInterval(() => goTo((active + 1) % SLIDES.length), 5000);
     return () => clearInterval(t);
   }, [active, goTo]);
 
   const slide = SLIDES[active];
 
   return (
-    <section className="relative w-full h-[100svh] min-h-[600px] overflow-hidden select-none" style={{ background: slide.bg }}>
+    <section
+      className="relative w-full flex flex-col md:flex-row overflow-hidden"
+      style={{ minHeight: 'calc(100vh - 64px)', background: slide.bg, transition: 'background 0.6s ease' }}
+    >
+      {/* Left: Text */}
+      <div className="flex flex-col justify-between px-8 sm:px-12 lg:px-20 py-12 md:py-16 md:w-[52%] z-10">
 
-      {/* Slides */}
-      {SLIDES.map((s, i) => (
-        <div
-          key={i}
-          className="absolute inset-0 transition-opacity duration-700"
-          style={{ opacity: i === active ? 1 : i === prev ? 0 : 0, zIndex: i === active ? 1 : i === prev ? 0 : -1 }}
-        >
-          <Image
-            src={s.image}
-            alt={s.brand}
-            fill
-            priority={i === 0}
-            className="object-cover object-center"
-            sizes="100vw"
-          />
-          {/* Dark gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/10" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        </div>
-      ))}
-
-      {/* Content */}
-      <div className="relative z-10 h-full flex flex-col justify-between px-6 sm:px-12 lg:px-20 py-10 lg:py-16">
-
-        {/* Top: brand tag */}
+        {/* Top tag */}
         <div className="flex items-center gap-3">
-          <span className="w-8 h-px" style={{ background: slide.accent }} />
-          <span className="text-xs font-bold tracking-[0.4em] uppercase" style={{ color: slide.accent }}>
+          <span className="w-6 h-px" style={{ background: slide.accent }} />
+          <span className="text-[11px] font-bold tracking-[0.4em] uppercase" style={{ color: slide.accent }}>
             {slide.tag}
           </span>
         </div>
 
-        {/* Middle: headline */}
-        <div className="flex flex-col gap-6 max-w-2xl">
+        {/* Headline */}
+        <div className="flex flex-col gap-5 my-auto py-10">
           <h1
-            className="font-black uppercase leading-[0.88] tracking-tighter text-white"
-            style={{ fontSize: 'clamp(4rem, 12vw, 10rem)' }}
+            className="font-black uppercase leading-[0.85] tracking-tighter text-white"
+            style={{ fontSize: 'clamp(3.5rem, 10vw, 9rem)' }}
           >
             {slide.headline.split('\n').map((line, i) => (
               <span key={i} className="block">{line}</span>
             ))}
           </h1>
-          <p className="text-sm font-medium tracking-[0.3em] uppercase text-white/50">
+          <p className="text-sm text-white/40 tracking-widest uppercase font-medium">
             {slide.sub}
           </p>
-          <div className="flex items-center gap-4 mt-2">
+          <div className="flex items-center gap-4 mt-3">
             <Link
               href={slide.href}
-              className="inline-flex items-center gap-3 px-8 py-4 text-xs font-bold tracking-[0.25em] uppercase text-black transition-opacity hover:opacity-80"
-              style={{ background: slide.accent === '#ffffff' ? '#ffffff' : slide.accent }}
+              className="inline-flex items-center gap-3 px-7 py-4 text-[11px] font-bold tracking-[0.25em] uppercase transition-opacity hover:opacity-80"
+              style={{
+                background: slide.accent,
+                color: slide.accent === '#ffffff' ? '#000' : slide.accent === '#FFD700' ? '#000' : '#fff',
+              }}
             >
               {slide.cta}
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -140,57 +121,71 @@ export default function HeroBanner() {
             </Link>
             <Link
               href="/products"
-              className="text-xs font-bold tracking-[0.25em] uppercase text-white/50 hover:text-white transition-colors"
+              className="text-[11px] font-bold tracking-[0.25em] uppercase text-white/30 hover:text-white transition-colors"
             >
-              View All
+              All Products
             </Link>
           </div>
         </div>
 
-        {/* Bottom: slide controls */}
+        {/* Bottom: slide dots + counter */}
         <div className="flex items-center justify-between">
-          {/* Progress dots */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {SLIDES.map((_, i) => (
               <button
                 key={i}
+                type="button"
                 onClick={() => goTo(i)}
-                className="relative h-px overflow-hidden transition-all duration-300"
-                style={{ width: i === active ? 48 : 20, background: 'rgba(255,255,255,0.2)' }}
-                aria-label={`Go to slide ${i + 1}`}
-              >
-                {i === active && (
-                  <span
-                    className="absolute inset-0 origin-left"
-                    style={{
-                      background: slide.accent,
-                      animation: 'progress 5s linear forwards',
-                    }}
-                  />
-                )}
-              </button>
+                aria-label={`Slide ${i + 1}`}
+                className="relative h-px overflow-hidden transition-all duration-500"
+                style={{
+                  width: i === active ? 40 : 16,
+                  background: i === active ? slide.accent : 'rgba(255,255,255,0.2)',
+                }}
+              />
             ))}
           </div>
-
-          {/* Slide counter */}
-          <p className="text-xs font-mono text-white/30 tracking-widest">
+          <span className="text-[11px] font-mono text-white/20 tracking-widest">
             0{active + 1} / 0{SLIDES.length}
-          </p>
+          </span>
         </div>
       </div>
 
-      {/* Scroll hint */}
-      <div className="absolute bottom-10 right-10 z-10 flex flex-col items-center gap-2 text-white/20 hidden lg:flex">
-        <div className="w-px h-16 bg-gradient-to-b from-transparent to-white/20" />
-        <span className="text-[10px] tracking-[0.3em] uppercase rotate-90 origin-center translate-y-4">Scroll</span>
-      </div>
+      {/* Right: Product image */}
+      <div
+        className="relative md:w-[48%] h-72 md:h-auto"
+        style={{
+          background: slide.imgBg,
+          transition: 'background 0.6s ease',
+        }}
+      >
+        {SLIDES.map((s, i) => (
+          <div
+            key={i}
+            className="absolute inset-0 flex items-center justify-center p-8 transition-opacity duration-600"
+            style={{ opacity: i === active ? 1 : 0 }}
+          >
+            <Image
+              src={s.image}
+              alt={s.brand}
+              fill
+              priority={i === 0}
+              className="object-contain p-8"
+              sizes="(max-width: 768px) 100vw, 48vw"
+            />
+          </div>
+        ))}
 
-      <style jsx>{`
-        @keyframes progress {
-          from { transform: scaleX(0); }
-          to   { transform: scaleX(1); }
-        }
-      `}</style>
+        {/* Brand watermark */}
+        <div className="absolute bottom-6 right-6 z-10">
+          <span
+            className="text-[10px] font-black tracking-[0.4em] uppercase opacity-20"
+            style={{ color: '#000' }}
+          >
+            {slide.brand}
+          </span>
+        </div>
+      </div>
     </section>
   );
 }
