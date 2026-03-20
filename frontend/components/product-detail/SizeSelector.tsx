@@ -15,6 +15,7 @@ interface SizeSelectorProps {
   onSizeSelect: (size: number) => void;
   showError?: boolean;
   variants?: ProductVariant[];
+  onSizeGuide?: () => void;
 }
 
 export default function SizeSelector({
@@ -24,6 +25,7 @@ export default function SizeSelector({
   onSizeSelect,
   showError = false,
   variants,
+  onSizeGuide,
 }: SizeSelectorProps) {
   const hasVariants = (variants?.length ?? 0) > 0;
 
@@ -38,7 +40,7 @@ export default function SizeSelector({
             </span>
           )}
         </p>
-        <button type="button" className="text-xs text-zinc-500 underline hover:text-zinc-900 transition-colors">
+        <button type="button" onClick={onSizeGuide} className="text-xs text-zinc-500 underline hover:text-zinc-900 transition-colors">
           Size Guide
         </button>
       </div>

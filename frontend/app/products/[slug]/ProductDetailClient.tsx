@@ -5,6 +5,7 @@ import { Product } from '@/types';
 import SizeSelector from '@/components/product-detail/SizeSelector';
 import AddToCartButton from '@/components/product-detail/AddToCartButton';
 import PurchaseModal from '@/components/product-detail/PurchaseModal';
+import SizeGuideModal from '@/components/product-detail/SizeGuideModal';
 import { formatPrice } from '@/lib/utils';
 
 interface ProductDetailClientProps {
@@ -16,6 +17,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [showSizeError, setShowSizeError] = useState(false);
   const [currentPrice, setCurrentPrice] = useState(product.price);
   const [showModal, setShowModal] = useState(false);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [currentOriginalPrice, setCurrentOriginalPrice] = useState(product.originalPrice);
   const sizeSectionRef = useRef<HTMLDivElement>(null);
 
@@ -71,6 +73,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           onSizeSelect={handleSizeSelect}
           showError={showSizeError}
           variants={product.variants}
+          onSizeGuide={() => setShowSizeGuide(true)}
         />
       </div>
 
@@ -103,6 +106,12 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </div>
         ))}
       </div>
+      {/* Size guide modal */}
+      <SizeGuideModal
+        open={showSizeGuide}
+        onClose={() => setShowSizeGuide(false)}
+        gender={product.gender}
+      />
       {/* Purchase modal */}
       {showModal && (
         <PurchaseModal
