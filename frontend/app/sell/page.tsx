@@ -24,6 +24,12 @@ export default function BecomeASellerPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError('');
+
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim());
+    if (!emailValid) { setError('Please enter a valid email address.'); return; }
+
+    const phoneValid = /^[+\d][\d\s\-().]{7,}$/.test(form.phone.trim());
+    if (!phoneValid) { setError('Please enter a valid phone number.'); return; }
     setLoading(true);
     try {
       const res = await fetch(`${BASE_URL}/seller`, {

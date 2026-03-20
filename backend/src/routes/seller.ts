@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { Resend } from 'resend';
+import { Seller } from '../models/Seller';
 
 const router = Router();
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -19,6 +20,8 @@ router.post('/', async (req: Request, res: Response) => {
       res.status(400).json({ error: 'Invalid email address' });
       return;
     }
+
+    await Seller.create({ name, email, phone, brandsSell, pairsCount, message });
 
     res.json({ success: true });
 

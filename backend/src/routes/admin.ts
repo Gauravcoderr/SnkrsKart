@@ -7,6 +7,7 @@ import { Brand } from '../models/Brand';
 import { Inquiry } from '../models/Inquiry';
 import { Review } from '../models/Review';
 import { Banner } from '../models/Banner';
+import { Seller } from '../models/Seller';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'snkrs-cart-admin-secret-key';
@@ -215,6 +216,27 @@ router.delete('/reviews/:id', adminAuth, async (req: Request, res: Response): Pr
     res.json({ message: 'Deleted' });
   } catch {
     res.status(500).json({ error: 'Failed to delete review' });
+  }
+});
+
+// ─── Sellers ───────────────────────────────────────────────────────────────
+
+router.get('/sellers', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const sellers = await Seller.find().sort({ createdAt: -1 }).lean();
+    res.json(sellers);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch sellers' });
+  }
+});
+
+router.delete('/sellers/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const seller = await Seller.findByIdAndDelete(req.params.id);
+    if (!seller) { res.status(404).json({ error: 'Not found' }); return; }
+    res.json({ message: 'Deleted' });
+  } catch {
+    res.status(500).json({ error: 'Failed to delete seller' });
   }
 });
 
