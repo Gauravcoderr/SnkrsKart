@@ -167,7 +167,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
       '@type': 'Organization',
       name: 'SNKRS CART',
       url: SITE_URL,
-      logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.jpg` },
+      logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.jpeg` },
     },
     keywords: blog.metaKeywords || blog.tags.join(', '),
     ...(blog.coverImage ? { image: { '@type': 'ImageObject', url: blog.coverImage } } : {}),

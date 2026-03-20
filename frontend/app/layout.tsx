@@ -22,7 +22,7 @@ const bebas = Bebas_Neue({
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
-const OG_IMAGE = `${SITE_URL}/logo.jpg`;
+const OG_IMAGE = `${SITE_URL}/logo.jpeg`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

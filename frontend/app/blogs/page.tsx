@@ -79,7 +79,7 @@ export default async function BlogsPage() {
     name: 'SNKRS CART Blog',
     description: 'Sneaker news, release guides, and style content from SNKRS CART.',
     url: `${SITE_URL}/blogs`,
-    publisher: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL, logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.jpg` } },
+    publisher: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL, logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.jpeg` } },
     blogPost: blogs.map((b) => ({
       '@type': 'BlogPosting', headline: b.title,
       url: `${SITE_URL}/blogs/${b.slug}`, datePublished: b.createdAt,
