@@ -1,7 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import type { Blog } from '@/types';
+import type { Blog, Product } from '@/types';
+import TableOfContents from './TableOfContents';
+import ListenButton from './ListenButton';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
@@ -75,6 +77,37 @@ function readingTime(html: string): number {
   return Math.max(1, Math.ceil(words / 200));
 }
 
+// Inject IDs into H2/H3 headings so TOC links work
+function injectHeadingIds(html: string): string {
+  let idx = 0;
+  return html.replace(/<h([23])([^>]*)>/gi, (_match, level, attrs) => {
+    const id = `heading-${idx++}`;
+    return `<h${level}${attrs} id="${id}">`;
+  });
+}
+
+// Map blog tags to product brand queries
+const TAG_TO_BRAND: Record<string, string> = {
+  jordan: 'Jordan', nike: 'Nike', adidas: 'Adidas',
+  'new-balance': 'New Balance', crocs: 'Crocs',
+  dunk: 'Nike', 'air-force-1': 'Nike', 'air-max': 'Nike',
+  samba: 'Adidas', '550': 'New Balance', 'jordan-4': 'Jordan',
+  'air-jordan-1': 'Jordan',
+};
+
+async function fetchProductsByTags(tags: string[]): Promise<Product[]> {
+  try {
+    const brands = Array.from(new Set(tags.map((t) => TAG_TO_BRAND[t]).filter(Boolean)));
+    if (brands.length === 0) return [];
+    const res = await fetch(`${API}/products?brand=${brands.join(',')}&limit=4`, { next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.products || [];
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const blog = await fetchBlog(params.slug);
   if (!blog) return { title: 'Blog | SNKRS CART' };
@@ -115,8 +148,12 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
   if (!blog) notFound();
 
   const accent = getAccent(blog.tags);
+  const contentWithIds = injectHeadingIds(blog.content);
   const minutes = readingTime(blog.content);
-  const relatedBlogs = await fetchRelatedBlogs(blog.tags, blog.slug);
+  const [relatedBlogs, tagProducts] = await Promise.all([
+    fetchRelatedBlogs(blog.tags, blog.slug),
+    fetchProductsByTags(blog.tags),
+  ]);
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -207,6 +244,12 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
 
       {/* Content */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+        {/* Listen + TOC */}
+        <div className="mb-8 space-y-4">
+          <ListenButton html={contentWithIds} />
+          <TableOfContents html={contentWithIds} />
+        </div>
+
         <article
           className={`
             prose prose-zinc max-w-none
@@ -221,8 +264,34 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
             prose-img:rounded-xl prose-img:w-full prose-img:shadow-md
             first-letter:text-5xl first-letter:font-black first-letter:float-left first-letter:mr-2 first-letter:mt-1 first-letter:leading-none first-letter:${accent.text}
           `}
-          dangerouslySetInnerHTML={{ __html: blog.content }}
+          dangerouslySetInnerHTML={{ __html: contentWithIds }}
         />
+
+        {/* Product Listings from tags */}
+        {tagProducts.length > 0 && (
+          <div className="mt-12 pt-8 border-t border-zinc-100">
+            <h2 className="text-lg font-black tracking-tight text-zinc-900 mb-5">Shop These Kicks</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {tagProducts.map((p) => (
+                <Link key={p.id || p.slug} href={`/products/${p.slug}`} className="group block rounded-xl border border-zinc-100 hover:border-zinc-200 hover:shadow-md transition-all overflow-hidden bg-white">
+                  <div className="aspect-square bg-zinc-50 p-3 flex items-center justify-center">
+                    <img src={p.images[0]} alt={p.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+                  </div>
+                  <div className="p-3">
+                    <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wide">{p.brand}</p>
+                    <p className="text-xs font-bold text-zinc-900 truncate mt-0.5">{p.name}</p>
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <span className="text-sm font-bold text-zinc-900">{'\u20B9'}{p.price.toLocaleString('en-IN')}</span>
+                      {p.originalPrice && p.originalPrice > p.price && (
+                        <span className="text-[10px] text-zinc-400 line-through">{'\u20B9'}{p.originalPrice.toLocaleString('en-IN')}</span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Share / tags bar */}
         <div className={`mt-12 pt-6 border-t ${accent.border}`}>
