@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { Product } from '@/types';
 
 interface Props {
@@ -12,6 +12,10 @@ interface Props {
 const GENDERS = ['men', 'women', 'unisex', 'kids'] as const;
 const CATEGORIES = ['lifestyle', 'basketball', 'running', 'skateboarding', 'casual', 'training'] as const;
 
+function parseSizes(str: string): number[] {
+  return str.split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n) && n > 0);
+}
+
 export default function ProductFormModal({ product, onSave, onClose }: Props) {
   const isEdit = !!product;
 
@@ -21,9 +25,6 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     slug: product?.slug || '',
     colorway: product?.colorway || '',
     gender: product?.gender || 'unisex',
-    price: product?.price || 0,
-    originalPrice: product?.originalPrice || 0,
-    discount: product?.discount || 0,
     description: product?.description || '',
     category: product?.category || 'lifestyle',
     sku: product?.sku || '',
@@ -39,6 +40,90 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     soldOut: product?.soldOut || false,
   });
 
+  // ── Pricing state ────────────────────────────────────────────────────────
+  const [samePriceForAll, setSamePriceForAll] = useState(
+    !product?.variants?.length
+  );
+  const [uniformPrice, setUniformPrice] = useState(
+    String(product?.price || '')
+  );
+  const [uniformOriginal, setUniformOriginal] = useState(
+    String(product?.originalPrice || '')
+  );
+  // per-size prices keyed by size number
+  const [variantPrices, setVariantPrices] = useState<Record<number, { price: string; originalPrice: string }>>(() => {
+    const map: Record<number, { price: string; originalPrice: string }> = {};
+    if (product?.variants?.length) {
+      for (const v of product.variants) {
+        map[v.size] = { price: String(v.price), originalPrice: String(v.originalPrice ?? '') };
+      }
+    }
+    return map;
+  });
+
+  // When sizes field changes, keep variantPrices in sync (preserve existing, add new)
+  const parsedSizes = parseSizes(form.sizes);
+
+  useEffect(() => {
+    setVariantPrices((prev) => {
+      const next: Record<number, { price: string; originalPrice: string }> = {};
+      for (const size of parsedSizes) {
+        next[size] = prev[size] ?? { price: uniformPrice, originalPrice: uniformOriginal };
+      }
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.sizes]);
+
+  // When "same price" is toggled on, pre-fill all sizes with uniform values
+  function handleSamePriceToggle(checked: boolean) {
+    setSamePriceForAll(checked);
+    if (checked) {
+      setVariantPrices((prev) => {
+        const next = { ...prev };
+        for (const size of parsedSizes) {
+          next[size] = { price: uniformPrice, originalPrice: uniformOriginal };
+        }
+        return next;
+      });
+    }
+  }
+
+  // When uniform price changes, push to all variants
+  function handleUniformPriceChange(price: string) {
+    setUniformPrice(price);
+    if (samePriceForAll) {
+      setVariantPrices((prev) => {
+        const next = { ...prev };
+        for (const size of parsedSizes) {
+          next[size] = { ...next[size], price };
+        }
+        return next;
+      });
+    }
+  }
+
+  function handleUniformOriginalChange(orig: string) {
+    setUniformOriginal(orig);
+    if (samePriceForAll) {
+      setVariantPrices((prev) => {
+        const next = { ...prev };
+        for (const size of parsedSizes) {
+          next[size] = { ...next[size], originalPrice: orig };
+        }
+        return next;
+      });
+    }
+  }
+
+  function setVariantField(size: number, field: 'price' | 'originalPrice', value: string) {
+    setVariantPrices((prev) => ({
+      ...prev,
+      [size]: { ...prev[size], [field]: value },
+    }));
+  }
+
+  // ── Form helpers ─────────────────────────────────────────────────────────
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -52,24 +137,51 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     setSaving(true);
 
     try {
+      const sizes = parsedSizes;
+
+      // Build variants array
+      const variants = sizes.map((size) => {
+        const entry = variantPrices[size] ?? { price: uniformPrice, originalPrice: uniformOriginal };
+        const price = Number(entry.price);
+        const originalPrice = entry.originalPrice ? Number(entry.originalPrice) : null;
+        return { size, price, originalPrice };
+      });
+
+      // Base price = min of variant prices (or uniform)
+      const basePrice = variants.length
+        ? Math.min(...variants.map((v) => v.price))
+        : Number(uniformPrice);
+
+      const baseOriginal = variants.length
+        ? (() => {
+            const origs = variants.map((v) => v.originalPrice).filter((v): v is number => v !== null);
+            return origs.length ? Math.min(...origs) : null;
+          })()
+        : (uniformOriginal ? Number(uniformOriginal) : null);
+
+      const discount = baseOriginal && baseOriginal > basePrice
+        ? Math.round(((baseOriginal - basePrice) / baseOriginal) * 100)
+        : null;
+
       const payload: Partial<Product> & Record<string, any> = {
         name: form.name.trim(),
         brand: form.brand.trim(),
         slug: form.slug.trim() || undefined,
         colorway: form.colorway.trim(),
         gender: form.gender as Product['gender'],
-        price: Number(form.price),
-        originalPrice: form.originalPrice ? Number(form.originalPrice) : null,
-        discount: form.discount ? Number(form.discount) : null,
+        price: basePrice,
+        originalPrice: baseOriginal,
+        discount,
         description: form.description.trim(),
         category: form.category.trim(),
         sku: form.sku.trim(),
-        sizes: form.sizes.split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n)),
+        sizes,
         availableSizes: form.availableSizes.split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n)),
         colors: form.colors.split(',').map((c) => c.trim().toLowerCase()).filter(Boolean),
         tags: form.tags.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean),
         images: form.imageList.map((u) => u.trim()).filter(Boolean),
         hoverImage: form.hoverImage.trim(),
+        variants,
         featured: form.featured,
         trending: form.trending,
         newArrival: form.newArrival,
@@ -103,19 +215,19 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
             </div>
           )}
 
-          {/* Row: Name + Brand */}
+          {/* Name + Brand */}
           <div className="grid grid-cols-2 gap-4">
             <Field label="Name *" value={form.name} onChange={(v) => set('name', v)} required />
             <Field label="Brand *" value={form.brand} onChange={(v) => set('brand', v)} required />
           </div>
 
-          {/* Row: Slug + SKU */}
+          {/* Slug + SKU */}
           <div className="grid grid-cols-2 gap-4">
             <Field label="Slug" value={form.slug} onChange={(v) => set('slug', v)} placeholder="Auto-generated if empty" />
             <Field label="SKU *" value={form.sku} onChange={(v) => set('sku', v)} required />
           </div>
 
-          {/* Row: Colorway + Category */}
+          {/* Colorway + Category */}
           <div className="grid grid-cols-2 gap-4">
             <Field label="Colorway" value={form.colorway} onChange={(v) => set('colorway', v)} />
             <div>
@@ -132,9 +244,9 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
             </div>
           </div>
 
-          {/* Row: Gender + Price + OriginalPrice + Discount */}
+          {/* Gender */}
           <div className="grid grid-cols-4 gap-4">
-            <div>
+            <div className="col-span-1">
               <label className="block text-sm font-medium text-zinc-400 mb-1.5">Gender</label>
               <select
                 value={form.gender}
@@ -146,9 +258,6 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
                 ))}
               </select>
             </div>
-            <Field label="Price *" type="number" value={form.price} onChange={(v) => set('price', v)} required />
-            <Field label="Original Price" type="number" value={form.originalPrice} onChange={(v) => set('originalPrice', v)} />
-            <Field label="Discount %" type="number" value={form.discount} onChange={(v) => set('discount', v)} />
           </div>
 
           {/* Description */}
@@ -168,6 +277,86 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
             <Field label="Sizes (comma-separated)" value={form.sizes} onChange={(v) => set('sizes', v)} placeholder="6, 7, 8, 9, 10" />
             <Field label="Available Sizes" value={form.availableSizes} onChange={(v) => set('availableSizes', v)} placeholder="6, 7, 8" />
           </div>
+
+          {/* ── Pricing per size ─────────────────────────────────────────── */}
+          <div className="border border-zinc-700 rounded-lg p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-white">Pricing per Size</span>
+              <label className="flex items-center gap-2 cursor-pointer text-sm text-zinc-300">
+                <input
+                  type="checkbox"
+                  checked={samePriceForAll}
+                  onChange={(e) => handleSamePriceToggle(e.target.checked)}
+                  className="w-4 h-4 rounded accent-white"
+                />
+                Same price for all sizes
+              </label>
+            </div>
+
+            {samePriceForAll ? (
+              /* Uniform price inputs */
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-zinc-400 mb-1.5">Price (₹) *</label>
+                  <input
+                    type="number"
+                    value={uniformPrice}
+                    onChange={(e) => handleUniformPriceChange(e.target.value)}
+                    required
+                    placeholder="e.g. 12000"
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-zinc-400 mb-1.5">Original Price (₹)</label>
+                  <input
+                    type="number"
+                    value={uniformOriginal}
+                    onChange={(e) => handleUniformOriginalChange(e.target.value)}
+                    placeholder="e.g. 14000"
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                  />
+                </div>
+              </div>
+            ) : (
+              /* Per-size pricing grid */
+              <div className="space-y-2">
+                {parsedSizes.length === 0 ? (
+                  <p className="text-xs text-zinc-500 italic">Enter sizes above to set per-size prices.</p>
+                ) : (
+                  <>
+                    {/* Header row */}
+                    <div className="grid grid-cols-[80px_1fr_1fr] gap-3 text-xs font-medium text-zinc-500 pb-1 border-b border-zinc-800">
+                      <span>UK Size</span>
+                      <span>Price (₹) *</span>
+                      <span>Original Price (₹)</span>
+                    </div>
+                    {parsedSizes.map((size) => (
+                      <div key={size} className="grid grid-cols-[80px_1fr_1fr] gap-3 items-center">
+                        <span className="text-sm font-semibold text-zinc-300">UK {size}</span>
+                        <input
+                          type="number"
+                          value={variantPrices[size]?.price ?? ''}
+                          onChange={(e) => setVariantField(size, 'price', e.target.value)}
+                          placeholder="Price"
+                          required
+                          className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                        />
+                        <input
+                          type="number"
+                          value={variantPrices[size]?.originalPrice ?? ''}
+                          onChange={(e) => setVariantField(size, 'originalPrice', e.target.value)}
+                          placeholder="Original (optional)"
+                          className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                        />
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+          {/* ───────────────────────────────────────────────────────────────── */}
 
           {/* Colors + Tags */}
           <div className="grid grid-cols-2 gap-4">
@@ -190,15 +379,12 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
                       set('imageList', updated);
                     }}
                     placeholder={`Image URL ${i + 1}`}
-                    className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 transition font-mono"
+                    className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 font-mono"
                   />
                   {form.imageList.length > 1 && (
                     <button
                       type="button"
-                      onClick={() => {
-                        const updated = form.imageList.filter((_, idx) => idx !== i);
-                        set('imageList', updated);
-                      }}
+                      onClick={() => set('imageList', form.imageList.filter((_, idx) => idx !== i))}
                       className="text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2.5 rounded-lg transition text-sm shrink-0"
                     >
                       Remove
@@ -229,11 +415,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
 
           {/* Submit */}
           <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-sm px-5 py-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition"
-            >
+            <button type="button" onClick={onClose} className="text-sm px-5 py-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition">
               Cancel
             </button>
             <button
@@ -250,22 +432,13 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
   );
 }
 
-// ─── Reusable field components ──────────────────────────────────────────────
+// ─── Reusable field components ───────────────────────────────────────────────
 
 function Field({
-  label,
-  value,
-  onChange,
-  type = 'text',
-  placeholder,
-  required,
+  label, value, onChange, type = 'text', placeholder, required,
 }: {
-  label: string;
-  value: string | number;
-  onChange: (v: string) => void;
-  type?: string;
-  placeholder?: string;
-  required?: boolean;
+  label: string; value: string | number; onChange: (v: string) => void;
+  type?: string; placeholder?: string; required?: boolean;
 }) {
   return (
     <div>
@@ -282,15 +455,7 @@ function Field({
   );
 }
 
-function Checkbox({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
+function Checkbox({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <label className="flex items-center gap-2 cursor-pointer text-sm text-zinc-300">
       <input
