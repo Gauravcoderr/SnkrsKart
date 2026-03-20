@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/types';
@@ -14,14 +15,26 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, priority = false }: ProductCardProps) {
   const { addItem, openDrawer } = useCart();
+  const [hoveredSize, setHoveredSize] = useState<number | null>(null);
 
-  // Pick 3 most popular available sizes for quick-add
+  const hasVariants = (product.variants?.length ?? 0) > 0;
+
+  const activeVariant = hoveredSize && hasVariants
+    ? product.variants!.find((v) => v.size === hoveredSize)
+    : null;
+
+  const displayPrice = activeVariant ? activeVariant.price : product.price;
+  const displayOriginalPrice = activeVariant ? activeVariant.originalPrice : product.originalPrice;
+
+  // Pick 4 most popular available sizes for quick-add
   const quickSizes = product.availableSizes.slice(0, 4);
 
   const handleQuickAdd = (e: React.MouseEvent, size: number) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem(product, size, 1);
+    const variant = hasVariants ? product.variants!.find((v) => v.size === size) : null;
+    const effectiveProduct = variant ? { ...product, price: variant.price, originalPrice: variant.originalPrice } : product;
+    addItem(effectiveProduct, size, 1);
     openDrawer();
   };
 
@@ -77,7 +90,10 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                 {quickSizes.map((size) => (
                   <button
                     key={size}
+                    type="button"
                     onClick={(e) => handleQuickAdd(e, size)}
+                    onMouseEnter={() => setHoveredSize(size)}
+                    onMouseLeave={() => setHoveredSize(null)}
                     className="h-7 px-2 text-xs font-semibold border border-zinc-200 bg-white hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all duration-150"
                   >
                     {size}
@@ -107,10 +123,10 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           </p>
           <p className="text-xs text-zinc-400 mt-0.5">{product.colorway}</p>
           <div className="flex items-baseline gap-2 mt-1.5">
-            <span className="text-sm font-bold text-zinc-900">{formatPrice(product.price)}</span>
-            {product.originalPrice && (
+            <span className="text-sm font-bold text-zinc-900 transition-all duration-150">{formatPrice(displayPrice)}</span>
+            {displayOriginalPrice && (
               <span className="text-xs text-zinc-400 line-through">
-                {formatPrice(product.originalPrice)}
+                {formatPrice(displayOriginalPrice)}
               </span>
             )}
           </div>
