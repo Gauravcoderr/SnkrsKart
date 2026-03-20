@@ -19,12 +19,26 @@ export default function PurchaseModal({ product, selectedSize, currentPrice, onC
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ name: '', email: '', phone: '', address: '' });
+  const [fieldErrors, setFieldErrors] = useState({ email: '', phone: '' });
+
+  const validateEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
+  const validatePhone = (phone: string) =>
+    /^(\+91[\s-]?)?[6-9]\d{9}$/.test(phone.trim().replace(/\s/g, ''));
 
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    const errors = { email: '', phone: '' };
+    if (!validateEmail(form.email)) errors.email = 'Enter a valid email address.';
+    if (!validatePhone(form.phone)) errors.phone = 'Enter a valid 10-digit Indian mobile number.';
+    setFieldErrors(errors);
+    if (errors.email || errors.phone) return;
+
     setLoading(true);
     try {
       const res = await fetch(`${BASE_URL}/inquiries`, {
@@ -105,10 +119,14 @@ export default function PurchaseModal({ product, selectedSize, currentPrice, onC
                     type="email"
                     required
                     value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    onChange={(e) => {
+                      setForm({ ...form, email: e.target.value });
+                      if (fieldErrors.email) setFieldErrors((fe) => ({ ...fe, email: '' }));
+                    }}
                     placeholder="your@email.com"
-                    className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors"
+                    className={`w-full border px-3 py-2.5 text-sm text-zinc-900 focus:outline-none transition-colors ${fieldErrors.email ? 'border-red-400 focus:border-red-500' : 'border-zinc-200 focus:border-zinc-900'}`}
                   />
+                  {fieldErrors.email && <p className="mt-1 text-[11px] text-red-500">{fieldErrors.email}</p>}
                 </div>
                 <div>
                   <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-1">Phone / WhatsApp *</label>
@@ -116,10 +134,14 @@ export default function PurchaseModal({ product, selectedSize, currentPrice, onC
                     type="tel"
                     required
                     value={form.phone}
-                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    onChange={(e) => {
+                      setForm({ ...form, phone: e.target.value });
+                      if (fieldErrors.phone) setFieldErrors((fe) => ({ ...fe, phone: '' }));
+                    }}
                     placeholder="+91 XXXXX XXXXX"
-                    className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors"
+                    className={`w-full border px-3 py-2.5 text-sm text-zinc-900 focus:outline-none transition-colors ${fieldErrors.phone ? 'border-red-400 focus:border-red-500' : 'border-zinc-200 focus:border-zinc-900'}`}
                   />
+                  {fieldErrors.phone && <p className="mt-1 text-[11px] text-red-500">{fieldErrors.phone}</p>}
                 </div>
                 <div>
                   <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-1">Delivery Address *</label>

@@ -14,6 +14,17 @@ router.post('/', async (req: Request, res: Response) => {
       return;
     }
 
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
+    const phoneValid = /^(\+91[\s-]?)?[6-9]\d{9}$/.test(String(phone).trim().replace(/\s/g, ''));
+    if (!emailValid) {
+      res.status(400).json({ error: 'Invalid email address' });
+      return;
+    }
+    if (!phoneValid) {
+      res.status(400).json({ error: 'Invalid mobile number' });
+      return;
+    }
+
     // Save to DB first
     await Inquiry.create({ name, email, phone, address, productSlug, productName, productBrand, selectedSize, price });
 

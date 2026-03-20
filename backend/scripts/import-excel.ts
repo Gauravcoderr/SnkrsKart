@@ -148,6 +148,7 @@ async function syncBrandCounts() {
     { name: 'Asics',       slug: 'asics',       logoText: 'ASICS',       heroColor: '#111827' },
     { name: 'Puma',        slug: 'puma',        logoText: 'PUMA',        heroColor: '#1f2937' },
     { name: 'Vans',        slug: 'vans',        logoText: 'VANS',        heroColor: '#374151' },
+    { name: 'Crocs',       slug: 'crocs',       logoText: 'CROCS',       heroColor: '#1f2937' },
   ];
 
   // Find all distinct brands in products collection
