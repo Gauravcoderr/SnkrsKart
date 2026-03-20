@@ -1,0 +1,56 @@
+[
+  {
+    "id": "nike",
+    "name": "Nike",
+    "slug": "nike",
+    "productCount": 8,
+    "logoText": "NIKE",
+    "heroColor": "#000000",
+    "description": "Just Do It"
+  },
+  {
+    "id": "adidas",
+    "name": "Adidas",
+    "slug": "adidas",
+    "productCount": 7,
+    "logoText": "ADIDAS",
+    "heroColor": "#000000",
+    "description": "Impossible Is Nothing"
+  },
+  {
+    "id": "new-balance",
+    "name": "New Balance",
+    "slug": "new-balance",
+    "productCount": 5,
+    "logoText": "NEW BALANCE",
+    "heroColor": "#000000",
+    "description": "Fearlessly Independent"
+  },
+  {
+    "id": "asics",
+    "name": "Asics",
+    "slug": "asics",
+    "productCount": 4,
+    "logoText": "ASICS",
+    "heroColor": "#000000",
+    "description": "Sound Mind, Sound Body"
+  },
+  {
+    "id": "puma",
+    "name": "Puma",
+    "slug": "puma",
+    "productCount": 3,
+    "logoText": "PUMA",
+    "heroColor": "#000000",
+    "description": "Forever Faster"
+  },
+  {
+    "id": "vans",
+    "name": "Vans",
+    "slug": "vans",
+    "productCount": 3,
+    "logoText": "VANS",
+    "heroColor": "#000000",
+    "description": "Off The Wall"
+  }
+]

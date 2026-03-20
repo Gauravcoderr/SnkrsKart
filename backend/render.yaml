@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: snkrs-cart-api
+    runtime: node
+    region: singapore
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: MONGODB_URI
+        sync: false        # Set this manually in Render dashboard
+      - key: FRONTEND_URL
+        value: https://snkrs-cart.vercel.app

@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-zinc-50 text-zinc-900 font-sans antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f4f4f5;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #a1a1aa;
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #71717a;
+  }
+}
+
+@layer utilities {
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .img-hover-swap .img-default {
+    transition: opacity 0.25s ease;
+  }
+  .img-hover-swap .img-hover {
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .img-hover-swap:hover .img-default {
+    opacity: 0;
+  }
+  .img-hover-swap:hover .img-hover {
+    opacity: 1;
+  }
+
+  .quick-size-panel {
+    transform: translateY(100%);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .group:hover .quick-size-panel {
+    transform: translateY(0);
+  }
+}
