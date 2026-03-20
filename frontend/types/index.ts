@@ -14,6 +14,7 @@ export interface Product {
   availableSizes: number[];
   colors: string[];
   tags: string[];
+  variants?: Array<{ size: number; price: number; originalPrice: number | null }>;
   featured: boolean;
   trending: boolean;
   newArrival: boolean;

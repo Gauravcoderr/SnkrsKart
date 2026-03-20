@@ -83,18 +83,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
             <span className="text-xs text-zinc-400">({product.reviewCount.toLocaleString()} reviews)</span>
           </div>
 
-          {/* Price */}
-          <div className="flex items-baseline gap-3 mb-6 pb-6 border-b border-zinc-100">
-            <span className="text-2xl font-bold text-zinc-900">{formatPrice(product.price)}</span>
-            {product.originalPrice && (
-              <>
-                <span className="text-base text-zinc-400 line-through">{formatPrice(product.originalPrice)}</span>
-                <span className="text-sm font-bold text-red-500">−{product.discount}%</span>
-              </>
-            )}
-          </div>
-
-          {/* Size picker + Add to cart — client component */}
+          {/* Size picker + Add to cart + price — client component */}
           <ProductDetailClient product={product} />
 
           {/* Description */}

@@ -1,5 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IVariant {
+  size: number;
+  price: number;
+  originalPrice: number | null;
+}
+
 export interface IProduct extends Document {
   id: string;
   slug: string;
@@ -16,6 +22,7 @@ export interface IProduct extends Document {
   availableSizes: number[];
   colors: string[];
   tags: string[];
+  variants: IVariant[];
   featured: boolean;
   trending: boolean;
   newArrival: boolean;
@@ -44,6 +51,7 @@ const ProductSchema = new Schema<IProduct>(
     availableSizes:[{ type: Number }],
     colors:        [{ type: String }],
     tags:          [{ type: String }],
+    variants:      [{ size: Number, price: Number, originalPrice: { type: Number, default: null } }],
     featured:      { type: Boolean, default: false, index: true },
     trending:      { type: Boolean, default: false, index: true },
     newArrival:    { type: Boolean, default: false, index: true },

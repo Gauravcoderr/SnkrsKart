@@ -9,6 +9,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.footlocker.com', pathname: '/**' },
       { protocol: 'https', hostname: 'images.stockx.com', pathname: '/**' },
       { protocol: 'https', hostname: 'crepdogcrew.com', pathname: '/**' },
+      { protocol: 'https', hostname: 'static.nike.com', pathname: '/**' },
     ],
   },
 };

@@ -28,9 +28,11 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/products', label: 'All Shoes' },
+    { href: '/products?brand=Jordan', label: 'Jordan' },
     { href: '/products?brand=Nike', label: 'Nike' },
     { href: '/products?brand=Adidas', label: 'Adidas' },
     { href: '/products?brand=New Balance', label: 'New Balance' },
+    { href: '/products?brand=Crocs', label: 'Crocs' },
   ];
 
   return (
