@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -46,10 +47,25 @@ interface Order {
 }
 
 export default function OrdersPage() {
+  const { isLoggedIn, loading: authLoading, openAuthModal } = useAuth();
+  const [myOrders, setMyOrders] = useState<Order[]>([]);
+  const [myOrdersLoading, setMyOrdersLoading] = useState(false);
+
   const [query, setQuery] = useState('');
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Fetch user's orders when logged in
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    setMyOrdersLoading(true);
+    fetch(`${BASE_URL}/orders/my`, { credentials: 'include' })
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => setMyOrders(Array.isArray(data) ? data : []))
+      .catch(() => {})
+      .finally(() => setMyOrdersLoading(false));
+  }, [isLoggedIn]);
 
   async function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -80,7 +96,75 @@ export default function OrdersPage() {
         <h1 className="text-3xl font-black tracking-tight text-zinc-900">Track Your Order</h1>
       </div>
 
-      {/* Search form */}
+      {/* Logged-in user's orders */}
+      {isLoggedIn && (
+        <div className="mb-10">
+          {myOrdersLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="w-5 h-5 border-2 border-zinc-300 border-t-zinc-600 rounded-full animate-spin" />
+            </div>
+          ) : myOrders.length > 0 ? (
+            <div className="space-y-3">
+              {myOrders.map((o) => {
+                const s = STATUS_STYLES[o.status] ?? STATUS_STYLES.pending;
+                return (
+                  <div
+                    key={o._id}
+                    className="border border-zinc-100 rounded-xl p-4 hover:border-zinc-200 transition cursor-pointer"
+                    onClick={() => { setOrder(o); setQuery(o.orderNumber); }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-mono font-semibold text-zinc-600">{o.orderNumber}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+                        <span className={`text-xs font-bold ${s.text}`}>{s.label}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex -space-x-2">
+                        {o.items.slice(0, 3).map((item, i) => (
+                          item.image ? (
+                            <div key={i} className="relative w-10 h-10 rounded-lg border-2 border-white bg-zinc-50 overflow-hidden">
+                              <Image src={item.image} alt={item.name} fill className="object-cover" sizes="40px" />
+                            </div>
+                          ) : null
+                        ))}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-zinc-900 truncate">
+                          {o.items.map((i) => i.name).join(', ')}
+                        </p>
+                        <p className="text-xs text-zinc-400">
+                          {new Date(o.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
+                      </div>
+                      <p className="text-sm font-bold text-zinc-900 shrink-0">{formatPrice(o.total)}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-zinc-400">
+              <p className="text-sm">No orders yet.</p>
+              <Link href="/products" className="text-xs underline hover:text-zinc-700 mt-1 inline-block">Start shopping</Link>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Sign in prompt if not logged in */}
+      {!authLoading && !isLoggedIn && (
+        <div className="bg-zinc-50 border border-zinc-100 rounded-xl p-5 mb-8 text-center">
+          <p className="text-sm text-zinc-600 mb-2">Sign in to see all your orders in one place</p>
+          <button type="button" onClick={openAuthModal} className="text-xs font-bold text-zinc-900 underline hover:text-zinc-600 transition">
+            Sign In
+          </button>
+        </div>
+      )}
+
+      {/* Manual search form */}
+      <p className="text-xs font-bold tracking-widest uppercase text-zinc-400 mb-2">Track by Order Number</p>
       <form onSubmit={handleSearch} className="flex gap-3 mb-8">
         <input
           type="text"

@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import { formatPrice } from '@/lib/utils';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -23,6 +24,7 @@ const INDIAN_STATES = [
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotal, clearCart } = useCart();
+  const { user, isLoggedIn, loading: authLoading, openAuthModal } = useAuth();
   const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
   const total = subtotal + shipping;
 
@@ -32,6 +34,34 @@ export default function CheckoutPage() {
 
   const [contact, setContact] = useState({ name: '', email: '', phone: '' });
   const [address, setAddress] = useState({ addressLine: '', city: '', state: '', pincode: '' });
+
+  // Auto-fill from user profile when logged in
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      setContact((prev) => ({
+        name: prev.name || user.name || '',
+        email: prev.email || user.email || '',
+        phone: prev.phone || user.phone || '',
+      }));
+      // Auto-select default address
+      const defaultAddr = user.addresses?.find((a) => a.isDefault) || user.addresses?.[0];
+      if (defaultAddr && !address.addressLine) {
+        setAddress({
+          addressLine: defaultAddr.addressLine,
+          city: defaultAddr.city,
+          state: defaultAddr.state,
+          pincode: defaultAddr.pincode,
+        });
+      }
+    }
+  }, [isLoggedIn, user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Prompt login if not authenticated (soft gate — user can dismiss)
+  useEffect(() => {
+    if (!authLoading && !isLoggedIn && items.length > 0) {
+      openAuthModal();
+    }
+  }, [authLoading, isLoggedIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function setC(k: string, v: string) { setContact((p) => ({ ...p, [k]: v })); }
   function setA(k: string, v: string) { setAddress((p) => ({ ...p, [k]: v })); }
@@ -90,6 +120,7 @@ export default function CheckoutPage() {
       const res = await fetch(`${BASE_URL}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
 
@@ -183,6 +214,31 @@ export default function CheckoutPage() {
           {step === 2 && (
             <form onSubmit={handleNextStep} className="space-y-5">
               <p className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-1">Delivery Address</p>
+
+              {/* Saved addresses quick select */}
+              {isLoggedIn && user?.addresses && user.addresses.length > 0 && (
+                <div className="space-y-2 mb-2">
+                  <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400">Saved Addresses</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {user.addresses.map((a) => (
+                      <button
+                        key={a._id}
+                        type="button"
+                        onClick={() => setAddress({ addressLine: a.addressLine, city: a.city, state: a.state, pincode: a.pincode })}
+                        className={`text-left p-3 border rounded-lg text-xs transition ${
+                          address.addressLine === a.addressLine && address.pincode === a.pincode
+                            ? 'border-zinc-900 bg-zinc-50'
+                            : 'border-zinc-200 hover:border-zinc-400'
+                        }`}
+                      >
+                        <p className="font-semibold text-zinc-900">{a.addressLine}</p>
+                        <p className="text-zinc-500">{a.city}, {a.state} — {a.pincode}</p>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-zinc-400">Or enter a new address below</p>
+                </div>
+              )}
               <div>
                 <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1.5">Address Line *</label>
                 <input
