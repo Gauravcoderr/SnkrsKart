@@ -4,6 +4,7 @@ services:
     runtime: node
     region: singapore
     plan: free
+    rootDir: backend
     buildCommand: npm install && npm run build
     startCommand: npm start
     healthCheckPath: /health
@@ -13,6 +14,6 @@ services:
       - key: PORT
         value: 4000
       - key: MONGODB_URI
-        sync: false        # Set this manually in Render dashboard
+        sync: false
       - key: FRONTEND_URL
-        value: https://snkrs-cart.vercel.app
+        sync: false
