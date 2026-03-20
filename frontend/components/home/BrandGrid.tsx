@@ -9,9 +9,8 @@ const brandStyles: Record<string, string> = {
   nike: 'bg-zinc-950',
   adidas: 'bg-zinc-900',
   'new-balance': 'bg-zinc-800',
-  asics: 'bg-zinc-950',
-  puma: 'bg-zinc-900',
-  vans: 'bg-zinc-800',
+  jordan: 'bg-zinc-950',
+  crocs: 'bg-zinc-900',
 };
 
 export default function BrandGrid({ brands }: BrandGridProps) {

@@ -3,59 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { BannerSlide } from '@/types';
 
-const SLIDES = [
-  {
-    brand: 'JORDAN',
-    tag: 'Nike Jordan',
-    headline: ['FLY', 'HIGHER.'],
-    sub: 'Air Jordan 1 Retro · AJKO Chicago',
-    cta: 'Shop Jordans',
-    href: '/products?brand=Nike',
-    image: 'https://cdn.shopify.com/s/files/1/0360/6491/9692/files/1_7c1d02fd-72f7-480e-923c-6d71b8a9f988.png?v=1755094202',
-    accent: '#C8102E',
-    bg: '#0a0a0a',
-    imgBg: '#f5f5f0',
-  },
-  {
-    brand: 'NEW BALANCE',
-    tag: 'New Balance',
-    headline: ['BUILT', 'DIFFERENT.'],
-    sub: 'BB550 · Oyster White / Olive',
-    cta: 'Shop New Balance',
-    href: '/products?brand=New+Balance',
-    image: 'https://images.vegnonveg.com/resized/1400X1146/13820/new-balance-bb550-oyster-whiteolive-68a83c48d7350.jpg?format=webp',
-    accent: '#CF8B00',
-    bg: '#0f0f0f',
-    imgBg: '#f0ede8',
-  },
-  {
-    brand: 'ADIDAS',
-    tag: 'Adidas Originals',
-    headline: ['NOTHING', 'IMPOSSIBLE.'],
-    sub: 'Samba Wales Bonner · Collegiate Navy',
-    cta: 'Shop Adidas',
-    href: '/products?brand=Adidas',
-    image: 'https://cdn.shopify.com/s/files/1/0360/6491/9692/files/adidasSambaWalesBonnerCollegiateNavy.png?v=1749203390',
-    accent: '#4169E1',
-    bg: '#111111',
-    imgBg: '#e8eaf0',
-  },
-  {
-    brand: 'CROCS',
-    tag: 'Crocs',
-    headline: ['COME AS', 'YOU ARE.'],
-    sub: 'Classic Clog · Iconic Comfort',
-    cta: 'Shop Crocs',
-    href: '/products?brand=Crocs',
-    image: 'https://images.vegnonveg.com/resized/1400X1146/14888/crocs-star-wars-classic-clog-multicolor-69a57de41e6d2.jpg?format=webp',
-    accent: '#FFD700',
-    bg: '#0d0d0d',
-    imgBg: '#f5f0e8',
-  },
-];
-
-export default function HeroBanner() {
+export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
   const [active, setActive] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
 
@@ -70,11 +20,14 @@ export default function HeroBanner() {
   );
 
   useEffect(() => {
-    const t = setInterval(() => goTo((active + 1) % SLIDES.length), 5000);
+    if (!slides.length) return;
+    const t = setInterval(() => goTo((active + 1) % slides.length), 5000);
     return () => clearInterval(t);
-  }, [active, goTo]);
+  }, [active, goTo, slides.length]);
 
-  const s = SLIDES[active];
+  if (!slides.length) return null;
+
+  const s = slides[active];
 
   return (
     <section className="w-full overflow-hidden" style={{ background: s.bg, transition: 'background 0.5s ease' }}>
@@ -123,7 +76,7 @@ export default function HeroBanner() {
           {/* Dots + counter */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {SLIDES.map((_, i) => (
+              {slides.map((_, i) => (
                 <button
                   key={i}
                   type="button"
@@ -138,7 +91,7 @@ export default function HeroBanner() {
               ))}
             </div>
             <span className="text-[10px] font-mono text-white/25 tracking-widest">
-              0{active + 1} / 0{SLIDES.length}
+              0{active + 1} / 0{slides.length}
             </span>
           </div>
         </div>
@@ -148,7 +101,7 @@ export default function HeroBanner() {
           className="relative md:w-[48%] overflow-hidden"
           style={{ minHeight: 320, background: s.imgBg, transition: 'background 0.5s ease' }}
         >
-          {SLIDES.map((slide, i) => (
+          {slides.map((slide, i) => (
             <div
               key={i}
               className="absolute inset-0 transition-opacity duration-500"

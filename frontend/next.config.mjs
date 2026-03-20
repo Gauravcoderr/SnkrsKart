@@ -7,6 +7,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'cdn.shopify.com', pathname: '/**' },
       { protocol: 'https', hostname: 'cdn.culture-circle.com', pathname: '/**' },
       { protocol: 'https', hostname: 'images.footlocker.com', pathname: '/**' },
+      { protocol: 'https', hostname: 'images.stockx.com', pathname: '/**' },
+      { protocol: 'https', hostname: 'crepdogcrew.com', pathname: '/**' },
     ],
   },
 };

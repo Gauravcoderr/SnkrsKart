@@ -55,6 +55,22 @@ export interface FilterState {
   search: string;
 }
 
+export interface BannerSlide {
+  id: string;
+  brand: string;
+  tag: string;
+  headline: string[];
+  sub: string;
+  cta: string;
+  href: string;
+  image: string;
+  accent: string;
+  bg: string;
+  imgBg: string;
+  order: number;
+  active: boolean;
+}
+
 export interface ProductsResponse {
   products: Product[];
   total: number;

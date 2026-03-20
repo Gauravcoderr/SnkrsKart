@@ -928,5 +928,63 @@
     "category": "skate",
     "sku": "VN000EE3W00",
     "createdAt": "2023-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "snkr-031",
+    "slug": "air-jordan-4-retro-black-cat-2025-uk9",
+    "name": "AIR JORDAN 4 RETRO 'BLACK CAT' 2025",
+    "brand": "Jordan",
+    "colorway": "Black/Black",
+    "gender": "unisex",
+    "price": 29000,
+    "originalPrice": 35000,
+    "discount": 17,
+    "images": [
+      "https://images.stockx.com/360/Air-Jordan-4-Retro-Black-Cat-2025/Images/Air-Jordan-4-Retro-Black-Cat-2025/Lv2/img01.jpg?w=480&q=60&dpr=1&updated_at=1762528791&h=320"
+    ],
+    "hoverImage": "https://images.stockx.com/360/Air-Jordan-4-Retro-Black-Cat-2025/Images/Air-Jordan-4-Retro-Black-Cat-2025/Lv2/img01.jpg?w=480&q=57&dpr=2&updated_at=1762528791&h=320",
+    "sizes": [9],
+    "availableSizes": [9],
+    "colors": ["black"],
+    "tags": ["aj4", "jordan", "basketball", "black-cat"],
+    "featured": false,
+    "trending": false,
+    "newArrival": true,
+    "soldOut": false,
+    "rating": 0,
+    "reviewCount": 0,
+    "description": "The Air Jordan 4 Retro 'Black Cat' 2025 returns in its iconic all-black colourway. Features tumbled leather upper with tonal Jumpman branding and black mesh netting.",
+    "category": "basketball",
+    "sku": "AJ4-BLKCAT-2025-UK9",
+    "createdAt": "2025-03-20T00:00:00.000Z"
+  },
+  {
+    "id": "snkr-032",
+    "slug": "air-jordan-4-retro-black-cat-2025-uk75",
+    "name": "AIR JORDAN 4 RETRO 'BLACK CAT' 2025",
+    "brand": "Jordan",
+    "colorway": "Black/Black",
+    "gender": "unisex",
+    "price": 24000,
+    "originalPrice": 30000,
+    "discount": 20,
+    "images": [
+      "https://images.stockx.com/360/Air-Jordan-4-Retro-Black-Cat-2025/Images/Air-Jordan-4-Retro-Black-Cat-2025/Lv2/img01.jpg?w=480&q=60&dpr=1&updated_at=1762528791&h=320"
+    ],
+    "hoverImage": "https://images.stockx.com/360/Air-Jordan-4-Retro-Black-Cat-2025/Images/Air-Jordan-4-Retro-Black-Cat-2025/Lv2/img01.jpg?w=480&q=57&dpr=2&updated_at=1762528791&h=320",
+    "sizes": [7.5],
+    "availableSizes": [7.5],
+    "colors": ["black"],
+    "tags": ["aj4", "jordan", "basketball", "black-cat"],
+    "featured": false,
+    "trending": false,
+    "newArrival": true,
+    "soldOut": false,
+    "rating": 0,
+    "reviewCount": 0,
+    "description": "The Air Jordan 4 Retro 'Black Cat' 2025 returns in its iconic all-black colourway. Features tumbled leather upper with tonal Jumpman branding and black mesh netting.",
+    "category": "basketball",
+    "sku": "AJ4-BLKCAT-2025-UK75",
+    "createdAt": "2025-03-20T00:00:00.000Z"
   }
 ]

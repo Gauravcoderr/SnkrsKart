@@ -1,4 +1,4 @@
-import { Product, Brand, ProductsResponse, FilterState } from '@/types';
+import { Product, Brand, BannerSlide, ProductsResponse, FilterState } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -59,6 +59,12 @@ export async function fetchTrendingProducts(): Promise<Product[]> {
     next: { revalidate: 60 },
   });
   if (!res.ok) throw new Error('Failed to fetch trending products');
+  return res.json();
+}
+
+export async function fetchBanners(): Promise<BannerSlide[]> {
+  const res = await fetch(`${BASE_URL}/banners`, { next: { revalidate: 300 } });
+  if (!res.ok) throw new Error('Failed to fetch banners');
   return res.json();
 }
 
