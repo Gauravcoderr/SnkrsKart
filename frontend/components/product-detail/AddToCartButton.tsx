@@ -17,9 +17,19 @@ export default function AddToCartButton({
   selectedSize,
   onRequireSize,
 }: AddToCartButtonProps) {
-  const { addItem, openDrawer } = useCart();
+  const { addItem, openDrawer, items } = useCart();
   const [btnState, setBtnState] = useState<ButtonState>('idle');
   const [shake, setShake] = useState(false);
+
+  const maxQty = selectedSize
+    ? (product.variants?.find((v) => v.size === selectedSize)?.maxQty ?? 5)
+    : 5;
+
+  const currentQtyInCart = selectedSize
+    ? (items.find((i) => i.product.id === product.id && i.size === selectedSize)?.quantity ?? 0)
+    : 0;
+
+  const isAtMax = selectedSize !== null && currentQtyInCart >= maxQty;
 
   const handleClick = async () => {
     if (product.soldOut) return;
@@ -30,6 +40,8 @@ export default function AddToCartButton({
       setTimeout(() => setShake(false), 500);
       return;
     }
+
+    if (isAtMax) return;
 
     setBtnState('adding');
     await new Promise((r) => setTimeout(r, 600));
@@ -47,6 +59,7 @@ export default function AddToCartButton({
   if (product.soldOut) {
     return (
       <button
+        type="button"
         disabled
         className="w-full py-4 bg-zinc-200 text-zinc-400 text-sm font-bold tracking-widest uppercase cursor-not-allowed"
       >
@@ -55,8 +68,21 @@ export default function AddToCartButton({
     );
   }
 
+  if (isAtMax) {
+    return (
+      <button
+        type="button"
+        disabled
+        className="w-full py-4 bg-zinc-100 text-zinc-400 text-sm font-bold tracking-widest uppercase cursor-not-allowed border border-zinc-200"
+      >
+        Max Qty Reached ({maxQty})
+      </button>
+    );
+  }
+
   return (
     <button
+      type="button"
       onClick={handleClick}
       disabled={btnState !== 'idle'}
       className={`

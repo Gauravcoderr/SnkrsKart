@@ -50,12 +50,15 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
   const [uniformOriginal, setUniformOriginal] = useState(
     String(product?.originalPrice || '')
   );
+  const [uniformMaxQty, setUniformMaxQty] = useState(
+    String(product?.variants?.[0]?.maxQty ?? 1)
+  );
   // per-size prices keyed by size number
-  const [variantPrices, setVariantPrices] = useState<Record<number, { price: string; originalPrice: string }>>(() => {
-    const map: Record<number, { price: string; originalPrice: string }> = {};
+  const [variantPrices, setVariantPrices] = useState<Record<number, { price: string; originalPrice: string; maxQty: string }>>(() => {
+    const map: Record<number, { price: string; originalPrice: string; maxQty: string }> = {};
     if (product?.variants?.length) {
       for (const v of product.variants) {
-        map[v.size] = { price: String(v.price), originalPrice: String(v.originalPrice ?? '') };
+        map[v.size] = { price: String(v.price), originalPrice: String(v.originalPrice ?? ''), maxQty: String(v.maxQty ?? 1) };
       }
     }
     return map;
@@ -66,9 +69,9 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
 
   useEffect(() => {
     setVariantPrices((prev) => {
-      const next: Record<number, { price: string; originalPrice: string }> = {};
+      const next: Record<number, { price: string; originalPrice: string; maxQty: string }> = {};
       for (const size of parsedSizes) {
-        next[size] = prev[size] ?? { price: uniformPrice, originalPrice: uniformOriginal };
+        next[size] = prev[size] ?? { price: uniformPrice, originalPrice: uniformOriginal, maxQty: uniformMaxQty };
       }
       return next;
     });
@@ -82,7 +85,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
       setVariantPrices((prev) => {
         const next = { ...prev };
         for (const size of parsedSizes) {
-          next[size] = { price: uniformPrice, originalPrice: uniformOriginal };
+          next[size] = { price: uniformPrice, originalPrice: uniformOriginal, maxQty: uniformMaxQty };
         }
         return next;
       });
@@ -116,7 +119,20 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     }
   }
 
-  function setVariantField(size: number, field: 'price' | 'originalPrice', value: string) {
+  function handleUniformMaxQtyChange(qty: string) {
+    setUniformMaxQty(qty);
+    if (samePriceForAll) {
+      setVariantPrices((prev) => {
+        const next = { ...prev };
+        for (const size of parsedSizes) {
+          next[size] = { ...next[size], maxQty: qty };
+        }
+        return next;
+      });
+    }
+  }
+
+  function setVariantField(size: number, field: 'price' | 'originalPrice' | 'maxQty', value: string) {
     setVariantPrices((prev) => ({
       ...prev,
       [size]: { ...prev[size], [field]: value },
@@ -141,10 +157,11 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
 
       // Build variants array
       const variants = sizes.map((size) => {
-        const entry = variantPrices[size] ?? { price: uniformPrice, originalPrice: uniformOriginal };
+        const entry = variantPrices[size] ?? { price: uniformPrice, originalPrice: uniformOriginal, maxQty: uniformMaxQty };
         const price = Number(entry.price);
         const originalPrice = entry.originalPrice ? Number(entry.originalPrice) : null;
-        return { size, price, originalPrice };
+        const maxQty = Math.max(1, Number(entry.maxQty) || 1);
+        return { size, price, originalPrice, maxQty };
       });
 
       // Base price = min of variant prices (or uniform)
@@ -295,7 +312,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
 
             {samePriceForAll ? (
               /* Uniform price inputs */
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-zinc-400 mb-1.5">Price (₹) *</label>
                   <input
@@ -317,6 +334,17 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
                     className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
                   />
                 </div>
+                <div>
+                  <label className="block text-xs font-medium text-zinc-400 mb-1.5">Max Qty *</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={uniformMaxQty}
+                    onChange={(e) => handleUniformMaxQtyChange(e.target.value)}
+                    placeholder="e.g. 1"
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                  />
+                </div>
               </div>
             ) : (
               /* Per-size pricing grid */
@@ -326,13 +354,14 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
                 ) : (
                   <>
                     {/* Header row */}
-                    <div className="grid grid-cols-[80px_1fr_1fr] gap-3 text-xs font-medium text-zinc-500 pb-1 border-b border-zinc-800">
+                    <div className="grid grid-cols-[70px_1fr_1fr_80px] gap-3 text-xs font-medium text-zinc-500 pb-1 border-b border-zinc-800">
                       <span>UK Size</span>
                       <span>Price (₹) *</span>
-                      <span>Original Price (₹)</span>
+                      <span>Original (₹)</span>
+                      <span>Max Qty</span>
                     </div>
                     {parsedSizes.map((size) => (
-                      <div key={size} className="grid grid-cols-[80px_1fr_1fr] gap-3 items-center">
+                      <div key={size} className="grid grid-cols-[70px_1fr_1fr_80px] gap-3 items-center">
                         <span className="text-sm font-semibold text-zinc-300">UK {size}</span>
                         <input
                           type="number"
@@ -346,7 +375,15 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
                           type="number"
                           value={variantPrices[size]?.originalPrice ?? ''}
                           onChange={(e) => setVariantField(size, 'originalPrice', e.target.value)}
-                          placeholder="Original (optional)"
+                          placeholder="Optional"
+                          className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                        />
+                        <input
+                          type="number"
+                          min={1}
+                          value={variantPrices[size]?.maxQty ?? '1'}
+                          onChange={(e) => setVariantField(size, 'maxQty', e.target.value)}
+                          placeholder="1"
                           className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
                         />
                       </div>

@@ -14,6 +14,7 @@ interface CartItemProps {
 export default function CartItem({ item, compact = false }: CartItemProps) {
   const { removeItem, updateQuantity } = useCart();
   const { product, size, quantity } = item;
+  const maxQty = product.variants?.find((v) => v.size === size)?.maxQty ?? 5;
 
   return (
     <div className="flex gap-4 py-4 border-b border-zinc-100 last:border-0">
@@ -54,6 +55,7 @@ export default function CartItem({ item, compact = false }: CartItemProps) {
         <div className="flex items-center justify-between mt-3">
           <div className="flex items-center border border-zinc-200">
             <button
+              type="button"
               onClick={() => updateQuantity(product.id, size, quantity - 1)}
               className="w-8 h-8 flex items-center justify-center text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors text-lg leading-none"
               aria-label="Decrease quantity"
@@ -62,8 +64,9 @@ export default function CartItem({ item, compact = false }: CartItemProps) {
             </button>
             <span className="w-8 text-center text-sm font-semibold text-zinc-900">{quantity}</span>
             <button
+              type="button"
               onClick={() => updateQuantity(product.id, size, quantity + 1)}
-              disabled={quantity >= 5}
+              disabled={quantity >= maxQty}
               className="w-8 h-8 flex items-center justify-center text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors disabled:opacity-30 text-lg leading-none"
               aria-label="Increase quantity"
             >
@@ -71,6 +74,7 @@ export default function CartItem({ item, compact = false }: CartItemProps) {
             </button>
           </div>
           <button
+            type="button"
             onClick={() => removeItem(product.id, size)}
             className="text-xs font-medium text-zinc-400 hover:text-red-500 transition-colors underline"
           >

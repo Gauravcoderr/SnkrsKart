@@ -25,6 +25,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
     case 'ADD_ITEM': {
       const qty = action.quantity ?? 1;
+      const maxQty = action.product.variants?.find((v) => v.size === action.size)?.maxQty ?? 5;
       const existing = state.items.find(
         (item) => item.product.id === action.product.id && item.size === action.size
       );
@@ -33,14 +34,14 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           ...state,
           items: state.items.map((item) =>
             item.product.id === action.product.id && item.size === action.size
-              ? { ...item, quantity: Math.min(5, item.quantity + qty) }
+              ? { ...item, quantity: Math.min(maxQty, item.quantity + qty) }
               : item
           ),
         };
       }
       return {
         ...state,
-        items: [...state.items, { product: action.product, size: action.size, quantity: qty }],
+        items: [...state.items, { product: action.product, size: action.size, quantity: Math.min(maxQty, qty) }],
       };
     }
 
@@ -52,7 +53,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         ),
       };
 
-    case 'UPDATE_QUANTITY':
+    case 'UPDATE_QUANTITY': {
       if (action.quantity <= 0) {
         return {
           ...state,
@@ -61,14 +62,19 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           ),
         };
       }
+      const targetItem = state.items.find(
+        (item) => item.product.id === action.productId && item.size === action.size
+      );
+      const maxQty = targetItem?.product.variants?.find((v) => v.size === action.size)?.maxQty ?? 5;
       return {
         ...state,
         items: state.items.map((item) =>
           item.product.id === action.productId && item.size === action.size
-            ? { ...item, quantity: Math.min(5, action.quantity) }
+            ? { ...item, quantity: Math.min(maxQty, action.quantity) }
             : item
         ),
       };
+    }
 
     case 'CLEAR_CART':
       return { ...state, items: [] };

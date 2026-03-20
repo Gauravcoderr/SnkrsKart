@@ -4,6 +4,7 @@ export interface IVariant {
   size: number;
   price: number;
   originalPrice: number | null;
+  maxQty: number;
 }
 
 export interface IProduct extends Document {
@@ -51,7 +52,7 @@ const ProductSchema = new Schema<IProduct>(
     availableSizes:[{ type: Number }],
     colors:        [{ type: String }],
     tags:          [{ type: String }],
-    variants:      [{ size: Number, price: Number, originalPrice: { type: Number, default: null } }],
+    variants:      [{ size: Number, price: Number, originalPrice: { type: Number, default: null }, maxQty: { type: Number, default: 1 } }],
     featured:      { type: Boolean, default: false, index: true },
     trending:      { type: Boolean, default: false, index: true },
     newArrival:    { type: Boolean, default: false, index: true },
