@@ -15,6 +15,7 @@ export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'c
 
 export interface IOrder extends Document {
   orderNumber: string;
+  userId?: string;
   name: string;
   email: string;
   phone: string;
@@ -47,6 +48,7 @@ const OrderItemSchema = new Schema<IOrderItem>({
 const OrderSchema = new Schema<IOrder>(
   {
     orderNumber: { type: String, required: true, unique: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'User', default: null, index: true },
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },

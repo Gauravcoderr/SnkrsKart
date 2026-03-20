@@ -6,6 +6,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
+import { useAuth } from '@/context/AuthContext';
 import { Product } from '@/types';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -37,8 +38,10 @@ const POPULAR_SEARCHES = [
 export default function Header() {
   const { itemCount, toggleDrawer } = useCart();
   const { count: wishlistCount } = useWishlist();
+  const { user, isLoggedIn, openAuthModal, logout } = useAuth();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [brandsOpen, setBrandsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -121,7 +124,7 @@ export default function Header() {
 
             {/* Logo */}
             <Link href="/" className="shrink-0 flex items-center">
-              <Image src="/logo.jpg" alt="SNKRS CART" width={52} height={52} className="object-contain" priority />
+              <Image src="/logo.svg" alt="SNKRS CART" width={52} height={52} className="object-contain" priority />
             </Link>
 
             {/* Desktop Nav */}
@@ -209,6 +212,60 @@ export default function Header() {
                   </span>
                 )}
               </Link>
+
+              {/* Account */}
+              <div className="relative">
+                {isLoggedIn ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setAccountOpen(!accountOpen)}
+                      className="p-2 text-zinc-500 hover:text-zinc-900 transition-colors"
+                      aria-label="Account"
+                    >
+                      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                      </svg>
+                    </button>
+                    {accountOpen && (
+                      <>
+                        <div className="fixed inset-0 z-30" onClick={() => setAccountOpen(false)} />
+                        <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl border border-zinc-100 shadow-2xl z-40 overflow-hidden">
+                          <div className="px-4 py-3 border-b border-zinc-100">
+                            <p className="text-sm font-bold text-zinc-900 truncate">{user?.name || 'Hey there'}</p>
+                            <p className="text-xs text-zinc-400 truncate">{user?.email}</p>
+                          </div>
+                          <div className="py-1">
+                            <Link href="/account" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition">My Account</Link>
+                            <Link href="/account/orders" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition">My Orders</Link>
+                            <Link href="/account/addresses" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition">Addresses</Link>
+                          </div>
+                          <div className="border-t border-zinc-100 py-1">
+                            <button
+                              type="button"
+                              onClick={() => { setAccountOpen(false); logout(); }}
+                              className="block w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition"
+                            >
+                              Sign Out
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={openAuthModal}
+                    className="p-2 text-zinc-500 hover:text-zinc-900 transition-colors"
+                    aria-label="Sign in"
+                  >
+                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                  </button>
+                )}
+              </div>
 
               {/* Cart */}
               <button
@@ -396,6 +453,26 @@ export default function Header() {
               <Link href="/blogs" onClick={() => setMobileOpen(false)} className="text-lg font-semibold tracking-widest uppercase text-zinc-900 hover:text-zinc-500 transition-colors">
                 Blog
               </Link>
+
+              {/* Account section */}
+              <div className="pt-4 border-t border-zinc-100">
+                {isLoggedIn ? (
+                  <div className="space-y-1 mb-4">
+                    <p className="text-xs font-bold tracking-[0.2em] uppercase text-zinc-400 mb-2">Account</p>
+                    <Link href="/account" onClick={() => setMobileOpen(false)} className="block px-2 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 rounded-lg hover:bg-zinc-50 transition">My Account</Link>
+                    <Link href="/account/orders" onClick={() => setMobileOpen(false)} className="block px-2 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 rounded-lg hover:bg-zinc-50 transition">My Orders</Link>
+                    <button type="button" onClick={() => { setMobileOpen(false); logout(); }} className="block w-full text-left px-2 py-2 text-sm font-medium text-red-500 rounded-lg hover:bg-red-50 transition">Sign Out</button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { setMobileOpen(false); openAuthModal(); }}
+                    className="w-full mb-4 bg-zinc-900 text-white font-bold py-3 rounded-lg text-sm tracking-widest uppercase"
+                  >
+                    Sign In / Register
+                  </button>
+                )}
+              </div>
 
               <div className="pt-4 border-t border-zinc-100">
                 <p className="text-xs font-bold tracking-[0.2em] uppercase text-zinc-400 mb-3">Brands</p>

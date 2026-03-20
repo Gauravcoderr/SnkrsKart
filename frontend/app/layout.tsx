@@ -3,8 +3,10 @@ import { Inter, Bebas_Neue } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { WishlistProvider } from '@/context/WishlistContext';
+import { AuthProvider } from '@/context/AuthContext';
 import QueryProvider from '@/components/layout/QueryProvider';
 import LayoutShell from '@/components/layout/LayoutShell';
+import AuthModal from '@/components/auth/AuthModal';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -42,6 +44,10 @@ export const metadata: Metadata = {
   creator: 'SNKRS CART',
   publisher: 'SNKRS CART',
   robots: { index: true, follow: true },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-icon.png',
+  },
   alternates: { canonical: SITE_URL },
   appleWebApp: {
     title: 'SNKRS CART',
@@ -77,11 +83,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${inter.variable} ${bebas.variable}`}>
       <body className="bg-zinc-50 text-zinc-900 font-sans antialiased">
         <QueryProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <LayoutShell>{children}</LayoutShell>
-            </WishlistProvider>
-          </CartProvider>
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <LayoutShell>{children}</LayoutShell>
+                <AuthModal />
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
         </QueryProvider>
       </body>
     </html>

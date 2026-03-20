@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { Resend } from 'resend';
 import { Order } from '../models/Order';
+import { customerAuth, optionalAuth, AuthRequest } from '../middleware/customerAuth';
+import { User } from '../models/User';
 
 const router = Router();
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -11,8 +13,8 @@ function generateOrderNumber(): string {
   return `SC-${timestamp}-${rand}`;
 }
 
-// POST /api/v1/orders — place a new order
-router.post('/', async (req: Request, res: Response) => {
+// POST /api/v1/orders — place a new order (optionally authenticated)
+router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { name, email, phone, addressLine, city, state, pincode, items, subtotal, shipping, total } = req.body;
 
@@ -34,7 +36,23 @@ router.post('/', async (req: Request, res: Response) => {
     const order = await Order.create({
       orderNumber, name, email, phone, addressLine, city, state, pincode,
       items, subtotal, shipping, total, status: 'pending',
+      ...(req.user ? { userId: req.user.id } : {}),
     });
+
+    // Save address to user profile if authenticated
+    if (req.user) {
+      User.findById(req.user.id).then((user) => {
+        if (user) {
+          const exists = user.addresses.some((a) =>
+            a.addressLine === addressLine && a.city === city && a.pincode === pincode
+          );
+          if (!exists) {
+            user.addresses.push({ addressLine, city, state, pincode, isDefault: user.addresses.length === 0 });
+            user.save().catch(() => {});
+          }
+        }
+      }).catch(() => {});
+    }
 
     res.status(201).json({ success: true, orderId: order._id, orderNumber });
 
@@ -134,6 +152,16 @@ router.post('/', async (req: Request, res: Response) => {
   } catch (err) {
     console.error('Order creation error:', err);
     res.status(500).json({ error: 'Failed to place order' });
+  }
+});
+
+// GET /api/v1/orders/my — get logged-in user's orders
+router.get('/my', customerAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const orders = await Order.find({ userId: req.user!.id }).sort({ createdAt: -1 }).lean();
+    res.json(orders);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch orders' });
   }
 });
 
