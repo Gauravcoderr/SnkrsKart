@@ -10,6 +10,8 @@ import reviewRoutes from './routes/reviews';
 import sellerRoutes from './routes/seller';
 import blogRoutes from './routes/blogs';
 import adminRoutes from './routes/admin';
+import orderRoutes from './routes/orders';
+import newsletterRoutes from './routes/newsletter';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -25,6 +27,8 @@ app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/seller', sellerRoutes);
 app.use('/api/v1/blogs', blogRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/newsletter', newsletterRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 

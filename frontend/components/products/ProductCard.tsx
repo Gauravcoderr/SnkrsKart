@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 import Badge from '@/components/ui/Badge';
 
 interface ProductCardProps {
@@ -15,7 +16,9 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, priority = false }: ProductCardProps) {
   const { addItem, openDrawer } = useCart();
+  const { toggle, isWishlisted } = useWishlist();
   const [hoveredSize, setHoveredSize] = useState<number | null>(null);
+  const wishlisted = isWishlisted(product.id);
 
   const hasVariants = (product.variants?.length ?? 0) > 0;
 
@@ -73,12 +76,20 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             {getBadge()}
           </div>
 
-          {/* Discount badge */}
-          {product.discount && (
-            <div className="absolute top-2 right-2 z-10">
-              <Badge variant="discount" label={`${product.discount}% OFF`} />
-            </div>
-          )}
+          {/* Wishlist + Discount badges — top right */}
+          <div className="absolute top-2 right-2 z-10 flex flex-col items-end gap-1">
+            {product.discount && <Badge variant="discount" label={`${product.discount}% OFF`} />}
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(product.id); }}
+              aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+              className="w-7 h-7 flex items-center justify-center bg-white/90 rounded-full shadow-sm hover:scale-110 transition-transform"
+            >
+              <svg className={`w-4 h-4 transition-colors ${wishlisted ? 'fill-red-500 text-red-500' : 'fill-none text-zinc-400'}`} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
+          </div>
 
           {/* Quick size panel — slides up on hover */}
           {!product.soldOut && quickSizes.length > 0 && (

@@ -1,0 +1,354 @@
+'use client';
+
+import { useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useCart } from '@/context/CartContext';
+import { formatPrice } from '@/lib/utils';
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const SHIPPING_THRESHOLD = 3000;
+const SHIPPING_COST = 199;
+
+const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
+  'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
+  'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
+  'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+  'Delhi', 'Jammu & Kashmir', 'Ladakh', 'Chandigarh', 'Puducherry',
+];
+
+export default function CheckoutPage() {
+  const router = useRouter();
+  const { items, subtotal, clearCart } = useCart();
+  const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+  const total = subtotal + shipping;
+
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const [contact, setContact] = useState({ name: '', email: '', phone: '' });
+  const [address, setAddress] = useState({ addressLine: '', city: '', state: '', pincode: '' });
+
+  function setC(k: string, v: string) { setContact((p) => ({ ...p, [k]: v })); }
+  function setA(k: string, v: string) { setAddress((p) => ({ ...p, [k]: v })); }
+
+  function validateContact() {
+    if (!contact.name.trim()) return 'Full name is required';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())) return 'Valid email is required';
+    if (!/^[+\d][\d\s\-(). ]{7,}$/.test(contact.phone.trim())) return 'Valid phone number is required';
+    return null;
+  }
+
+  function validateAddress() {
+    if (!address.addressLine.trim()) return 'Address is required';
+    if (!address.city.trim()) return 'City is required';
+    if (!address.state) return 'State is required';
+    if (!/^\d{6}$/.test(address.pincode.trim())) return 'Valid 6-digit pincode is required';
+    return null;
+  }
+
+  function handleNextStep(e: FormEvent) {
+    e.preventDefault();
+    setError('');
+    if (step === 1) {
+      const err = validateContact();
+      if (err) { setError(err); return; }
+      setStep(2);
+    } else if (step === 2) {
+      const err = validateAddress();
+      if (err) { setError(err); return; }
+      setStep(3);
+    }
+  }
+
+  async function handlePlaceOrder() {
+    setError('');
+    setLoading(true);
+    try {
+      const payload = {
+        ...contact,
+        ...address,
+        items: items.map((item) => ({
+          productId: item.product.id,
+          name: item.product.name,
+          brand: item.product.brand,
+          size: String(item.size),
+          colorway: item.product.colorway || '',
+          price: item.product.price,
+          qty: item.quantity,
+          image: item.product.images?.[0] || '',
+        })),
+        subtotal,
+        shipping,
+        total,
+      };
+
+      const res = await fetch(`${BASE_URL}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to place order');
+
+      clearCart();
+      router.push(`/checkout/confirmation?id=${data.orderId}&order=${data.orderNumber}&total=${total}`);
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
+    }
+  }
+
+  if (items.length === 0 && step !== 3) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+        <p className="text-lg font-bold text-zinc-900 mb-2">Your bag is empty</p>
+        <p className="text-sm text-zinc-500 mb-8">Add some sneakers before checking out.</p>
+        <Link href="/products" className="inline-block bg-zinc-900 text-white px-8 py-3 text-sm font-bold tracking-widest uppercase hover:bg-zinc-700 transition-colors">
+          Shop Now
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Step indicator */}
+      <div className="flex items-center gap-2 mb-10">
+        {(['Contact', 'Address', 'Review'] as const).map((label, i) => {
+          const s = (i + 1) as 1 | 2 | 3;
+          return (
+            <div key={label} className="flex items-center gap-2">
+              {i > 0 && <div className={`h-px w-8 sm:w-16 ${step > i ? 'bg-zinc-900' : 'bg-zinc-200'}`} />}
+              <div className="flex items-center gap-2">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= s ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-400'}`}>
+                  {step > s ? (
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : s}
+                </div>
+                <span className={`text-xs font-bold tracking-widest uppercase hidden sm:block ${step >= s ? 'text-zinc-900' : 'text-zinc-400'}`}>{label}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-12">
+        {/* Left — form */}
+        <div>
+          {step === 1 && (
+            <form onSubmit={handleNextStep} className="space-y-5">
+              <p className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-1">Contact Details</p>
+              <div>
+                <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1.5">Full Name *</label>
+                <input
+                  type="text" required value={contact.name}
+                  onChange={(e) => setC('name', e.target.value)}
+                  placeholder="Your full name"
+                  className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1.5">Email *</label>
+                <input
+                  type="email" required value={contact.email}
+                  onChange={(e) => setC('email', e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1.5">Phone / WhatsApp *</label>
+                <input
+                  type="tel" required value={contact.phone}
+                  onChange={(e) => setC('phone', e.target.value)}
+                  placeholder="+91 XXXXX XXXXX"
+                  className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors"
+                />
+              </div>
+              {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
+              <button type="submit" className="w-full py-3.5 bg-zinc-900 text-white text-sm font-bold tracking-widest uppercase hover:bg-zinc-700 transition-colors">
+                Continue to Address →
+              </button>
+            </form>
+          )}
+
+          {step === 2 && (
+            <form onSubmit={handleNextStep} className="space-y-5">
+              <p className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-1">Delivery Address</p>
+              <div>
+                <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1.5">Address Line *</label>
+                <input
+                  type="text" required value={address.addressLine}
+                  onChange={(e) => setA('addressLine', e.target.value)}
+                  placeholder="House/Flat no., Street, Area"
+                  className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1.5">City *</label>
+                  <input
+                    type="text" required value={address.city}
+                    onChange={(e) => setA('city', e.target.value)}
+                    placeholder="City"
+                    className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1.5">Pincode *</label>
+                  <input
+                    type="text" required value={address.pincode}
+                    onChange={(e) => setA('pincode', e.target.value)}
+                    placeholder="6-digit pincode"
+                    maxLength={6}
+                    className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1.5">State *</label>
+                <select
+                  required value={address.state}
+                  onChange={(e) => setA('state', e.target.value)}
+                  className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors bg-white"
+                >
+                  <option value="">Select state</option>
+                  {INDIAN_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setStep(1)} className="flex-1 py-3.5 border border-zinc-200 text-sm font-bold tracking-widest uppercase text-zinc-700 hover:border-zinc-900 transition-colors">
+                  ← Back
+                </button>
+                <button type="submit" className="flex-[2] py-3.5 bg-zinc-900 text-white text-sm font-bold tracking-widest uppercase hover:bg-zinc-700 transition-colors">
+                  Review Order →
+                </button>
+              </div>
+            </form>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-6">
+              <p className="text-xs font-bold tracking-widest uppercase text-zinc-900">Review Your Order</p>
+
+              {/* Summary cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="border border-zinc-100 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500">Contact</p>
+                    <button onClick={() => setStep(1)} className="text-[10px] text-zinc-400 hover:text-zinc-900 underline">Edit</button>
+                  </div>
+                  <p className="text-sm font-semibold text-zinc-900">{contact.name}</p>
+                  <p className="text-xs text-zinc-500">{contact.email}</p>
+                  <p className="text-xs text-zinc-500">{contact.phone}</p>
+                </div>
+                <div className="border border-zinc-100 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500">Delivery</p>
+                    <button onClick={() => setStep(2)} className="text-[10px] text-zinc-400 hover:text-zinc-900 underline">Edit</button>
+                  </div>
+                  <p className="text-sm font-semibold text-zinc-900">{address.addressLine}</p>
+                  <p className="text-xs text-zinc-500">{address.city}, {address.state} — {address.pincode}</p>
+                </div>
+              </div>
+
+              {/* Items */}
+              <div className="border border-zinc-100">
+                {items.map((item) => (
+                  <div key={`${item.product.id}-${item.size}`} className="flex gap-4 p-4 border-b border-zinc-100 last:border-0">
+                    <div className="relative w-16 h-16 bg-zinc-50 shrink-0">
+                      {item.product.images?.[0] && (
+                        <Image src={item.product.images[0]} alt={item.product.name} fill className="object-cover" sizes="64px" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400">{item.product.brand}</p>
+                      <p className="text-sm font-semibold text-zinc-900 truncate">{item.product.name}</p>
+                      <p className="text-xs text-zinc-500">UK {item.size} · Qty {item.quantity}</p>
+                    </div>
+                    <p className="text-sm font-bold text-zinc-900 shrink-0">{formatPrice(item.product.price * item.quantity)}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Payment note */}
+              <div className="bg-amber-50 border border-amber-200 rounded p-4">
+                <p className="text-xs font-bold text-amber-800 mb-1">Payment via UPI</p>
+                <p className="text-xs text-amber-700 leading-relaxed">
+                  After placing your order, you'll receive UPI payment instructions. Pay via PhonePe, Google Pay, or Paytm and send a screenshot on WhatsApp with your order number. We'll confirm within 1 hour.
+                </p>
+              </div>
+
+              {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
+
+              <div className="flex gap-3">
+                <button onClick={() => setStep(2)} className="flex-1 py-3.5 border border-zinc-200 text-sm font-bold tracking-widest uppercase text-zinc-700 hover:border-zinc-900 transition-colors">
+                  ← Back
+                </button>
+                <button
+                  onClick={handlePlaceOrder}
+                  disabled={loading}
+                  className="flex-[2] py-3.5 bg-zinc-900 text-white text-sm font-bold tracking-widest uppercase hover:bg-zinc-700 disabled:bg-zinc-400 transition-colors"
+                >
+                  {loading ? 'Placing Order...' : `Place Order — ${formatPrice(total)}`}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right — order summary */}
+        <div className="lg:sticky lg:top-8 self-start">
+          <div className="border border-zinc-100 p-6">
+            <p className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-4">Order Summary</p>
+            <div className="space-y-3 mb-4">
+              {items.map((item) => (
+                <div key={`${item.product.id}-${item.size}`} className="flex items-center gap-3">
+                  <div className="relative w-12 h-12 bg-zinc-50 shrink-0">
+                    {item.product.images?.[0] && (
+                      <Image src={item.product.images[0]} alt={item.product.name} fill className="object-cover" sizes="48px" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-zinc-900 truncate">{item.product.name}</p>
+                    <p className="text-[10px] text-zinc-400">UK {item.size} · Qty {item.quantity}</p>
+                  </div>
+                  <p className="text-xs font-bold text-zinc-900 shrink-0">{formatPrice(item.product.price * item.quantity)}</p>
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-zinc-100 pt-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-zinc-500">Subtotal</span>
+                <span className="font-semibold">{formatPrice(subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-zinc-500">Shipping</span>
+                <span className={`font-semibold ${shipping === 0 ? 'text-emerald-600' : ''}`}>
+                  {shipping === 0 ? 'Free' : formatPrice(shipping)}
+                </span>
+              </div>
+              <div className="flex justify-between text-base font-bold pt-2 border-t border-zinc-100">
+                <span>Total</span>
+                <span>{formatPrice(total)}</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-zinc-400 text-center mt-4 leading-relaxed">
+            Delivery in 3–7 business days after payment confirmation.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

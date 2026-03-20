@@ -9,6 +9,8 @@ import { Review } from '../models/Review';
 import { Banner } from '../models/Banner';
 import { Seller } from '../models/Seller';
 import { Blog } from '../models/Blog';
+import { Order } from '../models/Order';
+import { Newsletter } from '../models/Newsletter';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'snkrs-cart-admin-secret-key';
@@ -293,6 +295,53 @@ router.delete('/blogs/:id', adminAuth, async (req: Request, res: Response): Prom
     res.json({ message: 'Deleted' });
   } catch {
     res.status(500).json({ error: 'Failed to delete blog' });
+  }
+});
+
+// ─── Orders ────────────────────────────────────────────────────────────────
+
+router.get('/orders', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 }).lean();
+    res.json(orders);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+});
+
+router.get('/orders/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const order = await Order.findById(req.params.id).lean();
+    if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
+    res.json(order);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch order' });
+  }
+});
+
+router.put('/orders/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { status, trackingNumber, notes } = req.body;
+    const update: Record<string, unknown> = {};
+    if (status) update.status = status;
+    if (trackingNumber !== undefined) update.trackingNumber = trackingNumber;
+    if (notes !== undefined) update.notes = notes;
+    const order = await Order.findByIdAndUpdate(req.params.id, { $set: update }, { new: true, runValidators: true });
+    if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
+    res.json(order);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to update order' });
+  }
+});
+
+// ─── Newsletter ─────────────────────────────────────────────────────────────
+
+router.get('/newsletter', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const subscribers = await Newsletter.find().sort({ createdAt: -1 }).lean();
+    res.json(subscribers);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch subscribers' });
   }
 });
 

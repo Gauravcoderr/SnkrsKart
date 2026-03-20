@@ -132,9 +132,9 @@ export default function CartDrawer() {
             <Link href="/cart" onClick={closeDrawer} className="flex items-center justify-center w-full py-3.5 border border-zinc-900 text-sm font-bold tracking-widest uppercase text-zinc-900 hover:bg-zinc-50 transition-colors">
               View Full Bag →
             </Link>
-            <button disabled title="Payment coming soon" className="w-full py-3.5 bg-zinc-200 text-zinc-400 text-sm font-bold tracking-widest uppercase cursor-not-allowed">
-              Checkout — Coming Soon
-            </button>
+            <Link href="/checkout" onClick={closeDrawer} className="flex items-center justify-center w-full py-3.5 bg-zinc-900 text-white text-sm font-bold tracking-widest uppercase hover:bg-zinc-700 transition-colors">
+              Checkout →
+            </Link>
           </div>
         )}
       </div>

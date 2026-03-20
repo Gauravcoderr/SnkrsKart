@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Bebas_Neue } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
+import { WishlistProvider } from '@/context/WishlistContext';
 import QueryProvider from '@/components/layout/QueryProvider';
 import LayoutShell from '@/components/layout/LayoutShell';
 
@@ -77,7 +78,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-zinc-50 text-zinc-900 font-sans antialiased">
         <QueryProvider>
           <CartProvider>
-            <LayoutShell>{children}</LayoutShell>
+            <WishlistProvider>
+              <LayoutShell>{children}</LayoutShell>
+            </WishlistProvider>
           </CartProvider>
         </QueryProvider>
       </body>

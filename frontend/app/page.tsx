@@ -6,6 +6,7 @@ import TrendingNow from '@/components/home/TrendingNow';
 import NewArrivals from '@/components/home/NewArrivals';
 import BrandGrid from '@/components/home/BrandGrid';
 import HomeReviews from '@/components/home/HomeReviews';
+import NewsletterBar from '@/components/home/NewsletterBar';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,6 +36,7 @@ export default async function HomePage() {
       <HomeReviews reviews={reviews} />
       <BrandGrid brands={brands} />
       <TrendingNow products={trending} />
+      <NewsletterBar />
     </>
   );
 }

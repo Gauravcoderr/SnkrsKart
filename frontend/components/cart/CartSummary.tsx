@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
 import { CartItem } from '@/types';
 
@@ -54,16 +55,15 @@ export default function CartSummary({ items, subtotal }: CartSummaryProps) {
         <p className="text-xs text-zinc-400 mt-1">Including all taxes</p>
       </div>
 
-      <button
-        disabled
-        title="Payment integration coming soon"
-        className="w-full py-4 bg-zinc-200 text-zinc-400 text-sm font-bold tracking-widest uppercase cursor-not-allowed"
+      <Link
+        href="/checkout"
+        className="block w-full py-4 bg-zinc-900 text-white text-sm font-bold tracking-widest uppercase text-center hover:bg-zinc-700 transition-colors"
       >
-        Checkout — Coming Soon
-      </button>
+        Proceed to Checkout →
+      </Link>
 
       <p className="text-center text-xs text-zinc-400">
-        Secure checkout · No payment required now
+        Pay via UPI · Delivery in 3–7 business days
       </p>
     </div>
   );
