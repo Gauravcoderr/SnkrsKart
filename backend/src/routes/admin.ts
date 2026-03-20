@@ -6,6 +6,7 @@ import { Product } from '../models/Product';
 import { Brand } from '../models/Brand';
 import { Inquiry } from '../models/Inquiry';
 import { Review } from '../models/Review';
+import { Banner } from '../models/Banner';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'snkrs-cart-admin-secret-key';
@@ -107,6 +108,46 @@ router.delete('/products/:id', adminAuth, async (req: Request, res: Response): P
     res.json({ message: 'Product deleted' });
   } catch {
     res.status(500).json({ error: 'Failed to delete product' });
+  }
+});
+
+// ─── Banners ───────────────────────────────────────────────────────────────
+
+router.get('/banners', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const banners = await Banner.find().sort({ order: 1 }).lean();
+    res.json(banners);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch banners' });
+  }
+});
+
+router.post('/banners', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const banner = await Banner.create(req.body);
+    res.status(201).json(banner);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to create banner' });
+  }
+});
+
+router.put('/banners/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const banner = await Banner.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true, runValidators: true });
+    if (!banner) { res.status(404).json({ error: 'Not found' }); return; }
+    res.json(banner);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to update banner' });
+  }
+});
+
+router.delete('/banners/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const banner = await Banner.findByIdAndDelete(req.params.id);
+    if (!banner) { res.status(404).json({ error: 'Not found' }); return; }
+    res.json({ message: 'Deleted' });
+  } catch {
+    res.status(500).json({ error: 'Failed to delete banner' });
   }
 });
 
