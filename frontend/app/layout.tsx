@@ -44,10 +44,6 @@ export const metadata: Metadata = {
   creator: 'SNKRS CART',
   publisher: 'SNKRS CART',
   robots: { index: true, follow: true },
-  icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-icon.png',
-  },
   alternates: { canonical: SITE_URL },
   appleWebApp: {
     title: 'SNKRS CART',
