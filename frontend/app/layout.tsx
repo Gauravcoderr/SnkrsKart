@@ -18,18 +18,53 @@ const bebas = Bebas_Neue({
   display: 'swap',
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+const OG_IMAGE = `${SITE_URL}/logo.jpg`;
+
 export const metadata: Metadata = {
-  title: 'SNKRS CART — Shop Premium Sneakers',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'SNKRS CART — Shop 100% Authentic Sneakers in India',
+    template: '%s | SNKRS CART',
+  },
   description:
-    'Shop the latest and greatest sneakers from Nike, Adidas, New Balance, Jordan & Crocs. Premium kicks, zero compromise.',
+    'Buy 100% authentic Nike, Adidas, Jordan, New Balance & Crocs sneakers online in India. Secure packaging, pan India shipping. No fakes, no compromise.',
+  keywords: [
+    'buy sneakers India', 'authentic sneakers India', 'Nike shoes India', 'Jordan shoes India',
+    'Adidas sneakers India', 'New Balance India', 'SNKRS CART', 'sneakers online India',
+    'original shoes India', 'limited edition sneakers India',
+  ],
+  authors: [{ name: 'SNKRS CART', url: SITE_URL }],
+  creator: 'SNKRS CART',
+  publisher: 'SNKRS CART',
+  robots: { index: true, follow: true },
+  alternates: { canonical: SITE_URL },
   appleWebApp: {
     title: 'SNKRS CART',
+    statusBarStyle: 'black-translucent',
   },
   openGraph: {
-    title: 'SNKRS CART',
-    description: 'Premium sneakers. Zero compromise.',
+    title: 'SNKRS CART — 100% Authentic Sneakers in India',
+    description: 'Buy authentic Nike, Jordan, Adidas & New Balance sneakers online. Pan India shipping. No fakes, no compromise.',
+    url: SITE_URL,
     siteName: 'SNKRS CART',
-    images: ['/logo.jpg'],
+    locale: 'en_IN',
+    type: 'website',
+    images: [
+      {
+        url: OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: 'SNKRS CART — 100% Authentic Sneakers in India',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SNKRS CART — 100% Authentic Sneakers in India',
+    description: 'Authentic Nike, Jordan, Adidas & New Balance sneakers. Pan India shipping.',
+    images: [OG_IMAGE],
+    creator: '@snkrs_cart',
   },
 };
 

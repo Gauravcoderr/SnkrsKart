@@ -1,18 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import type { Blog } from '@/types';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-
-interface Blog {
-  _id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  coverImage: string;
-  author: string;
-  tags: string[];
-  createdAt: string;
-}
 
 async function fetchBlogs(): Promise<Blog[]> {
   try {

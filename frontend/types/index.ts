@@ -82,6 +82,23 @@ export interface Review {
   createdAt: string;
 }
 
+export interface Blog {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  coverImage: string;
+  author: string;
+  tags: string[];
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ProductsResponse {
   products: Product[];
   total: number;

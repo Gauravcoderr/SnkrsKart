@@ -1,25 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import type { Blog } from '@/types';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
-
-interface Blog {
-  _id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  content: string;
-  coverImage: string;
-  author: string;
-  tags: string[];
-  metaTitle?: string;
-  metaDescription?: string;
-  metaKeywords?: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 async function fetchBlog(slug: string): Promise<Blog | null> {
   try {
