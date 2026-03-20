@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Paginator from '../_components/Paginator';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-const PAGE_SIZE = 10;
 
 interface Review {
   _id: string;
@@ -42,6 +41,7 @@ export default function ReviewsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
   const [editModal, setEditModal] = useState<EditModal | null>(null);
   const [saving, setSaving] = useState(false);
@@ -118,8 +118,8 @@ export default function ReviewsPage() {
     return r.name.toLowerCase().includes(q) || r.productName.toLowerCase().includes(q) || r.comment.toLowerCase().includes(q);
   });
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   if (loading) {
     return (
@@ -206,7 +206,7 @@ export default function ReviewsPage() {
         </table>
       </div>
 
-      <Paginator page={page} totalPages={totalPages} onPage={setPage} />
+      <Paginator page={page} totalPages={totalPages} onPage={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} totalItems={filtered.length} />
 
       {/* Edit modal */}
       {editModal && (

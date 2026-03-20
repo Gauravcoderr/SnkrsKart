@@ -6,7 +6,6 @@ import Link from 'next/link';
 import Paginator from '../_components/Paginator';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-const PAGE_SIZE = 10;
 
 interface Inquiry {
   _id: string;
@@ -38,6 +37,7 @@ export default function InquiriesPage() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
   const fetchInquiries = useCallback(async () => {
     const token = localStorage.getItem('admin_token');
@@ -68,8 +68,8 @@ export default function InquiriesPage() {
     );
   });
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   function handleSearch(val: string) {
     setSearch(val);
@@ -163,7 +163,7 @@ export default function InquiriesPage() {
         </table>
       </div>
 
-      <Paginator page={page} totalPages={totalPages} onPage={setPage} />
+      <Paginator page={page} totalPages={totalPages} onPage={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} totalItems={filtered.length} />
     </div>
   );
 }
