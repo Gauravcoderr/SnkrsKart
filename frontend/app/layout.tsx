@@ -23,10 +23,9 @@ const bebas = Bebas_Neue({
 export const metadata: Metadata = {
   title: 'SNKRS CART — Shop Premium Sneakers',
   description:
-    'Shop the latest and greatest sneakers from Nike, Adidas, New Balance, Asics, Puma & Vans. Premium kicks, zero compromise.',
-  icons: {
-    icon: '/logo.jpg',
-    apple: '/logo.jpg',
+    'Shop the latest and greatest sneakers from Nike, Adidas, New Balance, Jordan & Crocs. Premium kicks, zero compromise.',
+  appleWebApp: {
+    title: 'SNKRS CART',
   },
   openGraph: {
     title: 'SNKRS CART',
