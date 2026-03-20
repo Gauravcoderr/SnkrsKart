@@ -8,7 +8,7 @@ const SLIDES = [
   {
     brand: 'JORDAN',
     tag: 'Nike Jordan',
-    headline: 'FLY\nHIGHER.',
+    headline: ['FLY', 'HIGHER.'],
     sub: 'Air Jordan 1 Retro · AJKO Chicago',
     cta: 'Shop Jordans',
     href: '/products?brand=Nike',
@@ -20,7 +20,7 @@ const SLIDES = [
   {
     brand: 'NEW BALANCE',
     tag: 'New Balance',
-    headline: 'BUILT\nDIFFERENT.',
+    headline: ['BUILT', 'DIFFERENT.'],
     sub: 'BB550 · Oyster White / Olive',
     cta: 'Shop New Balance',
     href: '/products?brand=New+Balance',
@@ -31,24 +31,24 @@ const SLIDES = [
   },
   {
     brand: 'ADIDAS',
-    tag: 'Adidas',
-    headline: 'NOTHING\nIS\nIMPOSSIBLE.',
+    tag: 'Adidas Originals',
+    headline: ['NOTHING', 'IMPOSSIBLE.'],
     sub: 'Samba Wales Bonner · Collegiate Navy',
     cta: 'Shop Adidas',
     href: '/products?brand=Adidas',
     image: 'https://cdn.shopify.com/s/files/1/0360/6491/9692/files/adidasSambaWalesBonnerCollegiateNavy.png?v=1749203390',
-    accent: '#ffffff',
+    accent: '#4169E1',
     bg: '#111111',
     imgBg: '#e8eaf0',
   },
   {
     brand: 'CROCS',
     tag: 'Crocs',
-    headline: 'COME\nAS\nYOU ARE.',
+    headline: ['COME AS', 'YOU ARE.'],
     sub: 'Classic Clog · Iconic Comfort',
     cta: 'Shop Crocs',
     href: '/products?brand=Crocs',
-    image: 'https://images.vegnonveg.com/resized/1400X1146/7946/crocs-classic-lnd-clg-black-639bf1cac2dfc.jpg?format=webp',
+    image: 'https://images.vegnonveg.com/resized/1400X1146/14888/crocs-star-wars-classic-clog-multicolor-69a57de41e6d2.jpg?format=webp',
     accent: '#FFD700',
     bg: '#0d0d0d',
     imgBg: '#f5f0e8',
@@ -64,7 +64,7 @@ export default function HeroBanner() {
       if (transitioning || idx === active) return;
       setTransitioning(true);
       setActive(idx);
-      setTimeout(() => setTransitioning(false), 600);
+      setTimeout(() => setTransitioning(false), 500);
     },
     [active, transitioning]
   );
@@ -74,116 +74,96 @@ export default function HeroBanner() {
     return () => clearInterval(t);
   }, [active, goTo]);
 
-  const slide = SLIDES[active];
+  const s = SLIDES[active];
 
   return (
-    <section
-      className="relative w-full flex flex-col md:flex-row overflow-hidden"
-      style={{ minHeight: 'calc(100vh - 64px)', background: slide.bg, transition: 'background 0.6s ease' }}
-    >
-      {/* Left: Text */}
-      <div className="flex flex-col justify-between px-8 sm:px-12 lg:px-20 py-12 md:py-16 md:w-[52%] z-10">
+    <section className="w-full overflow-hidden" style={{ background: s.bg, transition: 'background 0.5s ease' }}>
+      <div className="flex flex-col md:flex-row" style={{ minHeight: 'min(90vh, 700px)' }}>
 
-        {/* Top tag */}
-        <div className="flex items-center gap-3">
-          <span className="w-6 h-px" style={{ background: slide.accent }} />
-          <span className="text-[11px] font-bold tracking-[0.4em] uppercase" style={{ color: slide.accent }}>
-            {slide.tag}
-          </span>
-        </div>
+        {/* ── Left: text panel ── */}
+        <div className="flex flex-col justify-between gap-6 px-6 sm:px-10 lg:px-16 pt-10 pb-8 md:w-[52%]">
 
-        {/* Headline */}
-        <div className="flex flex-col gap-5 my-auto py-10">
-          <h1
-            className="font-black uppercase leading-[0.85] tracking-tighter text-white"
-            style={{ fontSize: 'clamp(3.5rem, 10vw, 9rem)' }}
-          >
-            {slide.headline.split('\n').map((line, i) => (
-              <span key={i} className="block">{line}</span>
-            ))}
-          </h1>
-          <p className="text-sm text-white/40 tracking-widest uppercase font-medium">
-            {slide.sub}
-          </p>
-          <div className="flex items-center gap-4 mt-3">
-            <Link
-              href={slide.href}
-              className="inline-flex items-center gap-3 px-7 py-4 text-[11px] font-bold tracking-[0.25em] uppercase transition-opacity hover:opacity-80"
-              style={{
-                background: slide.accent,
-                color: slide.accent === '#ffffff' ? '#000' : slide.accent === '#FFD700' ? '#000' : '#fff',
-              }}
-            >
-              {slide.cta}
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </Link>
-            <Link
-              href="/products"
-              className="text-[11px] font-bold tracking-[0.25em] uppercase text-white/30 hover:text-white transition-colors"
-            >
-              All Products
-            </Link>
-          </div>
-        </div>
-
-        {/* Bottom: slide dots + counter */}
-        <div className="flex items-center justify-between">
+          {/* Brand tag */}
           <div className="flex items-center gap-2">
-            {SLIDES.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => goTo(i)}
-                aria-label={`Slide ${i + 1}`}
-                className="relative h-px overflow-hidden transition-all duration-500"
+            <span className="h-px w-6 shrink-0" style={{ background: s.accent }} />
+            <span className="text-[10px] font-bold tracking-[0.35em] uppercase" style={{ color: s.accent }}>
+              {s.tag}
+            </span>
+          </div>
+
+          {/* Headline */}
+          <div className="flex flex-col gap-4">
+            <h1 className="font-black uppercase leading-[0.88] tracking-tighter text-white break-words"
+              style={{ fontSize: 'clamp(3rem, 9vw, 8.5rem)' }}>
+              {s.headline.map((line, i) => (
+                <span key={i} className="block">{line}</span>
+              ))}
+            </h1>
+            <p className="text-xs text-white/40 tracking-[0.25em] uppercase">{s.sub}</p>
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <Link
+                href={s.href}
+                className="inline-flex items-center gap-2 px-6 py-3.5 text-[11px] font-bold tracking-[0.2em] uppercase transition-opacity hover:opacity-80"
                 style={{
-                  width: i === active ? 40 : 16,
-                  background: i === active ? slide.accent : 'rgba(255,255,255,0.2)',
+                  background: s.accent,
+                  color: ['#ffffff', '#FFD700'].includes(s.accent) ? '#000' : '#fff',
                 }}
-              />
-            ))}
+              >
+                {s.cta}
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+              <Link href="/products" className="text-[11px] font-bold tracking-[0.2em] uppercase text-white/30 hover:text-white transition-colors">
+                View All
+              </Link>
+            </div>
           </div>
-          <span className="text-[11px] font-mono text-white/20 tracking-widest">
-            0{active + 1} / 0{SLIDES.length}
-          </span>
+
+          {/* Dots + counter */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {SLIDES.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => goTo(i)}
+                  aria-label={`Slide ${i + 1}`}
+                  className="h-[2px] rounded-full transition-all duration-500"
+                  style={{
+                    width: i === active ? 36 : 14,
+                    background: i === active ? s.accent : 'rgba(255,255,255,0.2)',
+                  }}
+                />
+              ))}
+            </div>
+            <span className="text-[10px] font-mono text-white/25 tracking-widest">
+              0{active + 1} / 0{SLIDES.length}
+            </span>
+          </div>
         </div>
-      </div>
 
-      {/* Right: Product image */}
-      <div
-        className="relative md:w-[48%] h-72 md:h-auto"
-        style={{
-          background: slide.imgBg,
-          transition: 'background 0.6s ease',
-        }}
-      >
-        {SLIDES.map((s, i) => (
-          <div
-            key={i}
-            className="absolute inset-0 flex items-center justify-center p-8 transition-opacity duration-600"
-            style={{ opacity: i === active ? 1 : 0 }}
-          >
-            <Image
-              src={s.image}
-              alt={s.brand}
-              fill
-              priority={i === 0}
-              className="object-contain p-8"
-              sizes="(max-width: 768px) 100vw, 48vw"
-            />
-          </div>
-        ))}
-
-        {/* Brand watermark */}
-        <div className="absolute bottom-6 right-6 z-10">
-          <span
-            className="text-[10px] font-black tracking-[0.4em] uppercase opacity-20"
-            style={{ color: '#000' }}
-          >
-            {slide.brand}
-          </span>
+        {/* ── Right: product image ── */}
+        <div
+          className="relative md:w-[48%] overflow-hidden"
+          style={{ minHeight: 320, background: s.imgBg, transition: 'background 0.5s ease' }}
+        >
+          {SLIDES.map((slide, i) => (
+            <div
+              key={i}
+              className="absolute inset-0 transition-opacity duration-500"
+              style={{ opacity: i === active ? 1 : 0 }}
+            >
+              <Image
+                src={slide.image}
+                alt={slide.brand}
+                fill
+                priority={i === 0}
+                className="object-contain p-6 md:p-10"
+                sizes="(max-width: 768px) 100vw, 48vw"
+              />
+            </div>
+          ))}
         </div>
       </div>
     </section>
