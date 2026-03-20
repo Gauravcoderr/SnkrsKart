@@ -5,6 +5,14 @@ import { useCart } from '@/context/CartContext';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 
+const BRAND_LINKS = [
+  { href: '/products?brand=Jordan',      label: 'Jordan',      accent: '#C8102E' },
+  { href: '/products?brand=Nike',        label: 'Nike',        accent: '#111111' },
+  { href: '/products?brand=Adidas',      label: 'Adidas',      accent: '#0052CC' },
+  { href: '/products?brand=New Balance', label: 'New Balance', accent: '#E47911' },
+  { href: '/products?brand=Crocs',       label: 'Crocs',       accent: '#179A3A' },
+];
+
 export default function Navbar() {
   const { itemCount, toggleDrawer } = useCart();
   const pathname = usePathname();
@@ -26,43 +34,51 @@ export default function Navbar() {
     }
   }
 
-  const navLinks = [
-    { href: '/products', label: 'All Shoes' },
-    { href: '/products?brand=Jordan', label: 'Jordan' },
-    { href: '/products?brand=Nike', label: 'Nike' },
-    { href: '/products?brand=Adidas', label: 'Adidas' },
-    { href: '/products?brand=New Balance', label: 'New Balance' },
-    { href: '/products?brand=Crocs', label: 'Crocs' },
-  ];
+  const currentHref = pathname + (typeof window !== 'undefined' ? window.location.search : '');
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-zinc-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
+
           {/* Logo */}
           <Link href="/" className="flex items-center gap-1 flex-shrink-0">
             <span className="text-xl font-black tracking-tight text-zinc-900">SNKRS</span>
             <span className="text-xl font-black tracking-tight text-zinc-400">CART</span>
           </Link>
 
-          {/* Nav links — hidden on mobile */}
-          <nav className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`text-sm font-medium tracking-wide transition-colors hover:text-zinc-900 ${
-                  pathname === link.href ? 'text-zinc-900' : 'text-zinc-500'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+          {/* Nav */}
+          <nav className="hidden md:flex items-center gap-1">
+
+            {/* All Shoes pill */}
+            <Link
+              href="/products"
+              className={`relative px-3 py-1.5 text-sm font-semibold tracking-wide transition-all duration-200 rounded-sm ${
+                pathname === '/products' && !currentHref.includes('brand') && !currentHref.includes('search')
+                  ? 'bg-zinc-900 text-white'
+                  : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
+              }`}
+            >
+              All Shoes
+            </Link>
+
+            {/* Divider */}
+            <div className="w-px h-4 bg-zinc-200 mx-2" />
+
+            {/* Brand links */}
+            {BRAND_LINKS.map((link) => {
+              const isActive = typeof window !== 'undefined'
+                ? window.location.href.includes(encodeURIComponent(link.label)) || window.location.href.includes(link.label)
+                : false;
+
+              return (
+                <BrandLink key={link.href} link={link} isActive={isActive} />
+              );
+            })}
           </nav>
 
           {/* Right actions */}
           <div className="flex items-center gap-3">
-            {/* Search */}
             {searchOpen ? (
               <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 animate-slide-in-up">
                 <input
@@ -71,9 +87,7 @@ export default function Navbar() {
                   onChange={(e) => setSearchValue(e.target.value)}
                   placeholder="Search sneakers..."
                   className="w-48 sm:w-64 text-sm border border-zinc-200 rounded-none px-3 py-1.5 outline-none focus:border-zinc-900 bg-white"
-                  onBlur={() => {
-                    if (!searchValue) setSearchOpen(false);
-                  }}
+                  onBlur={() => { if (!searchValue) setSearchOpen(false); }}
                 />
                 <button type="submit" className="p-1.5 text-zinc-900">
                   <SearchIcon />
@@ -96,7 +110,6 @@ export default function Navbar() {
               </button>
             )}
 
-            {/* Cart */}
             <button
               onClick={toggleDrawer}
               className="relative p-2 text-zinc-500 hover:text-zinc-900 transition-colors"
@@ -110,9 +123,42 @@ export default function Navbar() {
               )}
             </button>
           </div>
+
         </div>
       </div>
     </header>
+  );
+}
+
+function BrandLink({ link, isActive }: { link: typeof BRAND_LINKS[0]; isActive: boolean }) {
+  const [hovered, setHovered] = useState(false);
+  const active = isActive || hovered;
+
+  return (
+    <Link
+      href={link.href}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="relative px-2.5 py-4 flex flex-col items-center justify-center group"
+      style={{ color: active ? link.accent : undefined }}
+    >
+      <span
+        className="text-sm font-semibold tracking-wide transition-colors duration-200"
+        style={{ color: active ? link.accent : '#71717a' }}
+      >
+        {link.label}
+      </span>
+
+      {/* Animated underline — slides in from left */}
+      <span
+        className="absolute bottom-0 left-0 h-[2.5px] transition-all duration-200 ease-out"
+        style={{
+          width: hovered || isActive ? '100%' : '0%',
+          backgroundColor: link.accent,
+          transformOrigin: 'left',
+        }}
+      />
+    </Link>
   );
 }
 
