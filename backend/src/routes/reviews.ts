@@ -42,13 +42,15 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 
     const review = await Review.create({ productSlug, productName, name: name.trim(), rating, comment: comment.trim() });
 
-    // Update product's rating and reviewCount
-    const allReviews = await Review.find({ productSlug }).lean();
-    const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
-    await Product.findOneAndUpdate(
-      { slug: productSlug },
-      { rating: Math.round(avgRating * 10) / 10, reviewCount: allReviews.length }
-    );
+    // Update product's rating and reviewCount (skip for general site reviews)
+    if (productSlug !== 'general') {
+      const allReviews = await Review.find({ productSlug }).lean();
+      const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+      await Product.findOneAndUpdate(
+        { slug: productSlug },
+        { rating: Math.round(avgRating * 10) / 10, reviewCount: allReviews.length }
+      );
+    }
 
     res.status(201).json(review);
   } catch {

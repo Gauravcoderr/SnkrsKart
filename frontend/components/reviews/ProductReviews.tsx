@@ -88,7 +88,7 @@ export default function ProductReviews({ productSlug, productName, initialReview
                     </svg>
                     <div className="flex-1 h-1.5 bg-zinc-200 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-zinc-900 rounded-full"
+                        className="h-full bg-amber-400 rounded-full"
                         style={{ width: reviews.length ? `${(count / reviews.length) * 100}%` : '0%' }}
                       />
                     </div>
@@ -131,7 +131,7 @@ export default function ProductReviews({ productSlug, productName, initialReview
                       aria-label={`${star} star${star > 1 ? 's' : ''}`}
                     >
                       <svg
-                        className={`w-7 h-7 transition-colors ${star <= (hoverRating || rating) ? 'text-zinc-900' : 'text-zinc-200'}`}
+                        className={`w-7 h-7 transition-colors ${star <= (hoverRating || rating) ? 'text-amber-400' : 'text-zinc-200'}`}
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >

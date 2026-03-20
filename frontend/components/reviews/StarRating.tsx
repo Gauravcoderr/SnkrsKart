@@ -23,7 +23,7 @@ export default function StarRating({ value, max = 5, size = 'md', interactive = 
           aria-label={interactive ? `Rate ${i + 1} star${i !== 0 ? 's' : ''}` : undefined}
         >
           <svg
-            className={`${sizeMap[size]} ${i < value ? 'text-zinc-900' : 'text-zinc-200'} transition-colors`}
+            className={`${sizeMap[size]} ${i < value ? 'text-amber-400' : 'text-zinc-200'} transition-colors`}
             fill="currentColor"
             viewBox="0 0 20 20"
           >
