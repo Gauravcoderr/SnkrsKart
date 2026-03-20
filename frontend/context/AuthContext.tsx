@@ -27,7 +27,7 @@ interface AuthState {
   authModalOpen: boolean;
   openAuthModal: () => void;
   closeAuthModal: () => void;
-  refreshUser: () => void;
+  refreshUser: () => Promise<void>;
   logout: () => void;
 }
 
@@ -38,7 +38,7 @@ const AuthContext = createContext<AuthState>({
   authModalOpen: false,
   openAuthModal: () => {},
   closeAuthModal: () => {},
-  refreshUser: () => {},
+  refreshUser: async () => {},
   logout: () => {},
 });
 
@@ -79,8 +79,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const refreshUser = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+  const refreshUser = useCallback(async () => {
+    await queryClient.refetchQueries({ queryKey: ['auth', 'me'] });
+    queryClient.invalidateQueries({ queryKey: ['orders', 'my'] });
   }, [queryClient]);
 
   return (

@@ -158,7 +158,7 @@ export default function CheckoutPage() {
         return;
       }
       setOtpVerified(true);
-      refreshUser();
+      await refreshUser();
     } catch {
       setOtpError('Something went wrong. Try again.');
     } finally {

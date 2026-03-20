@@ -124,7 +124,7 @@ export default function Header() {
 
             {/* Logo */}
             <Link href="/" className="shrink-0 flex items-center">
-              <Image src="/logo.jpeg" alt="SNKRS CART" width={52} height={52} className="object-contain" priority />
+              <Image src="/logo.png" alt="SNKRS CART" width={52} height={52} className="object-contain" priority />
             </Link>
 
             {/* Desktop Nav */}
