@@ -39,6 +39,30 @@ async function fetchBlog(slug: string): Promise<Blog | null> {
   }
 }
 
+async function fetchRelatedBlogs(tags: string[], currentSlug: string): Promise<Blog[]> {
+  try {
+    const allRelated: Blog[] = [];
+    const seen = new Set<string>([currentSlug]);
+
+    for (const tag of tags) {
+      if (allRelated.length >= 6) break;
+      const res = await fetch(`${API}/blogs?tag=${encodeURIComponent(tag)}&limit=4`, { next: { revalidate: 60 } });
+      if (!res.ok) continue;
+      const blogs: Blog[] = await res.json();
+      for (const b of blogs) {
+        if (!seen.has(b.slug) && allRelated.length < 6) {
+          seen.add(b.slug);
+          allRelated.push(b);
+        }
+      }
+    }
+
+    return allRelated.slice(0, 3);
+  } catch {
+    return [];
+  }
+}
+
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'long', year: 'numeric',
@@ -92,6 +116,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
 
   const accent = getAccent(blog.tags);
   const minutes = readingTime(blog.content);
+  const relatedBlogs = await fetchRelatedBlogs(blog.tags, blog.slug);
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -214,8 +239,48 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
           </div>
         </div>
 
+        {/* Related Posts */}
+        {relatedBlogs.length > 0 && (
+          <div className="mt-10 pt-8 border-t border-zinc-100">
+            <h2 className="text-lg font-black tracking-tight text-zinc-900 mb-6">Related Posts</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              {relatedBlogs.map((rb) => {
+                const rbAccent = getAccent(rb.tags);
+                return (
+                  <Link key={rb._id} href={`/blogs/${rb.slug}`} className="group block">
+                    <div className="relative aspect-[16/9] bg-zinc-100 overflow-hidden rounded-lg mb-3">
+                      {rb.coverImage ? (
+                        <Image
+                          src={rb.coverImage}
+                          alt={rb.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          sizes="(max-width:640px) 100vw, 33vw"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-zinc-200 flex items-center justify-center">
+                          <span className="text-2xl">👟</span>
+                        </div>
+                      )}
+                    </div>
+                    {rb.tags.length > 0 && (
+                      <span className={`text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${rbAccent.tagBg} ${rbAccent.tagText}`}>
+                        {rb.tags[0]}
+                      </span>
+                    )}
+                    <h3 className="text-sm font-bold text-zinc-900 group-hover:text-zinc-600 transition-colors leading-snug mt-1.5 line-clamp-2">
+                      {rb.title}
+                    </h3>
+                    <p className="text-xs text-zinc-400 mt-1">{formatDate(rb.createdAt)}</p>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Footer nav */}
-        <div className="flex items-center justify-between pt-6 border-t border-zinc-100">
+        <div className="flex items-center justify-between pt-6 mt-8 border-t border-zinc-100">
           <Link
             href="/blogs"
             className="text-xs font-bold tracking-widest uppercase text-zinc-500 hover:text-zinc-900 transition-colors"
