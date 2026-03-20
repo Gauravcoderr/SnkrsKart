@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { formatPrice } from '@/lib/utils';
+import OtpInput from '@/components/auth/OtpInput';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SHIPPING_THRESHOLD = 3000;
@@ -24,7 +25,7 @@ const INDIAN_STATES = [
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotal, clearCart } = useCart();
-  const { user, isLoggedIn, loading: authLoading, openAuthModal } = useAuth();
+  const { user, isLoggedIn, loading: authLoading, openAuthModal, refreshUser } = useAuth();
   const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
   const total = subtotal + shipping;
 
@@ -34,6 +35,14 @@ export default function CheckoutPage() {
 
   const [contact, setContact] = useState({ name: '', email: '', phone: '' });
   const [address, setAddress] = useState({ addressLine: '', city: '', state: '', pincode: '' });
+
+  // OTP verification at review step
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpValues, setOtpValues] = useState<string[]>(Array(6).fill(''));
+  const [otpError, setOtpError] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpCountdown, setOtpCountdown] = useState(0);
 
   // Auto-fill from user profile when logged in
   useEffect(() => {
@@ -56,12 +65,17 @@ export default function CheckoutPage() {
     }
   }, [isLoggedIn, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Prompt login if not authenticated (soft gate — user can dismiss)
+  // If already logged in, skip OTP verification
   useEffect(() => {
-    if (!authLoading && !isLoggedIn && items.length > 0) {
-      openAuthModal();
-    }
-  }, [authLoading, isLoggedIn]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (isLoggedIn) setOtpVerified(true);
+  }, [isLoggedIn]);
+
+  // OTP countdown
+  useEffect(() => {
+    if (otpCountdown <= 0) return;
+    const t = setTimeout(() => setOtpCountdown(otpCountdown - 1), 1000);
+    return () => clearTimeout(t);
+  }, [otpCountdown]);
 
   function setC(k: string, v: string) { setContact((p) => ({ ...p, [k]: v })); }
   function setA(k: string, v: string) { setAddress((p) => ({ ...p, [k]: v })); }
@@ -93,6 +107,62 @@ export default function CheckoutPage() {
       const err = validateAddress();
       if (err) { setError(err); return; }
       setStep(3);
+    }
+  }
+
+  async function sendCheckoutOtp() {
+    setOtpError('');
+    setOtpLoading(true);
+    try {
+      const res = await fetch(`${BASE_URL}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: contact.email.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setOtpError(data.error || 'Failed to send code');
+        if (data.retryAfter) setOtpCountdown(data.retryAfter);
+        return;
+      }
+      setOtpSent(true);
+      setOtpCountdown(60);
+      setOtpValues(Array(6).fill(''));
+    } catch {
+      setOtpError('Something went wrong. Try again.');
+    } finally {
+      setOtpLoading(false);
+    }
+  }
+
+  async function verifyCheckoutOtp(code: string) {
+    setOtpError('');
+    setOtpLoading(true);
+    try {
+      const res = await fetch(`${BASE_URL}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: contact.email.trim(),
+          otp: code,
+          name: contact.name.trim(),
+          phone: contact.phone.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setOtpError(data.error || 'Invalid code');
+        setOtpValues(Array(6).fill(''));
+        return;
+      }
+      setOtpVerified(true);
+      refreshUser();
+    } catch {
+      setOtpError('Something went wrong. Try again.');
+    } finally {
+      setOtpLoading(false);
     }
   }
 
@@ -147,6 +217,7 @@ export default function CheckoutPage() {
       </div>
     );
   }
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -340,24 +411,79 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
+              {/* Email verification */}
+              {!otpVerified && (
+                <div className="border-2 border-zinc-900 rounded-lg p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <svg className="w-5 h-5 text-zinc-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                    </svg>
+                    <p className="text-sm font-bold text-zinc-900">Verify your email to place order</p>
+                  </div>
+                  <p className="text-xs text-zinc-500 mb-4">
+                    We&apos;ll send a 6-digit code to <span className="font-semibold text-zinc-700">{contact.email}</span> to verify your identity.
+                  </p>
+
+                  {!otpSent ? (
+                    <button
+                      type="button"
+                      onClick={sendCheckoutOtp}
+                      disabled={otpLoading}
+                      className="w-full py-3 bg-zinc-900 text-white text-sm font-bold tracking-widest uppercase rounded-lg hover:bg-zinc-700 disabled:bg-zinc-400 transition-colors"
+                    >
+                      {otpLoading ? 'Sending...' : 'Send Verification Code'}
+                    </button>
+                  ) : (
+                    <div>
+                      <p className="text-xs text-zinc-500 mb-3 text-center">Enter the code sent to your email</p>
+                      <OtpInput value={otpValues} onChange={setOtpValues} onComplete={verifyCheckoutOtp} />
+                      {otpLoading && <p className="text-xs text-zinc-400 text-center mt-3">Verifying...</p>}
+                      <div className="flex items-center justify-between mt-4">
+                        <button type="button" onClick={() => { setOtpSent(false); setOtpError(''); }} className="text-xs text-zinc-500 hover:text-zinc-900 transition">
+                          Change email
+                        </button>
+                        {otpCountdown > 0 ? (
+                          <span className="text-xs text-zinc-400">Resend in {otpCountdown}s</span>
+                        ) : (
+                          <button type="button" onClick={sendCheckoutOtp} className="text-xs font-semibold text-zinc-900 hover:text-zinc-600 transition">
+                            Resend code
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {otpError && <p className="text-xs text-red-500 mt-3 text-center">{otpError}</p>}
+                </div>
+              )}
+
+              {otpVerified && (
+                <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
+                  <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <p className="text-xs font-semibold text-emerald-700">Email verified{isLoggedIn ? ` — signed in as ${user?.email}` : ''}</p>
+                </div>
+              )}
+
               {/* Payment note */}
               <div className="bg-amber-50 border border-amber-200 rounded p-4">
                 <p className="text-xs font-bold text-amber-800 mb-1">Payment via UPI</p>
                 <p className="text-xs text-amber-700 leading-relaxed">
-                  After placing your order, you'll receive UPI payment instructions. Pay via PhonePe, Google Pay, or Paytm and send a screenshot on WhatsApp with your order number. We'll confirm within 1 hour.
+                  After placing your order, you&apos;ll receive UPI payment instructions. Pay via PhonePe, Google Pay, or Paytm and send a screenshot on WhatsApp with your order number.
                 </p>
               </div>
 
               {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
 
               <div className="flex gap-3">
-                <button onClick={() => setStep(2)} className="flex-1 py-3.5 border border-zinc-200 text-sm font-bold tracking-widest uppercase text-zinc-700 hover:border-zinc-900 transition-colors">
-                  ← Back
+                <button type="button" onClick={() => setStep(2)} className="flex-1 py-3.5 border border-zinc-200 text-sm font-bold tracking-widest uppercase text-zinc-700 hover:border-zinc-900 transition-colors">
+                  Back
                 </button>
                 <button
+                  type="button"
                   onClick={handlePlaceOrder}
-                  disabled={loading}
-                  className="flex-[2] py-3.5 bg-zinc-900 text-white text-sm font-bold tracking-widest uppercase hover:bg-zinc-700 disabled:bg-zinc-400 transition-colors"
+                  disabled={loading || !otpVerified}
+                  className="flex-[2] py-3.5 bg-zinc-900 text-white text-sm font-bold tracking-widest uppercase hover:bg-zinc-700 disabled:bg-zinc-300 disabled:text-zinc-500 transition-colors"
                 >
                   {loading ? 'Placing Order...' : `Place Order — ${formatPrice(total)}`}
                 </button>

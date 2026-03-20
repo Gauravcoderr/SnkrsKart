@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { Resend } from 'resend';
 import { User } from '../models/User';
+import { Order } from '../models/Order';
 import { customerAuth, AuthRequest } from '../middleware/customerAuth';
 
 const router = Router();
@@ -154,6 +155,12 @@ router.post('/verify-otp', async (req: Request, res: Response): Promise<void> =>
     updates.refreshToken = hashOtp(refreshToken);
 
     await User.updateOne({ _id: user._id }, { $set: updates });
+
+    // Link any guest orders placed with this email to this user account
+    Order.updateMany(
+      { email: cleanEmail, userId: null },
+      { $set: { userId: user._id } }
+    ).catch(() => {});
 
     setTokenCookies(res, accessToken, refreshToken);
 
