@@ -1,8 +1,9 @@
-import { fetchProductBySlug, fetchTrendingProducts } from '@/lib/api';
+import { fetchProductBySlug, fetchTrendingProducts, fetchProductReviews } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import ImageGallery from '@/components/product-detail/ImageGallery';
 import ProductDetailClient from './ProductDetailClient';
 import ProductCard from '@/components/products/ProductCard';
+import ProductReviews from '@/components/reviews/ProductReviews';
 import { formatPrice } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -32,9 +33,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const related = (await fetchTrendingProducts())
-    .filter((p) => p.id !== product.id && p.brand === product.brand)
-    .slice(0, 4);
+  const [related, reviews] = await Promise.all([
+    fetchTrendingProducts().then((p) => p.filter((p) => p.id !== product.id && p.brand === product.brand).slice(0, 4)),
+    fetchProductReviews(product.slug).catch(() => []),
+  ]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
@@ -115,6 +117,13 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
         </div>
       </div>
+
+      {/* Reviews */}
+      <ProductReviews
+        productSlug={product.slug}
+        productName={product.name}
+        initialReviews={reviews}
+      />
 
       {/* Related products */}
       {related.length > 0 && (

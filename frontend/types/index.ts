@@ -72,6 +72,16 @@ export interface BannerSlide {
   active: boolean;
 }
 
+export interface Review {
+  id: string;
+  productSlug: string;
+  productName: string;
+  name: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
 export interface ProductsResponse {
   products: Product[];
   total: number;

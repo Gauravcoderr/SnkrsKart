@@ -1,4 +1,4 @@
-import { Product, Brand, BannerSlide, ProductsResponse, FilterState } from '@/types';
+import { Product, Brand, BannerSlide, ProductsResponse, FilterState, Review } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -73,6 +73,18 @@ export async function fetchBrands(): Promise<Brand[]> {
     next: { revalidate: 3600 },
   });
   if (!res.ok) throw new Error('Failed to fetch brands');
+  return res.json();
+}
+
+export async function fetchRecentReviews(): Promise<Review[]> {
+  const res = await fetch(`${BASE_URL}/reviews/recent`, { next: { revalidate: 60 } });
+  if (!res.ok) throw new Error('Failed to fetch reviews');
+  return res.json();
+}
+
+export async function fetchProductReviews(productSlug: string): Promise<Review[]> {
+  const res = await fetch(`${BASE_URL}/reviews?productSlug=${productSlug}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Failed to fetch product reviews');
   return res.json();
 }
 

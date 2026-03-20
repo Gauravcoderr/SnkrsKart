@@ -1,51 +1,39 @@
-import { fetchNewArrivals, fetchTrendingProducts, fetchBrands, fetchBanners, fetchProducts } from '@/lib/api';
-import { Product, Brand, BannerSlide } from '@/types';
+import { fetchNewArrivals, fetchTrendingProducts, fetchBrands, fetchBanners, fetchRecentReviews } from '@/lib/api';
+import { Product, Brand, BannerSlide, Review } from '@/types';
 import HeroBanner from '@/components/home/HeroBanner';
 import MarqueeStrip from '@/components/home/MarqueeStrip';
 import TrendingNow from '@/components/home/TrendingNow';
 import NewArrivals from '@/components/home/NewArrivals';
 import BrandGrid from '@/components/home/BrandGrid';
+import HomeReviews from '@/components/home/HomeReviews';
 
 export const dynamic = 'force-dynamic';
 
 const SHOWN_BRANDS = ['nike', 'adidas', 'new-balance', 'jordan', 'crocs'];
 
-async function fetchBrandImages(): Promise<Record<string, string>> {
-  const results = await Promise.allSettled(
-    SHOWN_BRANDS.map((slug) =>
-      fetchProducts({ brands: [slug], limit: 1 }, 3600)
-    )
-  );
-  const images: Record<string, string> = {};
-  results.forEach((r, i) => {
-    if (r.status === 'fulfilled' && r.value.products.length > 0) {
-      images[SHOWN_BRANDS[i]] = r.value.products[0].images[0];
-    }
-  });
-  return images;
-}
-
 export default async function HomePage() {
-  const [trendingResult, newArrivalsResult, brandsResult, bannersResult, brandImages] = await Promise.all([
-    fetchTrendingProducts().catch(() => [] as Product[]),
-    fetchNewArrivals().catch(() => [] as Product[]),
-    fetchBrands().catch(() => [] as Brand[]),
-    fetchBanners().catch(() => [] as BannerSlide[]),
-    fetchBrandImages().catch(() => ({} as Record<string, string>)),
+  const [trendingResult, newArrivalsResult, brandsResult, bannersResult, reviewsResult] = await Promise.allSettled([
+    fetchTrendingProducts(),
+    fetchNewArrivals(),
+    fetchBrands(),
+    fetchBanners(),
+    fetchRecentReviews(),
   ]);
 
-  const trending = Array.isArray(trendingResult) ? trendingResult : [] as Product[];
-  const newArrivals = Array.isArray(newArrivalsResult) ? newArrivalsResult : [] as Product[];
-  const allBrands = Array.isArray(brandsResult) ? brandsResult : [] as Brand[];
+  const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : [] as Product[];
+  const newArrivals = newArrivalsResult.status === 'fulfilled' ? newArrivalsResult.value : [] as Product[];
+  const allBrands = brandsResult.status === 'fulfilled' ? brandsResult.value : [] as Brand[];
   const brands = allBrands.filter(b => SHOWN_BRANDS.includes(b.slug));
-  const banners = Array.isArray(bannersResult) ? bannersResult : [] as BannerSlide[];
+  const banners = bannersResult.status === 'fulfilled' ? bannersResult.value : [] as BannerSlide[];
+  const reviews = reviewsResult.status === 'fulfilled' ? reviewsResult.value : [] as Review[];
 
   return (
     <>
       <MarqueeStrip />
       <HeroBanner slides={banners} />
       <NewArrivals products={newArrivals} />
-      <BrandGrid brands={brands} brandImages={brandImages} />
+      <HomeReviews reviews={reviews} />
+      <BrandGrid brands={brands} />
       <TrendingNow products={trending} />
     </>
   );
