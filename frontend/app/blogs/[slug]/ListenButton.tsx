@@ -1,15 +1,52 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export default function ListenButton({ html }: { html: string }) {
   const [playing, setPlaying] = useState(false);
   const [supported, setSupported] = useState(false);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
   useEffect(() => {
-    setSupported(typeof window !== 'undefined' && 'speechSynthesis' in window);
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    setSupported(true);
+
+    function loadVoices() {
+      setVoices(window.speechSynthesis.getVoices());
+    }
+
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
   }, []);
+
+  const pickBestVoice = useCallback((): SpeechSynthesisVoice | undefined => {
+    if (voices.length === 0) return undefined;
+
+    // Priority list of high-quality female voices across platforms
+    const preferred = [
+      // macOS / iOS premium voices
+      'Samantha', 'Karen', 'Moira', 'Fiona', 'Victoria', 'Tessa',
+      // Google Chrome voices (high quality)
+      'Google UK English Female', 'Google US English',
+      // Windows
+      'Microsoft Zira', 'Microsoft Hazel',
+      // Indian English
+      'Veena', 'Aditi',
+    ];
+
+    for (const name of preferred) {
+      const match = voices.find((v) => v.name.includes(name));
+      if (match) return match;
+    }
+
+    // Fallback: any en-IN or en-US or en-GB voice
+    return (
+      voices.find((v) => v.lang === 'en-IN') ||
+      voices.find((v) => v.lang === 'en-GB') ||
+      voices.find((v) => v.lang === 'en-US') ||
+      voices.find((v) => v.lang.startsWith('en'))
+    );
+  }, [voices]);
 
   if (!supported) return null;
 
@@ -29,29 +66,27 @@ export default function ListenButton({ html }: { html: string }) {
     }
 
     const text = getPlainText();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.pitch = 1;
-    utterance.lang = 'en-IN';
 
-    // Pick a female voice — prefer Indian English female, then any English female
-    const voices = window.speechSynthesis.getVoices();
-    const isFemale = (v: SpeechSynthesisVoice) =>
-      /female|woman|zira|samantha|karen|moira|fiona|veena|rishi|aditi/i.test(v.name) ||
-      (!(/male|david|daniel|james|fred|alex|rishi/i.test(v.name)));
-    const femaleIndian = voices.find((v) => v.lang === 'en-IN' && isFemale(v));
-    const femaleEnglish = voices.find((v) => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'))
-      || voices.find((v) => v.lang.startsWith('en') && /samantha|karen|zira|moira|fiona|veena|victoria|susan/i.test(v.name))
-      || voices.find((v) => v.lang === 'en-US' && isFemale(v))
-      || voices.find((v) => v.lang.startsWith('en') && isFemale(v));
-    const pickedVoice = femaleIndian || femaleEnglish || voices.find((v) => v.lang === 'en-IN') || voices.find((v) => v.lang.startsWith('en'));
-    if (pickedVoice) utterance.voice = pickedVoice;
+    // Chrome has a bug where speech stops after ~15 seconds on long text.
+    // Split into chunks and queue them sequentially.
+    const chunks = splitIntoChunks(text, 200);
+    const voice = pickBestVoice();
 
-    utterance.onend = () => setPlaying(false);
-    utterance.onerror = () => setPlaying(false);
+    chunks.forEach((chunk, i) => {
+      const utterance = new SpeechSynthesisUtterance(chunk);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.05;
+      utterance.lang = voice?.lang || 'en-US';
+      if (voice) utterance.voice = voice;
 
-    utteranceRef.current = utterance;
-    window.speechSynthesis.speak(utterance);
+      if (i === chunks.length - 1) {
+        utterance.onend = () => setPlaying(false);
+      }
+      utterance.onerror = () => setPlaying(false);
+
+      window.speechSynthesis.speak(utterance);
+    });
+
     setPlaying(true);
   }
 
@@ -83,4 +118,23 @@ export default function ListenButton({ html }: { html: string }) {
       )}
     </button>
   );
+}
+
+/** Split text into chunks at sentence boundaries to avoid Chrome's 15s cutoff bug */
+function splitIntoChunks(text: string, maxWords: number): string[] {
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+  const chunks: string[] = [];
+  let current = '';
+
+  for (const sentence of sentences) {
+    const combined = current + ' ' + sentence;
+    if (combined.split(/\s+/).length > maxWords && current) {
+      chunks.push(current.trim());
+      current = sentence;
+    } else {
+      current = combined;
+    }
+  }
+  if (current.trim()) chunks.push(current.trim());
+  return chunks;
 }
