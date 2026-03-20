@@ -94,13 +94,12 @@ export default function AuthModal() {
       if (!res.ok) throw data;
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data.user?.isNewUser && !name) {
         setStep('profile');
         return;
       }
-      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-      queryClient.invalidateQueries({ queryKey: ['orders', 'my'] });
+      await refreshUser();
       closeAuthModal();
     },
     onError: (err: any) => {

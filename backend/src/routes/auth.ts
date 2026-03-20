@@ -22,12 +22,13 @@ function generateTokens(userId: string, email: string) {
 }
 
 function setTokenCookies(res: Response, accessToken: string, refreshToken: string) {
-  // Cross-origin cookies need secure + sameSite=none when frontend/backend are on different domains
-  const crossOrigin = !!(process.env.FRONTEND_URL && !process.env.FRONTEND_URL.includes('localhost'));
+  // Production (Render + Vercel = cross-origin) needs SameSite=None; Secure
+  // NODE_ENV is set to 'production' by Render automatically
+  const isProd = process.env.NODE_ENV === 'production';
   const cookieBase = {
     httpOnly: true,
-    secure: crossOrigin,
-    sameSite: (crossOrigin ? 'none' : 'lax') as 'none' | 'lax',
+    secure: isProd,
+    sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax',
   };
   res.cookie('access_token', accessToken, { ...cookieBase, maxAge: 15 * 60 * 1000 });
   res.cookie('refresh_token', refreshToken, { ...cookieBase, maxAge: 30 * 24 * 60 * 60 * 1000 });
@@ -222,8 +223,8 @@ router.post('/logout', async (req: Request, res: Response): Promise<void> => {
     } catch { /* ignore */ }
   }
 
-  const crossOrigin = !!(process.env.FRONTEND_URL && !process.env.FRONTEND_URL.includes('localhost'));
-  const cookieBase = { httpOnly: true, secure: crossOrigin, sameSite: (crossOrigin ? 'none' : 'lax') as 'none' | 'lax' };
+  const isProd = process.env.NODE_ENV === 'production';
+  const cookieBase = { httpOnly: true, secure: isProd, sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax' };
   res.clearCookie('access_token', cookieBase);
   res.clearCookie('refresh_token', cookieBase);
   res.json({ message: 'Logged out' });
