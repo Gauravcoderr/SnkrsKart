@@ -85,7 +85,7 @@ const blogs: BlogPost[] = [
 <h2>Where Are We Now?</h2>
 <p>The hype has cooled a bit, which is actually great for buyers. You can find solid Dunk colourways closer to retail now. If you missed the wave earlier, this is your chance to pick up a pair without paying crazy resale. The Dunk is here to stay, bhai.</p>
 `,
-  coverImage: 'https://images.unsplash.com/photo-1612833609248-5e0e4d0c8b4b?w=800&q=80',
+  coverImage: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=800&q=80',
   author: 'SNKRS CART',
   tags: ['nike', 'dunk', 'history', 'india'],
   metaTitle: 'Nike Dunk History — How It Became India\'s Hottest Sneaker',
