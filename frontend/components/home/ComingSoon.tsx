@@ -27,7 +27,7 @@ export default function ComingSoon({ products }: ComingSoonProps) {
         {/* Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {products.slice(0, 8).map((product) => (
-            <div key={product.id} className="bg-white rounded-sm">
+            <div key={product.id} className="bg-white rounded-xl overflow-hidden shadow-md border border-zinc-100">
               <ProductCard product={product} />
             </div>
           ))}

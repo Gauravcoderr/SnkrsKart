@@ -139,7 +139,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         </div>
 
         {/* Product info */}
-        <div className="pt-3 pb-1 px-0.5">
+        <div className="pt-3 pb-4 px-3">
           <div className="flex items-center justify-between mb-0.5">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-400">
               {product.brand}
