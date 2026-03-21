@@ -1,4 +1,4 @@
-import { fetchNewArrivals, fetchTrendingProducts, fetchBrands, fetchBanners, fetchRecentReviews } from '@/lib/api';
+import { fetchNewArrivals, fetchTrendingProducts, fetchBrands, fetchBanners, fetchRecentReviews, fetchComingSoonProducts } from '@/lib/api';
 import { Product, Brand, BannerSlide, Review } from '@/types';
 import HeroBanner from '@/components/home/HeroBanner';
 import MarqueeStrip from '@/components/home/MarqueeStrip';
@@ -6,6 +6,7 @@ import TrendingNow from '@/components/home/TrendingNow';
 import NewArrivals from '@/components/home/NewArrivals';
 import BrandGrid from '@/components/home/BrandGrid';
 import HomeReviews from '@/components/home/HomeReviews';
+import ComingSoon from '@/components/home/ComingSoon';
 import NewsletterBar from '@/components/home/NewsletterBar';
 
 export const dynamic = 'force-dynamic';
@@ -13,12 +14,13 @@ export const dynamic = 'force-dynamic';
 const SHOWN_BRANDS = ['nike', 'adidas', 'new-balance', 'jordan', 'crocs'];
 
 export default async function HomePage() {
-  const [trendingResult, newArrivalsResult, brandsResult, bannersResult, reviewsResult] = await Promise.allSettled([
+  const [trendingResult, newArrivalsResult, brandsResult, bannersResult, reviewsResult, comingSoonResult] = await Promise.allSettled([
     fetchTrendingProducts(),
     fetchNewArrivals(),
     fetchBrands(),
     fetchBanners(),
     fetchRecentReviews(),
+    fetchComingSoonProducts(),
   ]);
 
   const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : [] as Product[];
@@ -27,6 +29,7 @@ export default async function HomePage() {
   const brands = allBrands.filter(b => SHOWN_BRANDS.includes(b.slug));
   const banners = bannersResult.status === 'fulfilled' ? bannersResult.value : [] as BannerSlide[];
   const reviews = reviewsResult.status === 'fulfilled' ? reviewsResult.value : [] as Review[];
+  const comingSoon = comingSoonResult.status === 'fulfilled' ? comingSoonResult.value : [] as Product[];
 
   return (
     <>
@@ -36,6 +39,7 @@ export default async function HomePage() {
       <HomeReviews reviews={reviews} />
       <BrandGrid brands={brands} />
       <TrendingNow products={trending} />
+      <ComingSoon products={comingSoon} />
       <NewsletterBar />
     </>
   );

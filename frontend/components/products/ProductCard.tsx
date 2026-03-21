@@ -42,6 +42,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   };
 
   const getBadge = () => {
+    if (product.comingSoon) return <Badge variant="comingsoon" />;
     if (product.soldOut) return <Badge variant="soldout" />;
     if (product.newArrival) return <Badge variant="new" />;
     if (product.discount) return <Badge variant="sale" />;
@@ -92,7 +93,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           </div>
 
           {/* Quick size panel — slides up on hover */}
-          {!product.soldOut && quickSizes.length > 0 && (
+          {!product.soldOut && !product.comingSoon && quickSizes.length > 0 && (
             <div className="quick-size-panel absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm p-3 z-10">
               <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-2 font-medium">
                 Quick Add
@@ -117,9 +118,14 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           {/* Sold out overlay */}
           {product.soldOut && (
             <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-10">
-              <span className="text-xs font-bold tracking-widest text-zinc-500 uppercase">
-                Sold Out
-              </span>
+              <span className="text-xs font-bold tracking-widest text-zinc-500 uppercase">Sold Out</span>
+            </div>
+          )}
+
+          {/* Coming soon overlay */}
+          {product.comingSoon && (
+            <div className="absolute inset-0 bg-indigo-950/40 flex items-center justify-center z-10">
+              <span className="text-xs font-bold tracking-widest text-white uppercase">Dropping Soon</span>
             </div>
           )}
         </div>

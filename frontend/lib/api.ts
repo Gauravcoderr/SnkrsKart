@@ -62,6 +62,14 @@ export async function fetchTrendingProducts(): Promise<Product[]> {
   return res.json();
 }
 
+export async function fetchComingSoonProducts(): Promise<Product[]> {
+  const res = await fetch(`${BASE_URL}/products/coming-soon`, {
+    next: { revalidate: 60 },
+  });
+  if (!res.ok) throw new Error('Failed to fetch coming soon products');
+  return res.json();
+}
+
 export async function fetchBanners(): Promise<BannerSlide[]> {
   const res = await fetch(`${BASE_URL}/banners`, { next: { revalidate: 300 } });
   if (!res.ok) throw new Error('Failed to fetch banners');

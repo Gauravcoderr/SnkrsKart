@@ -19,6 +19,7 @@ export interface Product {
   trending: boolean;
   newArrival: boolean;
   soldOut: boolean;
+  comingSoon: boolean;
   rating: number;
   reviewCount: number;
   description: string;

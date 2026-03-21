@@ -38,6 +38,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     trending: product?.trending || false,
     newArrival: product?.newArrival || false,
     soldOut: product?.soldOut || false,
+    comingSoon: product?.comingSoon || false,
   });
 
   // ── Pricing state ────────────────────────────────────────────────────────
@@ -203,6 +204,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
         trending: form.trending,
         newArrival: form.newArrival,
         soldOut: form.soldOut,
+        comingSoon: form.comingSoon,
       };
 
       await onSave(payload);
@@ -448,6 +450,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
             <Checkbox label="Trending" checked={form.trending} onChange={(v) => set('trending', v)} />
             <Checkbox label="New Arrival" checked={form.newArrival} onChange={(v) => set('newArrival', v)} />
             <Checkbox label="Sold Out" checked={form.soldOut} onChange={(v) => set('soldOut', v)} />
+            <Checkbox label="Coming Soon" checked={form.comingSoon} onChange={(v) => set('comingSoon', v)} />
           </div>
 
           {/* Submit */}

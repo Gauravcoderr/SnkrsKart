@@ -110,3 +110,12 @@ export const getTrendingProducts = async (_req: Request, res: Response): Promise
     res.status(500).json({ error: 'Failed to fetch trending products' });
   }
 };
+
+export const getComingSoonProducts = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const products = await Product.find({ comingSoon: true }).sort({ createdAt: -1 }).limit(12).lean();
+    res.json(products.map((p) => ({ ...p, id: (p._id as any).toString() })));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch coming soon products' });
+  }
+};

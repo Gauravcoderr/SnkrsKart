@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 interface BadgeProps {
-  variant: 'new' | 'sale' | 'soldout' | 'discount';
+  variant: 'new' | 'sale' | 'soldout' | 'discount' | 'comingsoon';
   label?: string;
   className?: string;
 }
@@ -14,9 +14,10 @@ export default function Badge({ variant, label, className }: BadgeProps) {
     sale: 'bg-red-500 text-white',
     soldout: 'bg-zinc-400 text-white',
     discount: 'bg-zinc-900 text-white',
+    comingsoon: 'bg-indigo-600 text-white',
   };
 
-  const defaultLabels = { new: 'New', sale: 'Sale', soldout: 'Sold Out', discount: '' };
+  const defaultLabels = { new: 'New', sale: 'Sale', soldout: 'Sold Out', discount: '', comingsoon: 'Coming Soon' };
 
   return (
     <span className={cn(base, variants[variant], className)}>

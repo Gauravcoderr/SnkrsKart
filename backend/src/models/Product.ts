@@ -28,6 +28,7 @@ export interface IProduct extends Document {
   trending: boolean;
   newArrival: boolean;
   soldOut: boolean;
+  comingSoon: boolean;
   rating: number;
   reviewCount: number;
   description: string;
@@ -57,6 +58,7 @@ const ProductSchema = new Schema<IProduct>(
     trending:      { type: Boolean, default: false, index: true },
     newArrival:    { type: Boolean, default: false, index: true },
     soldOut:       { type: Boolean, default: false },
+  comingSoon:    { type: Boolean, default: false, index: true },
     rating:        { type: Number, default: 0, min: 0, max: 5 },
     reviewCount:   { type: Number, default: 0 },
     description:   { type: String, required: true },
