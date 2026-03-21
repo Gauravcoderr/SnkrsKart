@@ -42,8 +42,8 @@ export default async function HomePage() {
       <BrandGrid brands={brands} />
       <TrendingNow products={trending} />
       <WhyChooseUs />
-      <GenderSplit />
       <ComingSoon products={comingSoon} />
+      <GenderSplit />
       <NewsletterBar />
     </>
   );
