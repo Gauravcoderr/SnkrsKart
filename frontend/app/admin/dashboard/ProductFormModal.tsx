@@ -408,26 +408,31 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
             <label className="block text-sm font-medium text-zinc-400 mb-1.5">Image URLs *</label>
             <div className="space-y-2">
               {form.imageList.map((url, i) => (
-                <div key={i} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={url}
-                    onChange={(e) => {
-                      const updated = [...form.imageList];
-                      updated[i] = e.target.value;
-                      set('imageList', updated);
-                    }}
-                    placeholder={`Image URL ${i + 1}`}
-                    className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 font-mono"
-                  />
-                  {form.imageList.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => set('imageList', form.imageList.filter((_, idx) => idx !== i))}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2.5 rounded-lg transition text-sm shrink-0"
-                    >
-                      Remove
-                    </button>
+                <div key={i} className="space-y-1.5">
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="text"
+                      value={url}
+                      onChange={(e) => {
+                        const updated = [...form.imageList];
+                        updated[i] = e.target.value;
+                        set('imageList', updated);
+                      }}
+                      placeholder={`Image URL ${i + 1}`}
+                      className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 font-mono"
+                    />
+                    {form.imageList.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => set('imageList', form.imageList.filter((_, idx) => idx !== i))}
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2.5 rounded-lg transition text-sm shrink-0"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  {url.trim() && (
+                    <ImagePreview url={url.trim()} label={`Image ${i + 1}`} />
                   )}
                 </div>
               ))}
@@ -442,7 +447,14 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
           </div>
 
           {/* Hover Image */}
-          <Field label="Hover Image URL" value={form.hoverImage} onChange={(v) => set('hoverImage', v)} placeholder="URL for hover state image" />
+          <div>
+            <Field label="Hover Image URL" value={form.hoverImage} onChange={(v) => set('hoverImage', v)} placeholder="URL for hover state image" />
+            {form.hoverImage.trim() && (
+              <div className="mt-1.5">
+                <ImagePreview url={form.hoverImage.trim()} label="Hover Image" />
+              </div>
+            )}
+          </div>
 
           {/* Flags */}
           <div className="flex flex-wrap gap-6">
@@ -491,6 +503,46 @@ function Field({
         required={required}
         className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 transition"
       />
+    </div>
+  );
+}
+
+function ImagePreview({ url, label }: { url: string; label: string }) {
+  const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading');
+
+  // Reset when URL changes
+  useEffect(() => { setStatus('loading'); }, [url]);
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="relative w-14 h-14 rounded-lg border border-zinc-700 overflow-hidden bg-zinc-800 shrink-0">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={url}
+          alt={label}
+          className={`w-full h-full object-cover transition-opacity duration-200 ${status === 'ok' ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setStatus('ok')}
+          onError={() => setStatus('error')}
+        />
+        {status === 'loading' && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <svg className="w-4 h-4 animate-spin text-zinc-500" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          </div>
+        )}
+        {status === 'error' && (
+          <div className="absolute inset-0 flex items-center justify-center bg-red-500/10">
+            <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+        )}
+      </div>
+      <span className={`text-xs font-medium ${status === 'ok' ? 'text-emerald-400' : status === 'error' ? 'text-red-400' : 'text-zinc-500'}`}>
+        {status === 'ok' ? '✓ Loaded' : status === 'error' ? '✗ Failed to load' : 'Checking…'}
+      </span>
     </div>
   );
 }
