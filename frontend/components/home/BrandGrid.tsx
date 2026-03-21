@@ -39,7 +39,7 @@ export default function BrandGrid({ brands }: BrandGridProps) {
             return (
               <Link
                 key={brand.slug}
-                href={`/products?brand=${brand.slug}`}
+                href={`/brands/${brand.slug}`}
                 className="group block"
               >
                 <div

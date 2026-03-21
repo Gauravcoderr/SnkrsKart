@@ -48,6 +48,7 @@ export default function Header() {
   const [results, setResults] = useState<Product[]>([]);
   const [recommended, setRecommended] = useState<Product[]>([]);
   const [searching, setSearching] = useState(false);
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const brandsTimeout = useRef<NodeJS.Timeout>();
   const debounceRef = useRef<NodeJS.Timeout>();
@@ -72,13 +73,15 @@ export default function Header() {
   }, [searchOpen, recommended.length]);
 
   const searchProducts = useCallback(async (q: string) => {
-    if (!q.trim()) { setResults([]); return; }
+    if (!q.trim()) { setResults([]); setSuggestions([]); return; }
     setSearching(true);
     try {
       const res = await fetch(`${API}/products?search=${encodeURIComponent(q.trim())}&limit=8`);
       if (res.ok) {
         const data = await res.json();
-        setResults(data.products || []);
+        const products: Product[] = data.products || [];
+        setResults(products);
+        setSuggestions(products.slice(0, 5));
       }
     } catch { /* ignore */ }
     setSearching(false);
@@ -94,6 +97,7 @@ export default function Header() {
     setSearchOpen(false);
     setQuery('');
     setResults([]);
+    setSuggestions([]);
   }
 
   function goToProduct(slug: string) {
@@ -152,7 +156,7 @@ export default function Header() {
                             {BRANDS.map((brand) => (
                               <Link
                                 key={brand.name}
-                                href={`/products?brand=${brand.slug}`}
+                                href={`/brands/${brand.slug}`}
                                 onClick={() => setBrandsOpen(false)}
                                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-zinc-50 transition-colors group/item"
                               >
@@ -332,6 +336,43 @@ export default function Header() {
               </div>
             </div>
 
+            {/* Autocomplete suggestion dropdown */}
+            {hasQuery && suggestions.length > 0 && (
+              <div className="border-b border-zinc-100">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  {suggestions.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => goToProduct(p.slug)}
+                      className="flex items-center gap-3 w-full px-1 py-2.5 hover:bg-zinc-50 transition-colors group text-left"
+                    >
+                      <div className="w-8 h-8 rounded bg-zinc-100 flex-shrink-0 overflow-hidden">
+                        {p.images?.[0] && (
+                          <img src={p.images[0]} alt={p.name} className="w-full h-full object-contain" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm text-zinc-900 font-medium truncate block group-hover:text-zinc-700">
+                          {p.name}
+                        </span>
+                        <span className="text-xs text-zinc-400">{p.brand}</span>
+                      </div>
+                      <span className="text-xs text-zinc-400 flex-shrink-0">₹{p.price.toLocaleString('en-IN')}</span>
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => { closeSearch(); router.push(`/products?search=${encodeURIComponent(query.trim())}`); }}
+                    className="flex items-center gap-2 w-full px-1 py-2.5 text-sm text-zinc-500 hover:text-zinc-900 transition-colors border-t border-zinc-100"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+                    Search all results for &quot;{query}&quot;
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Content area — max 75% of screen */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 max-h-[75vh] overflow-y-auto">
               {hasQuery ? (
@@ -480,7 +521,7 @@ export default function Header() {
                   {BRANDS.map((brand) => (
                     <Link
                       key={brand.name}
-                      href={`/products?brand=${brand.slug}`}
+                      href={`/brands/${brand.slug}`}
                       onClick={() => setMobileOpen(false)}
                       className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-zinc-50 transition"
                     >

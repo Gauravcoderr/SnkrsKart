@@ -84,6 +84,14 @@ export async function fetchBrands(): Promise<Brand[]> {
   return res.json();
 }
 
+export async function fetchBrandBySlug(slug: string): Promise<Brand> {
+  const res = await fetch(`${BASE_URL}/brands/${slug}`, {
+    next: { revalidate: 3600 },
+  });
+  if (!res.ok) throw new Error('Brand not found');
+  return res.json();
+}
+
 export async function fetchRecentReviews(): Promise<Review[]> {
   const res = await fetch(`${BASE_URL}/reviews/recent`, { next: { revalidate: 60 } });
   if (!res.ok) throw new Error('Failed to fetch reviews');
