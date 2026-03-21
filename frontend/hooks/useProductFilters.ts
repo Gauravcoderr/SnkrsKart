@@ -19,10 +19,14 @@ const DEFAULT_FILTERS: FilterState = {
 
 const LIMIT = 12;
 
+function slugToDisplayName(slug: string): string {
+  return slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function parseSearchParams(params: URLSearchParams): Partial<FilterState> {
   const out: Partial<FilterState> = {};
   const brand = params.get('brand');
-  if (brand) out.brands = brand.split(',').map((b) => b.trim()).filter(Boolean);
+  if (brand) out.brands = brand.split(',').map((b) => slugToDisplayName(b.trim())).filter(Boolean);
   const search = params.get('search');
   if (search) out.search = search;
   const sort = params.get('sort') as SortOption | null;
