@@ -16,7 +16,9 @@ export function sendMail(options: { to: string; subject: string; html: string })
     console.warn('Brevo credentials not set — email skipped');
     return Promise.resolve();
   }
+  console.log(`[mailer] Sending email to ${options.to} | subject: ${options.subject}`);
   return transporter
     .sendMail({ from: FROM, ...options })
-    .catch((err: unknown) => console.error('Email send failed:', err));
+    .then((info) => console.log('[mailer] Email sent:', info.messageId))
+    .catch((err: unknown) => console.error('[mailer] Email send failed:', JSON.stringify(err)));
 }
