@@ -125,6 +125,7 @@ Your goals:
    [SUGGESTIONS:{"slugs":["slug-1","slug-2"]}]
 6. If there are relevant blog articles in the context, suggest them too by including their slugs right after SUGGESTIONS in this exact format (no extra text after it):
    [BLOG_SUGGESTIONS:{"slugs":["blog-slug-1"]}]
+   NEVER invent blog URLs or slugs — only use slugs from the blog articles provided in the context above.
 7. Keep responses short — 2-3 sentences max unless the user asks for more detail.
 8. Use ₹ for prices (Indian Rupees).`;
 
