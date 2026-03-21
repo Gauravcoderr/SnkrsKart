@@ -211,6 +211,14 @@ export default function AdminDashboard() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
+                      <a
+                        href={`/products/${p.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-zinc-400 hover:text-white px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition"
+                      >
+                        View
+                      </a>
                       <button
                         type="button"
                         onClick={() => handleEdit(p)}
