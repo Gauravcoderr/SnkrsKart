@@ -22,6 +22,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'djm0962033frr.cloudfront.net', pathname: '/**' },
       { protocol: 'https', hostname: 'laceupclub.com', pathname: '/**' },
       { protocol: 'https', hostname: 'adn-static1.nykaa.com', pathname: '/**' },
+      { protocol: 'https', hostname: 'ypsogynovubjdriipnbu.supabase.co', pathname: '/**' },
+      { protocol: 'https', hostname: 'res.cloudinary.com', pathname: '/**' },
     ],
   },
 };
