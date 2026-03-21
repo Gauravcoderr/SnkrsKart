@@ -40,7 +40,7 @@ export default function GenderSplit() {
   const [hovered, setHovered] = useState<'men' | 'women' | null>(null);
 
   return (
-    <section className="relative w-full bg-white overflow-hidden">
+    <section className="relative w-full overflow-hidden [background:linear-gradient(90deg,#2563eb_0%,#a855f7_50%,#ec4899_100%)]">
       {/* SNKRS CART top label */}
       <div className="absolute top-5 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
         <span className="text-[9px] font-black tracking-[0.5em] uppercase text-white/30">
