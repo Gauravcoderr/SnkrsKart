@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import { supabase } from '@/lib/supabase';
 
 const RichTextEditor = dynamic(() => import('@/components/blog/RichTextEditor'), { ssr: false, loading: () => <div className="h-[400px] bg-zinc-900 border border-zinc-700 rounded-lg animate-pulse" /> });
 
@@ -38,6 +39,28 @@ export default function BlogForm({ blogId }: BlogFormProps) {
   const [fetchLoading, setFetchLoading] = useState(isEdit);
   const [error, setError] = useState('');
   const [slugManual, setSlugManual] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const coverFileRef = useRef<HTMLInputElement | null>(null);
+
+  async function handleCoverUpload(file: File) {
+    setUploadingCover(true);
+    setUploadError('');
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `blogs/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: uploadErr } = await supabase.storage
+        .from('Snkrs Cart Product Images')
+        .upload(path, file, { upsert: true });
+      if (uploadErr) throw new Error(uploadErr.message);
+      const url = supabase.storage.from('Snkrs Cart Product Images').getPublicUrl(path).data.publicUrl;
+      set('coverImage', url);
+    } catch (e: any) {
+      setUploadError(e.message);
+    } finally {
+      setUploadingCover(false);
+    }
+  }
 
   useEffect(() => {
     if (!isEdit) return;
@@ -180,13 +203,46 @@ export default function BlogForm({ blogId }: BlogFormProps) {
           {/* Cover image */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
             <p className="text-xs font-bold tracking-widest uppercase text-zinc-400 mb-3">Cover Image</p>
-            <input
-              type="url"
-              value={form.coverImage}
-              onChange={(e) => set('coverImage', e.target.value)}
-              placeholder="https://..."
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20"
-            />
+            <div className="flex gap-2 items-center">
+              <input
+                type="url"
+                value={form.coverImage}
+                onChange={(e) => set('coverImage', e.target.value)}
+                placeholder="Paste URL or upload →"
+                className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20"
+              />
+              <input
+                type="file"
+                accept="image/*"
+                aria-label="Upload cover image"
+                className="hidden"
+                ref={coverFileRef}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleCoverUpload(file);
+                  e.target.value = '';
+                }}
+              />
+              <button
+                type="button"
+                title="Upload cover image"
+                onClick={() => coverFileRef.current?.click()}
+                disabled={uploadingCover}
+                className="shrink-0 px-2.5 py-2 rounded-lg border border-zinc-600 text-zinc-300 hover:border-indigo-400 hover:text-indigo-300 transition disabled:opacity-40"
+              >
+                {uploadingCover ? (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            {uploadError && <p className="text-xs text-red-400 mt-1.5">{uploadError}</p>}
             {form.coverImage && (
               <div className="relative mt-3 aspect-[16/9] w-full overflow-hidden rounded-lg bg-zinc-800">
                 <Image src={form.coverImage} alt="Cover preview" fill className="object-cover" sizes="300px" />
