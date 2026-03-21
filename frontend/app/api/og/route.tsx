@@ -10,44 +10,11 @@ export async function GET(req: NextRequest) {
   const price = searchParams.get('price') || '';
   const imageUrl = searchParams.get('image') || '';
 
-  // Try to fetch the product image and embed as base64 (bypasses CDN hotlink
-  // blocks). Fall back to passing the URL directly so Satori can attempt it.
-  let imageSrc = '';
-  if (imageUrl) {
-    console.log('[OG] Fetching image:', imageUrl);
-    try {
-      const res = await fetch(imageUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; Twitterbot/1.0)',
-          'Accept': 'image/webp,image/jpeg,image/*',
-          'Referer': 'https://snkrs-kart.vercel.app/',
-        },
-      });
-      console.log('[OG] Fetch status:', res.status, res.headers.get('content-type'));
-      if (res.ok) {
-        const mime = res.headers.get('content-type') || 'image/jpeg';
-        if (mime.includes('webp')) {
-          console.log('[OG] Skipping WebP image — not supported by Satori');
-        } else {
-          const buf = await res.arrayBuffer();
-          console.log('[OG] Image size bytes:', buf.byteLength);
-          if (buf.byteLength < 3 * 1024 * 1024 && buf.byteLength > 0) {
-            const bytes = new Uint8Array(buf);
-            let binary = '';
-            for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
-            imageSrc = `data:${mime};base64,${btoa(binary)}`;
-            console.log('[OG] Image embedded as base64, length:', imageSrc.length);
-          } else {
-            console.log('[OG] Image too large or empty, skipping');
-          }
-        }
-      } else {
-        console.log('[OG] Fetch failed, CDN blocked request');
-      }
-    } catch (err) {
-      console.log('[OG] Fetch error:', err);
-    }
-  }
+  // Proxy through wsrv.nl which converts any format (WebP, PNG, etc.) to JPEG
+  // and serves it at a URL Satori can fetch directly — no manual base64 needed.
+  const imageSrc = imageUrl
+    ? `https://images.weserv.nl/?url=${encodeURIComponent(imageUrl)}&output=jpg&w=600&q=85`
+    : '';
 
   const formattedPrice = price
     ? `Rs. ${Number(price).toLocaleString('en-IN')}`
