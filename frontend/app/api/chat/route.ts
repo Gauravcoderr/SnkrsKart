@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -151,14 +151,13 @@ export async function POST(req: NextRequest) {
       ? `${SYSTEM_PROMPT}\n\n--- AVAILABLE PRODUCTS ---\n${productContext}\n--- END PRODUCTS ---`
       : SYSTEM_PROMPT;
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({
-      model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
-      systemInstruction: systemWithContext,
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const result = await ai.models.generateContent({
+      model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+      contents: lastUserMessage,
+      config: { systemInstruction: systemWithContext },
     });
-
-    const result = await model.generateContent(lastUserMessage);
-    const rawText = result.response.text();
+    const rawText = result.text ?? '';
 
     // Parse out product slugs if Gemini included them
     const suggestionMatch = rawText.match(/\[SUGGESTIONS:(\{[\s\S]*?\})\]/);
