@@ -4,6 +4,20 @@ import { NextRequest, NextResponse } from 'next/server';
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
+// Simple in-memory rate limiter: max 5 requests per IP per minute
+const rateLimitMap = new Map<string, { count: number; reset: number }>();
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.reset) {
+    rateLimitMap.set(ip, { count: 1, reset: now + 60_000 });
+    return false;
+  }
+  if (entry.count >= 5) return true;
+  entry.count++;
+  return false;
+}
+
 interface Message {
   role: 'user' | 'assistant';
   content: string;
@@ -88,26 +102,47 @@ function isInjectionAttempt(text: string): boolean {
   return INJECTION_PATTERNS.some((pattern) => pattern.test(text));
 }
 
-const BUSY_MSG = { text: 'KickBot abhi thoda busy hai — high volume ki wajah se! Thodi der mein try karo. 🙏👟', products: [] };
+const BUSY_MSG_EN = { text: "KickBot is slammed rn due to high volume — try again in a bit! 🙏👟", products: [] };
+const BUSY_MSG_HI = { text: 'KickBot abhi thoda busy hai — high volume ki wajah se! Thodi der mein try karo. 🙏👟', products: [] };
+const RATE_MSG_EN = { text: "Slow down bestie! 😅 Give me a minute — you're sending too many messages!", products: [] };
+const RATE_MSG_HI = { text: 'Bhai slow down! 😅 Ek minute baad try karo — KickBot thak gaya hai!', products: [] };
+
+function isEnglish(text: string): boolean {
+  // If more than 80% of word characters are ASCII, treat as English
+  const ascii = (text.match(/[a-zA-Z]/g) ?? []).length;
+  const total = (text.match(/\p{L}/gu) ?? []).length;
+  return total === 0 || ascii / total > 0.8;
+}
 
 export async function POST(req: NextRequest) {
   if (!process.env.GEMINI_API_KEY) {
     console.error('GEMINI_API_KEY is not set');
-    return NextResponse.json(BUSY_MSG);
+    return NextResponse.json(BUSY_MSG_EN);
   }
 
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  if (isRateLimited(ip)) {
+    return NextResponse.json(RATE_MSG_EN);
+  }
+
+  let messages: Message[] = [];
+  let english = true;
+
   try {
-    const { messages }: { messages: Message[] } = await req.json();
+    ({ messages } = await req.json() as { messages: Message[] });
     if (!messages?.length) {
       return NextResponse.json({ error: 'messages required' }, { status: 400 });
     }
 
     const raw = messages.findLast((m) => m.role === 'user')?.content ?? '';
     const lastUserMessage = sanitizeInput(raw);
+    english = isEnglish(lastUserMessage);
 
     if (isInjectionAttempt(lastUserMessage)) {
       return NextResponse.json({
-        text: 'Bhai seedha baat kar! Kaunsa sneaker chahiye tujhe? 👟',
+        text: english
+          ? "Bruh, just ask me about sneakers straight up! What kicks are you looking for? 👟"
+          : 'Bhai seedha baat kar! Kaunsa sneaker chahiye tujhe? 👟',
         products: [],
       });
     }
@@ -118,7 +153,7 @@ export async function POST(req: NextRequest) {
       : SYSTEM_PROMPT;
 
     const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
+      model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
       systemInstruction: systemWithContext,
     });
 
@@ -140,7 +175,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ text: displayText, products: suggestedProducts });
   } catch (err: any) {
-    console.error('Chat API error:', err?.message ?? err);
-    return NextResponse.json(BUSY_MSG);
+    const msg = err?.message ?? String(err);
+    if (msg.includes('429') || msg.toLowerCase().includes('quota')) {
+      return NextResponse.json(english ? RATE_MSG_EN : RATE_MSG_HI);
+    }
+    console.error('Chat API error:', msg);
+    return NextResponse.json(english ? BUSY_MSG_EN : BUSY_MSG_HI);
   }
 }
