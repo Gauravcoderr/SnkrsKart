@@ -150,6 +150,7 @@ export default function AuthModal() {
   function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) { setError('Name is required'); return; }
+    if (name.trim().length > 100) { setError('Name must be 100 characters or fewer'); return; }
     if (phone.trim()) {
       const digits = phone.trim().replace(/[\s\-().+]/g, '');
       if (!/^(91)?[6-9]\d{9}$/.test(digits)) {
