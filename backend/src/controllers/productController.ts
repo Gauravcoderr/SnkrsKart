@@ -62,12 +62,35 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
     const filter = buildFilter(query);
     const sort   = buildSort(query.sort || 'popular');
 
-    const [rawProducts, total] = await Promise.all([
-      Product.find(filter).sort({ ...sort, _id: 1 }).skip(skip).limit(limit).lean(),
-      Product.countDocuments(filter),
+    // Priority: comingSoon=0 (first), normal=1, soldOut=2 (last)
+    const priorityField = {
+      $switch: {
+        branches: [
+          { case: { $eq: ['$comingSoon', true] }, then: 0 },
+          { case: { $eq: ['$soldOut', true] }, then: 2 },
+        ],
+        default: 1,
+      },
+    };
+
+    const sortStage: Record<string, 1 | -1> = { _priority: 1, ...sort, _id: 1 };
+
+    const [rawProducts, countResult] = await Promise.all([
+      Product.aggregate([
+        { $match: filter },
+        { $addFields: { _priority: priorityField } },
+        { $sort: sortStage },
+        { $skip: skip },
+        { $limit: limit },
+      ]),
+      Product.aggregate([
+        { $match: filter },
+        { $count: 'total' },
+      ]),
     ]);
 
-    const products = rawProducts.map((p) => ({ ...p, id: (p._id as any).toString() }));
+    const total = countResult[0]?.total ?? 0;
+    const products = rawProducts.map((p) => ({ ...p, id: p._id.toString() }));
     res.json({ products, total, page, limit, totalPages: Math.ceil(total / limit) });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch products' });
