@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     google: 'I0grEulg3kyDfy5QEuIn3nNrUPwBpamqI0Ak1SOup5k',
   },
   title: {
-    default: 'SNKRS CART — Shop 100% Authentic Sneakers in India',
+    default: 'SNKRS CART | Shop 100% Authentic Sneakers in India',
     template: '%s | SNKRS CART',
   },
   description:
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
   },
   openGraph: {
-    title: 'SNKRS CART — 100% Authentic Sneakers in India',
+    title: 'SNKRS CART | 100% Authentic Sneakers in India',
     description: 'Buy authentic Nike, Jordan, Adidas & New Balance sneakers online. Pan India shipping. No fakes, no compromise.',
     url: SITE_URL,
     siteName: 'SNKRS CART',
@@ -62,13 +62,13 @@ export const metadata: Metadata = {
         url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: 'SNKRS CART — 100% Authentic Sneakers in India',
+        alt: 'SNKRS CART | 100% Authentic Sneakers in India',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SNKRS CART — 100% Authentic Sneakers in India',
+    title: 'SNKRS CART | 100% Authentic Sneakers in India',
     description: 'Authentic Nike, Jordan, Adidas & New Balance sneakers. Pan India shipping.',
     images: [OG_IMAGE],
     creator: '@snkrs_cart',

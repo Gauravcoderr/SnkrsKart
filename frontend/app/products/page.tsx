@@ -4,7 +4,7 @@ import ProductsClient from './ProductsClient';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
 
 export const metadata = {
-  title: 'All Sneakers — SNKRS CART',
+  title: 'All Sneakers | SNKRS CART',
   description: 'Browse 100% authentic sneakers from Nike, Jordan, Adidas, New Balance & Crocs. Pan India shipping.',
   alternates: { canonical: `${SITE_URL}/products` },
 };

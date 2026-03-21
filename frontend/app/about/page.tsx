@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'About Us — SNKRS CART',
+  title: 'About Us | SNKRS CART',
   description: 'Born in the hills of Pauri Garhwal. Legit sneakers, real passion — since 2020.',
 };
 
