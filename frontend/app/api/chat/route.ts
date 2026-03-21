@@ -269,10 +269,12 @@ export async function POST(req: NextRequest) {
       } catch {}
     }
 
-    // Safety net: strip any leftover tag fragments the LLM failed to close properly
+    // Safety net: remove everything from [SUGGESTIONS: or [BLOG_SUGGESTIONS: to end of string
     displayText = displayText
-      .replace(/\[SUGGESTIONS:[^\]]*(\]|$)/g, '')
-      .replace(/\[BLOG_SUGGESTIONS:[^\]]*(\]|$)/g, '')
+      .replace(/\[SUGGESTIONS:[\s\S]*/g, '')
+      .replace(/\[BLOG_SUGGESTIONS:[\s\S]*/g, '')
+      // Strip orphaned JSON fragments the LLM sometimes appends (e.g. "}]", `"]`, `}`)
+      .replace(/["}\]]+\s*$/, '')
       .trim();
 
     return NextResponse.json({ text: displayText, products: suggestedProducts, blogs: suggestedBlogs });
