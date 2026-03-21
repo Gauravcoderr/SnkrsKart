@@ -110,7 +110,7 @@ export default function ChatBot() {
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: 'Oops, something went wrong. Try again!' },
+        { role: 'assistant', content: 'KickBot abhi thoda busy hai — high volume ki wajah se! Thodi der mein try karo. 🙏👟' },
       ]);
     } finally {
       setLoading(false);
@@ -136,10 +136,9 @@ export default function ChatBot() {
 
       {/* Chat panel */}
       <div
-        className={`fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[380px] bg-white rounded-2xl shadow-2xl border border-zinc-200 flex flex-col transition-all duration-300 origin-bottom-right ${
+        className={`fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[380px] max-h-[min(560px,calc(100vh-120px))] bg-white rounded-2xl shadow-2xl border border-zinc-200 flex flex-col transition-all duration-300 origin-bottom-right ${
           open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-90 pointer-events-none'
         }`}
-        style={{ maxHeight: 'min(560px, calc(100vh - 120px))' }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3.5 border-b border-zinc-100 rounded-t-2xl bg-zinc-900">
@@ -153,6 +152,7 @@ export default function ChatBot() {
             </div>
           </div>
           <button
+            type="button"
             onClick={() => setOpen(false)}
             className="text-zinc-400 hover:text-white transition-colors p-1"
             aria-label="Close chat"
@@ -211,6 +211,7 @@ export default function ChatBot() {
               disabled={loading}
             />
             <button
+              type="button"
               onClick={send}
               disabled={!input.trim() || loading}
               className="w-7 h-7 rounded-lg bg-zinc-900 flex items-center justify-center flex-shrink-0 disabled:opacity-30 hover:bg-zinc-700 transition-colors"
@@ -226,6 +227,7 @@ export default function ChatBot() {
 
       {/* Floating bubble button */}
       <button
+        type="button"
         onClick={() => setOpen((o) => !o)}
         className="fixed bottom-6 right-4 sm:right-6 z-50 w-14 h-14 rounded-full bg-zinc-900 text-white shadow-xl flex items-center justify-center hover:bg-zinc-700 active:scale-95 transition-all duration-200"
         aria-label="Open KickBot"
