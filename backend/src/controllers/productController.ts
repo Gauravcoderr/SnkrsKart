@@ -63,7 +63,7 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
     const sort   = buildSort(query.sort || 'popular');
 
     const [rawProducts, total] = await Promise.all([
-      Product.find(filter).sort(sort).skip(skip).limit(limit).lean(),
+      Product.find(filter).sort({ ...sort, _id: 1 }).skip(skip).limit(limit).lean(),
       Product.countDocuments(filter),
     ]);
 
