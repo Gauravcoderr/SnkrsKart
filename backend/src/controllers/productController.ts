@@ -8,7 +8,8 @@ function buildFilter(query: Record<string, string>): MongoFilter {
 
   if (query.brand) {
     const brands = query.brand.split(',').map((b) => b.trim());
-    filter.brand = { $in: brands.map((b) => new RegExp(`^${b}$`, 'i')) };
+    // Normalise slugs like "new-balance" → "New Balance" so they match DB values
+    filter.brand = { $in: brands.map((b) => new RegExp(`^${b.replace(/-/g, ' ')}$`, 'i')) };
   }
 
   if (query.size) {
