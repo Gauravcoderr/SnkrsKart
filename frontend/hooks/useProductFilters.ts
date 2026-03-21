@@ -27,6 +27,8 @@ function parseSearchParams(params: URLSearchParams): Partial<FilterState> {
   const out: Partial<FilterState> = {};
   const brand = params.get('brand');
   if (brand) out.brands = brand.split(',').map((b) => slugToDisplayName(b.trim())).filter(Boolean);
+  const gender = params.get('gender');
+  if (gender) out.gender = gender.split(',').map((g) => g.trim().toLowerCase()).filter(Boolean);
   const search = params.get('search');
   if (search) out.search = search;
   const sort = params.get('sort') as SortOption | null;
