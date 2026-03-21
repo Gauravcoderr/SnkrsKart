@@ -21,16 +21,27 @@ const BRAND_CATEGORY: Record<string, string> = {
   crocs:         'Apparel & Accessories > Shoes',
 };
 
+export const maxDuration = 60; // allow up to 60s for Render cold starts
+
 export async function GET() {
   try {
-    const res = await fetch(`${API}/products?limit=500`, { cache: 'no-store' });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 55_000);
+
+    let res: Response;
+    try {
+      res = await fetch(`${API}/products?limit=500`, { cache: 'no-store', signal: controller.signal });
+    } finally {
+      clearTimeout(timeout);
+    }
+
     if (!res.ok) return new NextResponse('Failed to fetch products', { status: 502 });
 
     const data = await res.json();
     const products: any[] = data.products ?? data;
 
     if (!Array.isArray(products) || products.length === 0) {
-      return new NextResponse('No products', { status: 404 });
+      return new NextResponse('No products available', { status: 200, headers: { 'Content-Type': 'text/plain' } });
     }
 
     const items = products
