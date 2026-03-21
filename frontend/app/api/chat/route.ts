@@ -1,7 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 // Simple in-memory rate limiter: max 5 requests per IP per minute
@@ -152,6 +151,7 @@ export async function POST(req: NextRequest) {
       ? `${SYSTEM_PROMPT}\n\n--- AVAILABLE PRODUCTS ---\n${productContext}\n--- END PRODUCTS ---`
       : SYSTEM_PROMPT;
 
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({
       model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
       systemInstruction: systemWithContext,
@@ -176,10 +176,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ text: displayText, products: suggestedProducts });
   } catch (err: any) {
     const msg = err?.message ?? String(err);
+    console.error('Chat API error (full):', JSON.stringify(err, Object.getOwnPropertyNames(err)));
     if (msg.includes('429') || msg.toLowerCase().includes('quota')) {
       return NextResponse.json(english ? RATE_MSG_EN : RATE_MSG_HI);
     }
-    console.error('Chat API error:', msg);
     return NextResponse.json(english ? BUSY_MSG_EN : BUSY_MSG_HI);
   }
 }
