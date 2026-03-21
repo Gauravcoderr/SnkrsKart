@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, authHeaders } from '@/context/AuthContext';
 import { formatPrice } from '@/lib/utils';
 import OtpInput from '@/components/auth/OtpInput';
 
@@ -190,7 +190,7 @@ export default function CheckoutPage() {
 
       const res = await fetch(`${BASE_URL}/orders`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         credentials: 'include',
         body: JSON.stringify(payload),
       });
