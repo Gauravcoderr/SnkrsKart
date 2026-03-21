@@ -38,9 +38,9 @@ export default async function BrandPage({ params }: Props) {
     fetchProducts({ brands: [meta.label], limit: 48 }),
   ]);
 
-  if (brandResult.status === 'rejected') notFound();
-
-  const brand = brandResult.value;
+  const brand = brandResult.status === 'fulfilled'
+    ? brandResult.value
+    : { name: meta.label, description: '' };
   const products = productsResult.status === 'fulfilled'
     ? (productsResult.value.products ?? productsResult.value)
     : [];

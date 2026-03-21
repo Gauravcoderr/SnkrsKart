@@ -39,10 +39,10 @@ const REASONS = [
 
 export default function WhyChooseUs() {
   return (
-    <section className="bg-zinc-50 py-16 lg:py-24 px-4 sm:px-6 lg:px-8">
+    <section className="bg-zinc-50 py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Heading */}
-        <div className="text-center mb-14">
+        <div className="text-center mb-8">
           <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-zinc-400 mb-3">
             Why you&apos;ll always
           </p>
