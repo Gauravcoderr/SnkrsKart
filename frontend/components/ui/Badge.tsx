@@ -14,7 +14,7 @@ export default function Badge({ variant, label, className }: BadgeProps) {
     sale: 'bg-red-500 text-white',
     soldout: 'bg-zinc-400 text-white',
     discount: 'bg-zinc-900 text-white',
-    comingsoon: 'bg-indigo-600 text-white',
+    comingsoon: 'bg-indigo-500 text-white ring-2 ring-indigo-300 ring-offset-1 animate-pulse',
   };
 
   const defaultLabels = { new: 'New', sale: 'Sale', soldout: 'Sold Out', discount: '', comingsoon: 'Coming Soon' };
