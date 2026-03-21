@@ -1,24 +1,39 @@
-import nodemailer from 'nodemailer';
+const BREVO_API = 'https://api.brevo.com/v3/smtp/email';
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: 587,
-  auth: {
-    user: process.env.BREVO_SMTP_USER,
-    pass: process.env.BREVO_SMTP_KEY,
-  },
-});
-
-const FROM = process.env.EMAIL_FROM || 'SNKRS CART <noreply@snkrscart.com>';
-
-export function sendMail(options: { to: string; subject: string; html: string }) {
-  if (!process.env.BREVO_SMTP_USER || !process.env.BREVO_SMTP_KEY) {
-    console.warn('Brevo credentials not set — email skipped');
-    return Promise.resolve();
+export async function sendMail(options: { to: string; subject: string; html: string }) {
+  if (!process.env.BREVO_API_KEY) {
+    console.warn('[mailer] BREVO_API_KEY not set — email skipped');
+    return;
   }
-  console.log(`[mailer] Sending email to ${options.to} | subject: ${options.subject}`);
-  return transporter
-    .sendMail({ from: FROM, ...options })
-    .then((info) => console.log('[mailer] Email sent:', info.messageId))
-    .catch((err: unknown) => console.error('[mailer] Email send failed:', JSON.stringify(err)));
+
+  const senderName = (process.env.EMAIL_FROM || 'SNKRS CART <infosnkrscart@gmail.com>')
+    .match(/^(.*?)\s*</) ?.[1]?.trim() || 'SNKRS CART';
+  const senderEmail = (process.env.EMAIL_FROM || 'SNKRS CART <infosnkrscart@gmail.com>')
+    .match(/<(.+?)>/) ?.[1] || 'infosnkrscart@gmail.com';
+
+  console.log(`[mailer] Sending to ${options.to} | ${options.subject}`);
+
+  try {
+    const res = await fetch(BREVO_API, {
+      method: 'POST',
+      headers: {
+        'api-key': process.env.BREVO_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sender: { name: senderName, email: senderEmail },
+        to: [{ email: options.to }],
+        subject: options.subject,
+        htmlContent: options.html,
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      console.error('[mailer] Brevo API error:', res.status, body);
+    } else {
+      console.log('[mailer] Email sent OK');
+    }
+  } catch (err) {
+    console.error('[mailer] Email send failed:', err);
+  }
 }
