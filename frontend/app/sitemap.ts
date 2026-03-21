@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next';
+import { BRANDS } from '@/lib/constants';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -54,5 +55,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   } catch { /* ignore */ }
 
-  return [...staticPages, ...productPages, ...blogPages];
+  // Brand pages
+  const brandPages: MetadataRoute.Sitemap = BRANDS.map((b) => ({
+    url: `${SITE_URL}/brands/${b.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.85,
+  }));
+
+  return [...staticPages, ...brandPages, ...productPages, ...blogPages];
 }

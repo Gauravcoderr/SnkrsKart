@@ -65,7 +65,7 @@ export default function Navbar() {
               return (
                 <BrandLink
                   key={brand.slug}
-                  href={`/products?brand=${brand.label}`}
+                  href={`/brands/${brand.slug}`}
                   label={brand.label}
                   accent={brand.navAccent}
                   isActive={isActive}

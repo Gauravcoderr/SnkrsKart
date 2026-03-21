@@ -102,7 +102,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
       { '@type': 'ListItem', position: 2, name: 'All Shoes', item: `${SITE_URL}/products` },
-      { '@type': 'ListItem', position: 3, name: product.brand, item: `${SITE_URL}/products?brand=${product.brand}` },
+      { '@type': 'ListItem', position: 3, name: product.brand, item: `${SITE_URL}/brands/${product.brand.toLowerCase().replace(/\s+/g, '-')}` },
       { '@type': 'ListItem', position: 4, name: product.name, item: productUrl },
     ],
   };
@@ -124,7 +124,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
         <span>/</span>
         <Link href="/products" className="hover:text-zinc-900 transition-colors">All Shoes</Link>
         <span>/</span>
-        <Link href={`/products?brand=${product.brand}`} className="hover:text-zinc-900 transition-colors">{product.brand}</Link>
+        <Link href={`/brands/${product.brand.toLowerCase().replace(/\s+/g, '-')}`} className="hover:text-zinc-900 transition-colors">{product.brand}</Link>
         <span>/</span>
         <span className="text-zinc-600">{product.name}</span>
       </nav>
@@ -201,7 +201,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
               <h2 className="text-xl font-bold tracking-[0.15em] uppercase text-zinc-900">{product.brand}</h2>
             </div>
             <Link
-              href={`/products?brand=${product.brand}`}
+              href={`/brands/${product.brand.toLowerCase().replace(/\s+/g, '-')}`}
               className="text-xs font-semibold tracking-widest uppercase text-zinc-500 hover:text-zinc-900 transition-colors"
             >
               View All →

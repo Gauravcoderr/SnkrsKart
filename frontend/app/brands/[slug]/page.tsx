@@ -30,7 +30,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export const dynamic = 'force-dynamic';
 
 export default async function BrandPage({ params }: Props) {
-  const slug = params.slug.toLowerCase();
+  // Normalise: decode URI and replace spaces with hyphens so
+  // /brands/New%20Balance  →  new-balance  (same as the slug)
+  const slug = decodeURIComponent(params.slug).toLowerCase().replace(/\s+/g, '-');
   const meta = BRANDS.find((b) => b.slug === slug);
   if (!meta) notFound();
 
@@ -117,7 +119,7 @@ export default async function BrandPage({ params }: Props) {
             {Array.isArray(products) ? products.length : 0} Styles
           </h2>
           <Link
-            href={`/products?brand=${meta.label}`}
+            href={`/products?brand=${meta.slug}`}
             className="text-xs font-bold tracking-widest uppercase text-zinc-400 hover:text-zinc-900 transition-colors border-b border-zinc-200 hover:border-zinc-900 pb-0.5"
           >
             Filter & Sort →
