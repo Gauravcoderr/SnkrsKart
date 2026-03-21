@@ -14,12 +14,33 @@ interface PageProps {
   params: { slug: string };
 }
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+
 export async function generateMetadata({ params }: PageProps) {
   try {
     const product = await fetchProductBySlug(params.slug);
+    const title = `${product.brand} ${product.name}`;
+    const description = `${product.description} — ${formatPrice(product.price)} | 100% Authentic | Shop now on SNKRS CART`;
+    const image = product.images?.[0] || `${SITE_URL}/logo.png`;
+    const url = `${SITE_URL}/products/${params.slug}`;
+
     return {
-      title: `${product.brand} ${product.name} — SNKRS CART`,
-      description: product.description,
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        url,
+        siteName: 'SNKRS CART',
+        images: [{ url: image, width: 800, height: 800, alt: title }],
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [image],
+      },
     };
   } catch {
     return { title: 'Product Not Found' };
