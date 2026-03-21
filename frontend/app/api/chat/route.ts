@@ -156,13 +156,23 @@ export async function POST(req: NextRequest) {
 
     let rawText = '';
 
-    // Primary: Gemini
+    // Keep last 10 messages for context (5 turns), sanitizing user messages
+    const historyMessages = messages.slice(-10).map((m) => ({
+      role: m.role,
+      content: m.role === 'user' ? sanitizeInput(m.content) : m.content,
+    }));
+
+    // Primary: Gemini — pass full conversation history
     if (process.env.GEMINI_API_KEY) {
       try {
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const geminiContents = historyMessages.map((m) => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }],
+        }));
         const result = await ai.models.generateContent({
           model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
-          contents: lastUserMessage,
+          contents: geminiContents,
           config: { systemInstruction: systemWithContext },
         });
         rawText = result.text ?? '';
@@ -171,14 +181,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Fallback: Groq
+    // Fallback: Groq — pass full conversation history
     if (!rawText && process.env.GROQ_API_KEY) {
       const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
       const result = await groq.chat.completions.create({
         model: 'llama-3.3-70b-versatile',
         messages: [
           { role: 'system', content: systemWithContext },
-          { role: 'user', content: lastUserMessage },
+          ...historyMessages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
         ],
         max_tokens: 512,
       });
