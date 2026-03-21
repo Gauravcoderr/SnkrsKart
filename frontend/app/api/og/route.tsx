@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
   // blocks). Fall back to passing the URL directly so Satori can attempt it.
   let imageSrc = '';
   if (imageUrl) {
+    console.log('[OG] Fetching image:', imageUrl);
     try {
       const res = await fetch(imageUrl, {
         headers: {
@@ -22,24 +23,25 @@ export async function GET(req: NextRequest) {
           'Referer': 'https://snkrs-kart.vercel.app/',
         },
       });
+      console.log('[OG] Fetch status:', res.status, res.headers.get('content-type'));
       if (res.ok) {
         const buf = await res.arrayBuffer();
-        // Skip base64 if image is too large (> 3 MB) to avoid memory issues
-        if (buf.byteLength < 3 * 1024 * 1024) {
+        console.log('[OG] Image size bytes:', buf.byteLength);
+        if (buf.byteLength < 3 * 1024 * 1024 && buf.byteLength > 0) {
           const mime = res.headers.get('content-type') || 'image/jpeg';
           const bytes = new Uint8Array(buf);
           let binary = '';
           for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
           imageSrc = `data:${mime};base64,${btoa(binary)}`;
+          console.log('[OG] Image embedded as base64, length:', imageSrc.length);
         } else {
-          imageSrc = imageUrl;
+          console.log('[OG] Image too large or empty, skipping');
         }
       } else {
-        // CDN rejected the fetch — let Satori try the URL directly
-        imageSrc = imageUrl;
+        console.log('[OG] Fetch failed, CDN blocked request');
       }
-    } catch {
-      imageSrc = imageUrl;
+    } catch (err) {
+      console.log('[OG] Fetch error:', err);
     }
   }
 
@@ -92,7 +94,7 @@ export async function GET(req: NextRequest) {
           <div
             style={{
               fontSize: title.length > 40 ? '28px' : '34px',
-              fontWeight: 800,
+              fontWeight: 700,
               color: '#ffffff',
               lineHeight: 1.2,
             }}
@@ -103,7 +105,7 @@ export async function GET(req: NextRequest) {
           {/* Price + badge */}
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {formattedPrice ? (
-              <div style={{ fontSize: '30px', fontWeight: 800, color: '#ffffff', marginBottom: '16px' }}>
+              <div style={{ fontSize: '30px', fontWeight: 700, color: '#ffffff', marginBottom: '16px' }}>
                 {formattedPrice}
               </div>
             ) : null}
