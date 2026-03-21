@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, FormEvent, useEffect, useRef } from 'react';
 import { Product } from '@/types';
+import { supabase } from '@/lib/supabase';
 
 interface Props {
   product: Product | null;
@@ -143,6 +144,48 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
   // ── Form helpers ─────────────────────────────────────────────────────────
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [uploadingIdx, setUploadingIdx] = useState<number | 'hover' | null>(null);
+  const [uploadError, setUploadError] = useState('');
+  const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const hoverFileRef = useRef<HTMLInputElement | null>(null);
+
+  async function uploadImage(file: File): Promise<string> {
+    const ext = file.name.split('.').pop() || 'jpg';
+    const path = `products/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error: uploadErr } = await supabase.storage
+      .from('Snkrs Cart Product Images')
+      .upload(path, file, { upsert: true });
+    if (uploadErr) throw new Error(uploadErr.message);
+    return supabase.storage.from('Snkrs Cart Product Images').getPublicUrl(path).data.publicUrl;
+  }
+
+  async function handleImageFileChange(file: File, index: number) {
+    setUploadingIdx(index);
+    setUploadError('');
+    try {
+      const url = await uploadImage(file);
+      const updated = [...form.imageList];
+      updated[index] = url;
+      set('imageList', updated);
+    } catch (e: any) {
+      setUploadError(`Image ${index + 1}: ${e.message}`);
+    } finally {
+      setUploadingIdx(null);
+    }
+  }
+
+  async function handleHoverFileChange(file: File) {
+    setUploadingIdx('hover');
+    setUploadError('');
+    try {
+      const url = await uploadImage(file);
+      set('hoverImage', url);
+    } catch (e: any) {
+      setUploadError(`Hover image: ${e.message}`);
+    } finally {
+      setUploadingIdx(null);
+    }
+  }
 
   function set(key: string, value: any) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -418,9 +461,40 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
                         updated[i] = e.target.value;
                         set('imageList', updated);
                       }}
-                      placeholder={`Image URL ${i + 1}`}
+                      placeholder={`Image URL ${i + 1} or upload →`}
                       className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 font-mono"
                     />
+                    {/* Hidden file input */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      aria-label={`Upload image ${i + 1}`}
+                      className="hidden"
+                      ref={(el) => { fileInputRefs.current[i] = el; }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleImageFileChange(file, i);
+                        e.target.value = '';
+                      }}
+                    />
+                    <button
+                      type="button"
+                      title="Upload image"
+                      onClick={() => fileInputRefs.current[i]?.click()}
+                      disabled={uploadingIdx !== null}
+                      className="shrink-0 px-2.5 py-2 rounded-lg border border-zinc-600 text-zinc-300 hover:border-indigo-400 hover:text-indigo-300 transition disabled:opacity-40"
+                    >
+                      {uploadingIdx === i ? (
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                        </svg>
+                      )}
+                    </button>
                     {form.imageList.length > 1 && (
                       <button
                         type="button"
@@ -437,6 +511,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
                 </div>
               ))}
             </div>
+            {uploadError && <p className="text-xs text-red-400 mt-1">{uploadError}</p>}
             <button
               type="button"
               onClick={() => set('imageList', [...form.imageList, ''])}
@@ -448,7 +523,46 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
 
           {/* Hover Image */}
           <div>
-            <Field label="Hover Image URL" value={form.hoverImage} onChange={(v) => set('hoverImage', v)} placeholder="URL for hover state image" />
+            <label className="block text-sm font-medium text-zinc-400 mb-1.5">Hover Image URL</label>
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                value={form.hoverImage}
+                onChange={(e) => set('hoverImage', e.target.value)}
+                placeholder="URL for hover state image or upload →"
+                className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 font-mono"
+              />
+              <input
+                type="file"
+                accept="image/*"
+                aria-label="Upload hover image"
+                className="hidden"
+                ref={hoverFileRef}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleHoverFileChange(file);
+                  e.target.value = '';
+                }}
+              />
+              <button
+                type="button"
+                title="Upload hover image"
+                onClick={() => hoverFileRef.current?.click()}
+                disabled={uploadingIdx !== null}
+                className="shrink-0 px-2.5 py-2 rounded-lg border border-zinc-600 text-zinc-300 hover:border-indigo-400 hover:text-indigo-300 transition disabled:opacity-40"
+              >
+                {uploadingIdx === 'hover' ? (
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                  </svg>
+                )}
+              </button>
+            </div>
             {form.hoverImage.trim() && (
               <div className="mt-1.5">
                 <ImagePreview url={form.hoverImage.trim()} label="Hover Image" />
