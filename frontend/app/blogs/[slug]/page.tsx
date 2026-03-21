@@ -89,11 +89,12 @@ function formatDate(dateStr: string) {
 }
 
 function readingTime(html: string): number {
-  const words = html.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length;
+  const words = (html || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.ceil(words / 200));
 }
 
 function injectHeadingIds(html: string): string {
+  if (!html) return '';
   // Sanitize first — strips <script>, event handlers, etc. Keeps all semantic HTML so SEO is unaffected.
   const clean = DOMPurify.sanitize(html, {
     ALLOWED_TAGS: ['h1','h2','h3','h4','h5','h6','p','a','ul','ol','li','blockquote','strong','em','b','i','u','s','code','pre','br','hr','img','figure','figcaption','table','thead','tbody','tr','th','td','span','div','mark'],
@@ -150,9 +151,11 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
   const blog = await fetchBlog(params.slug);
   if (!blog) notFound();
 
-  const accent = getAccent(blog.tags);
-  const contentWithIds = injectHeadingIds(blog.content);
-  const minutes = readingTime(blog.content);
+  const safeTags = blog.tags ?? [];
+  const safeContent = blog.content ?? '';
+  const accent = getAccent(safeTags);
+  const contentWithIds = injectHeadingIds(safeContent);
+  const minutes = readingTime(safeContent);
   const postUrl = `${SITE_URL}/blogs/${blog.slug}`;
 
   const [relatedBlogs, tagProducts] = await Promise.all([
@@ -219,9 +222,9 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
           </Link>
 
           {/* Tags */}
-          {blog.tags.length > 0 && (
+          {safeTags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-5">
-              {blog.tags.slice(0, 4).map((tag) => (
+              {safeTags.slice(0, 4).map((tag) => (
                 <span
                   key={tag}
                   className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${accent.tagBg} ${accent.tagText}`}
@@ -383,7 +386,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
             {/* ── Tags ─────────────────────────────────────────────── */}
             <div className={`flex flex-wrap gap-2 py-6 border-t border-b ${accent.border} my-6`}>
               <span className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 self-center mr-1">Tags:</span>
-              {blog.tags.map((tag) => (
+              {safeTags.map((tag) => (
                 <Link
                   key={tag}
                   href={`/blogs?tag=${encodeURIComponent(tag)}`}
