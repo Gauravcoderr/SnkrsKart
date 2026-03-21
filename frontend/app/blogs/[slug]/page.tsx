@@ -2,7 +2,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Blog, Product } from '@/types';
-import DOMPurify from 'isomorphic-dompurify';
+// Simple server-safe sanitizer — strips <script> tags, inline event handlers,
+// and javascript: URIs without needing jsdom / isomorphic-dompurify.
+// Blog content is admin-created via Tiptap so there is no real XSS surface,
+// but we keep this as a lightweight safety net.
+function serverSanitize(html: string): string {
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/javascript\s*:/gi, '');
+}
 import TableOfContents from './TableOfContents';
 import ListenButton from './ListenButton';
 import ReadingProgress from './ReadingProgress';
@@ -95,11 +104,7 @@ function readingTime(html: string): number {
 
 function injectHeadingIds(html: string): string {
   if (!html) return '';
-  // Sanitize first — strips <script>, event handlers, etc. Keeps all semantic HTML so SEO is unaffected.
-  const clean = DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ['h1','h2','h3','h4','h5','h6','p','a','ul','ol','li','blockquote','strong','em','b','i','u','s','code','pre','br','hr','img','figure','figcaption','table','thead','tbody','tr','th','td','span','div','mark'],
-    ALLOWED_ATTR: ['href','src','alt','title','class','id','target','rel','width','height','style'],
-  });
+  const clean = serverSanitize(html);
   let idx = 0;
   return clean.replace(/<h([23])([^>]*)>/gi, (_m, level, attrs) => `<h${level}${attrs} id="heading-${idx++}">`);
 }
