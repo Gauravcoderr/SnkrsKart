@@ -1,11 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { Resend } from 'resend';
 import { Order } from '../models/Order';
 import { customerAuth, optionalAuth, AuthRequest } from '../middleware/customerAuth';
 import { User } from '../models/User';
+import { sendMail } from '../lib/mailer';
 
 const router = Router();
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
@@ -64,7 +63,6 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
 
     res.status(201).json({ success: true, orderId: order._id, orderNumber });
 
-    const FROM = process.env.RESEND_FROM || 'SNKRS CART <onboarding@resend.dev>';
     const storeEmail = process.env.GMAIL_USER || 'infosnkrscart@gmail.com';
     const storeWA = process.env.NEXT_PUBLIC_WHATSAPP || '919410903791';
     const UPI_ID = process.env.UPI_ID || 'snkrscart@upi';
@@ -86,8 +84,7 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
     `).join('');
 
     // Email to store owner
-    resend.emails.send({
-      from: FROM,
+    sendMail({
       to: storeEmail,
       subject: `New Order #${orderNumber} — ₹${total.toLocaleString('en-IN')} — ${name}`,
       html: `
@@ -114,11 +111,10 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
           </div>
         </div>
       `,
-    }).catch((err: unknown) => console.error('Order store email failed:', err));
+    });
 
     // Confirmation email to customer
-    resend.emails.send({
-      from: FROM,
+    sendMail({
       to: email,
       subject: `Order Confirmed — ${orderNumber} | SNKRS CART`,
       html: `
@@ -155,7 +151,7 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
           </div>
         </div>
       `,
-    }).catch((err: unknown) => console.error('Order confirm email failed:', err));
+    });
 
   } catch (err) {
     console.error('Order creation error:', err);

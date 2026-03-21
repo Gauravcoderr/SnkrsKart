@@ -1,9 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { Resend } from 'resend';
 import { Seller } from '../models/Seller';
+import { sendMail } from '../lib/mailer';
 
 const router = Router();
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 // POST /api/v1/seller
 router.post('/', async (req: Request, res: Response) => {
@@ -25,12 +24,10 @@ router.post('/', async (req: Request, res: Response) => {
 
     res.json({ success: true });
 
-    const FROM = process.env.RESEND_FROM || 'SNKRS CART <onboarding@resend.dev>';
     const storeEmail = process.env.GMAIL_USER || 'infosnkrscart@gmail.com';
 
     // Notify store
-    resend.emails.send({
-      from: FROM,
+    sendMail({
       to: storeEmail,
       subject: `New Seller Inquiry — ${name}`,
       html: `
@@ -51,11 +48,10 @@ router.post('/', async (req: Request, res: Response) => {
           </div>
         </div>
       `,
-    }).catch((err: unknown) => console.error('Seller inquiry email failed:', err));
+    });
 
     // Confirm to seller
-    resend.emails.send({
-      from: FROM,
+    sendMail({
       to: email,
       subject: 'We received your seller application — SNKRS CART',
       html: `
@@ -71,7 +67,7 @@ router.post('/', async (req: Request, res: Response) => {
           </div>
         </div>
       `,
-    }).catch((err: unknown) => console.error('Seller confirm email failed:', err));
+    });
   } catch (err) {
     console.error('Seller inquiry error:', err);
     res.status(500).json({ error: 'Failed to submit inquiry' });

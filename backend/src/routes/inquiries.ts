@@ -1,9 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { Resend } from 'resend';
 import { Inquiry } from '../models/Inquiry';
+import { sendMail } from '../lib/mailer';
 
 const router = Router();
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 router.post('/', async (req: Request, res: Response) => {
   try {
@@ -41,11 +40,9 @@ router.post('/', async (req: Request, res: Response) => {
 
     const priceFormatted = `₹${Number(price).toLocaleString('en-IN')}`;
     const sizeText = selectedSize ? `UK ${selectedSize}` : 'Not specified';
-    const FROM = process.env.RESEND_FROM || 'SNKRS CART <onboarding@resend.dev>';
 
     // Email to customer
-    resend.emails.send({
-      from: FROM,
+    sendMail({
       to: email,
       subject: `We received your interest — ${productName}`,
       html: `
@@ -68,11 +65,10 @@ router.post('/', async (req: Request, res: Response) => {
           </div>
         </div>
       `,
-    }).catch((err: unknown) => console.error('Customer email failed:', err));
+    });
 
     // Email to store
-    resend.emails.send({
-      from: FROM,
+    sendMail({
       to: process.env.GMAIL_USER || 'infosnkrscart@gmail.com',
       subject: `New Purchase Inquiry — ${productBrand} ${productName}`,
       html: `
@@ -93,7 +89,7 @@ router.post('/', async (req: Request, res: Response) => {
           </div>
         </div>
       `,
-    }).catch((err: unknown) => console.error('Store email failed:', err));
+    });
   } catch (err) {
     console.error('Inquiry error:', err);
     res.status(500).json({ error: 'Failed to submit inquiry' });

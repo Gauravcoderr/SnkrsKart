@@ -1,15 +1,13 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import { Resend } from 'resend';
 import { User } from '../models/User';
 import { Order } from '../models/Order';
 import { customerAuth, AuthRequest } from '../middleware/customerAuth';
+import { sendMail } from '../lib/mailer';
 
 const router = Router();
-const resend = new Resend(process.env.RESEND_API_KEY);
 const JWT_SECRET = process.env.JWT_SECRET || 'snkrs-cart-jwt-s3cr3t-k3y-2026';
-const FROM = process.env.RESEND_FROM || 'SNKRS CART <onboarding@resend.dev>';
 
 function hashOtp(otp: string): string {
   return crypto.createHash('sha256').update(otp).digest('hex');
@@ -75,9 +73,8 @@ router.post('/send-otp', async (req: Request, res: Response): Promise<void> => {
       { upsert: true, new: true }
     );
 
-    // Send OTP email via Resend
-    resend.emails.send({
-      from: FROM,
+    // Send OTP email
+    sendMail({
       to: cleanEmail,
       subject: `${otp} — Your SNKRS CART verification code`,
       html: `
@@ -92,7 +89,7 @@ router.post('/send-otp', async (req: Request, res: Response): Promise<void> => {
           </div>
         </div>
       `,
-    }).catch((err: unknown) => console.error('OTP email failed:', err));
+    });
 
     const isNewUser = !user!.name;
     res.json({ message: 'OTP sent', isNewUser });

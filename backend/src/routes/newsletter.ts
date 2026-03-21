@@ -1,9 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { Resend } from 'resend';
 import { Newsletter } from '../models/Newsletter';
+import { sendMail } from '../lib/mailer';
 
 const router = Router();
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 // POST /api/v1/newsletter — subscribe
 router.post('/', async (req: Request, res: Response) => {
@@ -28,11 +27,9 @@ router.post('/', async (req: Request, res: Response) => {
     await Newsletter.create({ email: String(email).trim().toLowerCase() });
     res.status(201).json({ success: true });
 
-    const FROM = process.env.RESEND_FROM || 'SNKRS CART <onboarding@resend.dev>';
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
 
-    resend.emails.send({
-      from: FROM,
+    sendMail({
       to: String(email).trim(),
       subject: 'You\'re in — SNKRS CART drop alerts',
       html: `
@@ -55,7 +52,7 @@ router.post('/', async (req: Request, res: Response) => {
           </div>
         </div>
       `,
-    }).catch((err: unknown) => console.error('Newsletter confirm email failed:', err));
+    });
 
   } catch (err) {
     console.error('Newsletter subscribe error:', err);
