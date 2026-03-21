@@ -21,6 +21,9 @@ const config: Config = {
         shake: "shake 0.4s ease-in-out",
         "scale-in": "scaleIn 0.2s ease-out",
         "slide-down": "slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+        "modal-in": "modalIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+        "modal-up": "modalUp 0.48s cubic-bezier(0.16, 1, 0.3, 1)",
+        "backdrop-in": "backdropIn 0.25s ease-out",
       },
       keyframes: {
         marquee: {
@@ -57,6 +60,20 @@ const config: Config = {
         slideDown: {
           "0%": { opacity: "0", transform: "translateY(-100%)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        // Modal-specific — no translate conflict since modal uses margin:auto centering
+        modalIn: {
+          "0%": { opacity: "0", transform: "scale(0.95) translateY(10px)" },
+          "100%": { opacity: "1", transform: "scale(1) translateY(0)" },
+        },
+        modalUp: {
+          "0%": { opacity: "0", transform: "translateY(100%)" },
+          "60%": { opacity: "1" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        backdropIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
         },
       },
     },

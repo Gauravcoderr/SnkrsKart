@@ -40,20 +40,21 @@ export default function ComingSoonModal({ product, onClose }: ComingSoonModalPro
     <Dialog.Root open onOpenChange={(open) => { if (!open) onClose(); }}>
       <Dialog.Portal>
         {/* Backdrop */}
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm animate-fade-in" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm animate-backdrop-in" />
 
-        {/* Content */}
+        {/* Content — centered via margin:auto to avoid transform conflicts with animation */}
         <Dialog.Content
           className="
             fixed z-50 focus:outline-none
             bottom-0 left-0 right-0
-            sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2
+            sm:inset-0 sm:m-auto sm:h-fit
             sm:max-w-3xl sm:w-full
             bg-zinc-950 text-white
             rounded-t-2xl sm:rounded-none
             max-h-[92vh] overflow-y-auto sm:overflow-hidden
-            animate-slide-in-bottom sm:animate-scale-in
+            animate-modal-up sm:animate-modal-in
           "
+          style={{ willChange: 'transform, opacity' }}
           aria-describedby={undefined}
         >
           {/* Close button */}
