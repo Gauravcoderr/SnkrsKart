@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { fetchBrandBySlug, fetchProducts } from '@/lib/api';
+import { formatPrice } from '@/lib/utils';
 import { BRANDS } from '@/lib/constants';
 import ProductCard from '@/components/products/ProductCard';
 import BrandSortSelect from './BrandSortSelect';
@@ -20,9 +21,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const brand = await fetchBrandBySlug(slug);
     const meta = BRANDS.find((b) => b.slug === slug);
     const url = `${SITE_URL}/brands/${slug}`;
+    const products = await fetchProducts({ brands: [meta?.label ?? brand.name], limit: 48 }).catch(() => []);
+    const productList = Array.isArray(products) ? products : (products as { products?: { price: number }[] }).products ?? [];
+    const lowestPrice = productList.length > 0
+      ? Math.min(...productList.map((p: { price: number }) => p.price))
+      : null;
+
     return {
-      title: `${brand.name} Sneakers India | Buy ${brand.name} Shoes Online | SNKRS CART`,
-      description: `Shop 100% authentic ${brand.name} sneakers in India. ${brand.description || `Explore the full ${brand.name} collection — exclusive drops, classics & more.`} Free pan-India shipping.`,
+      title: lowestPrice
+        ? `${brand.name} Sneakers India — Starting ₹${lowestPrice.toLocaleString('en-IN')} | SNKRS CART`
+        : `${brand.name} Sneakers India | Buy ${brand.name} Shoes Online | SNKRS CART`,
+      description: `Shop authentic ${brand.name} sneakers in India${lowestPrice ? ` starting from ₹${lowestPrice.toLocaleString('en-IN')}` : ''}. ${brand.description || `Explore the full ${brand.name} collection — exclusive drops, classics & more.`} 100% authentic, free pan-India shipping.`,
       alternates: { canonical: url },
       openGraph: {
         title: `${brand.name} Sneakers | SNKRS CART`,
@@ -60,6 +69,9 @@ export default async function BrandPage({ params, searchParams }: Props) {
     : [];
 
   const sort = searchParams.sort || 'popular';
+  const lowestPrice = Array.isArray(products) && products.length > 0
+    ? Math.min(...products.map((p) => p.price))
+    : null;
   const sortedProducts = Array.isArray(products) ? [...products].sort((a, b) => {
     if (sort === 'price-asc') return a.price - b.price;
     if (sort === 'price-desc') return b.price - a.price;
@@ -101,6 +113,17 @@ export default async function BrandPage({ params, searchParams }: Props) {
       position: i + 1,
       url: `${SITE_URL}/products/${p.slug}`,
       name: `${p.brand} ${p.name}`,
+      item: {
+        '@type': 'Product',
+        name: `${p.brand} ${p.name}`,
+        url: `${SITE_URL}/products/${p.slug}`,
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: 'INR',
+          price: String(p.price),
+          availability: 'https://schema.org/InStock',
+        },
+      },
     })),
   } : null;
 
@@ -202,11 +225,14 @@ export default async function BrandPage({ params, searchParams }: Props) {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="text-base font-bold text-zinc-900 mb-3">
             Buy {brand.name} Sneakers Online in India
+            {lowestPrice && ` — Starting from ${formatPrice(lowestPrice)}`}
           </h2>
           <p className="text-sm text-zinc-500 leading-relaxed">
-            Shop the complete {brand.name} collection at SNKRS CART — India's most trusted sneaker store.
-            Every pair is 100% authentic, sourced directly from authorised channels.
-            Free pan-India shipping and secure packaging on all {brand.name} shoes.
+            Looking for affordable {brand.name} shoes in India? SNKRS CART offers the complete{' '}
+            {brand.name} collection{lowestPrice ? ` starting from ${formatPrice(lowestPrice)}` : ''} —
+            all 100% authentic, sourced from authorised channels. Whether you&apos;re searching for the
+            cheapest {brand.name} sneakers or the latest drops, every pair ships free across India
+            with secure packaging. No fakes, no compromise.
           </p>
         </div>
       </section>

@@ -6,7 +6,6 @@ import ProductCard from '@/components/products/ProductCard';
 import ProductReviews from '@/components/reviews/ProductReviews';
 import ProductRatingDisplay from '@/components/product-detail/ProductRatingDisplay';
 import RecentlyViewed from '@/components/product-detail/RecentlyViewed';
-import { formatPrice } from '@/lib/utils';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -20,8 +19,13 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.
 export async function generateMetadata({ params }: PageProps) {
   try {
     const product = await fetchProductBySlug(params.slug);
-    const title = `${product.brand} ${product.name}`;
-    const description = `${product.description} — ${formatPrice(product.price)} | 100% Authentic | Shop now on SNKRS CART`;
+    const title = `${product.brand} ${product.name} — ₹${product.price.toLocaleString('en-IN')} | Buy in India`;
+    const origPrice = product.originalPrice ?? 0;
+    const hasDiscount = origPrice > product.price;
+    const discountNote = hasDiscount
+      ? `${Math.round(((origPrice - product.price) / origPrice) * 100)}% off`
+      : 'best price guaranteed';
+    const description = `Buy ${product.brand} ${product.name} for ₹${product.price.toLocaleString('en-IN')} (${discountNote}). 100% authentic ${product.brand} shoes in India — pan-India shipping. | SNKRS CART`;
     const url = `${SITE_URL}/products/${params.slug}`;
     const ogImage = product.images?.[0] || '';
 

@@ -40,6 +40,11 @@ export const metadata: Metadata = {
     'buy sneakers India', 'authentic sneakers India', 'Nike shoes India', 'Jordan shoes India',
     'Adidas sneakers India', 'New Balance India', 'SNKRS CART', 'sneakers online India',
     'original shoes India', 'limited edition sneakers India',
+    'cheap Nike sneakers India', 'affordable Jordan shoes India',
+    'cheap New Balance shoes', 'best price sneakers India',
+    'sneakers under 5000 India', 'cheapest Jordan shoes India',
+    'budget sneakers India', 'Nike shoes price in India',
+    'buy cheap Adidas shoes India', 'affordable sneakers online India',
   ],
   authors: [{ name: 'SNKRS CART', url: SITE_URL }],
   creator: 'SNKRS CART',
@@ -96,7 +101,47 @@ const orgLd = {
   url: SITE_URL,
   logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
   description: 'India\'s premium sneaker store — 100% authentic Nike, Jordan, Adidas, New Balance & Crocs.',
-  sameAs: [],
+  sameAs: [
+    'https://www.instagram.com/snkrs_cart',
+  ],
+  contactPoint: {
+    '@type': 'ContactPoint',
+    telephone: '+91-94109-03791',
+    contactType: 'customer service',
+    email: 'infosnkrscart@gmail.com',
+    areaServed: 'IN',
+    availableLanguage: ['English', 'Hindi'],
+  },
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Pauri Garhwal',
+    addressRegion: 'Uttarakhand',
+    addressCountry: 'IN',
+  },
+};
+
+const localBusinessLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Store',
+  name: 'SNKRS CART',
+  url: SITE_URL,
+  logo: `${SITE_URL}/logo.png`,
+  image: `${SITE_URL}/logo.png`,
+  description: 'Buy 100% authentic sneakers online in India — Nike, Jordan, Adidas, New Balance & Crocs. Free pan-India shipping from Pauri Garhwal, Uttarakhand.',
+  telephone: '+91-94109-03791',
+  email: 'infosnkrscart@gmail.com',
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Pauri Garhwal',
+    addressRegion: 'Uttarakhand',
+    addressCountry: 'IN',
+  },
+  openingHours: 'Mo-Sa 10:00-19:00',
+  priceRange: '₹₹',
+  currenciesAccepted: 'INR',
+  paymentAccepted: 'UPI, Bank Transfer, Cash on Delivery',
+  areaServed: 'IN',
+  hasMap: 'https://maps.google.com/?q=Pauri+Garhwal,Uttarakhand,India',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -110,6 +155,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessLd) }}
         />
       </head>
       <body className="bg-zinc-50 text-zinc-900 font-sans antialiased">
