@@ -10,22 +10,36 @@ export async function GET(req: NextRequest) {
   const price = searchParams.get('price') || '';
   const imageUrl = searchParams.get('image') || '';
 
-  // Fetch the external product image and convert to data URL so the edge
-  // runtime can render it (external CDN URLs are blocked in ImageResponse).
+  // Try to fetch the product image and embed as base64 (bypasses CDN hotlink
+  // blocks). Fall back to passing the URL directly so Satori can attempt it.
   let imageSrc = '';
   if (imageUrl) {
     try {
-      const res = await fetch(imageUrl);
+      const res = await fetch(imageUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Twitterbot/1.0)',
+          'Accept': 'image/webp,image/jpeg,image/*',
+          'Referer': 'https://snkrs-kart.vercel.app/',
+        },
+      });
       if (res.ok) {
         const buf = await res.arrayBuffer();
-        const mime = res.headers.get('content-type') || 'image/jpeg';
-        const bytes = new Uint8Array(buf);
-        let binary = '';
-        for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
-        imageSrc = `data:${mime};base64,${btoa(binary)}`;
+        // Skip base64 if image is too large (> 3 MB) to avoid memory issues
+        if (buf.byteLength < 3 * 1024 * 1024) {
+          const mime = res.headers.get('content-type') || 'image/jpeg';
+          const bytes = new Uint8Array(buf);
+          let binary = '';
+          for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+          imageSrc = `data:${mime};base64,${btoa(binary)}`;
+        } else {
+          imageSrc = imageUrl;
+        }
+      } else {
+        // CDN rejected the fetch — let Satori try the URL directly
+        imageSrc = imageUrl;
       }
     } catch {
-      // fall through to no-image layout
+      imageSrc = imageUrl;
     }
   }
 
