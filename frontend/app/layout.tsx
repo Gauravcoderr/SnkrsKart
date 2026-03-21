@@ -79,7 +79,7 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'SNKRS CART',
-  alternateName: 'SNKRS KART',
+  alternateName: 'SNKRS CART',
   url: SITE_URL,
   description: 'Buy 100% authentic Nike, Adidas, Jordan, New Balance & Crocs sneakers online in India.',
   potentialAction: {
