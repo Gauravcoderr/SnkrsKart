@@ -112,7 +112,7 @@ export async function GET(req: NextRequest) {
                 letterSpacing: '0.2em',
                 textTransform: 'uppercase',
                 padding: '6px 12px',
-                width: 'fit-content',
+                alignSelf: 'flex-start',
               }}
             >
               ✓ 100% Authentic
