@@ -7,6 +7,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import QueryProvider from '@/components/layout/QueryProvider';
 import LayoutShell from '@/components/layout/LayoutShell';
 import AuthModal from '@/components/auth/AuthModal';
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -88,6 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </CartProvider>
           </AuthProvider>
         </QueryProvider>
+        <Analytics />
       </body>
     </html>
   );
