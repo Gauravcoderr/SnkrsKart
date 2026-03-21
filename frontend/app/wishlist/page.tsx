@@ -77,7 +77,12 @@ export default function WishlistPage() {
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  {product.soldOut && (
+                  {product.comingSoon && (
+                    <div className="absolute inset-0 bg-indigo-950/40 flex items-center justify-center">
+                      <span className="text-xs font-bold tracking-widest text-white uppercase">Dropping Soon</span>
+                    </div>
+                  )}
+                  {product.soldOut && !product.comingSoon && (
                     <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
                       <span className="text-xs font-bold tracking-widest text-zinc-500 uppercase">Sold Out</span>
                     </div>
@@ -108,7 +113,11 @@ export default function WishlistPage() {
                 </div>
               </div>
 
-              {!product.soldOut && product.availableSizes.length > 0 && (
+              {product.comingSoon ? (
+                <div className="mt-3 w-full py-2 border border-zinc-200 text-xs font-bold tracking-widest uppercase text-center text-zinc-400 cursor-default">
+                  Dropping Soon
+                </div>
+              ) : !product.soldOut && product.availableSizes.length > 0 ? (
                 <button
                   onClick={() => {
                     addItem(product, product.availableSizes[0], 1);
@@ -118,7 +127,7 @@ export default function WishlistPage() {
                 >
                   Add to Bag
                 </button>
-              )}
+              ) : null}
             </div>
           ))}
         </div>
