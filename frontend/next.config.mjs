@@ -18,6 +18,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'sneakerpolitics.com', pathname: '/**' },
       { protocol: 'https', hostname: 'hustleculture.co.in', pathname: '/**' },
       { protocol: 'https', hostname: 'www.crocs.in', pathname: '/**' },
+      { protocol: 'https', hostname: 'media.crocs.com', pathname: '/**' },
       { protocol: 'https', hostname: 'djm0962033frr.cloudfront.net', pathname: '/**' },
       { protocol: 'https', hostname: 'laceupclub.com', pathname: '/**' },
       { protocol: 'https', hostname: 'adn-static1.nykaa.com', pathname: '/**' },
