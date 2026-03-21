@@ -30,11 +30,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export const dynamic = 'force-dynamic';
 
 export default async function BrandPage({ params }: Props) {
-  const meta = BRANDS.find((b) => b.slug === params.slug);
+  const slug = params.slug.toLowerCase();
+  const meta = BRANDS.find((b) => b.slug === slug);
   if (!meta) notFound();
 
   const [brandResult, productsResult] = await Promise.allSettled([
-    fetchBrandBySlug(params.slug),
+    fetchBrandBySlug(slug),
     fetchProducts({ brands: [meta.label], limit: 48 }),
   ]);
 

@@ -30,7 +30,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const displayOriginalPrice = activeVariant ? activeVariant.originalPrice : product.originalPrice;
 
   // Pick 4 most popular available sizes for quick-add
-  const quickSizes = product.availableSizes.slice(0, 4);
+  const quickSizes = (product.availableSizes ?? []).slice(0, 4);
 
   const handleQuickAdd = (e: React.MouseEvent, size: number) => {
     e.preventDefault();

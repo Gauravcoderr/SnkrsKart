@@ -40,7 +40,7 @@ export default function StickyCartBar({
 
   if (!visible || product.soldOut || product.comingSoon) return null;
 
-  const quickSizes = product.availableSizes.slice(0, 6);
+  const quickSizes = (product.availableSizes ?? []).slice(0, 6);
 
   const handleAdd = async () => {
     if (!selectedSize) {
