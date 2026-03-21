@@ -8,7 +8,23 @@ export async function GET(req: NextRequest) {
   const title = searchParams.get('title') || 'SNKRS CART';
   const brand = searchParams.get('brand') || '';
   const price = searchParams.get('price') || '';
-  const image = searchParams.get('image') || '';
+  const imageUrl = searchParams.get('image') || '';
+
+  // Fetch the external product image and convert to data URL so the edge
+  // runtime can render it (external CDN URLs are blocked in ImageResponse).
+  let imageSrc = '';
+  if (imageUrl) {
+    try {
+      const res = await fetch(imageUrl);
+      if (res.ok) {
+        const buf = await res.arrayBuffer();
+        const mime = res.headers.get('content-type') || 'image/jpeg';
+        imageSrc = `data:${mime};base64,${Buffer.from(buf).toString('base64')}`;
+      }
+    } catch {
+      // fall through to no-image layout
+    }
+  }
 
   return new ImageResponse(
     (
@@ -22,10 +38,10 @@ export async function GET(req: NextRequest) {
         }}
       >
         {/* Product image — left half */}
-        {image ? (
+        {imageSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={image}
+            src={imageSrc}
             alt={title}
             style={{
               width: '500px',
