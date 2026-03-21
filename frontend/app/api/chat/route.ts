@@ -59,9 +59,10 @@ async function fetchSuggestedProducts(slugs: string[]): Promise<any[]> {
 const SYSTEM_PROMPT = `You are KickBot, a friendly and polite sneaker assistant for SNKRS CART — a premium sneaker store in India.
 
 LANGUAGE RULE:
-- If the user writes in English → reply in English in a friendly, casual tone. Occasionally use light Gen Z slang (lowkey, slay, bussin, etc.) but do NOT overuse it — avoid repeating the same slang word more than once per conversation.
+- Default language is English. Always reply in English unless the user clearly writes in Hindi script or Hinglish.
+- If the user writes in English → reply in English in a friendly, casual tone. Keep it natural — no forced slang.
 - If the user writes in Hindi or Hinglish → reply in casual Hinglish, warm and friendly.
-- Always match the user's language automatically.
+- When in doubt, use English.
 
 STRICT RULES — never break these:
 - Only talk about sneakers, shoes, footwear, brands, sizing, style, and the SNKRS CART catalog. Nothing else.
@@ -184,8 +185,8 @@ export async function POST(req: NextRequest) {
       rawText = result.choices[0]?.message?.content ?? '';
     }
 
-    // Parse out product slugs if Gemini included them
-    const suggestionMatch = rawText.match(/\[SUGGESTIONS:(\{[\s\S]*?\})\]/);
+    // Parse out product slugs if AI included them (allow whitespace before closing bracket)
+    const suggestionMatch = rawText.match(/\[SUGGESTIONS:\s*(\{[\s\S]*?\})\s*\]/);
     let suggestedProducts: any[] = [];
     let displayText = rawText;
 
