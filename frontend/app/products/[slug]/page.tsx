@@ -74,6 +74,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
     description: product.description,
     image: product.images,
     sku: product.sku,
+    category: 'Sneakers',
+    itemCondition: 'https://schema.org/NewCondition',
     offers: {
       '@type': 'Offer',
       priceCurrency: 'INR',
@@ -82,7 +84,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
         ? 'https://schema.org/OutOfStock'
         : 'https://schema.org/InStock',
       url: productUrl,
-      seller: { '@type': 'Organization', name: 'SNKRS CART' },
+      seller: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL },
+      priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     },
     ...(avgRating && reviews.length >= 1 && {
       aggregateRating: {
@@ -92,6 +95,13 @@ export default async function ProductDetailPage({ params }: PageProps) {
         bestRating: '5',
         worstRating: '1',
       },
+      review: reviews.slice(0, 5).map((r) => ({
+        '@type': 'Review',
+        author: { '@type': 'Person', name: r.name || 'Verified Buyer' },
+        reviewRating: { '@type': 'Rating', ratingValue: String(r.rating), bestRating: '5', worstRating: '1' },
+        reviewBody: r.comment || '',
+        datePublished: r.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : undefined,
+      })),
     }),
   };
 

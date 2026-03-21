@@ -168,14 +168,22 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
     fetchProductsByTags(blog.tags),
   ]);
 
-  const jsonLd = {
+  const wordCount = safeContent.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length;
+
+  const articleJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
+    mainEntityOfPage: { '@type': 'WebPage', '@id': postUrl },
     headline: blog.title,
     description: blog.metaDescription || blog.excerpt,
     url: postUrl,
     datePublished: blog.createdAt,
     dateModified: blog.updatedAt,
+    inLanguage: 'en-IN',
+    wordCount,
+    timeRequired: `PT${minutes}M`,
+    articleSection: safeTags[0] || 'Sneakers',
+    keywords: blog.metaKeywords || blog.tags.join(', '),
     author: { '@type': 'Person', name: blog.author },
     publisher: {
       '@type': 'Organization',
@@ -183,13 +191,26 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
       url: SITE_URL,
       logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
     },
-    keywords: blog.metaKeywords || blog.tags.join(', '),
-    ...(blog.coverImage ? { image: { '@type': 'ImageObject', url: blog.coverImage } } : {}),
+    ...(blog.coverImage ? { image: { '@type': 'ImageObject', url: blog.coverImage, width: 1200, height: 630 } } : {}),
   };
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blogs` },
+      { '@type': 'ListItem', position: 3, name: blog.title, item: postUrl },
+    ],
+  };
+
+  // keep old name for the JSX below
+  const jsonLd = articleJsonLd;
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* Reading progress — fixed top bar */}
       <ReadingProgress accentColor={accent.progressColor} />
