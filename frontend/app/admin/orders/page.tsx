@@ -52,6 +52,9 @@ export default function AdminOrdersPage() {
   const [updating, setUpdating] = useState(false);
   const [updateForm, setUpdateForm] = useState({ status: '', trackingNumber: '', notes: '' });
   const [filterStatus, setFilterStatus] = useState('all');
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     fetchOrders();
@@ -99,7 +102,25 @@ export default function AdminOrdersPage() {
     }
   }
 
-  const filtered = filterStatus === 'all' ? orders : orders.filter((o) => o.status === filterStatus);
+  const searched = search.trim()
+    ? orders.filter((o) => {
+        const q = search.toLowerCase();
+        return (
+          o.orderNumber.toLowerCase().includes(q) ||
+          o.name.toLowerCase().includes(q) ||
+          o.email.toLowerCase().includes(q) ||
+          o.phone.includes(q)
+        );
+      })
+    : orders;
+
+  const filtered = filterStatus === 'all' ? searched : searched.filter((o) => o.status === filterStatus);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  function goToPage(p: number) { setPage(Math.max(1, Math.min(p, totalPages))); }
 
   const counts = STATUS_OPTIONS.reduce((acc, s) => {
     acc[s] = orders.filter((o) => o.status === s).length;
@@ -121,7 +142,7 @@ export default function AdminOrdersPage() {
         {STATUS_OPTIONS.map((s) => (
           <button
             key={s}
-            onClick={() => setFilterStatus(filterStatus === s ? 'all' : s)}
+            onClick={() => { setFilterStatus(filterStatus === s ? 'all' : s); setPage(1); }}
             className={`p-3 rounded-lg border text-left transition-colors ${
               filterStatus === s ? 'border-zinc-500 bg-zinc-800' : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'
             }`}
@@ -135,20 +156,41 @@ export default function AdminOrdersPage() {
       <div className={`grid gap-6 ${selected ? 'grid-cols-1 xl:grid-cols-[1fr_380px]' : 'grid-cols-1'}`}>
         {/* Orders table */}
         <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-          <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
-            <p className="text-sm font-bold text-white">
-              {filterStatus === 'all' ? `All Orders (${orders.length})` : `${filterStatus} (${filtered.length})`}
-            </p>
-            {filterStatus !== 'all' && (
-              <button onClick={() => setFilterStatus('all')} className="text-xs text-zinc-400 hover:text-white underline">Clear filter</button>
-            )}
+          <div className="px-5 py-4 border-b border-zinc-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-bold text-white">
+                {filterStatus === 'all' ? `All Orders (${filtered.length})` : `${filterStatus} (${filtered.length})`}
+              </p>
+              {filterStatus !== 'all' && (
+                <button onClick={() => { setFilterStatus('all'); setPage(1); }} className="text-xs text-zinc-400 hover:text-white underline">Clear filter</button>
+              )}
+            </div>
+            <div className="relative">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+              </svg>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                placeholder="Search by order #, name, email or phone…"
+                className="w-full bg-zinc-800 border border-zinc-700 text-white text-sm pl-9 pr-3 py-2 rounded focus:outline-none focus:border-zinc-500 placeholder:text-zinc-600"
+              />
+              {search && (
+                <button onClick={() => { setSearch(''); setPage(1); }} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
 
           {filtered.length === 0 ? (
             <div className="py-16 text-center text-zinc-500 text-sm">No orders found.</div>
           ) : (
             <div className="divide-y divide-zinc-800">
-              {filtered.map((order) => (
+              {paginated.map((order) => (
                 <button
                   key={order._id}
                   onClick={() => openOrder(order)}
@@ -177,6 +219,60 @@ export default function AdminOrdersPage() {
                   </div>
                 </button>
               ))}
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <div className="px-5 py-3 border-t border-zinc-800 flex items-center justify-between gap-2">
+              <p className="text-xs text-zinc-500">
+                {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length}
+              </p>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => goToPage(safePage - 1)}
+                  disabled={safePage === 1}
+                  aria-label="Previous page"
+                  className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
+                  .reduce<(number | '...')[]>((acc, p, idx, arr) => {
+                    if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push('...');
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((p, i) =>
+                    p === '...' ? (
+                      <span key={`ellipsis-${i}`} className="px-1 text-zinc-600 text-xs">…</span>
+                    ) : (
+                      <button
+                        type="button"
+                        key={p}
+                        onClick={() => goToPage(p as number)}
+                        className={`min-w-[28px] h-7 px-1.5 rounded text-xs font-bold transition-colors ${
+                          safePage === p ? 'bg-white text-zinc-900' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+                <button
+                  type="button"
+                  onClick={() => goToPage(safePage + 1)}
+                  disabled={safePage === totalPages}
+                  aria-label="Next page"
+                  className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
             </div>
           )}
         </div>
