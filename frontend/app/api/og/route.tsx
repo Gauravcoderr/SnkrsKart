@@ -43,6 +43,10 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  const formattedPrice = price
+    ? `Rs. ${Number(price).toLocaleString('en-IN')}`
+    : '';
+
   return new ImageResponse(
     (
       <div
@@ -60,15 +64,10 @@ export async function GET(req: NextRequest) {
           <img
             src={imageSrc}
             alt={title}
-            style={{
-              width: '500px',
-              height: '630px',
-              objectFit: 'cover',
-              objectPosition: 'center',
-            }}
+            style={{ width: '500px', height: '630px', objectFit: 'cover' }}
           />
         ) : (
-          <div style={{ display: 'flex', width: '500px', height: '630px', background: '#222' }} />
+          <div style={{ display: 'flex', width: '500px', height: '630px', background: '#1a1a1a' }} />
         )}
 
         {/* Right panel */}
@@ -82,64 +81,44 @@ export async function GET(req: NextRequest) {
           }}
         >
           {/* Brand */}
-          <div
-            style={{
-              fontSize: '16px',
-              fontWeight: 700,
-              letterSpacing: '0.3em',
-              textTransform: 'uppercase',
-              color: '#888',
-            }}
-          >
-            {brand}
+          <div style={{ fontSize: '15px', fontWeight: 700, color: '#888888' }}>
+            {brand.toUpperCase()}
           </div>
 
           {/* Product name */}
           <div
             style={{
-              fontSize: '32px',
-              fontWeight: 900,
+              fontSize: title.length > 40 ? '28px' : '34px',
+              fontWeight: 800,
               color: '#ffffff',
               lineHeight: 1.2,
-              letterSpacing: '-0.01em',
             }}
           >
             {title}
           </div>
 
           {/* Price + badge */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {price && (
-              <div style={{ fontSize: '28px', fontWeight: 800, color: '#ffffff' }}>
-                ₹{Number(price).toLocaleString('en-IN')}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {formattedPrice && (
+              <div style={{ fontSize: '30px', fontWeight: 800, color: '#ffffff', marginBottom: '16px' }}>
+                {formattedPrice}
               </div>
             )}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
                 background: '#22c55e',
-                color: '#fff',
+                color: '#ffffff',
                 fontSize: '12px',
                 fontWeight: 700,
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                padding: '6px 12px',
-                alignSelf: 'flex-start',
+                padding: '8px 14px',
+                marginBottom: '14px',
               }}
             >
-              ✓ 100% Authentic
+              100% Authentic
             </div>
-            <div
-              style={{
-                fontSize: '14px',
-                fontWeight: 700,
-                letterSpacing: '0.25em',
-                textTransform: 'uppercase',
-                color: '#555',
-              }}
-            >
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#444444' }}>
               SNKRS CART
             </div>
           </div>
