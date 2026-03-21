@@ -3,12 +3,13 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Product } from '@/types';
+import { Product, Blog } from '@/types';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   products?: Product[];
+  blogs?: Blog[];
 }
 
 const GREETING: Message = {
@@ -50,6 +51,30 @@ function ProductCard({ product }: { product: Product }) {
             </span>
           )}
         </div>
+      </div>
+    </Link>
+  );
+}
+
+function BlogCard({ blog }: { blog: Blog }) {
+  return (
+    <Link
+      href={`/blogs/${blog.slug}`}
+      className="flex items-center gap-3 rounded-xl border border-zinc-100 bg-white p-2.5 hover:border-zinc-300 hover:shadow-sm transition-all group"
+    >
+      <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-zinc-50 flex-shrink-0">
+        {blog.coverImage && (
+          <Image src={blog.coverImage} alt={blog.title} fill className="object-cover" sizes="56px" />
+        )}
+      </div>
+      <div className="min-w-0">
+        <p className="text-[10px] font-medium text-violet-600 uppercase tracking-wide mb-0.5">Article</p>
+        <p className="text-xs font-semibold text-zinc-900 truncate group-hover:text-zinc-700 leading-tight">
+          {blog.title}
+        </p>
+        {blog.excerpt && (
+          <p className="text-[11px] text-zinc-400 truncate mt-0.5">{blog.excerpt}</p>
+        )}
       </div>
     </Link>
   );
@@ -105,7 +130,7 @@ export default function ChatBot() {
       const data = await res.json();
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: data.text ?? 'Sorry, something went wrong.', products: data.products ?? [] },
+        { role: 'assistant', content: data.text ?? 'Sorry, something went wrong.', products: data.products ?? [], blogs: data.blogs ?? [] },
       ]);
     } catch {
       setMessages((prev) => [
@@ -180,6 +205,13 @@ export default function ChatBot() {
                       <div className="mt-2 space-y-2">
                         {msg.products.map((p) => (
                           <ProductCard key={p.slug} product={p} />
+                        ))}
+                      </div>
+                    )}
+                    {msg.blogs && msg.blogs.length > 0 && (
+                      <div className="mt-2 space-y-2">
+                        {msg.blogs.map((b) => (
+                          <BlogCard key={b.slug} blog={b} />
                         ))}
                       </div>
                     )}

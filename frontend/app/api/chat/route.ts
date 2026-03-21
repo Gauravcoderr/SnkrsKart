@@ -56,6 +56,43 @@ async function fetchSuggestedProducts(slugs: string[]): Promise<any[]> {
     .map((r) => (r as PromiseFulfilledResult<any>).value);
 }
 
+async function fetchBlogContext(query: string): Promise<string> {
+  try {
+    const res = await fetch(`${BACKEND_URL}/blogs`, { cache: 'no-store' });
+    if (!res.ok) return '';
+    const blogs: any[] = await res.json();
+    if (!Array.isArray(blogs) || blogs.length === 0) return '';
+    const q = query.toLowerCase();
+    const relevant = blogs
+      .filter((b: any) => b.published !== false)
+      .filter((b: any) => {
+        const haystack = `${b.title} ${b.excerpt} ${(b.tags ?? []).join(' ')}`.toLowerCase();
+        return q.split(/\s+/).some((word) => word.length > 2 && haystack.includes(word));
+      })
+      .slice(0, 3);
+    if (!relevant.length) return '';
+    return relevant
+      .map((b: any) => `- "${b.title}" | Tags: ${(b.tags ?? []).join(', ')} | Slug: ${b.slug}`)
+      .join('\n');
+  } catch {
+    return '';
+  }
+}
+
+async function fetchSuggestedBlogs(slugs: string[]): Promise<any[]> {
+  if (!slugs.length) return [];
+  try {
+    const res = await fetch(`${BACKEND_URL}/blogs`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    const blogs: any[] = await res.json();
+    return slugs
+      .map((slug) => blogs.find((b: any) => b.slug === slug))
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 const SYSTEM_PROMPT = `You are KickBot, a friendly and polite sneaker assistant for SNKRS CART — a premium sneaker store in India.
 
 LANGUAGE RULE:
@@ -84,10 +121,12 @@ Your goals:
 2. Ask follow-up questions in a fun, enthusiastic way.
 3. Recommend shoes from the catalog provided. Always reference real products from the context.
 4. If the user asks for a product link or URL, share it as: https://snkrs-kart.vercel.app/products/{slug}
-5. If recommending specific products, include their slugs at the very end of your reply in this exact format (no extra text after it):
+5. If recommending specific products, include their slugs at the very end of your reply in this exact format:
    [SUGGESTIONS:{"slugs":["slug-1","slug-2"]}]
-6. Keep responses short — 2-3 sentences max unless the user asks for more detail.
-7. Use ₹ for prices (Indian Rupees).`;
+6. If there are relevant blog articles in the context, suggest them too by including their slugs right after SUGGESTIONS in this exact format (no extra text after it):
+   [BLOG_SUGGESTIONS:{"slugs":["blog-slug-1"]}]
+7. Keep responses short — 2-3 sentences max unless the user asks for more detail.
+8. Use ₹ for prices (Indian Rupees).`;
 
 // Patterns that indicate prompt injection attempts
 const INJECTION_PATTERNS = [
@@ -156,11 +195,14 @@ export async function POST(req: NextRequest) {
         products: [],
       });
     }
-    const productContext = await fetchProductContext(lastUserMessage);
+    const [productContext, blogContext] = await Promise.all([
+      fetchProductContext(lastUserMessage),
+      fetchBlogContext(lastUserMessage),
+    ]);
 
-    const systemWithContext = productContext
-      ? `${SYSTEM_PROMPT}\n\n--- AVAILABLE PRODUCTS ---\n${productContext}\n--- END PRODUCTS ---`
-      : SYSTEM_PROMPT;
+    let systemWithContext = SYSTEM_PROMPT;
+    if (productContext) systemWithContext += `\n\n--- AVAILABLE PRODUCTS ---\n${productContext}\n--- END PRODUCTS ---`;
+    if (blogContext) systemWithContext += `\n\n--- RELEVANT BLOG ARTICLES ---\n${blogContext}\n--- END BLOGS ---`;
 
     let rawText = '';
 
@@ -203,20 +245,30 @@ export async function POST(req: NextRequest) {
       rawText = result.choices[0]?.message?.content ?? '';
     }
 
-    // Parse out product slugs if AI included them (closing ] is optional — LLMs sometimes omit it)
+    // Parse out product slugs (closing ] is optional — LLMs sometimes omit it)
     const suggestionMatch = rawText.match(/\[SUGGESTIONS:\s*(\{[\s\S]*?\})\s*\]?/);
+    const blogMatch = rawText.match(/\[BLOG_SUGGESTIONS:\s*(\{[\s\S]*?\})\s*\]?/);
     let suggestedProducts: any[] = [];
+    let suggestedBlogs: any[] = [];
     let displayText = rawText;
 
     if (suggestionMatch) {
-      displayText = rawText.replace(suggestionMatch[0], '').trim();
+      displayText = displayText.replace(suggestionMatch[0], '').trim();
       try {
         const { slugs } = JSON.parse(suggestionMatch[1]);
         suggestedProducts = await fetchSuggestedProducts(slugs);
       } catch {}
     }
 
-    return NextResponse.json({ text: displayText, products: suggestedProducts });
+    if (blogMatch) {
+      displayText = displayText.replace(blogMatch[0], '').trim();
+      try {
+        const { slugs } = JSON.parse(blogMatch[1]);
+        suggestedBlogs = await fetchSuggestedBlogs(slugs);
+      } catch {}
+    }
+
+    return NextResponse.json({ text: displayText, products: suggestedProducts, blogs: suggestedBlogs });
   } catch (err: any) {
     const msg = err?.message ?? String(err);
     console.error('Chat API error (full):', JSON.stringify(err, Object.getOwnPropertyNames(err)));
