@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import Groq from 'groq-sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -114,8 +115,8 @@ function isEnglish(text: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  if (!process.env.GEMINI_API_KEY) {
-    console.error('GEMINI_API_KEY is not set');
+  if (!process.env.GEMINI_API_KEY && !process.env.GROQ_API_KEY) {
+    console.error('No AI API key set');
     return NextResponse.json(BUSY_MSG_EN);
   }
 
@@ -151,13 +152,36 @@ export async function POST(req: NextRequest) {
       ? `${SYSTEM_PROMPT}\n\n--- AVAILABLE PRODUCTS ---\n${productContext}\n--- END PRODUCTS ---`
       : SYSTEM_PROMPT;
 
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    const result = await ai.models.generateContent({
-      model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
-      contents: lastUserMessage,
-      config: { systemInstruction: systemWithContext },
-    });
-    const rawText = result.text ?? '';
+    let rawText = '';
+
+    // Primary: Gemini
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const result = await ai.models.generateContent({
+          model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+          contents: lastUserMessage,
+          config: { systemInstruction: systemWithContext },
+        });
+        rawText = result.text ?? '';
+      } catch (geminiErr: any) {
+        console.warn('Gemini failed, falling back to Groq:', geminiErr?.message);
+      }
+    }
+
+    // Fallback: Groq
+    if (!rawText && process.env.GROQ_API_KEY) {
+      const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+      const result = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemWithContext },
+          { role: 'user', content: lastUserMessage },
+        ],
+        max_tokens: 512,
+      });
+      rawText = result.choices[0]?.message?.content ?? '';
+    }
 
     // Parse out product slugs if Gemini included them
     const suggestionMatch = rawText.match(/\[SUGGESTIONS:(\{[\s\S]*?\})\]/);
