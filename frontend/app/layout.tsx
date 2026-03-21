@@ -89,6 +89,16 @@ const jsonLd = {
   },
 };
 
+const orgLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'SNKRS CART',
+  url: SITE_URL,
+  logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
+  description: 'India\'s premium sneaker store — 100% authentic Nike, Jordan, Adidas, New Balance & Crocs.',
+  sameAs: [],
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${bebas.variable}`}>
@@ -96,6 +106,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }}
         />
       </head>
       <body className="bg-zinc-50 text-zinc-900 font-sans antialiased">
