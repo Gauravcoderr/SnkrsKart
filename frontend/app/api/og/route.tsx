@@ -25,17 +25,21 @@ export async function GET(req: NextRequest) {
       });
       console.log('[OG] Fetch status:', res.status, res.headers.get('content-type'));
       if (res.ok) {
-        const buf = await res.arrayBuffer();
-        console.log('[OG] Image size bytes:', buf.byteLength);
-        if (buf.byteLength < 3 * 1024 * 1024 && buf.byteLength > 0) {
-          const mime = res.headers.get('content-type') || 'image/jpeg';
-          const bytes = new Uint8Array(buf);
-          let binary = '';
-          for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
-          imageSrc = `data:${mime};base64,${btoa(binary)}`;
-          console.log('[OG] Image embedded as base64, length:', imageSrc.length);
+        const mime = res.headers.get('content-type') || 'image/jpeg';
+        if (mime.includes('webp')) {
+          console.log('[OG] Skipping WebP image — not supported by Satori');
         } else {
-          console.log('[OG] Image too large or empty, skipping');
+          const buf = await res.arrayBuffer();
+          console.log('[OG] Image size bytes:', buf.byteLength);
+          if (buf.byteLength < 3 * 1024 * 1024 && buf.byteLength > 0) {
+            const bytes = new Uint8Array(buf);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+            imageSrc = `data:${mime};base64,${btoa(binary)}`;
+            console.log('[OG] Image embedded as base64, length:', imageSrc.length);
+          } else {
+            console.log('[OG] Image too large or empty, skipping');
+          }
         }
       } else {
         console.log('[OG] Fetch failed, CDN blocked request');
