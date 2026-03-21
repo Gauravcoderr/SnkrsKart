@@ -32,7 +32,7 @@ export async function fetchProducts(
 
 export async function fetchProductBySlug(slug: string): Promise<Product> {
   const res = await fetch(`${BASE_URL}/products/${slug}`, {
-    next: { revalidate: 60 },
+    cache: 'no-store',
   });
   if (!res.ok) throw new Error('Product not found');
   return res.json();
