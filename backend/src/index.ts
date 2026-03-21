@@ -21,6 +21,9 @@ import restockRoutes from './routes/restock';
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Trust reverse proxy (Render, Vercel, etc.) so rate-limit can read X-Forwarded-For
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet());
 
