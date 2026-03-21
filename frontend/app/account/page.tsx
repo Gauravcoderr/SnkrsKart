@@ -138,7 +138,7 @@ export default function AccountPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white">
+    <div className="bg-gradient-to-b from-zinc-50 to-white">
       {/* Hero header */}
       <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 px-4 sm:px-6 pt-10 pb-20">
         <div className="max-w-2xl mx-auto flex items-center gap-5">
@@ -153,7 +153,7 @@ export default function AccountPage() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 -mt-10 pb-16">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 -mt-10 pb-8">
         {/* Profile card */}
         <div className="bg-white rounded-2xl shadow-md border border-zinc-100 p-6 mb-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
