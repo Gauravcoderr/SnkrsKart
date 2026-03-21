@@ -55,22 +55,30 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         {/* Image container */}
         <div className="relative aspect-square overflow-hidden bg-zinc-100 img-hover-swap">
           {/* Default image */}
-          <Image
-            src={product.images[0]}
-            alt={`${product.brand} ${product.name}`}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover img-default group-hover:scale-105 transition-transform duration-500"
-            priority={priority}
-          />
+          {product.images?.[0] ? (
+            <Image
+              src={product.images[0]}
+              alt={`${product.brand} ${product.name}`}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover img-default group-hover:scale-105 transition-transform duration-500"
+              priority={priority}
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-zinc-100">
+              <span className="text-3xl">👟</span>
+            </div>
+          )}
           {/* Hover image */}
-          <Image
-            src={product.hoverImage}
-            alt={`${product.brand} ${product.name} alternate`}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover img-hover absolute inset-0 group-hover:scale-105 transition-transform duration-500"
-          />
+          {(product.hoverImage || product.images?.[1]) && (
+            <Image
+              src={product.hoverImage || product.images[1]}
+              alt={`${product.brand} ${product.name} alternate`}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover img-hover absolute inset-0 group-hover:scale-105 transition-transform duration-500"
+            />
+          )}
 
           {/* Badges */}
           <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">

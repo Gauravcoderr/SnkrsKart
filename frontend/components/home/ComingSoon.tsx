@@ -9,10 +9,10 @@ export default function ComingSoon({ products }: ComingSoonProps) {
   if (!products.length) return null;
 
   return (
-    <section className="py-16 lg:py-24 bg-zinc-950">
+    <section className="py-8 lg:py-12 bg-zinc-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-5">
           <p className="text-xs font-semibold tracking-[0.3em] uppercase text-indigo-400 mb-1">
             Mark Your Calendar
           </p>

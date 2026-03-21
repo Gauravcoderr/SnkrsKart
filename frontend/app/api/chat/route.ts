@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
     const rawText = result.response.text();
 
     // Parse out product slugs if Gemini included them
-    const suggestionMatch = rawText.match(/\[SUGGESTIONS:(\{.*?\})\]/s);
+    const suggestionMatch = rawText.match(/\[SUGGESTIONS:(\{[\s\S]*?\})\]/);
     let suggestedProducts: any[] = [];
     let displayText = rawText;
 
