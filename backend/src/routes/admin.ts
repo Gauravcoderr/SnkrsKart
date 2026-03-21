@@ -11,6 +11,7 @@ import { Seller } from '../models/Seller';
 import { Blog } from '../models/Blog';
 import { Order } from '../models/Order';
 import { Newsletter } from '../models/Newsletter';
+import { User } from '../models/User';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'snkrs-cart-admin-secret-key';
@@ -331,6 +332,43 @@ router.put('/orders/:id', adminAuth, async (req: Request, res: Response): Promis
     res.json(order);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to update order' });
+  }
+});
+
+// ─── Users ─────────────────────────────────────────────────────────────────
+
+router.get('/users', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const users = await User.find()
+      .select('-otp -otpExpiry -otpAttempts -lastOtpSent -refreshToken')
+      .sort({ createdAt: -1 })
+      .lean();
+    const result = await Promise.all(users.map(async (u) => {
+      const [orderCount, spend] = await Promise.all([
+        Order.countDocuments({ email: u.email }),
+        Order.aggregate([
+          { $match: { email: u.email, status: { $ne: 'cancelled' } } },
+          { $group: { _id: null, total: { $sum: '$total' } } },
+        ]),
+      ]);
+      return { ...u, id: u._id.toString(), orderCount, totalSpend: spend[0]?.total ?? 0 };
+    }));
+    res.json(result);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+router.get('/users/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('-otp -otpExpiry -otpAttempts -lastOtpSent -refreshToken')
+      .lean();
+    if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+    const orders = await Order.find({ email: user.email }).sort({ createdAt: -1 }).lean();
+    res.json({ ...user, id: user._id.toString(), orders });
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch user' });
   }
 });
 
