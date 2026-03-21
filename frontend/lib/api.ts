@@ -96,6 +96,18 @@ export async function fetchProductReviews(productSlug: string): Promise<Review[]
   return res.json();
 }
 
+export async function restockNotify(email: string, productSlug: string, size?: number | null): Promise<void> {
+  const res = await fetch(`${BASE_URL}/restock`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, productSlug, size: size ?? null }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to save');
+  }
+}
+
 // Client-side fetch (no cache, for filter interactions)
 export async function fetchProductsClient(
   filters: Partial<FilterState> & { page?: number; limit?: number } = {}

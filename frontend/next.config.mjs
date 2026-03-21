@@ -19,6 +19,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'hustleculture.co.in', pathname: '/**' },
       { protocol: 'https', hostname: 'www.crocs.in', pathname: '/**' },
       { protocol: 'https', hostname: 'djm0962033frr.cloudfront.net', pathname: '/**' },
+      { protocol: 'https', hostname: 'laceupclub.com', pathname: '/**' },
     ],
   },
 };

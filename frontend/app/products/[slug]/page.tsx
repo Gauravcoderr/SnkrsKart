@@ -5,6 +5,7 @@ import ProductDetailClient from './ProductDetailClient';
 import ProductCard from '@/components/products/ProductCard';
 import ProductReviews from '@/components/reviews/ProductReviews';
 import ProductRatingDisplay from '@/components/product-detail/ProductRatingDisplay';
+import RecentlyViewed from '@/components/product-detail/RecentlyViewed';
 import { formatPrice } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -61,8 +62,62 @@ export default async function ProductDetailPage({ params }: PageProps) {
     fetchProductReviews(product.slug).catch(() => []),
   ]);
 
+  const productUrl = `${SITE_URL}/products/${product.slug}`;
+  const avgRating = reviews.length
+    ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10
+    : null;
+
+  const productSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: `${product.brand} ${product.name}`,
+    brand: { '@type': 'Brand', name: product.brand },
+    description: product.description,
+    image: product.images,
+    sku: product.sku,
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'INR',
+      price: String(product.price),
+      availability: product.soldOut || product.availableSizes.length === 0
+        ? 'https://schema.org/OutOfStock'
+        : 'https://schema.org/InStock',
+      url: productUrl,
+      seller: { '@type': 'Organization', name: 'SNKRS CART' },
+    },
+    ...(avgRating && reviews.length >= 1 && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: String(avgRating),
+        reviewCount: String(reviews.length),
+        bestRating: '5',
+        worstRating: '1',
+      },
+    }),
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'All Shoes', item: `${SITE_URL}/products` },
+      { '@type': 'ListItem', position: 3, name: product.brand, item: `${SITE_URL}/products?brand=${product.brand}` },
+      { '@type': 'ListItem', position: 4, name: product.name, item: productUrl },
+    ],
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+      {/* JSON-LD structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-xs text-zinc-400 mb-8 font-medium tracking-wide">
         <Link href="/" className="hover:text-zinc-900 transition-colors">Home</Link>
@@ -159,6 +214,9 @@ export default async function ProductDetailPage({ params }: PageProps) {
           </div>
         </section>
       )}
+
+      {/* Recently Viewed — client component, reads/writes localStorage */}
+      <RecentlyViewed currentProduct={product} />
     </div>
   );
 }

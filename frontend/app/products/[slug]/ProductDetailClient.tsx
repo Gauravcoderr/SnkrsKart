@@ -6,6 +6,8 @@ import SizeSelector from '@/components/product-detail/SizeSelector';
 import AddToCartButton from '@/components/product-detail/AddToCartButton';
 import PurchaseModal from '@/components/product-detail/PurchaseModal';
 import SizeGuideModal from '@/components/product-detail/SizeGuideModal';
+import RestockNotify from '@/components/product-detail/RestockNotify';
+import StickyCartBar from '@/components/product-detail/StickyCartBar';
 import { formatPrice } from '@/lib/utils';
 import { useWishlist } from '@/context/WishlistContext';
 
@@ -26,6 +28,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [currentOriginalPrice, setCurrentOriginalPrice] = useState(product.originalPrice);
   const [shareState, setShareState] = useState<'idle' | 'copied'>('idle');
   const sizeSectionRef = useRef<HTMLDivElement>(null);
+  const addToCartRef = useRef<HTMLDivElement>(null);
 
   const handleShare = async () => {
     const url = `${SITE_URL}/products/${product.slug}`;
@@ -158,11 +161,18 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </div>
 
           {/* Add to cart */}
-          <AddToCartButton
-            product={effectiveProduct}
-            selectedSize={selectedSize}
-            onRequireSize={handleRequireSize}
-          />
+          <div ref={addToCartRef}>
+            <AddToCartButton
+              product={effectiveProduct}
+              selectedSize={selectedSize}
+              onRequireSize={handleRequireSize}
+            />
+          </div>
+
+          {/* Restock notify — only if product is fully sold out */}
+          {product.soldOut && (
+            <RestockNotify productSlug={product.slug} selectedSize={selectedSize} />
+          )}
 
           {/* Purchase inquiry CTA */}
           <button
@@ -203,6 +213,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           onClose={() => setShowModal(false)}
         />
       )}
+      {/* Sticky add-to-cart bar — appears when main CTA scrolls off screen */}
+      <StickyCartBar
+        product={product}
+        selectedSize={selectedSize}
+        onSizeSelect={handleSizeSelect}
+        onRequireSize={handleRequireSize}
+        triggerRef={addToCartRef}
+      />
     </div>
   );
 }

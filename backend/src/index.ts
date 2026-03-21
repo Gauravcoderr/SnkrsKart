@@ -16,6 +16,7 @@ import adminRoutes from './routes/admin';
 import orderRoutes from './routes/orders';
 import newsletterRoutes from './routes/newsletter';
 import authRoutes from './routes/auth';
+import restockRoutes from './routes/restock';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -55,6 +56,8 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/newsletter', newsletterRoutes);
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/restock', postLimiter);
+app.use('/api/v1/restock', restockRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
