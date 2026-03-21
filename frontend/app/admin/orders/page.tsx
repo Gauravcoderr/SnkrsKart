@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { BASE_URL } from '../_lib/config';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 import Paginator from '../_components/Paginator';
 
 interface OrderItem {

@@ -21,8 +21,9 @@ export async function generateMetadata({ params }: PageProps) {
     const product = await fetchProductBySlug(params.slug);
     const title = `${product.brand} ${product.name}`;
     const description = `${product.description} — ${formatPrice(product.price)} | 100% Authentic | Shop now on SNKRS CART`;
-    const image = product.images?.[0] || `${SITE_URL}/logo.png`;
     const url = `${SITE_URL}/products/${params.slug}`;
+    // Use our own OG image route so external CDN images (Myntra etc.) don't get blocked by crawlers
+    const ogImage = `${SITE_URL}/api/og?title=${encodeURIComponent(product.name)}&brand=${encodeURIComponent(product.brand)}&price=${product.price}&image=${encodeURIComponent(product.images?.[0] || '')}`;
 
     return {
       title,
@@ -32,14 +33,14 @@ export async function generateMetadata({ params }: PageProps) {
         description,
         url,
         siteName: 'SNKRS CART',
-        images: [{ url: image, width: 800, height: 800, alt: title }],
+        images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
         type: 'website',
       },
       twitter: {
         card: 'summary_large_image',
         title,
         description,
-        images: [image],
+        images: [ogImage],
       },
     };
   } catch {
