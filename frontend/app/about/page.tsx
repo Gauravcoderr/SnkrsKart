@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'About Us | SNKRS CART',
-  description: 'Born in the hills of Pauri Garhwal. Legit sneakers, real passion — since 2020.',
+  description: 'Founded in Pauri Garhwal, Uttarakhand in 2020 by sneakerheads who refused to settle for fakes. SNKRS CART delivers 100% authentic Nike, Jordan, Adidas & more across India.',
 };
 
 export default function AboutPage() {

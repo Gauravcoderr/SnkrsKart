@@ -4,8 +4,8 @@ import ProductsClient from './ProductsClient';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
 
 export const metadata = {
-  title: 'All Sneakers | SNKRS CART',
-  description: 'Browse 100% authentic sneakers from Nike, Jordan, Adidas, New Balance & Crocs. Pan India shipping.',
+  title: 'Buy Authentic Sneakers Online in India | SNKRS CART',
+  description: 'Shop 100% authentic Nike, Jordan, Adidas, New Balance & Crocs sneakers online in India. Free pan-India shipping. Verified pairs, no fakes — browse the full collection.',
   alternates: { canonical: `${SITE_URL}/products` },
 };
 

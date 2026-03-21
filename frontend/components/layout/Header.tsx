@@ -349,7 +349,7 @@ export default function Header() {
                     >
                       <div className="w-8 h-8 rounded bg-zinc-100 flex-shrink-0 overflow-hidden">
                         {p.images?.[0] && (
-                          <img src={p.images[0]} alt={p.name} className="w-full h-full object-contain" />
+                          <img src={p.images[0]} alt={`${p.brand} ${p.name}`} className="w-full h-full object-contain" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -401,7 +401,7 @@ export default function Header() {
                             className="text-left group rounded-xl border border-zinc-100 hover:border-zinc-200 hover:shadow-md transition-all bg-white overflow-hidden"
                           >
                             <div className="aspect-square bg-zinc-50 p-3 flex items-center justify-center">
-                              <img src={p.images[0]} alt={p.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+                              <img src={p.images[0]} alt={`${p.brand} ${p.name}`} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
                             </div>
                             <div className="p-3">
                               <p className="text-xs text-zinc-500">{p.brand}</p>
