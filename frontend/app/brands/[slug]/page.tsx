@@ -12,17 +12,25 @@ interface Props {
   searchParams: { sort?: string };
 }
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const brand = await fetchBrandBySlug(params.slug);
-    const meta = BRANDS.find((b) => b.slug === params.slug);
+    const slug = decodeURIComponent(params.slug).toLowerCase().replace(/\s+/g, '-');
+    const brand = await fetchBrandBySlug(slug);
+    const meta = BRANDS.find((b) => b.slug === slug);
+    const url = `${SITE_URL}/brands/${slug}`;
     return {
       title: `${brand.name} Sneakers India | Buy ${brand.name} Shoes Online | SNKRS CART`,
       description: `Shop 100% authentic ${brand.name} sneakers in India. ${brand.description || `Explore the full ${brand.name} collection — exclusive drops, classics & more.`} Free pan-India shipping.`,
+      alternates: { canonical: url },
       openGraph: {
         title: `${brand.name} Sneakers | SNKRS CART`,
         description: `Shop authentic ${brand.name} shoes in India.`,
-        images: meta?.cardImage ? [{ url: meta.cardImage }] : [],
+        url,
+        siteName: 'SNKRS CART',
+        type: 'website',
+        images: meta?.cardImage ? [{ url: meta.cardImage, alt: `${brand.name} sneakers` }] : [],
       },
     };
   } catch {
@@ -61,9 +69,47 @@ export default async function BrandPage({ params, searchParams }: Props) {
   }) : [];
 
   const accent = meta.accent;
+  const brandUrl = `${SITE_URL}/brands/${slug}`;
+
+  const brandSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Brand',
+    name: brand.name,
+    url: brandUrl,
+    description: brand.description || `Shop 100% authentic ${brand.name} sneakers in India.`,
+    ...(meta.cardImage ? { logo: { '@type': 'ImageObject', url: meta.cardImage } } : {}),
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Sneakers', item: `${SITE_URL}/products` },
+      { '@type': 'ListItem', position: 3, name: brand.name, item: brandUrl },
+    ],
+  };
+
+  const itemListSchema = sortedProducts.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `${brand.name} Sneakers`,
+    url: brandUrl,
+    numberOfItems: sortedProducts.length,
+    itemListElement: sortedProducts.slice(0, 10).map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `${SITE_URL}/products/${p.slug}`,
+      name: `${p.brand} ${p.name}`,
+    })),
+  } : null;
 
   return (
     <div className="min-h-screen bg-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(brandSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      {itemListSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />}
+
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden bg-zinc-950">
         {/* accent glow */}
