@@ -73,18 +73,7 @@ export async function POST(req: NextRequest) {
       systemInstruction: systemWithContext,
     });
 
-    // Convert history (all but last user message) for Gemini chat format.
-    // Gemini requires history to start with a 'user' turn, so drop any
-    // leading assistant/model messages (e.g. the client-side greeting).
-    const rawHistory = messages.slice(0, -1).map((m) => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }],
-    }));
-    const firstUserIdx = rawHistory.findIndex((m) => m.role === 'user');
-    const history = firstUserIdx === -1 ? [] : rawHistory.slice(firstUserIdx);
-
-    const chat = model.startChat({ history });
-    const result = await chat.sendMessage(lastUserMessage);
+    const result = await model.generateContent(lastUserMessage);
     const rawText = result.response.text();
 
     // Parse out product slugs if Gemini included them
