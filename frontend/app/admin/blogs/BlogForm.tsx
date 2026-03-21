@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { supabase } from '@/lib/supabase';
+import { compressImage } from '@/lib/compressImage';
+import { uploadImage } from '@/lib/uploadImage';
 
 const RichTextEditor = dynamic(() => import('@/components/blog/RichTextEditor'), { ssr: false, loading: () => <div className="h-[400px] bg-zinc-900 border border-zinc-700 rounded-lg animate-pulse" /> });
 
@@ -47,13 +48,8 @@ export default function BlogForm({ blogId }: BlogFormProps) {
     setUploadingCover(true);
     setUploadError('');
     try {
-      const ext = file.name.split('.').pop() || 'jpg';
-      const path = `blogs/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error: uploadErr } = await supabase.storage
-        .from('Snkrs Cart Product Images')
-        .upload(path, file, { upsert: true });
-      if (uploadErr) throw new Error(uploadErr.message);
-      const url = supabase.storage.from('Snkrs Cart Product Images').getPublicUrl(path).data.publicUrl;
+      const compressed = await compressImage(file);
+      const url = await uploadImage(compressed, 'blogs');
       set('coverImage', url);
     } catch (e: any) {
       setUploadError(e.message);

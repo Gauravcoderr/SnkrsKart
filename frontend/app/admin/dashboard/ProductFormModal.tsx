@@ -2,7 +2,8 @@
 
 import { useState, FormEvent, useEffect, useRef } from 'react';
 import { Product } from '@/types';
-import { supabase } from '@/lib/supabase';
+import { compressImage } from '@/lib/compressImage';
+import { uploadImage } from '@/lib/uploadImage';
 
 interface Props {
   product: Product | null;
@@ -149,21 +150,12 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const hoverFileRef = useRef<HTMLInputElement | null>(null);
 
-  async function uploadImage(file: File): Promise<string> {
-    const ext = file.name.split('.').pop() || 'jpg';
-    const path = `products/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error: uploadErr } = await supabase.storage
-      .from('Snkrs Cart Product Images')
-      .upload(path, file, { upsert: true });
-    if (uploadErr) throw new Error(uploadErr.message);
-    return supabase.storage.from('Snkrs Cart Product Images').getPublicUrl(path).data.publicUrl;
-  }
-
   async function handleImageFileChange(file: File, index: number) {
     setUploadingIdx(index);
     setUploadError('');
     try {
-      const url = await uploadImage(file);
+      const compressed = await compressImage(file);
+      const url = await uploadImage(compressed, 'products');
       const updated = [...form.imageList];
       updated[index] = url;
       set('imageList', updated);
@@ -178,7 +170,8 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     setUploadingIdx('hover');
     setUploadError('');
     try {
-      const url = await uploadImage(file);
+      const compressed = await compressImage(file);
+      const url = await uploadImage(compressed, 'products');
       set('hoverImage', url);
     } catch (e: any) {
       setUploadError(`Hover image: ${e.message}`);
