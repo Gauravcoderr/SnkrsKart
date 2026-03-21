@@ -3,91 +3,27 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import {
+  OrdersIcon,
+  UsersIcon,
+  ProductsIcon,
+  InquiriesIcon,
+  StarIcon,
+  BannersIcon,
+  SellersIcon,
+  BlogsIcon,
+  LogoutIcon,
+} from '@/components/ui/Icons';
 
 const NAV = [
-  {
-    href: '/admin/orders',
-    label: 'Orders',
-    icon: (
-      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
-        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-        <line x1="3" y1="6" x2="21" y2="6" />
-        <path d="M16 10a4 4 0 0 1-8 0" />
-      </svg>
-    ),
-  },
-  {
-    href: '/admin/users',
-    label: 'Users',
-    icon: (
-      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
-      </svg>
-    ),
-  },
-  {
-    href: '/admin/dashboard',
-    label: 'Products',
-    icon: (
-      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
-        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-        <line x1="12" y1="22.08" x2="12" y2="12" />
-      </svg>
-    ),
-  },
-  {
-    href: '/admin/inquiries',
-    label: 'Inquiries',
-    icon: (
-      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
-        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-        <polyline points="22,6 12,13 2,6" />
-      </svg>
-    ),
-  },
-  {
-    href: '/admin/reviews',
-    label: 'Reviews',
-    icon: (
-      <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-      </svg>
-    ),
-  },
-  {
-    href: '/admin/banners',
-    label: 'Banners',
-    icon: (
-      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
-        <rect x="2" y="5" width="20" height="14" rx="2" />
-        <path d="M2 10h20" />
-      </svg>
-    ),
-  },
-  {
-    href: '/admin/sellers',
-    label: 'Sellers',
-    icon: (
-      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-      </svg>
-    ),
-  },
-  {
-    href: '/admin/blogs',
-    label: 'Blogs',
-    icon: (
-      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
-        <path d="M12 20h9" />
-        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-      </svg>
-    ),
-  },
+  { href: '/admin/orders',    label: 'Orders',    Icon: OrdersIcon },
+  { href: '/admin/users',     label: 'Users',     Icon: UsersIcon },
+  { href: '/admin/dashboard', label: 'Products',  Icon: ProductsIcon },
+  { href: '/admin/inquiries', label: 'Inquiries', Icon: InquiriesIcon },
+  { href: '/admin/reviews',   label: 'Reviews',   Icon: StarIcon },
+  { href: '/admin/banners',   label: 'Banners',   Icon: BannersIcon },
+  { href: '/admin/sellers',   label: 'Sellers',   Icon: SellersIcon },
+  { href: '/admin/blogs',     label: 'Blogs',     Icon: BlogsIcon },
 ];
 
 const AUTH_EXEMPT = ['/admin/login'];
@@ -133,20 +69,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {NAV.map((item) => {
-            const active = pathname.startsWith(item.href);
+          {NAV.map(({ href, label, Icon }) => {
+            const active = pathname.startsWith(href);
             return (
               <Link
-                key={item.href}
-                href={item.href}
+                key={href}
+                href={href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   active
                     ? 'bg-white text-zinc-900'
                     : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
                 }`}
               >
-                <span className={active ? 'text-zinc-900' : 'text-zinc-500'}>{item.icon}</span>
-                {item.label}
+                <Icon className={`w-4 h-4 ${active ? 'text-zinc-900' : 'text-zinc-500'}`} />
+                {label}
               </Link>
             );
           })}
@@ -159,11 +95,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
           >
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
+            <LogoutIcon className="w-4 h-4" />
             Logout
           </button>
         </div>
