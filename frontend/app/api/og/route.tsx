@@ -76,7 +76,10 @@ export async function GET(req: NextRequest) {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            padding: '48px 40px',
+            paddingTop: '48px',
+            paddingBottom: '48px',
+            paddingLeft: '40px',
+            paddingRight: '40px',
             flex: 1,
           }}
         >
@@ -99,11 +102,11 @@ export async function GET(req: NextRequest) {
 
           {/* Price + badge */}
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {formattedPrice && (
+            {formattedPrice ? (
               <div style={{ fontSize: '30px', fontWeight: 800, color: '#ffffff', marginBottom: '16px' }}>
                 {formattedPrice}
               </div>
-            )}
+            ) : null}
             <div
               style={{
                 display: 'flex',
@@ -112,7 +115,10 @@ export async function GET(req: NextRequest) {
                 color: '#ffffff',
                 fontSize: '12px',
                 fontWeight: 700,
-                padding: '8px 14px',
+                paddingTop: '8px',
+                paddingBottom: '8px',
+                paddingLeft: '14px',
+                paddingRight: '14px',
                 marginBottom: '14px',
               }}
             >
