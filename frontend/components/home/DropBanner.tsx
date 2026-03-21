@@ -46,7 +46,7 @@ export default function DropBanner() {
                 Shop Now
               </Link>
               <Link
-                href="/products?brand=adidas"
+                href="/brands/adidas"
                 className="inline-flex items-center gap-2 border border-zinc-700 text-zinc-400 px-8 py-3.5 text-sm font-bold tracking-widest uppercase hover:border-zinc-500 hover:text-white transition-colors"
               >
                 All Adidas

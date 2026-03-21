@@ -6,10 +6,10 @@ export const metadata = {
 
 const LINKS = [
   { href: '/products', label: 'All Sneakers' },
-  { href: '/products?brand=Nike', label: 'Nike' },
-  { href: '/products?brand=Jordan', label: 'Jordan' },
-  { href: '/products?brand=Adidas', label: 'Adidas' },
-  { href: '/products?brand=New+Balance', label: 'New Balance' },
+  { href: '/brands/nike', label: 'Nike' },
+  { href: '/brands/jordan', label: 'Jordan' },
+  { href: '/brands/adidas', label: 'Adidas' },
+  { href: '/brands/new-balance', label: 'New Balance' },
 ];
 
 export default function NotFound() {
