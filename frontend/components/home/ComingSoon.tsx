@@ -16,14 +16,14 @@ export default function ComingSoon({ products }: ComingSoonProps) {
 
   return (
     <>
-      <section className="py-8 lg:py-12 bg-zinc-950">
+      <section className="py-8 lg:py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-5">
-            <p className="text-xs font-semibold tracking-[0.3em] uppercase text-indigo-400 mb-1">
+            <p className="text-xs font-semibold tracking-[0.3em] uppercase text-indigo-500 mb-1">
               Mark Your Calendar
             </p>
-            <h2 className="text-2xl font-bold tracking-[0.15em] uppercase text-white">
+            <h2 className="text-2xl font-bold tracking-[0.15em] uppercase text-zinc-900">
               Dropping Soon
             </h2>
             <p className="text-sm text-zinc-400 mt-1">
