@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
       : SYSTEM_PROMPT;
 
     const model = genAI.getGenerativeModel({
-      model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+      model: process.env.GEMINI_MODEL || 'gemini-1.5-flash-8b',
       systemInstruction: systemWithContext,
     });
 
