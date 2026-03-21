@@ -19,7 +19,10 @@ export async function GET(req: NextRequest) {
       if (res.ok) {
         const buf = await res.arrayBuffer();
         const mime = res.headers.get('content-type') || 'image/jpeg';
-        imageSrc = `data:${mime};base64,${Buffer.from(buf).toString('base64')}`;
+        const bytes = new Uint8Array(buf);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+        imageSrc = `data:${mime};base64,${btoa(binary)}`;
       }
     } catch {
       // fall through to no-image layout
