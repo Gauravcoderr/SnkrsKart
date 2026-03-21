@@ -45,7 +45,7 @@ export default function Footer() {
             <ul className="space-y-2">
               {FOOTER_SHOP_LINKS.map((item) => (
                 <li key={item.label}>
-                  <Link href={item.href} className="text-sm text-zinc-400 hover:text-white transition-colors">
+                  <Link href={item.href} target="_blank" rel="noopener noreferrer" className="text-sm text-zinc-400 hover:text-white transition-colors">
                     {item.label}
                   </Link>
                 </li>
@@ -61,6 +61,8 @@ export default function Footer() {
                 <li key={brand.slug}>
                   <Link
                     href={`/brands/${brand.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-sm text-zinc-400 hover:text-white transition-colors"
                   >
                     {brand.label}
@@ -76,7 +78,7 @@ export default function Footer() {
             <ul className="space-y-2">
               {FOOTER_HELP_LINKS.map((item) => (
                 <li key={item.label}>
-                  <Link href={item.href} className="text-sm text-zinc-400 hover:text-white transition-colors">
+                  <Link href={item.href} target="_blank" rel="noopener noreferrer" className="text-sm text-zinc-400 hover:text-white transition-colors">
                     {item.label}
                   </Link>
                 </li>
@@ -90,7 +92,7 @@ export default function Footer() {
             <ul className="space-y-2">
               {FOOTER_ABOUT_LINKS.map((item) => (
                 <li key={item.label}>
-                  <Link href={item.href} className="text-sm text-zinc-400 hover:text-white transition-colors">
+                  <Link href={item.href} target="_blank" rel="noopener noreferrer" className="text-sm text-zinc-400 hover:text-white transition-colors">
                     {item.label}
                   </Link>
                 </li>
@@ -99,6 +101,8 @@ export default function Footer() {
             <div className="mt-6 space-y-2">
               <a
                 href={`mailto:${CONTACT_EMAIL}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
               >
                 <MailIcon className="w-3.5 h-3.5 shrink-0" />
@@ -106,6 +110,8 @@ export default function Footer() {
               </a>
               <a
                 href={`tel:${CONTACT_PHONE_TEL}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
               >
                 <PhoneIcon className="w-3.5 h-3.5 shrink-0" />
@@ -124,9 +130,9 @@ export default function Footer() {
             © {new Date().getFullYear()} {SITE_NAME}. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            <Link href="/privacy" className="text-xs text-zinc-500 hover:text-zinc-300">Privacy Policy</Link>
-            <Link href="/terms" className="text-xs text-zinc-500 hover:text-zinc-300">Terms of Service</Link>
-            <Link href="/sitemap.xml" className="text-xs text-zinc-500 hover:text-zinc-300">Sitemap</Link>
+            <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="text-xs text-zinc-500 hover:text-zinc-300">Privacy Policy</Link>
+            <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-xs text-zinc-500 hover:text-zinc-300">Terms of Service</Link>
+            <Link href="/sitemap.xml" target="_blank" rel="noopener noreferrer" className="text-xs text-zinc-500 hover:text-zinc-300">Sitemap</Link>
           </div>
         </div>
       </div>
