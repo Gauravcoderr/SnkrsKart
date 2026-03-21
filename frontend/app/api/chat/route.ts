@@ -268,6 +268,12 @@ export async function POST(req: NextRequest) {
       } catch {}
     }
 
+    // Safety net: strip any leftover tag fragments the LLM failed to close properly
+    displayText = displayText
+      .replace(/\[SUGGESTIONS:[^\]]*(\]|$)/g, '')
+      .replace(/\[BLOG_SUGGESTIONS:[^\]]*(\]|$)/g, '')
+      .trim();
+
     return NextResponse.json({ text: displayText, products: suggestedProducts, blogs: suggestedBlogs });
   } catch (err: any) {
     const msg = err?.message ?? String(err);

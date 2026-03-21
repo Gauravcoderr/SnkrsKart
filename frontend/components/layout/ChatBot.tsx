@@ -17,6 +17,28 @@ const GREETING: Message = {
   content: "Hey! I'm KickBot 👟 — your sneaker guide at SNKRS CART. Tell me what you're looking for and I'll find the perfect pair for you. What's the vibe — running, streetwear, casual, or something else?",
 };
 
+const URL_REGEX = /(https?:\/\/[^\s]+)/g;
+
+function renderWithLinks(text: string) {
+  const parts = text.split(URL_REGEX);
+  return parts.map((part, i) =>
+    URL_REGEX.test(part) ? (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 underline underline-offset-2 hover:text-blue-800 break-all"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {part}
+      </a>
+    ) : (
+      part
+    )
+  );
+}
+
 function formatPrice(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 }
@@ -199,7 +221,7 @@ export default function ChatBot() {
                   </div>
                   <div className="max-w-[85%]">
                     <div className="bg-zinc-100 text-zinc-900 rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-sm leading-relaxed">
-                      {msg.content}
+                      {renderWithLinks(msg.content)}
                     </div>
                     {msg.products && msg.products.length > 0 && (
                       <div className="mt-2 space-y-2">
