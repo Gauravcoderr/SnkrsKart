@@ -88,7 +88,14 @@ function isInjectionAttempt(text: string): boolean {
   return INJECTION_PATTERNS.some((pattern) => pattern.test(text));
 }
 
+const BUSY_MSG = { text: 'KickBot abhi thoda busy hai — high volume ki wajah se! Thodi der mein try karo. 🙏👟', products: [] };
+
 export async function POST(req: NextRequest) {
+  if (!process.env.GEMINI_API_KEY) {
+    console.error('GEMINI_API_KEY is not set');
+    return NextResponse.json(BUSY_MSG);
+  }
+
   try {
     const { messages }: { messages: Message[] } = await req.json();
     if (!messages?.length) {
@@ -133,10 +140,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ text: displayText, products: suggestedProducts });
   } catch (err: any) {
-    console.error('Chat API error:', err);
-    return NextResponse.json({
-      text: 'KickBot abhi thoda busy hai — high volume ki wajah se! Thodi der mein try karo. 🙏👟',
-      products: [],
-    });
+    console.error('Chat API error:', err?.message ?? err);
+    return NextResponse.json(BUSY_MSG);
   }
 }
