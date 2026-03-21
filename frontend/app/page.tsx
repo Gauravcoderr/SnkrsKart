@@ -8,6 +8,7 @@ import BrandGrid from '@/components/home/BrandGrid';
 import HomeReviews from '@/components/home/HomeReviews';
 import ComingSoon from '@/components/home/ComingSoon';
 import GenderSplit from '@/components/home/GenderSplit';
+import WhyChooseUs from '@/components/home/WhyChooseUs';
 import NewsletterBar from '@/components/home/NewsletterBar';
 
 export const dynamic = 'force-dynamic';
@@ -40,6 +41,7 @@ export default async function HomePage() {
       <HomeReviews reviews={reviews} />
       <BrandGrid brands={brands} />
       <TrendingNow products={trending} />
+      <WhyChooseUs />
       <GenderSplit />
       <ComingSoon products={comingSoon} />
       <NewsletterBar />
