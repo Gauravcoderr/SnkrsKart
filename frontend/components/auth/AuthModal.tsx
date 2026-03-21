@@ -150,6 +150,13 @@ export default function AuthModal() {
   function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) { setError('Name is required'); return; }
+    if (phone.trim()) {
+      const digits = phone.trim().replace(/[\s\-().+]/g, '');
+      if (!/^(91)?[6-9]\d{9}$/.test(digits)) {
+        setError('Enter a valid 10-digit Indian mobile number');
+        return;
+      }
+    }
     setError('');
     saveProfileMutation.mutate();
   }
