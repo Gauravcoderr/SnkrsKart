@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://snkrskart.onrender.com/api/v1';
 
 function escapeXml(str: string): string {
   return String(str ?? '')
