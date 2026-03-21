@@ -160,7 +160,7 @@ export default async function BrandPage({ params, searchParams }: Props) {
           <p className="text-sm text-zinc-500 leading-relaxed">
             Shop the complete {brand.name} collection at SNKRS CART — India's most trusted sneaker store.
             Every pair is 100% authentic, sourced directly from authorised channels.
-            Free pan-India shipping, secure packaging, and easy returns on all {brand.name} shoes.
+            Free pan-India shipping and secure packaging on all {brand.name} shoes.
           </p>
         </div>
       </section>
