@@ -13,6 +13,14 @@ router.post('/', async (req: Request, res: Response) => {
       res.status(400).json({ error: 'All fields are required' });
       return;
     }
+    if (String(name).trim().length > 100) {
+      res.status(400).json({ error: 'Name must be 100 characters or fewer' });
+      return;
+    }
+    if (String(address).trim().length > 300) {
+      res.status(400).json({ error: 'Address must be 300 characters or fewer' });
+      return;
+    }
 
     const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
     const phoneValid = /^(\+91[\s-]?)?[6-9]\d{9}$/.test(String(phone).trim().replace(/\s/g, ''));

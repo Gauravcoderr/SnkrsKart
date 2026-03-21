@@ -3,7 +3,7 @@ interface PaginatorProps {
   totalPages: number;
   onPage: (p: number) => void;
   pageSize: number;
-  onPageSizeChange: (size: number) => void;
+  onPageSizeChange?: (size: number) => void;
   totalItems: number;
 }
 
@@ -28,20 +28,22 @@ export default function Paginator({ page, totalPages, onPage, pageSize, onPageSi
     <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
       {/* Left: page size + info */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          <label htmlFor="page-size" className="text-xs text-zinc-500">Show</label>
-          <select
-            id="page-size"
-            value={pageSize}
-            onChange={(e) => onPageSizeChange(Number(e.target.value))}
-            className="bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:ring-2 focus:ring-white/20"
-          >
-            {SIZE_OPTIONS.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-          <span className="text-xs text-zinc-500">per page</span>
-        </div>
+        {onPageSizeChange && (
+          <div className="flex items-center gap-2">
+            <label htmlFor="page-size" className="text-xs text-zinc-500">Show</label>
+            <select
+              id="page-size"
+              value={pageSize}
+              onChange={(e) => onPageSizeChange(Number(e.target.value))}
+              className="bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+            >
+              {SIZE_OPTIONS.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            <span className="text-xs text-zinc-500">per page</span>
+          </div>
+        )}
         <span className="text-xs text-zinc-600">
           {totalItems > 0 ? `${start}-${end} of ${totalItems}` : 'No items'}
         </span>

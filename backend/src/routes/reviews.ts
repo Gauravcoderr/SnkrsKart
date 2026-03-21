@@ -39,6 +39,14 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       res.status(400).json({ error: 'Rating must be between 1 and 5' });
       return;
     }
+    if (String(name).trim().length > 80) {
+      res.status(400).json({ error: 'Name must be 80 characters or fewer' });
+      return;
+    }
+    if (String(comment).trim().length > 1000) {
+      res.status(400).json({ error: 'Review must be 1000 characters or fewer' });
+      return;
+    }
 
     const review = await Review.create({ productSlug, productName, name: name.trim(), rating, comment: comment.trim() });
 

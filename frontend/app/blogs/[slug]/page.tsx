@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Blog, Product } from '@/types';
+import DOMPurify from 'isomorphic-dompurify';
 import TableOfContents from './TableOfContents';
 import ListenButton from './ListenButton';
 import ReadingProgress from './ReadingProgress';
@@ -93,8 +94,13 @@ function readingTime(html: string): number {
 }
 
 function injectHeadingIds(html: string): string {
+  // Sanitize first — strips <script>, event handlers, etc. Keeps all semantic HTML so SEO is unaffected.
+  const clean = DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['h1','h2','h3','h4','h5','h6','p','a','ul','ol','li','blockquote','strong','em','b','i','u','s','code','pre','br','hr','img','figure','figcaption','table','thead','tbody','tr','th','td','span','div','mark'],
+    ALLOWED_ATTR: ['href','src','alt','title','class','id','target','rel','width','height','style'],
+  });
   let idx = 0;
-  return html.replace(/<h([23])([^>]*)>/gi, (_m, level, attrs) => `<h${level}${attrs} id="heading-${idx++}">`);
+  return clean.replace(/<h([23])([^>]*)>/gi, (_m, level, attrs) => `<h${level}${attrs} id="heading-${idx++}">`);
 }
 
 const TAG_TO_BRAND: Record<string, string> = {

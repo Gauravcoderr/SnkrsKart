@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+import { BASE_URL } from '../_lib/config';
+import Paginator from '../_components/Paginator';
 
 interface AdminUser {
   _id: string;
@@ -136,37 +137,7 @@ export default function AdminUsersPage() {
               ))}
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="px-5 py-3 border-t border-zinc-800 flex items-center justify-between gap-2">
-                <p className="text-xs text-zinc-500">
-                  {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length}
-                </p>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage === 1}
-                    className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
-                    .reduce<(number | '...')[]>((acc, p, idx, arr) => {
-                      if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push('...');
-                      acc.push(p); return acc;
-                    }, [])
-                    .map((p, i) => p === '...'
-                      ? <span key={`e${i}`} className="px-1 text-zinc-600 text-xs">…</span>
-                      : <button key={p} onClick={() => setPage(p as number)}
-                          className={`min-w-[28px] h-7 px-1.5 rounded text-xs font-bold transition-colors ${safePage === p ? 'bg-white text-zinc-900' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}>
-                          {p}
-                        </button>
-                    )}
-                  <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
-                    className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-                  </button>
-                </div>
-              </div>
-            )}
+            <Paginator page={safePage} totalPages={totalPages} onPage={(p) => setPage(p)} pageSize={PAGE_SIZE} totalItems={filtered.length} />
           </>
         )}
       </div>

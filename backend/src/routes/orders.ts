@@ -31,6 +31,14 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       res.status(400).json({ error: 'Invalid email address' });
       return;
     }
+    if (String(name).trim().length > 100 || String(addressLine).trim().length > 300 || String(city).trim().length > 100) {
+      res.status(400).json({ error: 'Input fields exceed maximum length' });
+      return;
+    }
+    if (items.length > 20) {
+      res.status(400).json({ error: 'Order cannot contain more than 20 items' });
+      return;
+    }
 
     const orderNumber = generateOrderNumber();
     const order = await Order.create({

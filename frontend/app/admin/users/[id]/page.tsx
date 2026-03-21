@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+import { BASE_URL } from '../../../_lib/config';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-amber-900/30 text-amber-400',
