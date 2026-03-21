@@ -22,7 +22,8 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
-    const phoneValid = /^(\+91[\s-]?)?[6-9]\d{9}$/.test(String(phone).trim().replace(/\s/g, ''));
+    const phoneDigits = String(phone).trim().replace(/[\s\-().+]/g, '');
+    const phoneValid = /^(91)?[6-9]\d{9}$/.test(phoneDigits);
     if (!emailValid) {
       res.status(400).json({ error: 'Invalid email address' });
       return;

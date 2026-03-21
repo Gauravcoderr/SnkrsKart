@@ -24,8 +24,10 @@ export default function PurchaseModal({ product, selectedSize, currentPrice, onC
   const validateEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
-  const validatePhone = (phone: string) =>
-    /^(\+91[\s-]?)?[6-9]\d{9}$/.test(phone.trim().replace(/\s/g, ''));
+  const validatePhone = (phone: string) => {
+    const digits = phone.trim().replace(/[\s\-().+]/g, '');
+    return /^(91)?[6-9]\d{9}$/.test(digits);
+  };
 
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
