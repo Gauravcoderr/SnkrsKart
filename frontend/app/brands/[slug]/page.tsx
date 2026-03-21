@@ -1,12 +1,15 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { fetchBrandBySlug, fetchProducts } from '@/lib/api';
 import { BRANDS } from '@/lib/constants';
 import ProductCard from '@/components/products/ProductCard';
+import BrandSortSelect from './BrandSortSelect';
 
 interface Props {
   params: { slug: string };
+  searchParams: { sort?: string };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -29,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export const dynamic = 'force-dynamic';
 
-export default async function BrandPage({ params }: Props) {
+export default async function BrandPage({ params, searchParams }: Props) {
   // Normalise: decode URI and replace spaces with hyphens so
   // /brands/New%20Balance  →  new-balance  (same as the slug)
   const slug = decodeURIComponent(params.slug).toLowerCase().replace(/\s+/g, '-');
@@ -47,6 +50,15 @@ export default async function BrandPage({ params }: Props) {
   const products = productsResult.status === 'fulfilled'
     ? (productsResult.value.products ?? productsResult.value)
     : [];
+
+  const sort = searchParams.sort || 'popular';
+  const sortedProducts = Array.isArray(products) ? [...products].sort((a, b) => {
+    if (sort === 'price-asc') return a.price - b.price;
+    if (sort === 'price-desc') return b.price - a.price;
+    if (sort === 'newest') return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    if (sort === 'discount') return ((b.originalPrice ?? b.price) - b.price) - ((a.originalPrice ?? a.price) - a.price);
+    return 0; // popular — keep server order
+  }) : [];
 
   const accent = meta.accent;
 
@@ -118,17 +130,14 @@ export default async function BrandPage({ params }: Props) {
           <h2 className="text-lg font-black uppercase tracking-widest text-zinc-900">
             {Array.isArray(products) ? products.length : 0} Styles
           </h2>
-          <Link
-            href={`/products?brand=${meta.slug}`}
-            className="text-xs font-bold tracking-widest uppercase text-zinc-400 hover:text-zinc-900 transition-colors border-b border-zinc-200 hover:border-zinc-900 pb-0.5"
-          >
-            Filter & Sort →
-          </Link>
+          <Suspense fallback={null}>
+            <BrandSortSelect />
+          </Suspense>
         </div>
 
-        {Array.isArray(products) && products.length > 0 ? (
+        {sortedProducts.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {products.map((product, i) => (
+            {sortedProducts.map((product, i) => (
               <ProductCard key={product.id} product={product} priority={i < 4} />
             ))}
           </div>
