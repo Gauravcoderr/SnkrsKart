@@ -60,7 +60,7 @@ export default function Footer() {
               {BRANDS.map((brand) => (
                 <li key={brand.slug}>
                   <Link
-                    href={`/products?brand=${brand.slug}`}
+                    href={`/brands/${brand.slug}`}
                     className="text-sm text-zinc-400 hover:text-white transition-colors"
                   >
                     {brand.label}
@@ -126,6 +126,7 @@ export default function Footer() {
           <div className="flex items-center gap-4">
             <Link href="/privacy" className="text-xs text-zinc-500 hover:text-zinc-300">Privacy Policy</Link>
             <Link href="/terms" className="text-xs text-zinc-500 hover:text-zinc-300">Terms of Service</Link>
+            <Link href="/sitemap.xml" className="text-xs text-zinc-500 hover:text-zinc-300">Sitemap</Link>
           </div>
         </div>
       </div>
