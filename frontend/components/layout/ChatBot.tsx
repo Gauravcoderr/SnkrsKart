@@ -460,14 +460,14 @@ export default function ChatBot() {
         {/* Animated rings — only when closed */}
         {!open && (
           <>
-            <span className="absolute inset-0 rounded-full bg-zinc-900 opacity-20 animate-ping" style={{ animationDuration: '1.8s' }} />
-            <span className="absolute inset-[-5px] rounded-full bg-zinc-900 opacity-10 animate-ping" style={{ animationDuration: '1.8s', animationDelay: '0.4s' }} />
+            <span className="absolute inset-[-3px] rounded-full bg-zinc-400 opacity-25 animate-ping" style={{ animationDuration: '2s' }} />
+            <span className="absolute inset-[-6px] rounded-full bg-zinc-400 opacity-10 animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
           </>
         )}
         <button
           type="button"
           onClick={() => { setOpen((o) => !o); setShowNudge(false); }}
-          className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center active:scale-95 transition-all duration-200 shadow-lg"
+          className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden flex items-center justify-center active:scale-95 transition-all duration-200 shadow-md"
           aria-label="Open KickBot"
         >
           {open ? (
