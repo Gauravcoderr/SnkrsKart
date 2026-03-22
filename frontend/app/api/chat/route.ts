@@ -58,14 +58,37 @@ function extractProductTerms(text: string): string {
     .trim();
 }
 
+// Detect chip-style intents and map to the right endpoint/params
+function resolveProductUrl(query: string): string {
+  const q = query.toLowerCase();
+  if (/new arrival|new drop|latest drop|just in|just dropped/.test(q))
+    return `${BACKEND_URL}/products/new-arrivals`;
+  if (/best seller|bestseller|trending|most popular|top pick/.test(q))
+    return `${BACKEND_URL}/products/trending`;
+  if (/coming soon|upcoming|drop soon/.test(q))
+    return `${BACKEND_URL}/products/coming-soon`;
+  if (/gift|present|surprise|recommend/.test(q))
+    return `${BACKEND_URL}/products/featured`;
+  if (/women|female|girl/.test(q))
+    return `${BACKEND_URL}/products?gender=women&sort=popular&limit=8`;
+  if (/men|male|guy|boy/.test(q) && !/women/.test(q))
+    return `${BACKEND_URL}/products?gender=men&sort=popular&limit=8`;
+  if (/under.?(?:₹|rs\.?\s*)?(12|10|15|20)\s*(?:k|000)?/.test(q)) {
+    const m = q.match(/(\d+)\s*(?:k|000)/);
+    const cap = m ? parseInt(m[1]) * (m[1].length <= 2 ? 1000 : 1) : 12000;
+    return `${BACKEND_URL}/products?maxPrice=${cap}&sort=price_asc&limit=8`;
+  }
+  // Default: keyword search
+  const terms = extractProductTerms(query) || query;
+  return `${BACKEND_URL}/products?search=${encodeURIComponent(terms)}&limit=8`;
+}
+
 async function fetchProductContext(query: string): Promise<string> {
   try {
-    const searchTerms = extractProductTerms(query) || query;
-    const params = new URLSearchParams({ search: searchTerms, limit: '8' });
-    const res = await fetch(`${BACKEND_URL}/products?${params}`, { cache: 'no-store' });
+    const res = await fetch(resolveProductUrl(query), { cache: 'no-store' });
     if (!res.ok) return '';
     const data = await res.json();
-    const products: any[] = data.products ?? data;
+    const products: any[] = Array.isArray(data) ? data : (data.products ?? []);
     if (!Array.isArray(products) || products.length === 0) return '';
     // TOON format: one header + pipe-separated rows — saves ~40% tokens vs key:value per row
     const header = 'name|brand|price|disc|gender|sizes|rating|tags|slug';
@@ -242,10 +265,18 @@ export async function POST(req: NextRequest) {
     const userMessageCount = messages.filter((m) => m.role === 'user').length;
     const skipContext = userMessageCount > CONTEXT_FETCH_LIMIT;
 
+    // Accumulate last 3 user messages so narrowing queries ("show running ones")
+    // carry forward context ("Nike", "men") from earlier in the conversation.
+    const cumulativeQuery = messages
+      .filter((m) => m.role === 'user')
+      .slice(-3)
+      .map((m) => m.content)
+      .join(' ');
+
     const [productContext, blogContext] = skipContext
       ? ['', '']
       : await Promise.all([
-          fetchProductContext(lastUserMessage),
+          fetchProductContext(cumulativeQuery),
           fetchBlogContext(lastUserMessage),
         ]);
 
