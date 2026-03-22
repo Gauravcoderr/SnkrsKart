@@ -25,7 +25,7 @@ export default function Paginator({ page, totalPages, onPage, pageSize, onPageSi
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 !pt-0">
       {/* Left: page size + info */}
       <div className="flex items-center gap-3">
         {onPageSizeChange && (
