@@ -31,13 +31,17 @@ function buildFilter(query: Record<string, string>): MongoFilter {
   if (query.maxPrice) filter.price = { ...((filter.price as object) ?? {}), $lte: Number(query.maxPrice) };
 
   if (query.search) {
-    // Split into words so "adidas samba cow print" matches each term independently
+    // AND-of-OR: every search word must appear in at least one product field.
+    // "black cat" → product must contain "black" AND "cat" → Black Cat found, not just any black shoe.
     const words = query.search.trim().split(/\s+/).filter((w) => w.length > 1);
     if (words.length > 0) {
-      filter.$or = words.flatMap((w) => {
-        const re = new RegExp(w, 'i');
-        return [{ name: re }, { brand: re }, { colorway: re }, { tags: re }];
-      });
+      (filter as any).$and = [
+        ...((filter as any).$and ?? []),
+        ...words.map((w) => {
+          const re = new RegExp(w, 'i');
+          return { $or: [{ name: re }, { brand: re }, { colorway: re }, { tags: re }] };
+        }),
+      ];
     }
   }
 

@@ -40,9 +40,28 @@ interface Message {
   content: string;
 }
 
+// Strip conversational filler — keep only product-relevant terms before hitting the DB
+const STOP_WORDS = new Set([
+  'do','u','you','we','have','has','is','it','a','an','the','and','or','for',
+  'are','can','give','show','me','my','our','any','got','get','buy','what',
+  'how','much','want','need','looking','find','like','about','tell','more',
+  'check','see','hi','hey','bhai','yaar','koi','hai','mujhe','chahiye','kya',
+  'bata','dikhao','ek','best','good','nice','cool','cheap','price','cost',
+]);
+function extractProductTerms(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length > 1 && !STOP_WORDS.has(w))
+    .join(' ')
+    .trim();
+}
+
 async function fetchProductContext(query: string): Promise<string> {
   try {
-    const params = new URLSearchParams({ search: query, limit: '6' });
+    const searchTerms = extractProductTerms(query) || query;
+    const params = new URLSearchParams({ search: searchTerms, limit: '6' });
     const res = await fetch(`${BACKEND_URL}/products?${params}`, { cache: 'no-store' });
     if (!res.ok) return '';
     const data = await res.json();
