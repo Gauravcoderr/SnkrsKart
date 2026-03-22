@@ -142,9 +142,7 @@ function BlogCard({ blog }: { blog: Blog }) {
 function TypingIndicator() {
   return (
     <div className="flex items-end gap-2">
-      <div className="w-7 h-7 rounded-full bg-zinc-900 flex items-center justify-center flex-shrink-0 text-[13px]">
-        👟
-      </div>
+      <img src="/icon-192.png" alt="KickBot" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
       <div className="bg-zinc-100 rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-1">
         <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:0ms]" />
         <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:150ms]" />
@@ -167,7 +165,7 @@ function LeadCaptureCard({ onSubmit, onSkip }: { onSubmit: (name: string, email:
 
   return (
     <div className="flex items-end gap-2">
-      <div className="w-7 h-7 rounded-full bg-zinc-900 flex items-center justify-center flex-shrink-0 text-[13px]">👟</div>
+      <img src="/icon-192.png" alt="KickBot" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
       <div className="max-w-[85%] bg-zinc-100 rounded-2xl rounded-bl-sm px-3.5 py-3 text-sm">
         <p className="text-zinc-900 font-medium mb-2.5 leading-snug">You're on a roll! 🔥 Drop your details so we can send you exclusive drops & deals.</p>
         <form onSubmit={handleSubmit} className="space-y-2">
