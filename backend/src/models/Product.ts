@@ -82,4 +82,16 @@ const ProductSchema = new Schema<IProduct>(
 // Text search index for name, brand, colorway, tags
 ProductSchema.index({ name: 'text', brand: 'text', colorway: 'text', tags: 'text' });
 
+// Compound indexes matching the actual sort order: comingSoon:-1, soldOut:1, then user sort
+ProductSchema.index({ gender: 1, comingSoon: -1, soldOut: 1, reviewCount: -1 }); // popular (default)
+ProductSchema.index({ gender: 1, comingSoon: -1, soldOut: 1, createdAt: -1 });   // newest
+ProductSchema.index({ gender: 1, comingSoon: -1, soldOut: 1, price: 1 });        // price_asc
+ProductSchema.index({ gender: 1, comingSoon: -1, soldOut: 1, price: -1 });       // price_desc
+// Without gender filter (browse all)
+ProductSchema.index({ comingSoon: -1, soldOut: 1, reviewCount: -1 });
+// For featured / newArrival / trending sub-routes
+ProductSchema.index({ featured: 1, reviewCount: -1 });
+ProductSchema.index({ newArrival: 1, createdAt: -1 });
+ProductSchema.index({ trending: 1, reviewCount: -1 });
+
 export const Product = mongoose.model<IProduct>('Product', ProductSchema);

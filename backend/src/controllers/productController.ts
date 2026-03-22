@@ -7,9 +7,9 @@ function buildFilter(query: Record<string, string>): MongoFilter {
   const filter: MongoFilter = {};
 
   if (query.brand) {
-    const brands = query.brand.split(',').map((b) => b.trim());
-    // Normalise slugs like "new-balance" → "New Balance" so they match DB values
-    filter.brand = { $in: brands.map((b) => new RegExp(`^${b.replace(/-/g, ' ')}$`, 'i')) };
+    const brands = query.brand.split(',').map((b) => b.trim().replace(/-/g, ' '));
+    // Case-insensitive exact match — uses the brand index unlike a mid-string regex
+    filter.brand = { $in: brands.map((b) => new RegExp(`^${b}$`, 'i')) };
   }
 
   if (query.size) {
@@ -52,6 +52,11 @@ function buildSort(sort: string): Record<string, 1 | -1> {
   }
 }
 
+// Fields needed for product cards — variants used in ProductCard for price/hover, sizes for display
+const CARD_FIELDS =
+  'slug name brand colorway gender price originalPrice discount images hoverImage ' +
+  'availableSizes sizes colors variants featured trending newArrival soldOut comingSoon rating reviewCount category';
+
 export const getAllProducts = async (req: Request, res: Response): Promise<void> => {
   try {
     const query = req.query as Record<string, string>;
@@ -60,38 +65,23 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
     const skip  = (page - 1) * limit;
 
     const filter = buildFilter(query);
-    const sort   = buildSort(query.sort || 'popular');
+    const userSort = buildSort(query.sort || 'popular');
 
-    // Priority: comingSoon=0 (first), normal=1, soldOut=2 (last)
-    const priorityField = {
-      $switch: {
-        branches: [
-          { case: { $eq: ['$comingSoon', true] }, then: 0 },
-          { case: { $eq: ['$soldOut', true] }, then: 2 },
-        ],
-        default: 1,
-      },
-    };
+    // comingSoon:-1 → true first; soldOut:1 → false first (soldOut last)
+    const sort = { comingSoon: -1 as const, soldOut: 1 as const, ...userSort, _id: 1 as const };
 
-    const sortStage: Record<string, 1 | -1> = { _priority: 1, ...sort, _id: 1 };
-
-    const [rawProducts, countResult] = await Promise.all([
-      Product.aggregate([
-        { $match: filter },
-        { $addFields: { _priority: priorityField } },
-        { $sort: sortStage },
-        { $skip: skip },
-        { $limit: limit },
-      ]),
-      Product.aggregate([
-        { $match: filter },
-        { $count: 'total' },
-      ]),
+    const [products, total] = await Promise.all([
+      Product.find(filter).sort(sort).skip(skip).limit(limit).select(CARD_FIELDS).lean(),
+      Product.countDocuments(filter),
     ]);
 
-    const total = countResult[0]?.total ?? 0;
-    const products = rawProducts.map((p) => ({ ...p, id: p._id.toString() }));
-    res.json({ products, total, page, limit, totalPages: Math.ceil(total / limit) });
+    res.json({
+      products: products.map((p) => ({ ...p, id: (p._id as any).toString() })),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch products' });
   }
@@ -109,7 +99,11 @@ export const getProductBySlug = async (req: Request, res: Response): Promise<voi
 
 export const getFeaturedProducts = async (_req: Request, res: Response): Promise<void> => {
   try {
-    const products = await Product.find({ featured: true }).sort({ reviewCount: -1 }).limit(6).lean();
+    const products = await Product.find({ featured: true })
+      .sort({ reviewCount: -1 })
+      .limit(6)
+      .select(CARD_FIELDS)
+      .lean();
     res.json(products.map((p) => ({ ...p, id: (p._id as any).toString() })));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch featured products' });
@@ -118,7 +112,11 @@ export const getFeaturedProducts = async (_req: Request, res: Response): Promise
 
 export const getNewArrivals = async (_req: Request, res: Response): Promise<void> => {
   try {
-    const products = await Product.find({ newArrival: true }).sort({ createdAt: -1 }).limit(8).lean();
+    const products = await Product.find({ newArrival: true })
+      .sort({ createdAt: -1 })
+      .limit(8)
+      .select(CARD_FIELDS)
+      .lean();
     res.json(products.map((p) => ({ ...p, id: (p._id as any).toString() })));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch new arrivals' });
@@ -127,7 +125,11 @@ export const getNewArrivals = async (_req: Request, res: Response): Promise<void
 
 export const getTrendingProducts = async (_req: Request, res: Response): Promise<void> => {
   try {
-    const products = await Product.find({ trending: true }).sort({ reviewCount: -1 }).limit(8).lean();
+    const products = await Product.find({ trending: true })
+      .sort({ reviewCount: -1 })
+      .limit(8)
+      .select(CARD_FIELDS)
+      .lean();
     res.json(products.map((p) => ({ ...p, id: (p._id as any).toString() })));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch trending products' });
@@ -136,7 +138,11 @@ export const getTrendingProducts = async (_req: Request, res: Response): Promise
 
 export const getComingSoonProducts = async (_req: Request, res: Response): Promise<void> => {
   try {
-    const products = await Product.find({ comingSoon: true }).sort({ createdAt: -1 }).limit(12).lean();
+    const products = await Product.find({ comingSoon: true })
+      .sort({ createdAt: -1 })
+      .limit(12)
+      .select(CARD_FIELDS)
+      .lean();
     res.json(products.map((p) => ({ ...p, id: (p._id as any).toString() })));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch coming soon products' });
