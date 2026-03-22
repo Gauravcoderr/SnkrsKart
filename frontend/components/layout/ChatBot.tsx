@@ -360,8 +360,8 @@ export default function ChatBot() {
             <div key={i}>
               {msg.role === 'assistant' ? (
                 <div className="flex items-end gap-2">
-                  <div className="w-7 h-7 rounded-full bg-zinc-900 flex items-center justify-center flex-shrink-0 text-[13px]">
-                    👟
+                  <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 border border-zinc-200">
+                    <img src="/icon-192.png" alt="KickBot" className="w-full h-full object-cover" />
                   </div>
                   <div className="max-w-[85%]">
                     <div className="bg-zinc-100 text-zinc-900 rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-sm leading-relaxed">
@@ -455,19 +455,21 @@ export default function ChatBot() {
         </div>
       )}
 
-      {/* Floating bubble button — modern 3D sneaker icon */}
+      {/* Floating bubble button */}
       <button
         type="button"
         onClick={() => { setOpen((o) => !o); setShowNudge(false); }}
-        className="kickbot-btn fixed bottom-6 right-4 sm:right-6 z-50 w-16 h-16 rounded-full flex items-center justify-center active:scale-95 transition-all duration-200"
+        className="kickbot-btn fixed bottom-6 right-4 sm:right-6 z-50 w-16 h-16 rounded-full flex items-center justify-center active:scale-95 transition-all duration-200 ring-2 ring-white shadow-xl"
         aria-label="Open KickBot"
       >
         {open ? (
-          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" d="M18 6 6 18M6 6l12 12" />
-          </svg>
+          <div className="w-full h-full rounded-full bg-zinc-900 flex items-center justify-center">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </div>
         ) : (
-          <img src="/icon-192.png" alt="SNKRS CART" className="w-10 h-10 rounded-full object-cover" />
+          <img src="/icon-192.png" alt="SNKRS CART" className="w-full h-full rounded-full object-cover" />
         )}
       </button>
     </>
