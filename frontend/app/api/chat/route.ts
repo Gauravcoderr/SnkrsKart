@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
-// Simple in-memory rate limiter: max 5 requests per IP per minute
+// Rate limiter: max 5 requests per IP per minute
 const rateLimitMap = new Map<string, { count: number; reset: number }>();
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
@@ -17,6 +17,23 @@ function isRateLimited(ip: string): boolean {
   entry.count++;
   return false;
 }
+
+// Daily message cap: max 10 messages per IP per day
+const dailyMap = new Map<string, { count: number; reset: number }>();
+function isDailyCapped(ip: string): boolean {
+  const now = Date.now();
+  const entry = dailyMap.get(ip);
+  if (!entry || now > entry.reset) {
+    dailyMap.set(ip, { count: 1, reset: now + 24 * 60 * 60 * 1000 });
+    return false;
+  }
+  if (entry.count >= 100) return true;
+  entry.count++;
+  return false;
+}
+
+// Stop fetching DB context after this many messages — saves tokens on long chats
+const CONTEXT_FETCH_LIMIT = 50;
 
 interface Message {
   role: 'user' | 'assistant';
@@ -175,6 +192,12 @@ export async function POST(req: NextRequest) {
   if (isRateLimited(ip)) {
     return NextResponse.json(RATE_MSG_EN);
   }
+  if (isDailyCapped(ip)) {
+    return NextResponse.json({
+      text: "You've reached today's chat limit! 🙏 You're in the queue — come back tomorrow and KickBot will be ready for you. Meanwhile, browse our drops! 👟",
+      products: [],
+    });
+  }
 
   let messages: Message[] = [];
   let english = true;
@@ -197,10 +220,16 @@ export async function POST(req: NextRequest) {
         products: [],
       });
     }
-    const [productContext, blogContext] = await Promise.all([
-      fetchProductContext(lastUserMessage),
-      fetchBlogContext(lastUserMessage),
-    ]);
+    // Skip DB/API context fetches on long conversations to save tokens
+    const userMessageCount = messages.filter((m) => m.role === 'user').length;
+    const skipContext = userMessageCount > CONTEXT_FETCH_LIMIT;
+
+    const [productContext, blogContext] = skipContext
+      ? ['', '']
+      : await Promise.all([
+          fetchProductContext(lastUserMessage),
+          fetchBlogContext(lastUserMessage),
+        ]);
 
     let systemWithContext = SYSTEM_PROMPT;
     if (productContext) systemWithContext += `\n\n--- AVAILABLE PRODUCTS ---\n${productContext}\n--- END PRODUCTS ---`;
