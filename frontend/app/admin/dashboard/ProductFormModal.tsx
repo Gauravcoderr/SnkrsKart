@@ -155,9 +155,14 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
   async function applyBgRemoval(file: File): Promise<File> {
     if (!removeBgEnabled) return file;
     setUploadStatus('Removing background…');
-    const { removeBackground } = await import('@imgly/background-removal');
-    const blob = await removeBackground(file);
-    return new File([blob], file.name.replace(/\.[^.]+$/, '.png'), { type: 'image/png' });
+    try {
+      const { removeBackground } = await import('@imgly/background-removal');
+      const blob = await removeBackground(file);
+      return new File([blob], file.name.replace(/\.[^.]+$/, '.png'), { type: 'image/png' });
+    } catch {
+      // Fall back to original image silently
+      return file;
+    }
   }
 
   async function handleImageFileChange(file: File, index: number) {
