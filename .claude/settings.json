@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:developers.google.com)",
+      "Bash(mkdir -p /Users/gauravrauthan/shoe-auth)",
+      "Read(//Users/gauravrauthan/**)",
+      "Bash(npm run:*)"
+    ],
+    "additionalDirectories": [
+      "/Users/gauravrauthan/shoe-auth"
+    ]
+  }
+}
