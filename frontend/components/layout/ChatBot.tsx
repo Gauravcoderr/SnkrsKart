@@ -334,8 +334,8 @@ export default function ChatBot() {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3.5 border-b border-zinc-100 rounded-t-2xl bg-zinc-900">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-base">
-              👟
+            <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20 shrink-0">
+              <img src="/icon-192.png" alt="SNKRS CART" className="w-full h-full object-cover" />
             </div>
             <div>
               <p className="text-sm font-bold text-white leading-tight">KickBot</p>
@@ -467,42 +467,7 @@ export default function ChatBot() {
             <path strokeLinecap="round" d="M18 6 6 18M6 6l12 12" />
           </svg>
         ) : (
-          <svg viewBox="0 0 44 44" className="w-10 h-10" fill="none">
-            <defs>
-              <linearGradient id="bubbleGrad" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.18"/>
-                <stop offset="100%" stopColor="#ffffff" stopOpacity="0.04"/>
-              </linearGradient>
-              <linearGradient id="shoeBodyGrad" x1="5" y1="18" x2="36" y2="30" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#ffffff"/>
-                <stop offset="100%" stopColor="#d4d4d8"/>
-              </linearGradient>
-            </defs>
-            {/* Chat bubble background glow */}
-            <circle cx="22" cy="22" r="20" fill="url(#bubbleGrad)"/>
-            {/* Sneaker — clean side profile */}
-            {/* Sole */}
-            <rect x="7" y="28" width="28" height="3.5" rx="1.75" fill="#a1a1aa" opacity="0.5"/>
-            {/* Midsole */}
-            <rect x="8" y="25.5" width="27" height="3" rx="1.5" fill="#71717a" opacity="0.8"/>
-            {/* Main upper body */}
-            <path d="M9 25.5 Q9 19 16 17 L30 16.5 Q36 16.5 35 22 L34 25.5 Z" fill="url(#shoeBodyGrad)"/>
-            {/* Toe box shine */}
-            <path d="M9 25 Q9 20 15 18 L18 17.5 Q12 19.5 11 25 Z" fill="white" opacity="0.3"/>
-            {/* Ankle collar */}
-            <path d="M23 17 Q24 12 28 11 L32 11 Q35 12 35 16.5 L30 16.5 Q29 13 26 13.5 Z" fill="#52525b"/>
-            {/* Collar highlight */}
-            <path d="M24 16 Q25 13 28 12.5" stroke="white" strokeWidth="0.8" strokeLinecap="round" opacity="0.4"/>
-            {/* Lace eyelets row */}
-            <line x1="18" y1="17" x2="18" y2="14" stroke="white" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
-            <line x1="21" y1="16.8" x2="21" y2="13.5" stroke="white" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
-            <line x1="24" y1="16.8" x2="24" y2="13" stroke="white" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
-            {/* Lace crossings */}
-            <path d="M17 15.5 Q19.5 14.5 22 15" stroke="white" strokeWidth="0.7" strokeLinecap="round" opacity="0.35"/>
-            <path d="M19 17 Q21.5 16 24 16.5" stroke="white" strokeWidth="0.7" strokeLinecap="round" opacity="0.35"/>
-            {/* Swoosh-style stripe */}
-            <path d="M13 23 Q20 19.5 30 21" stroke="white" strokeWidth="1.2" strokeLinecap="round" opacity="0.25"/>
-          </svg>
+          <img src="/icon-192.png" alt="SNKRS CART" className="w-10 h-10 rounded-full object-cover" />
         )}
       </button>
     </>
