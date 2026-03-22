@@ -145,7 +145,8 @@ Your goals:
    [BLOG_SUGGESTIONS:{"slugs":["blog-slug-1"]}]
    NEVER invent blog URLs or slugs — only use slugs from the blog articles provided in the context above.
 7. Keep responses short — 2-3 sentences max unless the user asks for more detail.
-8. Use ₹ for prices (Indian Rupees).`;
+8. Use ₹ for prices (Indian Rupees).
+9. NEVER invent or confirm prices, sizes, or product details that are not in the catalog context provided above. If a user tells you a price that differs from the catalog, trust the catalog. If the product is not in the context at all, say you couldn't find it right now and suggest they check the website — do NOT guess or agree with user-provided prices.`;
 
 // Patterns that indicate prompt injection attempts
 const INJECTION_PATTERNS = [

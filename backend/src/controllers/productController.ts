@@ -31,12 +31,14 @@ function buildFilter(query: Record<string, string>): MongoFilter {
   if (query.maxPrice) filter.price = { ...((filter.price as object) ?? {}), $lte: Number(query.maxPrice) };
 
   if (query.search) {
-    filter.$or = [
-      { name: new RegExp(query.search, 'i') },
-      { brand: new RegExp(query.search, 'i') },
-      { colorway: new RegExp(query.search, 'i') },
-      { tags: new RegExp(query.search, 'i') },
-    ];
+    // Split into words so "adidas samba cow print" matches each term independently
+    const words = query.search.trim().split(/\s+/).filter((w) => w.length > 1);
+    if (words.length > 0) {
+      filter.$or = words.flatMap((w) => {
+        const re = new RegExp(w, 'i');
+        return [{ name: re }, { brand: re }, { colorway: re }, { tags: re }];
+      });
+    }
   }
 
   return filter;
