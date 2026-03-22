@@ -61,18 +61,20 @@ function extractProductTerms(text: string): string {
 async function fetchProductContext(query: string): Promise<string> {
   try {
     const searchTerms = extractProductTerms(query) || query;
-    const params = new URLSearchParams({ search: searchTerms, limit: '6' });
+    const params = new URLSearchParams({ search: searchTerms, limit: '8' });
     const res = await fetch(`${BACKEND_URL}/products?${params}`, { cache: 'no-store' });
     if (!res.ok) return '';
     const data = await res.json();
     const products: any[] = data.products ?? data;
     if (!Array.isArray(products) || products.length === 0) return '';
     // TOON format: one header + pipe-separated rows — saves ~40% tokens vs key:value per row
-    const header = 'name|brand|price|disc|gender|sizes|slug';
+    const header = 'name|brand|price|disc|gender|sizes|rating|tags|slug';
     const rows = products.map((p: any) => {
       const sizes = (p.availableSizes ?? p.sizes ?? []).join(' ');
       const disc = p.discount ? `${p.discount}%` : '-';
-      return `${p.name}|${p.brand}|₹${p.price}|${disc}|${p.gender}|${sizes}|${p.slug}`;
+      const rating = p.rating ? p.rating.toFixed(1) : '-';
+      const tags = (p.tags ?? []).slice(0, 3).join(' ') || '-';
+      return `${p.name}|${p.brand}|₹${p.price}|${disc}|${p.gender}|${sizes}|${rating}|${tags}|${p.slug}`;
     });
     return [header, ...rows].join('\n');
   } catch {
@@ -96,22 +98,14 @@ async function fetchSuggestedProducts(slugs: string[]): Promise<any[]> {
 
 async function fetchBlogContext(query: string): Promise<string> {
   try {
-    const res = await fetch(`${BACKEND_URL}/blogs`, { cache: 'no-store' });
+    // Server-side search — no longer fetches all blogs
+    const params = new URLSearchParams({ search: extractProductTerms(query) || query, limit: '5' });
+    const res = await fetch(`${BACKEND_URL}/blogs?${params}`, { cache: 'no-store' });
     if (!res.ok) return '';
     const blogs: any[] = await res.json();
     if (!Array.isArray(blogs) || blogs.length === 0) return '';
-    const q = query.toLowerCase();
-    const relevant = blogs
-      .filter((b: any) => b.published !== false)
-      .filter((b: any) => {
-        const haystack = `${b.title} ${b.excerpt} ${(b.tags ?? []).join(' ')}`.toLowerCase();
-        return q.split(/\s+/).some((word) => word.length > 2 && haystack.includes(word));
-      })
-      .slice(0, 3);
-    if (!relevant.length) return '';
-    // TOON format
     const header = 'title|tags|slug';
-    const rows = relevant.map((b: any) => `${b.title}|${(b.tags ?? []).join(' ')}|${b.slug}`);
+    const rows = blogs.map((b: any) => `${b.title}|${(b.tags ?? []).join(' ')}|${b.slug}`);
     return [header, ...rows].join('\n');
   } catch {
     return '';
@@ -168,7 +162,8 @@ Your goals:
    NEVER invent blog URLs or slugs — only use slugs from the blog articles provided in the context above.
 7. Keep responses short — 2-3 sentences max unless the user asks for more detail.
 8. Use ₹ for prices (Indian Rupees).
-9. NEVER invent or confirm prices, sizes, or product details that are not in the catalog context provided above. If a user tells you a price that differs from the catalog, trust the catalog. If the product is not in the context at all, say you couldn't find it right now and suggest they check the website — do NOT guess or agree with user-provided prices.`;
+9. NEVER invent or confirm prices, sizes, or product details that are not in the catalog context provided above. If a user tells you a price that differs from the catalog, trust the catalog. If the product is not in the context at all, say you couldn't find it right now and suggest they check the website — do NOT guess or agree with user-provided prices.
+10. When a product has a rating of 4.5 or above, mention it naturally (e.g. "highly rated at ★4.8").`;
 
 // Patterns that indicate prompt injection attempts
 const INJECTION_PATTERNS = [

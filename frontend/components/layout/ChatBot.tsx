@@ -13,12 +13,22 @@ interface Message {
   content: string;
   products?: Product[];
   blogs?: Blog[];
+  chips?: string[];
 }
+
+const STARTER_CHIPS = ['🔥 New Arrivals', '⭐ Best Sellers', '💰 Under ₹5,000', '🎁 Help me pick a gift'];
 
 const GREETING: Message = {
   role: 'assistant',
   content: "Hey! I'm KickBot 👟 — your sneaker guide at SNKRS CART. Tell me what you're looking for and I'll find the perfect pair for you. What's the vibe — running, streetwear, casual, or something else?",
+  chips: STARTER_CHIPS,
 };
+
+function deriveChips(products: Product[]): string[] {
+  const brands = [...new Set(products.map((p) => p.brand))].map((b) => `More ${b}`);
+  const extras = brands.length < 3 ? ['Under ₹5,000', 'Show more options'] : ['Under ₹5,000'];
+  return [...brands, ...extras].slice(0, 4);
+}
 
 const URL_REGEX = /(https?:\/\/[^\s]+)/g;
 
@@ -68,14 +78,23 @@ function ProductCard({ product }: { product: Product }) {
           {product.name}
         </p>
         <p className="text-[11px] text-zinc-400 truncate">{product.brand}</p>
-        <div className="flex items-center gap-1.5 mt-0.5">
+        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
           <span className="text-xs font-bold text-zinc-900">{formatPrice(product.price)}</span>
           {product.discount && (
             <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 rounded px-1">
               {product.discount}% off
             </span>
           )}
+          {(product as any).soldOut && (
+            <span className="text-[10px] font-medium text-red-500">Sold Out</span>
+          )}
+          {(product as any).comingSoon && (
+            <span className="text-[10px] font-medium text-violet-500">Coming Soon</span>
+          )}
         </div>
+        {(product as any).rating >= 4.5 && (
+          <p className="text-[10px] text-amber-500 mt-0.5">★ {((product as any).rating as number).toFixed(1)}</p>
+        )}
       </div>
     </Link>
   );
@@ -229,10 +248,10 @@ export default function ChatBot() {
     setLeadCaptured(true);
   }
 
-  async function send() {
-    const text = input.trim();
+  async function send(overrideText?: string) {
+    const text = (overrideText ?? input).trim();
     if (!text || loading) return;
-    setInput('');
+    if (!overrideText) setInput('');
 
     const userMsg: Message = { role: 'user', content: text };
     const updated = [...messages, userMsg];
@@ -247,9 +266,16 @@ export default function ChatBot() {
         body: JSON.stringify({ messages: apiMessages }),
       });
       const data = await res.json();
+      const products = data.products ?? [];
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: data.text ?? 'Sorry, something went wrong.', products: data.products ?? [], blogs: data.blogs ?? [] },
+        {
+          role: 'assistant',
+          content: data.text ?? 'Sorry, something went wrong.',
+          products,
+          blogs: data.blogs ?? [],
+          chips: deriveChips(products),
+        },
       ]);
 
       // Trigger lead form after LEAD_TRIGGER user messages
@@ -340,6 +366,21 @@ export default function ChatBot() {
                         ))}
                       </div>
                     )}
+                    {/* Quick reply chips — only on the last assistant message */}
+                    {msg.chips && msg.chips.length > 0 && i === messages.length - 1 && !loading && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {msg.chips.map((chip) => (
+                          <button
+                            key={chip}
+                            type="button"
+                            onClick={() => send(chip)}
+                            className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all"
+                          >
+                            {chip}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -372,7 +413,7 @@ export default function ChatBot() {
             />
             <button
               type="button"
-              onClick={send}
+              onClick={() => send()}
               disabled={!input.trim() || loading}
               className="w-7 h-7 rounded-lg bg-zinc-900 flex items-center justify-center flex-shrink-0 disabled:opacity-30 hover:bg-zinc-700 transition-colors"
               aria-label="Send"
