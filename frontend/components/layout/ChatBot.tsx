@@ -360,9 +360,7 @@ export default function ChatBot() {
             <div key={i}>
               {msg.role === 'assistant' ? (
                 <div className="flex items-end gap-2">
-                  <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 border border-zinc-200">
-                    <img src="/icon-192.png" alt="KickBot" className="w-full h-full object-cover" />
-                  </div>
+                  <img src="/icon-192.png" alt="KickBot" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
                   <div className="max-w-[85%]">
                     <div className="bg-zinc-100 text-zinc-900 rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-sm leading-relaxed">
                       {renderWithLinks(msg.content)}
