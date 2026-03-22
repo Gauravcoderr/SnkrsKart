@@ -458,8 +458,8 @@ export default function ChatBot() {
         {/* Animated rings — only when closed */}
         {!open && (
           <>
-            <span className="absolute inset-[-3px] rounded-full bg-zinc-400 opacity-25 animate-ping" style={{ animationDuration: '2s' }} />
-            <span className="absolute inset-[-6px] rounded-full bg-zinc-400 opacity-10 animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
+            <span className="absolute inset-[-3px] rounded-full animate-ping" style={{ animationDuration: '2s', backgroundColor: '#a3e635', opacity: 0.45 }} />
+            <span className="absolute inset-[-7px] rounded-full animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s', backgroundColor: '#84cc16', opacity: 0.2 }} />
           </>
         )}
         <button
