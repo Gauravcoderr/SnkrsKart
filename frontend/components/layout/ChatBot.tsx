@@ -455,23 +455,30 @@ export default function ChatBot() {
         </div>
       )}
 
-      {/* Floating bubble button */}
-      <button
-        type="button"
-        onClick={() => { setOpen((o) => !o); setShowNudge(false); }}
-        className="kickbot-btn fixed bottom-6 right-4 sm:right-6 z-50 w-16 h-16 rounded-full flex items-center justify-center active:scale-95 transition-all duration-200 ring-2 ring-white shadow-xl"
-        aria-label="Open KickBot"
-      >
-        {open ? (
-          <div className="w-full h-full rounded-full bg-zinc-900 flex items-center justify-center">
+      {/* Floating bubble button with pulsing rings */}
+      <div className="kickbot-btn fixed bottom-6 right-4 sm:right-6 z-50">
+        {/* Animated rings — only when closed */}
+        {!open && (
+          <>
+            <span className="absolute inset-0 rounded-full bg-zinc-900 opacity-20 animate-ping" style={{ animationDuration: '1.8s' }} />
+            <span className="absolute inset-[-5px] rounded-full bg-zinc-900 opacity-10 animate-ping" style={{ animationDuration: '1.8s', animationDelay: '0.4s' }} />
+          </>
+        )}
+        <button
+          type="button"
+          onClick={() => { setOpen((o) => !o); setShowNudge(false); }}
+          className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-zinc-900 flex items-center justify-center active:scale-95 transition-all duration-200 shadow-lg"
+          aria-label="Open KickBot"
+        >
+          {open ? (
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" d="M18 6 6 18M6 6l12 12" />
             </svg>
-          </div>
-        ) : (
-          <img src="/icon-192.png" alt="SNKRS CART" className="w-full h-full rounded-full object-cover" />
-        )}
-      </button>
+          ) : (
+            <img src="/icon-192.png" alt="SNKRS CART" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover" />
+          )}
+        </button>
+      </div>
     </>
   );
 }
