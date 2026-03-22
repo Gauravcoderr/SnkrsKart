@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Paginator from '../_components/Paginator';
+import { uploadImage } from '@/lib/uploadImage';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const PAGE_SIZE = 10;
@@ -43,6 +44,22 @@ export default function BannersPage() {
   const [saveError, setSaveError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<Banner | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleImageUpload(file: File) {
+    setUploading(true);
+    setUploadError('');
+    try {
+      const url = await uploadImage(file, 'products');
+      setField('image', url);
+    } catch (e: any) {
+      setUploadError(e.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  }
 
   const getToken = useCallback(() => {
     const token = localStorage.getItem('admin_token');
@@ -317,9 +334,33 @@ export default function BannersPage() {
                 </Field>
               </div>
 
-              <Field label="Image URL">
-                <input id="b-image" type="text" value={modal.form.image} onChange={(e) => setField('image', e.target.value)}
-                  className={inputCls} placeholder="https://..." />
+              <Field label="Image">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={modal.form.image}
+                    onChange={(e) => setField('image', e.target.value)}
+                    className={`${inputCls} flex-1`}
+                    placeholder="https://... or upload →"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => imageInputRef.current?.click()}
+                    disabled={uploading}
+                    className="shrink-0 px-3.5 py-2.5 text-sm font-semibold bg-zinc-800 border border-zinc-700 text-zinc-300 rounded-lg hover:bg-zinc-700 hover:text-white disabled:opacity-50 transition whitespace-nowrap"
+                  >
+                    {uploading ? 'Uploading…' : 'Upload'}
+                  </button>
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    aria-label="Upload banner image"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); e.target.value = ''; }}
+                  />
+                </div>
+                {uploadError && <p className="text-xs text-red-400 mt-1">{uploadError}</p>}
               </Field>
 
               {/* Colors */}
