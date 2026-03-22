@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@google/genai": "^1.46.0",
-    "@imgly/background-removal": "^1.7.0",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@supabase/supabase-js": "^2.99.3",

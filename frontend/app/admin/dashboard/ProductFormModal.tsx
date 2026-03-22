@@ -147,32 +147,14 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
   const [saving, setSaving] = useState(false);
   const [uploadingIdx, setUploadingIdx] = useState<number | 'hover' | null>(null);
   const [uploadError, setUploadError] = useState('');
-  const [uploadStatus, setUploadStatus] = useState('');
-  const [removeBgEnabled, setRemoveBgEnabled] = useState(true);
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const hoverFileRef = useRef<HTMLInputElement | null>(null);
-
-  async function applyBgRemoval(file: File): Promise<File> {
-    if (!removeBgEnabled) return file;
-    setUploadStatus('Removing background…');
-    try {
-      const { removeBackground } = await import('@imgly/background-removal');
-      const blob = await removeBackground(file);
-      return new File([blob], file.name.replace(/\.[^.]+$/, '.png'), { type: 'image/png' });
-    } catch {
-      // Fall back to original image silently
-      return file;
-    }
-  }
 
   async function handleImageFileChange(file: File, index: number) {
     setUploadingIdx(index);
     setUploadError('');
-    setUploadStatus('');
     try {
-      const bgRemoved = await applyBgRemoval(file);
-      setUploadStatus('Uploading…');
-      const compressed = await compressImage(bgRemoved);
+      const compressed = await compressImage(file);
       const url = await uploadImage(compressed, 'products');
       const updated = [...form.imageList];
       updated[index] = url;
@@ -181,25 +163,20 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
       setUploadError(`Image ${index + 1}: ${e.message}`);
     } finally {
       setUploadingIdx(null);
-      setUploadStatus('');
     }
   }
 
   async function handleHoverFileChange(file: File) {
     setUploadingIdx('hover');
     setUploadError('');
-    setUploadStatus('');
     try {
-      const bgRemoved = await applyBgRemoval(file);
-      setUploadStatus('Uploading…');
-      const compressed = await compressImage(bgRemoved);
+      const compressed = await compressImage(file);
       const url = await uploadImage(compressed, 'products');
       set('hoverImage', url);
     } catch (e: any) {
       setUploadError(`Hover image: ${e.message}`);
     } finally {
       setUploadingIdx(null);
-      setUploadStatus('');
     }
   }
 
@@ -464,21 +441,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
 
           {/* Images */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-sm font-medium text-zinc-400">Image URLs *</label>
-              <label className="flex items-center gap-1.5 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={removeBgEnabled}
-                  onChange={(e) => setRemoveBgEnabled(e.target.checked)}
-                  className="accent-indigo-400 w-3.5 h-3.5"
-                />
-                <span className="text-xs text-zinc-400">Auto remove background</span>
-              </label>
-            </div>
-            {uploadStatus && (
-              <p className="text-xs text-indigo-400 mb-1.5 animate-pulse">{uploadStatus}</p>
-            )}
+            <label className="block text-sm font-medium text-zinc-400 mb-1.5">Image URLs *</label>
             <div className="space-y-2">
               {form.imageList.map((url, i) => (
                 <div key={i} className="space-y-1.5">
