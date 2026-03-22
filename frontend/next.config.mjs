@@ -1,5 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  webpack: (config) => {
+    // onnxruntime-web uses import.meta.url in its WASM loader — treat as auto (ESM-safe)
+    config.module.rules.push({
+      test: /ort-wasm.*\.js$/,
+      include: /node_modules[/\\]onnxruntime-web/,
+      type: 'javascript/auto',
+    });
+    // Exclude server-only onnxruntime-node from client bundle
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'onnxruntime-node$': false,
+    };
+    return config;
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com', pathname: '/**' },
