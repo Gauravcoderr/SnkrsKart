@@ -16,7 +16,7 @@ interface Message {
   chips?: string[];
 }
 
-const STARTER_CHIPS = ['🔥 New Arrivals', '⭐ Best Sellers', '💰 Under ₹5,000', '🎁 Help me pick a gift'];
+const STARTER_CHIPS = ['🔥 New Arrivals', '⭐ Best Sellers', '💰 Under ₹12,000', '🎁 Help me pick a gift'];
 
 const GREETING: Message = {
   role: 'assistant',
@@ -24,10 +24,25 @@ const GREETING: Message = {
   chips: STARTER_CHIPS,
 };
 
+const FALLBACK_CHIP_SETS = [
+  ['👟 Men\'s picks', '👠 Women\'s picks', 'Under ₹12,000', 'Latest drops'],
+  ['Nike styles', 'Jordan 4s', 'New Balance', 'Adidas Samba'],
+  ['Best rated', 'Coming soon', 'Casual wear', 'Street style'],
+  ['Gift ideas', 'Running shoes', 'Lifestyle kicks', 'Limited editions'],
+];
+let _chipSetIdx = 0;
+
 function deriveChips(products: Product[]): string[] {
+  if (products.length === 0) {
+    // Rotate through fallback sets so it doesn't feel repetitive
+    const chips = FALLBACK_CHIP_SETS[_chipSetIdx % FALLBACK_CHIP_SETS.length];
+    _chipSetIdx++;
+    return chips;
+  }
   const brands = [...new Set(products.map((p) => p.brand))].map((b) => `More ${b}`);
-  const extras = brands.length < 3 ? ['Under ₹5,000', 'Show more options'] : ['Under ₹5,000'];
-  return [...brands, ...extras].slice(0, 4);
+  // Mix brand chips with one action chip to avoid pure-brand repetition
+  const action = ['Under ₹12,000', 'Best rated', 'Latest drops', 'Women\'s picks'][_chipSetIdx++ % 4];
+  return [...brands, action].slice(0, 4);
 }
 
 const URL_REGEX = /(https?:\/\/[^\s]+)/g;
