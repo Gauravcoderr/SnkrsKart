@@ -1,10 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   webpack: (config) => {
-    // onnxruntime-web uses import.meta.url in its WASM loader — treat as auto (ESM-safe)
+    // onnxruntime-web uses import.meta.url — treat all its JS files as auto (ESM-safe)
     config.module.rules.push({
-      test: /ort-wasm.*\.js$/,
-      include: /node_modules[/\\]onnxruntime-web/,
+      test: /\.js$/,
+      include: /node_modules[\\/]onnxruntime-web/,
       type: 'javascript/auto',
     });
     // Exclude server-only onnxruntime-node from client bundle
