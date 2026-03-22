@@ -13,6 +13,7 @@ import {
   BannersIcon,
   SellersIcon,
   BlogsIcon,
+  ChatLeadsIcon,
   LogoutIcon,
 } from '@/components/ui/Icons';
 
@@ -24,7 +25,8 @@ const NAV = [
   { href: '/admin/reviews',   label: 'Reviews',   Icon: StarIcon },
   { href: '/admin/banners',   label: 'Banners',   Icon: BannersIcon },
   { href: '/admin/sellers',   label: 'Sellers',   Icon: SellersIcon },
-  { href: '/admin/blogs',     label: 'Blogs',     Icon: BlogsIcon },
+  { href: '/admin/blogs',       label: 'Blogs',       Icon: BlogsIcon },
+  { href: '/admin/chat-leads',  label: 'Chat Leads',  Icon: ChatLeadsIcon },
 ];
 
 const AUTH_EXEMPT = ['/admin/login'];

@@ -12,6 +12,7 @@ import { Blog } from '../models/Blog';
 import { Order } from '../models/Order';
 import { Newsletter } from '../models/Newsletter';
 import { User } from '../models/User';
+import ChatLead from '../models/ChatLead';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'snkrs-cart-admin-secret-key';
@@ -380,6 +381,26 @@ router.get('/newsletter', adminAuth, async (_req: Request, res: Response): Promi
     res.json(subscribers);
   } catch {
     res.status(500).json({ error: 'Failed to fetch subscribers' });
+  }
+});
+
+// ─── Chat Leads ────────────────────────────────────────────────────────────
+
+router.get('/chat-leads', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const leads = await ChatLead.find().sort({ capturedAt: -1 }).lean();
+    res.json(leads);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch chat leads' });
+  }
+});
+
+router.delete('/chat-leads/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    await ChatLead.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Deleted' });
+  } catch {
+    res.status(500).json({ error: 'Failed to delete' });
   }
 });
 
