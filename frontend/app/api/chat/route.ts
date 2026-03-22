@@ -48,12 +48,14 @@ async function fetchProductContext(query: string): Promise<string> {
     const data = await res.json();
     const products: any[] = data.products ?? data;
     if (!Array.isArray(products) || products.length === 0) return '';
-    return products
-      .map(
-        (p: any) =>
-          `- ${p.name} | Brand: ${p.brand} | Price: ₹${p.price}${p.discount ? ` (${p.discount}% off)` : ''} | Gender: ${p.gender} | Sizes: ${(p.availableSizes ?? p.sizes ?? []).join(', ')} | Slug: ${p.slug}`
-      )
-      .join('\n');
+    // TOON format: one header + pipe-separated rows — saves ~40% tokens vs key:value per row
+    const header = 'name|brand|price|disc|gender|sizes|slug';
+    const rows = products.map((p: any) => {
+      const sizes = (p.availableSizes ?? p.sizes ?? []).join(' ');
+      const disc = p.discount ? `${p.discount}%` : '-';
+      return `${p.name}|${p.brand}|₹${p.price}|${disc}|${p.gender}|${sizes}|${p.slug}`;
+    });
+    return [header, ...rows].join('\n');
   } catch {
     return '';
   }
@@ -88,9 +90,10 @@ async function fetchBlogContext(query: string): Promise<string> {
       })
       .slice(0, 3);
     if (!relevant.length) return '';
-    return relevant
-      .map((b: any) => `- "${b.title}" | Tags: ${(b.tags ?? []).join(', ')} | Slug: ${b.slug}`)
-      .join('\n');
+    // TOON format
+    const header = 'title|tags|slug';
+    const rows = relevant.map((b: any) => `${b.title}|${(b.tags ?? []).join(' ')}|${b.slug}`);
+    return [header, ...rows].join('\n');
   } catch {
     return '';
   }
@@ -139,10 +142,10 @@ Your goals:
 3. Recommend shoes from the catalog provided. Always reference real products from the context.
 4. If the user asks for a product link or URL, ONLY share links to real products from the catalog above using the exact slug provided — format: https://snkrs-kart.vercel.app/products/{slug}. NEVER invent URLs like /products/nike or /products/jordan — these pages do not exist.
    For blog articles, ONLY share links using the exact slug provided — format: https://snkrs-kart.vercel.app/blogs/{slug}. NEVER use /products/ for blog links.
-5. If recommending specific products, include their slugs at the very end of your reply in this exact format:
-   [SUGGESTIONS:{"slugs":["slug-1","slug-2"]}]
-6. If there are relevant blog articles in the context, suggest them too by including their slugs right after SUGGESTIONS in this exact format (no extra text after it):
-   [BLOG_SUGGESTIONS:{"slugs":["blog-slug-1"]}]
+5. If recommending specific products, include their slugs at the very end of your reply in this exact format (comma-separated, no spaces, no JSON):
+   [S:slug-1,slug-2]
+6. If there are relevant blog articles in the context, add their slugs right after in this exact format (no extra text after it):
+   [BS:blog-slug-1]
    NEVER invent blog URLs or slugs — only use slugs from the blog articles provided in the context above.
 7. Keep responses short — 2-3 sentences max unless the user asks for more detail.
 8. Use ₹ for prices (Indian Rupees).
@@ -277,9 +280,10 @@ export async function POST(req: NextRequest) {
       rawText = result.choices[0]?.message?.content ?? '';
     }
 
-    // Parse out product slugs (closing ] is optional — LLMs sometimes omit it)
-    const suggestionMatch = rawText.match(/\[SUGGESTIONS:\s*(\{[\s\S]*?\})\s*\]?/);
-    const blogMatch = rawText.match(/\[BLOG_SUGGESTIONS:\s*(\{[\s\S]*?\})\s*\]?/);
+    // Parse compact TOON tags: [S:slug-1,slug-2] and [BS:slug-1]
+    // Also accept legacy JSON format as fallback
+    const suggestionMatch = rawText.match(/\[S:([\w,\-]+)\]/) ?? rawText.match(/\[SUGGESTIONS:\s*(\{[\s\S]*?\})\s*\]?/);
+    const blogMatch = rawText.match(/\[BS:([\w,\-]+)\]/) ?? rawText.match(/\[BLOG_SUGGESTIONS:\s*(\{[\s\S]*?\})\s*\]?/);
     let suggestedProducts: any[] = [];
     let suggestedBlogs: any[] = [];
     let displayText = rawText;
@@ -287,7 +291,8 @@ export async function POST(req: NextRequest) {
     if (suggestionMatch) {
       displayText = displayText.replace(suggestionMatch[0], '').trim();
       try {
-        const { slugs } = JSON.parse(suggestionMatch[1]);
+        const raw = suggestionMatch[1];
+        const slugs = raw.startsWith('{') ? JSON.parse(raw).slugs : raw.split(',').map((s: string) => s.trim()).filter(Boolean);
         suggestedProducts = await fetchSuggestedProducts(slugs);
       } catch {}
     }
@@ -295,16 +300,18 @@ export async function POST(req: NextRequest) {
     if (blogMatch) {
       displayText = displayText.replace(blogMatch[0], '').trim();
       try {
-        const { slugs } = JSON.parse(blogMatch[1]);
+        const raw = blogMatch[1];
+        const slugs = raw.startsWith('{') ? JSON.parse(raw).slugs : raw.split(',').map((s: string) => s.trim()).filter(Boolean);
         suggestedBlogs = await fetchSuggestedBlogs(slugs);
       } catch {}
     }
 
-    // Safety net: remove everything from [SUGGESTIONS: or [BLOG_SUGGESTIONS: to end of string
+    // Safety net: strip any leftover tags
     displayText = displayText
+      .replace(/\[S:[\s\S]*/g, '')
+      .replace(/\[BS:[\s\S]*/g, '')
       .replace(/\[SUGGESTIONS:[\s\S]*/g, '')
       .replace(/\[BLOG_SUGGESTIONS:[\s\S]*/g, '')
-      // Strip orphaned JSON fragments the LLM sometimes appends (e.g. "}]", `"]`, `}`)
       .replace(/["}\]]+\s*$/, '')
       .trim();
 
