@@ -200,6 +200,16 @@ async function seed() {
   await connectDB();
   console.log('Connected to DB');
 
+  // Verify cover images load before inserting
+  for (const blog of blogs) {
+    try {
+      const res = await fetch(blog.coverImage, { method: 'HEAD' });
+      if (!res.ok) console.warn(`⚠️  Image may not load for "${blog.slug}": ${blog.coverImage} (${res.status})`);
+    } catch {
+      console.warn(`⚠️  Could not reach image for "${blog.slug}": ${blog.coverImage}`);
+    }
+  }
+
   let added = 0;
   for (const blog of blogs) {
     const exists = await Blog.findOne({ slug: blog.slug });
