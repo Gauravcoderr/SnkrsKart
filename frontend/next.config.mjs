@@ -24,6 +24,9 @@ const nextConfig = {
       { protocol: 'https', hostname: 'adn-static1.nykaa.com', pathname: '/**' },
       { protocol: 'https', hostname: 'ypsogynovubjdriipnbu.supabase.co', pathname: '/**' },
       { protocol: 'https', hostname: 'res.cloudinary.com', pathname: '/**' },
+      { protocol: 'https', hostname: 'cdn.sanity.io', pathname: '/**' },
+      { protocol: 'https', hostname: 'sneakerbardetroit.com', pathname: '/**' },
+      { protocol: 'https', hostname: 'cdn.sneaktorious.com', pathname: '/**' },
     ],
   },
 };
