@@ -27,6 +27,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'cdn.sanity.io', pathname: '/**' },
       { protocol: 'https', hostname: 'sneakerbardetroit.com', pathname: '/**' },
       { protocol: 'https', hostname: 'cdn.sneaktorious.com', pathname: '/**' },
+      { protocol: 'https', hostname: 'justfreshkicks.com', pathname: '/**' },
     ],
   },
 };
