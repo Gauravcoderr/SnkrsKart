@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async rewrites() {
-    return [{ source: '/rss.xml', destination: '/api/rss' }];
+    return [
+      { source: '/rss.xml',   destination: '/api/rss'  },
+      { source: '/llms.txt',  destination: '/api/llms' },
+    ];
   },
   images: {
     remotePatterns: [
