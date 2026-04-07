@@ -4,7 +4,7 @@ import { BRANDS } from '@/lib/constants';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
-interface BlogEntry { slug: string; updatedAt?: string; createdAt: string }
+interface BlogEntry { slug: string; updatedAt?: string; createdAt: string; tags?: string[] }
 interface ProductEntry { slug: string; createdAt?: string }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -24,8 +24,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/terms`, changeFrequency: 'yearly', priority: 0.2 },
   ];
 
-  // Dynamic: Blog posts
+  // Dynamic: Blog posts + tag pages
   let blogPages: MetadataRoute.Sitemap = [];
+  let tagPages: MetadataRoute.Sitemap = [];
   try {
     const res = await fetch(`${API}/blogs?limit=500`, { next: { revalidate: 3600 } });
     if (res.ok) {
@@ -35,6 +36,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: b.updatedAt ? new Date(b.updatedAt) : new Date(b.createdAt),
         changeFrequency: 'weekly' as const,
         priority: 0.7,
+      }));
+      // Unique tags across all blogs
+      const allTags = new Set<string>();
+      blogs.forEach((b) => (b.tags ?? []).forEach((t) => allTags.add(t.toLowerCase())));
+      tagPages = Array.from(allTags).map((tag) => ({
+        url: `${SITE_URL}/blogs/tag/${encodeURIComponent(tag)}`,
+        changeFrequency: 'weekly' as const,
+        priority: 0.6,
       }));
     }
   } catch { /* ignore */ }
@@ -63,5 +72,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }));
 
-  return [...staticPages, ...brandPages, ...productPages, ...blogPages];
+  return [...staticPages, ...brandPages, ...productPages, ...blogPages, ...tagPages];
 }

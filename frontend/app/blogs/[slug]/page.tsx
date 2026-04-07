@@ -251,12 +251,13 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
           {safeTags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-5">
               {safeTags.slice(0, 4).map((tag) => (
-                <span
+                <Link
                   key={tag}
-                  className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${accent.tagBg} ${accent.tagText}`}
+                  href={`/blogs/tag/${encodeURIComponent(tag.toLowerCase())}`}
+                  className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${accent.tagBg} ${accent.tagText} hover:opacity-75 transition-opacity`}
                 >
                   {tag}
-                </span>
+                </Link>
               ))}
             </div>
           )}

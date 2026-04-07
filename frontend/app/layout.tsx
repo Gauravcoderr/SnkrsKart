@@ -49,7 +49,17 @@ export const metadata: Metadata = {
   authors: [{ name: 'SNKRS CART', url: SITE_URL }],
   creator: 'SNKRS CART',
   publisher: 'SNKRS CART',
-  robots: { index: true, follow: true },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
   alternates: { canonical: SITE_URL },
   appleWebApp: {
     title: 'SNKRS CART',
@@ -148,6 +158,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${bebas.variable}`}>
       <head>
+        <link rel="alternate" type="application/rss+xml" title="SNKRS CART Blog" href="/rss.xml" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

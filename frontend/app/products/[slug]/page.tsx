@@ -7,6 +7,26 @@ import ProductReviews from '@/components/reviews/ProductReviews';
 import ProductRatingDisplay from '@/components/product-detail/ProductRatingDisplay';
 import RecentlyViewed from '@/components/product-detail/RecentlyViewed';
 import Link from 'next/link';
+import Image from 'next/image';
+
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+
+const BRAND_TAG: Record<string, string> = {
+  'Nike': 'nike', 'Jordan': 'jordan', 'Adidas': 'adidas',
+  'New Balance': 'new-balance', 'Crocs': 'crocs',
+};
+
+interface BlogSnippet { _id: string; title: string; slug: string; excerpt: string; coverImage: string; createdAt: string }
+
+async function fetchBlogsByBrand(brand: string): Promise<BlogSnippet[]> {
+  const tag = BRAND_TAG[brand];
+  if (!tag) return [];
+  try {
+    const res = await fetch(`${API}/blogs?tag=${tag}&limit=3`, { next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    return res.json();
+  } catch { return []; }
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -61,9 +81,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const [related, reviews] = await Promise.all([
+  const [related, reviews, relatedBlogs] = await Promise.all([
     fetchTrendingProducts().then((p) => p.filter((p) => p.id !== product.id && p.brand === product.brand).slice(0, 4)),
     fetchProductReviews(product.slug).catch(() => []),
+    fetchBlogsByBrand(product.brand),
   ]);
 
   const productUrl = `${SITE_URL}/products/${product.slug}`;
@@ -262,6 +283,57 @@ export default async function ProductDetailPage({ params }: PageProps) {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Related blog posts */}
+      {relatedBlogs.length > 0 && (
+        <section className="mt-16 pt-10 border-t border-zinc-100">
+          <div className="flex items-end justify-between mb-6">
+            <div>
+              <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-400 mb-1">From the Blog</p>
+              <h2 className="text-xl font-bold tracking-[0.15em] uppercase text-zinc-900">{product.brand} Reads</h2>
+            </div>
+            <Link
+              href={`/blogs/tag/${BRAND_TAG[product.brand] ?? product.brand.toLowerCase()}`}
+              className="text-xs font-semibold tracking-widest uppercase text-zinc-500 hover:text-zinc-900 transition-colors"
+            >
+              All Articles →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            {relatedBlogs.map((b) => (
+              <Link
+                key={b._id}
+                href={`/blogs/${b.slug}`}
+                className="group block rounded-2xl overflow-hidden border border-zinc-200 bg-zinc-50 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+              >
+                <div className="relative aspect-[16/9] bg-zinc-100 overflow-hidden">
+                  {b.coverImage ? (
+                    <Image
+                      src={b.coverImage}
+                      alt={b.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width:640px) 100vw, 33vw"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-zinc-200 flex items-center justify-center">
+                      <span className="text-3xl opacity-30">👟</span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <p className="text-xs font-black tracking-tight text-zinc-900 group-hover:text-zinc-600 transition-colors leading-snug line-clamp-2 mb-1">
+                    {b.title}
+                  </p>
+                  {b.excerpt && (
+                    <p className="text-[11px] text-zinc-500 line-clamp-2">{b.excerpt}</p>
+                  )}
+                </div>
+              </Link>
             ))}
           </div>
         </section>

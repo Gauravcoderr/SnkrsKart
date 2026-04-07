@@ -155,7 +155,7 @@ export default async function BlogsPage() {
                     <div className="p-8 lg:p-10 xl:p-12 flex flex-col justify-center">
                       <div className="flex flex-wrap gap-2 mb-4">
                         {hero.tags.slice(0, 3).map((t) => (
-                          <span key={t} className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${a.tagBg} ${a.tagText}`}>{t}</span>
+                          <Link key={t} href={`/blogs/tag/${encodeURIComponent(t.toLowerCase())}`} onClick={(e) => e.stopPropagation()} className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${a.tagBg} ${a.tagText} hover:opacity-75 transition-opacity`}>{t}</Link>
                         ))}
                       </div>
                       <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-950 leading-[1.15] mb-3">
@@ -231,7 +231,7 @@ export default async function BlogsPage() {
                         {blog.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 mb-3">
                             {blog.tags.slice(0, 2).map((t) => (
-                              <span key={t} className={`text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${a.tagBg} ${a.tagText}`}>{t}</span>
+                              <Link key={t} href={`/blogs/tag/${encodeURIComponent(t.toLowerCase())}`} onClick={(e) => e.stopPropagation()} className={`text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${a.tagBg} ${a.tagText} hover:opacity-75 transition-opacity`}>{t}</Link>
                             ))}
                           </div>
                         )}
