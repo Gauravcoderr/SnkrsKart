@@ -116,10 +116,8 @@ export default async function BlogsPage() {
             {hero && (() => {
               const a = getAccent(hero.tags);
               return (
-                <Link
-                  href={`/blogs/${hero.slug}`}
-                  className={`group block rounded-2xl overflow-hidden border ${a.border} ${a.bg} mb-12 transition-shadow hover:shadow-xl`}
-                >
+                <div className={`group relative rounded-2xl overflow-hidden border ${a.border} ${a.bg} mb-12 transition-shadow hover:shadow-xl`}>
+                  <Link href={`/blogs/${hero.slug}`} className="absolute inset-0 z-0" aria-label={hero.title} />
                   <div className="grid grid-cols-1 lg:grid-cols-2">
                     {/* Image */}
                     <div className="relative aspect-[16/9] lg:aspect-auto lg:min-h-[340px] bg-zinc-100 overflow-hidden">
@@ -138,24 +136,24 @@ export default async function BlogsPage() {
                         </div>
                       )}
                       {/* Featured badge */}
-                      <div className="absolute top-4 left-4">
+                      <div className="absolute top-4 left-4 z-10">
                         <span className="inline-flex items-center gap-1.5 bg-white/80 backdrop-blur-sm text-zinc-800 text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full shadow-sm">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                           Featured
                         </span>
                       </div>
                       {isNew(hero.createdAt) && (
-                        <div className="absolute top-4 right-4">
+                        <div className="absolute top-4 right-4 z-10">
                           <span className="bg-zinc-900 text-white text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-full">NEW</span>
                         </div>
                       )}
                     </div>
 
                     {/* Content */}
-                    <div className="p-8 lg:p-10 xl:p-12 flex flex-col justify-center">
+                    <div className="relative z-10 p-8 lg:p-10 xl:p-12 flex flex-col justify-center">
                       <div className="flex flex-wrap gap-2 mb-4">
                         {hero.tags.slice(0, 3).map((t) => (
-                          <Link key={t} href={`/blogs/tag/${encodeURIComponent(t.toLowerCase())}`} onClick={(e) => e.stopPropagation()} className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${a.tagBg} ${a.tagText} hover:opacity-75 transition-opacity`}>{t}</Link>
+                          <Link key={t} href={`/blogs/tag/${encodeURIComponent(t.toLowerCase())}`} className={`relative z-10 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${a.tagBg} ${a.tagText} hover:opacity-75 transition-opacity`}>{t}</Link>
                         ))}
                       </div>
                       <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-950 leading-[1.15] mb-3">
@@ -180,7 +178,7 @@ export default async function BlogsPage() {
                       </span>
                     </div>
                   </div>
-                </Link>
+                </div>
               );
             })()}
 
@@ -199,11 +197,11 @@ export default async function BlogsPage() {
                 {rest.map((blog) => {
                   const a = getAccent(blog.tags);
                   return (
-                    <Link
+                    <div
                       key={blog._id}
-                      href={`/blogs/${blog.slug}`}
-                      className={`group block rounded-2xl overflow-hidden border ${a.border} ${a.bg} transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}
+                      className={`group relative rounded-2xl overflow-hidden border ${a.border} ${a.bg} transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}
                     >
+                      <Link href={`/blogs/${blog.slug}`} className="absolute inset-0 z-0" aria-label={blog.title} />
                       {/* Cover image */}
                       <div className="relative aspect-[16/9] bg-zinc-100 overflow-hidden">
                         {blog.coverImage ? (
@@ -220,18 +218,18 @@ export default async function BlogsPage() {
                           </div>
                         )}
                         {isNew(blog.createdAt) && (
-                          <div className="absolute top-3 right-3">
+                          <div className="absolute top-3 right-3 z-10">
                             <span className="bg-zinc-900 text-white text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full shadow">NEW</span>
                           </div>
                         )}
                       </div>
 
                       {/* Body */}
-                      <div className="p-5 sm:p-6">
+                      <div className="relative z-10 p-5 sm:p-6">
                         {blog.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 mb-3">
                             {blog.tags.slice(0, 2).map((t) => (
-                              <Link key={t} href={`/blogs/tag/${encodeURIComponent(t.toLowerCase())}`} onClick={(e) => e.stopPropagation()} className={`text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${a.tagBg} ${a.tagText} hover:opacity-75 transition-opacity`}>{t}</Link>
+                              <Link key={t} href={`/blogs/tag/${encodeURIComponent(t.toLowerCase())}`} className={`relative z-10 text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${a.tagBg} ${a.tagText} hover:opacity-75 transition-opacity`}>{t}</Link>
                             ))}
                           </div>
                         )}
@@ -258,7 +256,7 @@ export default async function BlogsPage() {
                           </svg>
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   );
                 })}
               </div>
