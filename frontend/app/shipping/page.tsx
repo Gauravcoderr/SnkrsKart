@@ -1,3 +1,19 @@
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+
+export const metadata = {
+  title: 'Shipping Info | Free Pan-India Delivery | SNKRS CART',
+  description: 'SNKRS CART ships all orders free across India in 3–7 business days. Faster delivery in Uttarakhand. Track your order anytime.',
+  alternates: { canonical: `${SITE_URL}/shipping` },
+  openGraph: {
+    title: 'Shipping Info | SNKRS CART',
+    description: 'Free pan-India shipping on all sneaker orders. 3–7 business days delivery.',
+    url: `${SITE_URL}/shipping`,
+    siteName: 'SNKRS CART',
+    type: 'website',
+  },
+  twitter: { card: 'summary', title: 'Shipping Info | SNKRS CART', description: 'Free pan-India shipping on all orders.' },
+};
+
 const shippingInfo = [
   {
     region: 'Within India',

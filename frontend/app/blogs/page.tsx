@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Blog } from '@/types';
+import NewsletterSignup from '@/components/blog/NewsletterSignup';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
@@ -261,6 +262,9 @@ export default async function BlogsPage() {
                 })}
               </div>
             )}
+
+            {/* ── Newsletter ───────────────────────────────────── */}
+            <NewsletterSignup />
 
             {/* ── WhatsApp CTA ─────────────────────────────────── */}
             <div className="rounded-2xl bg-[#075E54] px-8 py-10 sm:px-12 sm:py-12 flex flex-col sm:flex-row items-start sm:items-center gap-7 mb-4">

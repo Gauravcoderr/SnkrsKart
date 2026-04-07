@@ -1,3 +1,20 @@
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+
+export const metadata = {
+  title: 'Sneaker Size Guide — UK, US, EU & CM | SNKRS CART',
+  description: 'Find your perfect sneaker size with the SNKRS CART size guide. UK, US, EU and CM conversions for men and women — Nike, Jordan, Adidas, New Balance & Crocs.',
+  keywords: ['sneaker size guide India', 'Nike size chart India', 'Jordan size guide', 'shoe size UK US EU conversion India'],
+  alternates: { canonical: `${SITE_URL}/size-guide` },
+  openGraph: {
+    title: 'Sneaker Size Guide | SNKRS CART',
+    description: 'UK, US, EU and CM size conversions for all sneaker brands.',
+    url: `${SITE_URL}/size-guide`,
+    siteName: 'SNKRS CART',
+    type: 'website',
+  },
+  twitter: { card: 'summary', title: 'Sneaker Size Guide | SNKRS CART', description: 'UK, US, EU and CM conversions for Nike, Jordan, Adidas & more.' },
+};
+
 const mensData = [
   { uk: 6, us: 7, eu: 40, cm: 25 },
   { uk: 6.5, us: 7.5, eu: 40.5, cm: 25.4 },

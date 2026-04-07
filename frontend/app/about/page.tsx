@@ -1,8 +1,20 @@
 import Link from 'next/link';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+
 export const metadata = {
-  title: 'About Us | SNKRS CART',
+  title: 'About SNKRS CART | India\'s Authentic Sneaker Store',
   description: 'Founded in Pauri Garhwal, Uttarakhand in 2020 by sneakerheads who refused to settle for fakes. SNKRS CART delivers 100% authentic Nike, Jordan, Adidas & more across India.',
+  keywords: ['about SNKRS CART', 'authentic sneakers India', 'sneaker store India', 'Nike Jordan Adidas India'],
+  alternates: { canonical: `${SITE_URL}/about` },
+  openGraph: {
+    title: 'About SNKRS CART | India\'s Authentic Sneaker Store',
+    description: 'Founded in Pauri Garhwal, Uttarakhand. 100% authentic Nike, Jordan, Adidas & more. No fakes, no compromise.',
+    url: `${SITE_URL}/about`,
+    siteName: 'SNKRS CART',
+    type: 'website',
+  },
+  twitter: { card: 'summary', title: 'About SNKRS CART', description: 'Founded in Pauri Garhwal, Uttarakhand. 100% authentic sneakers across India.' },
 };
 
 export default function AboutPage() {
