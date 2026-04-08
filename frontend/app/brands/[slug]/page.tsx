@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
@@ -50,9 +50,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export const dynamic = 'force-dynamic';
 
 export default async function BrandPage({ params, searchParams }: Props) {
-  // Normalise: decode URI and replace spaces with hyphens so
-  // /brands/New%20Balance  →  new-balance  (same as the slug)
-  const slug = decodeURIComponent(params.slug).toLowerCase().replace(/\s+/g, '-');
+  const rawSlug = decodeURIComponent(params.slug);
+  const slug = rawSlug.toLowerCase().replace(/\s+/g, '-');
+
+  // Redirect /brands/Jordan → /brands/jordan (canonical lowercase URL)
+  if (rawSlug !== slug) permanentRedirect(`/brands/${slug}`);
+
   const meta = BRANDS.find((b) => b.slug === slug);
   if (!meta) notFound();
 
