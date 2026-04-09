@@ -92,6 +92,9 @@ export default async function ProductDetailPage({ params }: PageProps) {
     ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10
     : null;
 
+  // Map gender → schema.org audience age group
+  const ageGroup = product.gender === 'kids' ? 'kids' : 'adult';
+
   const productSchema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -103,6 +106,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
     category: 'Sneakers',
     itemCondition: 'https://schema.org/NewCondition',
     datePublished: product.createdAt,
+    color: product.colorway || (product.colors?.[0] ?? ''),
+    audience: {
+      '@type': 'PeopleAudience',
+      suggestedGender: product.gender === 'men' ? 'male' : product.gender === 'women' ? 'female' : 'unisex',
+      suggestedAge: ageGroup === 'kids'
+        ? { '@type': 'QuantitativeValue', minValue: 0, maxValue: 12 }
+        : { '@type': 'QuantitativeValue', minValue: 13, maxValue: 99 },
+    },
     offers: {
       '@type': 'Offer',
       priceCurrency: 'INR',
@@ -124,6 +135,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
         shippingDestination: {
           '@type': 'DefinedRegion',
           addressCountry: 'IN',
+          name: 'India',
         },
         deliveryTime: {
           '@type': 'ShippingDeliveryTime',
