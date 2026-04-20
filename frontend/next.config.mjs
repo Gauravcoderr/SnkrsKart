@@ -5,7 +5,7 @@ const nextConfig = {
       {
         source: '/:path*',
         has: [{ type: 'host', value: 'snkrs-kart.vercel.app' }],
-        destination: 'https://www.snkrscart.com/:path*',
+        destination: 'https://snkrscart.com/:path*',
         permanent: true,
       },
     ];
