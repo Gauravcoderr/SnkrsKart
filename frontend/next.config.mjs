@@ -1,5 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'snkrs-kart.vercel.app' }],
+        destination: 'https://www.snkrscart.com/:path*',
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       { source: '/rss.xml',   destination: '/api/rss'  },
