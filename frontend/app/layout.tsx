@@ -28,7 +28,7 @@ const OG_IMAGE = `${SITE_URL}/logo.png`;
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   verification: {
-    google: 'I0grEulg3kyDfy5QEuIn3nNrUPwBpamqI0Ak1SOup5k',
+    google: 'yuc9DFa0CyTh7rMbHGwSDNI8fMjjZQVX58HiKJ0OW4I',
   },
   title: {
     default: 'SNKRS CART | Shop 100% Authentic Sneakers in India',
