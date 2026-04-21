@@ -24,6 +24,7 @@ export interface IProduct extends Document {
   colors: string[];
   tags: string[];
   variants: IVariant[];
+  faqs: Array<{ question: string; answer: string }>;
   featured: boolean;
   trending: boolean;
   newArrival: boolean;
@@ -54,6 +55,7 @@ const ProductSchema = new Schema<IProduct>(
     colors:        [{ type: String }],
     tags:          [{ type: String }],
     variants:      [{ size: Number, price: Number, originalPrice: { type: Number, default: null }, maxQty: { type: Number, default: 1 } }],
+    faqs:          [{ question: { type: String, default: '' }, answer: { type: String, default: '' } }],
     featured:      { type: Boolean, default: false, index: true },
     trending:      { type: Boolean, default: false, index: true },
     newArrival:    { type: Boolean, default: false, index: true },

@@ -15,6 +15,7 @@ export interface Product {
   colors: string[];
   tags: string[];
   variants?: Array<{ size: number; price: number; originalPrice: number | null; maxQty: number }>;
+  faqs?: Array<{ question: string; answer: string }>;
   featured: boolean;
   trending: boolean;
   newArrival: boolean;

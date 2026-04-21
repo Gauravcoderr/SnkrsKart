@@ -41,6 +41,9 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     newArrival: product?.newArrival || false,
     soldOut: product?.soldOut || false,
     comingSoon: product?.comingSoon || false,
+    faqList: product?.faqs?.length
+      ? product.faqs.map((f) => ({ question: f.question, answer: f.answer }))
+      : [] as Array<{ question: string; answer: string }>,
   });
 
   // ── Pricing state ────────────────────────────────────────────────────────
@@ -264,6 +267,9 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
         newArrival: form.newArrival,
         soldOut: form.soldOut,
         comingSoon: form.comingSoon,
+        faqs: form.faqList
+          .map((f) => ({ question: f.question.trim(), answer: f.answer.trim() }))
+          .filter((f) => f.question && f.answer),
       };
 
       await onSave(payload);
@@ -598,6 +604,57 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
                 <ImagePreview url={form.hoverImage.trim()} label="Hover Image" />
               </div>
             )}
+          </div>
+
+          {/* FAQs */}
+          <div>
+            <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-3">FAQs</label>
+            <div className="space-y-3">
+              {form.faqList.map((faq, i) => (
+                <div key={i} className="bg-zinc-800/50 border border-zinc-700 rounded-lg p-3 space-y-2">
+                  <div className="flex gap-2 items-start">
+                    <div className="flex-1 space-y-2">
+                      <input
+                        type="text"
+                        value={faq.question}
+                        onChange={(e) => {
+                          const updated = [...form.faqList];
+                          updated[i] = { ...updated[i], question: e.target.value };
+                          set('faqList', updated);
+                        }}
+                        placeholder="Question"
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                      />
+                      <textarea
+                        value={faq.answer}
+                        onChange={(e) => {
+                          const updated = [...form.faqList];
+                          updated[i] = { ...updated[i], answer: e.target.value };
+                          set('faqList', updated);
+                        }}
+                        placeholder="Answer"
+                        rows={2}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 resize-none"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => set('faqList', form.faqList.filter((_, idx) => idx !== i))}
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2.5 py-1.5 rounded-lg transition text-sm shrink-0 mt-1"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => set('faqList', [...form.faqList, { question: '', answer: '' }])}
+              className="mt-2 text-xs text-zinc-400 hover:text-white hover:bg-zinc-800 px-3 py-1.5 rounded-lg border border-zinc-700 transition"
+            >
+              + Add FAQ
+            </button>
           </div>
 
           {/* Flags */}
