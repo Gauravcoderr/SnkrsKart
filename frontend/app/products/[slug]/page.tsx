@@ -266,29 +266,65 @@ export default async function ProductDetailPage({ params }: PageProps) {
           {/* Size picker + Add to cart + price — client component */}
           <ProductDetailClient product={product} />
 
-          {/* Description */}
-          <div className="mt-8 pt-6 border-t border-zinc-100">
-            <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-3">
-              About This Shoe
-            </h3>
-            <div
-              className="text-sm text-zinc-600 leading-relaxed prose prose-sm prose-zinc max-w-none"
-              dangerouslySetInnerHTML={{ __html: product.description }}
-            />
+        </div>
+      </div>
+
+      {/* Description + Specs — 2-col section below hero */}
+      <div className="mt-12 pt-10 border-t border-zinc-100 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+        {/* Left — full description */}
+        <div>
+          <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-4">About This Shoe</h3>
+          <div
+            className="text-sm text-zinc-600 leading-relaxed prose prose-sm prose-zinc max-w-none"
+            dangerouslySetInnerHTML={{ __html: product.description }}
+          />
+        </div>
+
+        {/* Right — structured specs */}
+        <div className="space-y-8">
+          {/* Product Details */}
+          <div>
+            <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-3">Product Details</h3>
+            <p className="text-sm text-zinc-600 leading-relaxed">
+              {product.brand} {product.name}
+              {product.colorway ? ` — ${product.colorway}` : ''}
+              {product.gender && product.gender !== 'unisex' ? `, ${product.gender === 'men' ? "Men's" : product.gender === 'women' ? "Women's" : "Kids'"}` : ''}
+            </p>
+          </div>
+
+          {/* Specifications */}
+          <div>
+            <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-3">Specifications</h3>
+            <dl className="space-y-2">
+              {[
+                ['Type', product.category || 'Sneakers'],
+                ['Brand', product.brand],
+                ['Gender', product.gender === 'men' ? "Men's" : product.gender === 'women' ? "Women's" : product.gender === 'kids' ? "Kids'" : 'Unisex'],
+                ['Colorway', product.colorway],
+                ['SKU', product.sku],
+                ['Available Sizes', product.availableSizes.length > 0 ? product.availableSizes.join(', ') : 'See options above'],
+              ].map(([label, value]) => (
+                <div key={label} className="flex gap-4 text-sm py-2 border-b border-zinc-100 last:border-0">
+                  <dt className="w-36 shrink-0 font-semibold text-zinc-900">{label}</dt>
+                  <dd className="text-zinc-500">{value}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
 
           {/* Tags */}
           {product.tags.length > 0 && (
-            <div className="mt-5 flex flex-wrap gap-2">
-              {product.tags.map((tag) => (
-                <span key={tag} className="px-3 py-1 border border-zinc-100 text-xs font-medium text-zinc-500 capitalize">
-                  {tag}
-                </span>
-              ))}
+            <div>
+              <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-3">Tags</h3>
+              <div className="flex flex-wrap gap-2">
+                {product.tags.map((tag) => (
+                  <span key={tag} className="px-3 py-1 border border-zinc-100 text-xs font-medium text-zinc-500 capitalize">
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
-
-
         </div>
       </div>
 
