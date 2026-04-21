@@ -22,7 +22,7 @@ const bebas = Bebas_Neue({
   display: 'swap',
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 const OG_IMAGE = `${SITE_URL}/logo.png`;
 
 export const metadata: Metadata = {
