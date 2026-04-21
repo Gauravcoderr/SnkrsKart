@@ -124,8 +124,10 @@ const orgLd = {
   },
   address: {
     '@type': 'PostalAddress',
+    streetAddress: 'Pauri Garhwal',
     addressLocality: 'Pauri Garhwal',
     addressRegion: 'Uttarakhand',
+    postalCode: '246001',
     addressCountry: 'IN',
   },
 };
@@ -142,8 +144,10 @@ const localBusinessLd = {
   email: 'infosnkrscart@gmail.com',
   address: {
     '@type': 'PostalAddress',
+    streetAddress: 'Pauri Garhwal',
     addressLocality: 'Pauri Garhwal',
     addressRegion: 'Uttarakhand',
+    postalCode: '246001',
     addressCountry: 'IN',
   },
   openingHours: 'Mo-Sa 10:00-19:00',
