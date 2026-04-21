@@ -84,7 +84,7 @@ export default async function BlogsPage() {
     blogPost: blogs.map((b) => ({
       '@type': 'BlogPosting', headline: b.title,
       url: `${SITE_URL}/blogs/${b.slug}`, datePublished: b.createdAt,
-      author: { '@type': 'Person', name: b.author },
+      author: { '@type': 'Person', name: b.author, url: SITE_URL, image: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` } },
       ...(b.coverImage ? { image: b.coverImage } : {}),
     })),
   };

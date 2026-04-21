@@ -184,7 +184,12 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
     timeRequired: `PT${minutes}M`,
     articleSection: safeTags[0] || 'Sneakers',
     keywords: blog.metaKeywords || blog.tags.join(', '),
-    author: { '@type': 'Person', name: blog.author },
+    author: {
+      '@type': 'Person',
+      name: blog.author,
+      url: SITE_URL,
+      image: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
+    },
     publisher: {
       '@type': 'Organization',
       name: 'SNKRS CART',
