@@ -379,13 +379,13 @@ export default async function ProductDetailPage({ params }: PageProps) {
       {/* FAQs */}
       {product.faqs && product.faqs.length > 0 && (
         <section className="mt-16 pt-10 border-t border-zinc-100">
-          <div className="mb-8">
+          <div className="mb-8 text-center">
             <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-400 mb-1">Got Questions?</p>
             <h2 className="text-xl font-bold tracking-[0.15em] uppercase text-zinc-900">Frequently Asked Questions</h2>
           </div>
-          <div className="max-w-3xl space-y-3">
+          <div className="max-w-3xl mx-auto space-y-3">
             {product.faqs.map((faq, i) => (
-              <details key={i} className="group border border-zinc-200 rounded-xl overflow-hidden">
+              <details key={i} {...(i === 0 ? { open: true } : {})} className="group rounded-xl overflow-hidden">
                 <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none text-sm font-semibold text-zinc-900 hover:bg-zinc-50 transition-colors">
                   {faq.question}
                   <svg className="w-4 h-4 text-zinc-400 group-open:rotate-180 transition-transform duration-200 shrink-0 ml-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -393,7 +393,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                   </svg>
                 </summary>
                 <div
-                  className="px-5 pb-5 pt-1 text-sm text-zinc-600 leading-relaxed prose prose-sm prose-zinc max-w-none border-t border-zinc-100"
+                  className="px-5 pb-5 pt-1 text-sm text-zinc-600 leading-relaxed prose prose-sm prose-zinc max-w-none"
                   dangerouslySetInnerHTML={{ __html: faq.answer }}
                 />
               </details>
