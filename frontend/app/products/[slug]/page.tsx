@@ -252,7 +252,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
             <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-3">
               About This Shoe
             </h3>
-            <p className="text-sm text-zinc-600 leading-relaxed">{product.description}</p>
+            <div
+              className="text-sm text-zinc-600 leading-relaxed prose prose-sm prose-zinc max-w-none"
+              dangerouslySetInnerHTML={{ __html: product.description }}
+            />
           </div>
 
           {/* Tags */}
