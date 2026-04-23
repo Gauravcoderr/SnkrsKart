@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import type { Blog } from '@/types';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 
 const TAG_ACCENTS: Record<string, { bg: string; tagBg: string; tagText: string; border: string; dot: string; heroGrad: string }> = {
   jordan:        { bg: 'bg-red-50',     tagBg: 'bg-red-100',     tagText: 'text-red-700',     border: 'border-red-200',    dot: 'bg-red-400',    heroGrad: 'from-red-900 to-red-700'      },

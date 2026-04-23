@@ -19,7 +19,7 @@ import ShareBar from './ShareBar';
 import MobileBar from './MobileBar';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 
 const TAG_ACCENTS: Record<string, {
   bg: string; text: string; border: string;

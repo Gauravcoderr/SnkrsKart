@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Paginator from '../_components/Paginator';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 
 interface Blog {
   _id: string;

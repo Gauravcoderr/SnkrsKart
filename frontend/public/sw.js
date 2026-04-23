@@ -36,7 +36,7 @@ self.addEventListener('fetch', (e) => {
   // Skip API, analytics, external requests
   if (
     url.pathname.startsWith('/api/') ||
-    !['https://snkrs-kart.vercel.app', self.location.origin].includes(url.origin)
+    !['https://snkrscart.com', self.location.origin].includes(url.origin)
   ) return;
 
   e.respondWith(

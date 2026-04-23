@@ -1,7 +1,7 @@
 import FAQsAccordion from './FAQsAccordion';
 import { faqs } from './faqs-data';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 
 export const metadata = {
   title: 'FAQs | SNKRS CART',

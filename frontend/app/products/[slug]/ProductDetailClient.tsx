@@ -11,7 +11,7 @@ import StickyCartBar from '@/components/product-detail/StickyCartBar';
 import { formatPrice } from '@/lib/utils';
 import { useWishlist } from '@/context/WishlistContext';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 
 interface ProductDetailClientProps {
   product: Product;

@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import ProductsClient from './ProductsClient';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 
 export const metadata = {
   title: 'Buy Authentic Sneakers Online in India | SNKRS CART',

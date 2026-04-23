@@ -13,7 +13,7 @@ interface Props {
   searchParams: { sort?: string };
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
