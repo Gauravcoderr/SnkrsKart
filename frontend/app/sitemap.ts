@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 import { BRANDS } from '@/lib/constants';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 interface BlogEntry { slug: string; updatedAt?: string; createdAt: string; tags?: string[] }
