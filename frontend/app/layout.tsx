@@ -31,11 +31,11 @@ export const metadata: Metadata = {
     google: 'yuc9DFa0CyTh7rMbHGwSDNI8fMjjZQVX58HiKJ0OW4I',
   },
   title: {
-    default: 'SNKRS CART | Shop 100% Authentic Sneakers in India',
+    default: 'SNKRS CART | Buy Authentic Sneakers, Streetwear & Accessories in India.',
     template: '%s | SNKRS CART',
   },
   description:
-    'Buy 100% authentic Nike, Adidas, Jordan, New Balance & Crocs sneakers online in India. Secure packaging, pan India shipping. No fakes, no compromise.',
+    'Shop 100% authentic sneakers, streetwear, bags & accessories in India. Trusted reselling platform with secure packaging and fast delivery.',
   keywords: [
     'buy sneakers India', 'authentic sneakers India', 'Nike shoes India', 'Jordan shoes India',
     'Adidas sneakers India', 'New Balance India', 'SNKRS CART', 'sneakers online India',
@@ -66,8 +66,8 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
   },
   openGraph: {
-    title: 'SNKRS CART | 100% Authentic Sneakers in India',
-    description: 'Buy authentic Nike, Jordan, Adidas & New Balance sneakers online. Pan India shipping. No fakes, no compromise.',
+    title: 'SNKRS CART | Buy Authentic Sneakers, Streetwear & Accessories in India.',
+    description: 'Shop 100% authentic sneakers, streetwear, bags & accessories in India. Trusted reselling platform with secure packaging and fast delivery.',
     url: SITE_URL,
     siteName: 'SNKRS CART',
     locale: 'en_IN',
@@ -77,14 +77,14 @@ export const metadata: Metadata = {
         url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: 'SNKRS CART | 100% Authentic Sneakers in India',
+        alt: 'SNKRS CART | Buy Authentic Sneakers, Streetwear & Accessories in India.',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SNKRS CART | 100% Authentic Sneakers in India',
-    description: 'Authentic Nike, Jordan, Adidas & New Balance sneakers. Pan India shipping.',
+    title: 'SNKRS CART | Buy Authentic Sneakers, Streetwear & Accessories in India.',
+    description: 'Shop 100% authentic sneakers, streetwear, bags & accessories in India. Trusted reselling platform with secure packaging and fast delivery.',
     images: [OG_IMAGE],
     creator: '@snkrs_cart',
   },
