@@ -57,6 +57,12 @@ export async function GET() {
           p.description || `100% authentic ${p.brand} ${p.name}. Shop on SNKRS CART — pan India shipping.`
         );
 
+        const color = escapeXml(
+          (p.colorway ?? '') || (p.colors ?? []).slice(0, 3).join('/') || ''
+        );
+        const ageGroup = p.gender === 'kids' ? 'kids' : 'adult';
+        const genderVal = p.gender === 'men' ? 'male' : p.gender === 'women' ? 'female' : 'unisex';
+
         return `
     <item>
       <g:id>${escapeXml(p.slug)}</g:id>
@@ -72,7 +78,10 @@ export async function GET() {
       <g:condition>new</g:condition>
       <g:google_product_category>${escapeXml(googleCategory)}</g:google_product_category>
       ${p.sku ? `<g:mpn>${escapeXml(p.sku)}</g:mpn>` : ''}
-      ${p.gender ? `<g:gender>${p.gender === 'men' ? 'male' : p.gender === 'women' ? 'female' : 'unisex'}</g:gender>` : ''}
+      <g:gender>${genderVal}</g:gender>
+      <g:age_group>${ageGroup}</g:age_group>
+      ${color ? `<g:color>${color}</g:color>` : ''}
+      <g:size_system>US</g:size_system>
       ${(p.availableSizes ?? p.sizes ?? []).length > 0
         ? (p.availableSizes ?? p.sizes).map((s: number) => `<g:size>${s}</g:size>`).join('\n      ')
         : ''}
