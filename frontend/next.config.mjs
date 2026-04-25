@@ -45,6 +45,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'sneakerbardetroit.com', pathname: '/**' },
       { protocol: 'https', hostname: 'cdn.sneaktorious.com', pathname: '/**' },
       { protocol: 'https', hostname: 'justfreshkicks.com', pathname: '/**' },
+      { protocol: 'https', hostname: 'image-cdn.hypb.st', pathname: '/**' },
     ],
   },
 };
