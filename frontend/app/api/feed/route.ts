@@ -65,7 +65,7 @@ export async function GET() {
 
         return `
     <item>
-      <g:id>${escapeXml(p.slug)}</g:id>
+      <g:id>${escapeXml(p.slug.slice(0, 50))}</g:id>
       <g:title>${title}</g:title>
       <g:description>${description}</g:description>
       <g:link>${escapeXml(productUrl)}</g:link>
