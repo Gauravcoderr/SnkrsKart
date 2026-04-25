@@ -39,7 +39,7 @@ function getAccent(tags: string[]) {
 
 async function fetchBlogs(): Promise<Blog[]> {
   try {
-    const res = await fetch(`${API}/blogs`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API}/blogs`, { cache: 'no-store' });
     if (!res.ok) return [];
     return res.json();
   } catch {

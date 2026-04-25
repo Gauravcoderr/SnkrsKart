@@ -39,7 +39,7 @@ function isNew(d: string) {
 
 async function fetchByTag(tag: string): Promise<Blog[]> {
   try {
-    const res = await fetch(`${API}/blogs?tag=${encodeURIComponent(tag)}&limit=50`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API}/blogs?tag=${encodeURIComponent(tag)}&limit=50`, { cache: 'no-store' });
     if (!res.ok) return [];
     return res.json();
   } catch {

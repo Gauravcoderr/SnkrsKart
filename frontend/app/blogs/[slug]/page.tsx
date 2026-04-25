@@ -63,7 +63,7 @@ function getAccent(tags: string[]) {
 
 async function fetchBlog(slug: string): Promise<Blog | null> {
   try {
-    const res = await fetch(`${API}/blogs/${slug}`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API}/blogs/${slug}`, { cache: 'no-store' });
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -77,7 +77,7 @@ async function fetchRelatedBlogs(tags: string[], currentSlug: string): Promise<B
     const seen = new Set<string>([currentSlug]);
     for (const tag of tags) {
       if (allRelated.length >= 6) break;
-      const res = await fetch(`${API}/blogs?tag=${encodeURIComponent(tag)}&limit=4`, { next: { revalidate: 60 } });
+      const res = await fetch(`${API}/blogs?tag=${encodeURIComponent(tag)}&limit=4`, { cache: 'no-store' });
       if (!res.ok) continue;
       const blogs: Blog[] = await res.json();
       for (const b of blogs) {
