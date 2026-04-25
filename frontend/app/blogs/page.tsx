@@ -127,6 +127,7 @@ export default async function BlogsPage() {
                           src={hero.coverImage}
                           alt={hero.title}
                           fill
+                          unoptimized
                           className="object-cover group-hover:scale-105 transition-transform duration-700"
                           sizes="(max-width:1024px) 100vw, 50vw"
                           priority
@@ -210,6 +211,7 @@ export default async function BlogsPage() {
                             src={blog.coverImage}
                             alt={blog.title}
                             fill
+                            unoptimized
                             className="object-cover group-hover:scale-105 transition-transform duration-500"
                             sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
                           />

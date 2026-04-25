@@ -228,6 +228,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
             src={blog.coverImage}
             alt={blog.title}
             fill
+            unoptimized
             className="object-cover opacity-60"
             sizes="100vw"
             priority
@@ -520,6 +521,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
                           src={rb.coverImage}
                           alt={rb.title}
                           fill
+                          unoptimized
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
                           sizes="(max-width:640px) 100vw, 33vw"
                         />
