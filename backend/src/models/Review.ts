@@ -6,6 +6,8 @@ export interface IReview extends Document {
   name: string;
   rating: number;
   comment: string;
+  photos: string[];
+  fitRating: 'small' | 'true' | 'large' | null;
   createdAt: Date;
 }
 
@@ -16,6 +18,8 @@ const ReviewSchema = new Schema<IReview>(
     name:        { type: String, required: true },
     rating:      { type: Number, required: true, min: 1, max: 5 },
     comment:     { type: String, required: true },
+    photos:      { type: [String], default: [] },
+    fitRating:   { type: String, enum: ['small', 'true', 'large', null], default: null },
   },
   {
     timestamps: { createdAt: 'createdAt', updatedAt: false },

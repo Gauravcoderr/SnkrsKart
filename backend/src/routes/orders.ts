@@ -3,6 +3,7 @@ import { Order } from '../models/Order';
 import { customerAuth, optionalAuth, AuthRequest } from '../middleware/customerAuth';
 import { User } from '../models/User';
 import { sendMail } from '../lib/mailer';
+import { Loyalty, getTier, COINS_PER_100, COINS_TO_RUPEE, MAX_REDEEM_PCT, MIN_REDEEM } from '../models/Loyalty';
 
 const router = Router();
 
@@ -15,7 +16,7 @@ function generateOrderNumber(): string {
 // POST /api/v1/orders — place a new order (optionally authenticated)
 router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { name, email, phone, addressLine, city, state, pincode, items, subtotal, shipping, total } = req.body;
+    const { name, email, phone, addressLine, city, state, pincode, items, subtotal, shipping, total, coinsRedeemed: rawCoinsRedeemed } = req.body;
 
     if (!name || !email || !phone || !addressLine || !city || !state || !pincode) {
       res.status(400).json({ error: 'All contact and address fields are required' });
@@ -39,12 +40,49 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       return;
     }
 
+    // Validate and apply coin redemption
+    let coinsRedeemed = 0;
+    let coinDiscount = 0;
+    if (req.user && rawCoinsRedeemed && rawCoinsRedeemed >= MIN_REDEEM) {
+      const loyalty = await Loyalty.findOne({ userId: req.user.id });
+      const available = loyalty?.coins ?? 0;
+      const requested = Math.floor(rawCoinsRedeemed);
+      if (requested <= available) {
+        const rawDiscount = requested * COINS_TO_RUPEE;
+        const maxDiscount = Math.floor(total * MAX_REDEEM_PCT);
+        coinDiscount = Math.min(rawDiscount, maxDiscount);
+        coinsRedeemed = coinDiscount / COINS_TO_RUPEE;
+      }
+    }
+    const finalTotal = Math.max(0, total - coinDiscount);
+    const coinsEarned = Math.floor(finalTotal / 100) * COINS_PER_100;
+
     const orderNumber = generateOrderNumber();
     const order = await Order.create({
       orderNumber, name, email, phone, addressLine, city, state, pincode,
-      items, subtotal, shipping, total, status: 'pending',
+      items, subtotal, shipping, total: finalTotal, status: 'pending',
+      coinsEarned, coinsRedeemed,
       ...(req.user ? { userId: req.user.id } : {}),
     });
+
+    // Update loyalty coins (fire-and-forget)
+    if (req.user) {
+      Loyalty.findOneAndUpdate(
+        { userId: req.user.id },
+        {
+          $inc: { coins: coinsEarned - coinsRedeemed },
+          $push: {
+            history: {
+              $each: [
+                ...(coinsRedeemed > 0 ? [{ type: 'redeem', amount: coinsRedeemed, reason: 'Order redemption', orderId: String(order._id), createdAt: new Date() }] : []),
+                ...(coinsEarned > 0 ? [{ type: 'earn', amount: coinsEarned, reason: `Order ${orderNumber}`, orderId: String(order._id), createdAt: new Date() }] : []),
+              ],
+            },
+          },
+        },
+        { upsert: true, new: true }
+      ).catch(() => {});
+    }
 
     // Save address to user profile if authenticated
     if (req.user) {
@@ -61,7 +99,7 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       }).catch(() => {});
     }
 
-    res.status(201).json({ success: true, orderId: order._id, orderNumber });
+    res.status(201).json({ success: true, orderId: order._id, orderNumber, coinsEarned, coinsRedeemed, finalTotal });
 
     const storeEmail = process.env.GMAIL_USER || 'infosnkrscart@gmail.com';
     const storeWA = process.env.NEXT_PUBLIC_WHATSAPP || '919410903791';

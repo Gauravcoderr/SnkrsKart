@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useMutation } from '@tanstack/react-query';
 import { useAuth, authHeaders } from '@/context/AuthContext';
+import LoyaltyCard from '@/components/account/LoyaltyCard';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -201,6 +202,9 @@ export default function AccountPage() {
             </p>
           )}
         </div>
+
+        {/* Kart Coins loyalty */}
+        <LoyaltyCard />
 
         {/* Quick links */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

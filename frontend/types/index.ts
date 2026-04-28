@@ -82,7 +82,30 @@ export interface Review {
   name: string;
   rating: number;
   comment: string;
+  photos?: string[];
+  fitRating?: 'small' | 'true' | 'large' | null;
   createdAt: string;
+}
+
+export interface FitSummary {
+  small: number;
+  true: number;
+  large: number;
+  total: number;
+}
+
+export interface LoyaltyEvent {
+  type: 'earn' | 'redeem';
+  amount: number;
+  reason: string;
+  orderId?: string;
+  createdAt: string;
+}
+
+export interface LoyaltyAccount {
+  coins: number;
+  tier: 'rookie' | 'enthusiast' | 'og';
+  history: LoyaltyEvent[];
 }
 
 export interface Blog {

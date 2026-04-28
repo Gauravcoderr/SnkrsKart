@@ -4,13 +4,24 @@ import { Product } from '../models/Product';
 
 const router = Router();
 
+function buildFitSummary(reviews: { fitRating?: string | null }[]) {
+  const result = { small: 0, true: 0, large: 0, total: 0 };
+  for (const r of reviews) {
+    if (r.fitRating === 'small') { result.small++; result.total++; }
+    else if (r.fitRating === 'true') { result.true++; result.total++; }
+    else if (r.fitRating === 'large') { result.large++; result.total++; }
+  }
+  return result;
+}
+
 // GET /api/v1/reviews?productSlug=...
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     const { productSlug } = req.query as { productSlug?: string };
     const filter = productSlug ? { productSlug } : {};
     const reviews = await Review.find(filter).sort({ createdAt: -1 }).lean();
-    res.json(reviews);
+    const fitSummary = productSlug ? buildFitSummary(reviews) : null;
+    res.json({ reviews, fitSummary });
   } catch {
     res.status(500).json({ error: 'Failed to fetch reviews' });
   }
@@ -29,7 +40,7 @@ router.get('/recent', async (_req: Request, res: Response): Promise<void> => {
 // POST /api/v1/reviews
 router.post('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { productSlug, productName, name, rating, comment } = req.body;
+    const { productSlug, productName, name, rating, comment, photos, fitRating } = req.body;
 
     if (!productSlug || !productName || !name || !rating || !comment) {
       res.status(400).json({ error: 'All fields are required' });
@@ -48,9 +59,29 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const review = await Review.create({ productSlug, productName, name: name.trim(), rating, comment: comment.trim() });
+    // Validate photos
+    let cleanPhotos: string[] = [];
+    if (photos && Array.isArray(photos)) {
+      if (photos.length > 3) { res.status(400).json({ error: 'Maximum 3 photos allowed' }); return; }
+      cleanPhotos = photos.filter((p: unknown) =>
+        typeof p === 'string' && p.startsWith('https://res.cloudinary.com/')
+      );
+    }
 
-    // Update product's rating and reviewCount (skip for general site reviews)
+    // Validate fitRating
+    const validFit = ['small', 'true', 'large'];
+    const cleanFit = fitRating && validFit.includes(fitRating) ? fitRating : null;
+
+    const review = await Review.create({
+      productSlug,
+      productName,
+      name: name.trim(),
+      rating,
+      comment: comment.trim(),
+      photos: cleanPhotos,
+      fitRating: cleanFit,
+    });
+
     if (productSlug !== 'general') {
       const allReviews = await Review.find({ productSlug }).lean();
       const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;

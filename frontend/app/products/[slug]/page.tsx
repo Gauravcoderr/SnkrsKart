@@ -81,11 +81,13 @@ export default async function ProductDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const [related, reviews, relatedBlogs] = await Promise.all([
+  const [related, reviewData, relatedBlogs] = await Promise.all([
     fetchTrendingProducts().then((p) => p.filter((p) => p.id !== product.id && p.brand === product.brand).slice(0, 4)),
-    fetchProductReviews(product.slug).catch(() => []),
+    fetchProductReviews(product.slug).catch(() => ({ reviews: [], fitSummary: null })),
     fetchBlogsByBrand(product.brand),
   ]);
+  const reviews = reviewData.reviews ?? [];
+  const fitSummary = reviewData.fitSummary ?? null;
 
   const productUrl = `${SITE_URL}/products/${product.slug}`;
   const avgRating = reviews.length
@@ -332,6 +334,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
         productSlug={product.slug}
         productName={product.name}
         initialReviews={reviews}
+        initialFitSummary={fitSummary}
       />
 
       {/* Related products */}

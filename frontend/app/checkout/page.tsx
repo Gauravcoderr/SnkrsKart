@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
-import { useAuth, authHeaders } from '@/context/AuthContext';
+import { useAuth, authHeaders, getStoredToken } from '@/context/AuthContext';
 import { formatPrice } from '@/lib/utils';
 import OtpInput from '@/components/auth/OtpInput';
+import { LoyaltyAccount } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SHIPPING_THRESHOLD = 3000;
@@ -76,6 +77,29 @@ export default function CheckoutPage() {
     const t = setTimeout(() => setOtpCountdown(otpCountdown - 1), 1000);
     return () => clearTimeout(t);
   }, [otpCountdown]);
+
+  // Kart Coins
+  const [loyaltyData, setLoyaltyData] = useState<LoyaltyAccount | null>(null);
+  const [useCoins, setUseCoins] = useState(false);
+
+  useEffect(() => {
+    if (!isLoggedIn || step !== 3) return;
+    const token = getStoredToken();
+    if (!token) return;
+    fetch(`${BASE_URL}/loyalty/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+      credentials: 'include',
+    } as RequestInit)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (data) setLoyaltyData(data); })
+      .catch(() => {});
+  }, [isLoggedIn, step]);
+
+  const maxRedeemableCoins = loyaltyData
+    ? Math.min(loyaltyData.coins, Math.floor(total * 0.2))
+    : 0;
+  const coinDiscount = useCoins && maxRedeemableCoins >= 100 ? maxRedeemableCoins : 0;
+  const finalTotal = total - coinDiscount;
 
   function setC(k: string, v: string) { setContact((p) => ({ ...p, [k]: v })); }
   function setA(k: string, v: string) { setAddress((p) => ({ ...p, [k]: v })); }
@@ -186,6 +210,7 @@ export default function CheckoutPage() {
         subtotal,
         shipping,
         total,
+        coinsRedeemed: coinDiscount > 0 ? coinDiscount : 0,
       };
 
       const res = await fetch(`${BASE_URL}/orders`, {
@@ -199,7 +224,7 @@ export default function CheckoutPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to place order');
 
       clearCart();
-      router.push(`/checkout/confirmation?id=${data.orderId}&order=${data.orderNumber}&total=${total}`);
+      router.push(`/checkout/confirmation?id=${data.orderId}&order=${data.orderNumber}&total=${finalTotal}`);
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
@@ -349,6 +374,8 @@ export default function CheckoutPage() {
                 <select
                   required value={address.state}
                   onChange={(e) => setA('state', e.target.value)}
+                  title="Select state"
+                  aria-label="State"
                   className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors bg-white"
                 >
                   <option value="">Select state</option>
@@ -376,7 +403,7 @@ export default function CheckoutPage() {
                 <div className="border border-zinc-100 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500">Contact</p>
-                    <button onClick={() => setStep(1)} className="text-[10px] text-zinc-400 hover:text-zinc-900 underline">Edit</button>
+                    <button type="button" onClick={() => setStep(1)} className="text-[10px] text-zinc-400 hover:text-zinc-900 underline">Edit</button>
                   </div>
                   <p className="text-sm font-semibold text-zinc-900">{contact.name}</p>
                   <p className="text-xs text-zinc-500">{contact.email}</p>
@@ -385,7 +412,7 @@ export default function CheckoutPage() {
                 <div className="border border-zinc-100 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500">Delivery</p>
-                    <button onClick={() => setStep(2)} className="text-[10px] text-zinc-400 hover:text-zinc-900 underline">Edit</button>
+                    <button type="button" onClick={() => setStep(2)} className="text-[10px] text-zinc-400 hover:text-zinc-900 underline">Edit</button>
                   </div>
                   <p className="text-sm font-semibold text-zinc-900">{address.addressLine}</p>
                   <p className="text-xs text-zinc-500">{address.city}, {address.state} — {address.pincode}</p>
@@ -410,6 +437,39 @@ export default function CheckoutPage() {
                   </div>
                 ))}
               </div>
+
+              {/* Kart Coins redemption */}
+              {isLoggedIn && loyaltyData && loyaltyData.coins >= 100 && maxRedeemableCoins >= 100 && (
+                <div className={`border-2 rounded-lg p-4 transition-colors ${useCoins ? 'border-amber-400 bg-amber-50' : 'border-zinc-200'}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                        <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-zinc-900">Use Kart Coins</p>
+                        <p className="text-[10px] text-zinc-500">{loyaltyData.coins} coins available · max {maxRedeemableCoins} usable here</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setUseCoins(!useCoins)}
+                      className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${useCoins ? 'bg-amber-500' : 'bg-zinc-200'}`}
+                      aria-label={useCoins ? 'Disable Kart Coins' : 'Enable Kart Coins'}
+                    >
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${useCoins ? 'translate-x-5' : 'translate-x-0'}`} />
+                    </button>
+                  </div>
+                  {useCoins && (
+                    <div className="mt-3 pt-3 border-t border-amber-200 flex items-center justify-between">
+                      <p className="text-xs text-amber-800">Using {maxRedeemableCoins} coins</p>
+                      <p className="text-sm font-bold text-amber-700">−{formatPrice(coinDiscount)}</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Email verification */}
               {!otpVerified && (
@@ -485,7 +545,7 @@ export default function CheckoutPage() {
                   disabled={loading || !otpVerified}
                   className="flex-[2] py-3.5 bg-zinc-900 text-white text-sm font-bold tracking-widest uppercase hover:bg-zinc-700 disabled:bg-zinc-300 disabled:text-zinc-500 transition-colors"
                 >
-                  {loading ? 'Placing Order...' : `Place Order — ${formatPrice(total)}`}
+                  {loading ? 'Placing Order...' : `Place Order — ${formatPrice(finalTotal)}`}
                 </button>
               </div>
             </div>
@@ -523,9 +583,15 @@ export default function CheckoutPage() {
                   {shipping === 0 ? 'Free' : formatPrice(shipping)}
                 </span>
               </div>
+              {coinDiscount > 0 && (
+                <div className="flex justify-between text-sm text-amber-600">
+                  <span className="font-medium">Kart Coins</span>
+                  <span className="font-semibold">−{formatPrice(coinDiscount)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-base font-bold pt-2 border-t border-zinc-100">
                 <span>Total</span>
-                <span>{formatPrice(total)}</span>
+                <span>{formatPrice(finalTotal)}</span>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { Product, Brand, BannerSlide, ProductsResponse, FilterState, Review } from '@/types';
+import { Product, Brand, BannerSlide, ProductsResponse, FilterState, Review, FitSummary, LoyaltyAccount } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -98,9 +98,37 @@ export async function fetchRecentReviews(): Promise<Review[]> {
   return res.json();
 }
 
-export async function fetchProductReviews(productSlug: string): Promise<Review[]> {
+export async function fetchProductReviews(productSlug: string): Promise<{ reviews: Review[]; fitSummary: FitSummary }> {
   const res = await fetch(`${BASE_URL}/reviews?productSlug=${productSlug}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch product reviews');
+  return res.json();
+}
+
+export async function fetchLoyaltyBalance(accessToken: string): Promise<LoyaltyAccount> {
+  const res = await fetch(`${BASE_URL}/loyalty/me`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    credentials: 'include',
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error('Failed to fetch loyalty balance');
+  return res.json();
+}
+
+export async function validateCoinRedemption(
+  coins: number,
+  orderTotal: number,
+  accessToken: string
+): Promise<{ discount: number; coinsUsed: number }> {
+  const res = await fetch(`${BASE_URL}/loyalty/redeem`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    credentials: 'include',
+    body: JSON.stringify({ coins, orderTotal }),
+  });
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    throw new Error(d.error || 'Failed to validate redemption');
+  }
   return res.json();
 }
 
