@@ -17,6 +17,8 @@ const nextConfig = {
     ];
   },
   images: {
+    loader: 'custom',
+    loaderFile: './src/cloudinary-loader.ts',
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com', pathname: '/**' },
       { protocol: 'https', hostname: 'images.vegnonveg.com', pathname: '/**' },
