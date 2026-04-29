@@ -125,6 +125,43 @@ export interface Blog {
   updatedAt: string;
 }
 
+export interface SneakerProfile {
+  _id: string;
+  slug: string;
+  name: string;
+  brand: string;
+  tagline: string;
+  description: string;
+  releaseYear: number | null;
+  designer: string;
+  silhouette: string;
+  category: string;
+  originalRetailPrice: number | null;
+  searchTags: string[];
+  relatedSlugs: string[];
+  image: string;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Drop {
+  _id: string;
+  slug: string;
+  name: string;
+  brand: string;
+  colorway: string;
+  releaseDate: string;
+  retailPrice: number | null;
+  image: string;
+  description: string;
+  where: string;
+  availableAtStore: boolean;
+  productSlug: string;
+  published: boolean;
+  createdAt: string;
+}
+
 export interface ProductsResponse {
   products: Product[];
   total: number;

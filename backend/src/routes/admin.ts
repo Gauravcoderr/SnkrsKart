@@ -13,6 +13,8 @@ import { Order } from '../models/Order';
 import { Newsletter } from '../models/Newsletter';
 import { User } from '../models/User';
 import ChatLead from '../models/ChatLead';
+import { SneakerProfile } from '../models/SneakerProfile';
+import { Drop } from '../models/Drop';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'snkrs-cart-admin-secret-key';
@@ -398,6 +400,92 @@ router.get('/chat-leads', adminAuth, async (_req: Request, res: Response): Promi
 router.delete('/chat-leads/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     await ChatLead.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Deleted' });
+  } catch {
+    res.status(500).json({ error: 'Failed to delete' });
+  }
+});
+
+// ─── Sneaker Profiles CRUD ─────────────────────────────────────────────────
+
+router.get('/sneaker-profiles', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const profiles = await SneakerProfile.find().sort({ name: 1 }).lean();
+    res.json(profiles);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch sneaker profiles' });
+  }
+});
+
+router.post('/sneaker-profiles', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, brand } = req.body;
+    if (!name || !brand) { res.status(400).json({ error: 'name and brand are required' }); return; }
+    const slug = req.body.slug || toSlug(`${brand}-${name}`);
+    const profile = await SneakerProfile.create({ ...req.body, slug });
+    res.status(201).json(profile);
+  } catch (err: any) {
+    if (err.code === 11000) { res.status(409).json({ error: 'Slug already exists' }); return; }
+    res.status(500).json({ error: 'Failed to create sneaker profile' });
+  }
+});
+
+router.put('/sneaker-profiles/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const profile = await SneakerProfile.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!profile) { res.status(404).json({ error: 'Not found' }); return; }
+    res.json(profile);
+  } catch {
+    res.status(500).json({ error: 'Failed to update sneaker profile' });
+  }
+});
+
+router.delete('/sneaker-profiles/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    await SneakerProfile.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Deleted' });
+  } catch {
+    res.status(500).json({ error: 'Failed to delete' });
+  }
+});
+
+// ─── Drops CRUD ────────────────────────────────────────────────────────────
+
+router.get('/drops', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const drops = await Drop.find().sort({ releaseDate: 1 }).lean();
+    res.json(drops);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch drops' });
+  }
+});
+
+router.post('/drops', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, brand, releaseDate } = req.body;
+    if (!name || !brand || !releaseDate) { res.status(400).json({ error: 'name, brand and releaseDate are required' }); return; }
+    const slug = req.body.slug || toSlug(`${brand}-${name}`);
+    const drop = await Drop.create({ ...req.body, slug });
+    res.status(201).json(drop);
+  } catch (err: any) {
+    if (err.code === 11000) { res.status(409).json({ error: 'Slug already exists' }); return; }
+    res.status(500).json({ error: 'Failed to create drop' });
+  }
+});
+
+router.put('/drops/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const drop = await Drop.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!drop) { res.status(404).json({ error: 'Not found' }); return; }
+    res.json(drop);
+  } catch {
+    res.status(500).json({ error: 'Failed to update drop' });
+  }
+});
+
+router.delete('/drops/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    await Drop.findByIdAndDelete(req.params.id);
     res.json({ message: 'Deleted' });
   } catch {
     res.status(500).json({ error: 'Failed to delete' });

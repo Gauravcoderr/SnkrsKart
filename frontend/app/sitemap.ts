@@ -6,6 +6,7 @@ const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 interface BlogEntry { slug: string; updatedAt?: string; createdAt: string; tags?: string[] }
 interface ProductEntry { slug: string; createdAt?: string }
+interface SlugEntry { slug: string }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages
@@ -72,5 +73,48 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }));
 
-  return [...staticPages, ...brandPages, ...productPages, ...blogPages, ...tagPages];
+  // Category pages (static)
+  const categoryPages: MetadataRoute.Sitemap = [
+    'running', 'basketball', 'lifestyle', 'training', 'men', 'women', 'kids', 'sale',
+  ].map((slug) => ({
+    url: `${SITE_URL}/category/${slug}`,
+    changeFrequency: 'weekly' as const,
+    priority: 0.85,
+  }));
+
+  // Sneaker profile pages
+  let sneakerPages: MetadataRoute.Sitemap = [];
+  try {
+    const res = await fetch(`${API}/sneaker-profiles`, { next: { revalidate: 3600 } });
+    if (res.ok) {
+      const profiles: SlugEntry[] = await res.json();
+      sneakerPages = profiles.map((p) => ({
+        url: `${SITE_URL}/sneakers/${p.slug}`,
+        changeFrequency: 'monthly' as const,
+        priority: 0.8,
+      }));
+      if (sneakerPages.length > 0) {
+        sneakerPages.unshift({ url: `${SITE_URL}/sneakers`, changeFrequency: 'weekly' as const, priority: 0.8 });
+      }
+    }
+  } catch { /* ignore */ }
+
+  // Drop calendar pages
+  let dropPages: MetadataRoute.Sitemap = [];
+  try {
+    const res = await fetch(`${API}/drops`, { next: { revalidate: 300 } });
+    if (res.ok) {
+      const drops: SlugEntry[] = await res.json();
+      dropPages = drops.map((d) => ({
+        url: `${SITE_URL}/drops/${d.slug}`,
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      }));
+      if (dropPages.length > 0) {
+        dropPages.unshift({ url: `${SITE_URL}/drops`, changeFrequency: 'daily' as const, priority: 0.8 });
+      }
+    }
+  } catch { /* ignore */ }
+
+  return [...staticPages, ...brandPages, ...categoryPages, ...sneakerPages, ...dropPages, ...productPages, ...blogPages, ...tagPages];
 }

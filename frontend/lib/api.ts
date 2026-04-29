@@ -1,4 +1,4 @@
-import { Product, Brand, BannerSlide, ProductsResponse, FilterState, Review, FitSummary, LoyaltyAccount } from '@/types';
+import { Product, Brand, BannerSlide, ProductsResponse, FilterState, Review, FitSummary, LoyaltyAccount, SneakerProfile, Drop } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -142,6 +142,30 @@ export async function restockNotify(email: string, productSlug: string, size?: n
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || 'Failed to save');
   }
+}
+
+export async function fetchSneakerProfiles(): Promise<SneakerProfile[]> {
+  const res = await fetch(`${BASE_URL}/sneaker-profiles`, { next: { revalidate: 3600 } });
+  if (!res.ok) throw new Error('Failed to fetch sneaker profiles');
+  return res.json();
+}
+
+export async function fetchSneakerProfileBySlug(slug: string): Promise<SneakerProfile> {
+  const res = await fetch(`${BASE_URL}/sneaker-profiles/${slug}`, { next: { revalidate: 3600 } });
+  if (!res.ok) throw new Error('Sneaker profile not found');
+  return res.json();
+}
+
+export async function fetchDrops(): Promise<Drop[]> {
+  const res = await fetch(`${BASE_URL}/drops`, { next: { revalidate: 300 } });
+  if (!res.ok) throw new Error('Failed to fetch drops');
+  return res.json();
+}
+
+export async function fetchDropBySlug(slug: string): Promise<Drop> {
+  const res = await fetch(`${BASE_URL}/drops/${slug}`, { next: { revalidate: 300 } });
+  if (!res.ok) throw new Error('Drop not found');
+  return res.json();
 }
 
 // Client-side fetch (no cache, for filter interactions)

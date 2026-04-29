@@ -25,8 +25,10 @@ const NAV = [
   { href: '/admin/reviews',   label: 'Reviews',   Icon: StarIcon },
   { href: '/admin/banners',   label: 'Banners',   Icon: BannersIcon },
   { href: '/admin/sellers',   label: 'Sellers',   Icon: SellersIcon },
-  { href: '/admin/blogs',       label: 'Blogs',       Icon: BlogsIcon },
-  { href: '/admin/chat-leads',  label: 'Chat Leads',  Icon: ChatLeadsIcon },
+  { href: '/admin/blogs',             label: 'Blogs',           Icon: BlogsIcon },
+  { href: '/admin/sneaker-profiles',  label: 'Sneaker Profiles', Icon: ProductsIcon },
+  { href: '/admin/drops',             label: 'Drops',            Icon: StarIcon },
+  { href: '/admin/chat-leads',        label: 'Chat Leads',       Icon: ChatLeadsIcon },
 ];
 
 const AUTH_EXEMPT = ['/admin/login'];
