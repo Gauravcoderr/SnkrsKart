@@ -154,10 +154,10 @@ export default async function SneakerHubPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Available at SNKRS KART */}
+        {/* Available at SNKRS CART */}
         <div className="border-t border-zinc-100 pt-10 mb-16">
           <h2 className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">
-            {matchingProducts.length > 0 ? 'Available at SNKRS KART' : 'Not In Stock Right Now'}
+            {matchingProducts.length > 0 ? 'Available at SNKRS CART' : 'Not In Stock Right Now'}
           </h2>
           <p className="text-xl font-bold tracking-tight text-zinc-900 mb-6">
             {matchingProducts.length > 0 ? `Shop ${profile.name}` : 'Be the first to know when we stock this model'}

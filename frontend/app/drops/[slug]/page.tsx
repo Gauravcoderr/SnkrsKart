@@ -146,11 +146,11 @@ export default async function DropPage({ params }: Props) {
             {/* CTA */}
             {drop.availableAtStore && drop.productSlug ? (
               <Link href={`/products/${drop.productSlug}`} className="block w-full py-3.5 bg-zinc-900 text-white text-sm font-bold tracking-widest uppercase text-center hover:bg-zinc-700 transition-colors">
-                Shop Now at SNKRS KART
+                Shop Now at SNKRS CART
               </Link>
             ) : (
               <div className="p-4 bg-zinc-50 border border-zinc-100 text-center">
-                <p className="text-xs text-zinc-500 mb-2">Not available at SNKRS KART. Check official channels:</p>
+                <p className="text-xs text-zinc-500 mb-2">Not available at SNKRS CART. Check official channels:</p>
                 <p className="text-sm font-semibold text-zinc-700">{drop.where || 'Official brand site'}</p>
               </div>
             )}

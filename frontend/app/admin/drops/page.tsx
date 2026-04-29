@@ -259,7 +259,7 @@ export default function AdminDropsPage() {
             <div className="flex items-center gap-6 mt-4">
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="drop-store" checked={form.availableAtStore} onChange={(e) => setF('availableAtStore', e.target.checked)} className="w-4 h-4 accent-amber-500" />
-                <label htmlFor="drop-store" className="text-sm text-zinc-300">Available at SNKRS KART</label>
+                <label htmlFor="drop-store" className="text-sm text-zinc-300">Available at SNKRS CART</label>
               </div>
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="drop-published" checked={form.published} onChange={(e) => setF('published', e.target.checked)} className="w-4 h-4 accent-emerald-500" />

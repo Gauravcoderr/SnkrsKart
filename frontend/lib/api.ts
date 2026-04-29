@@ -145,13 +145,13 @@ export async function restockNotify(email: string, productSlug: string, size?: n
 }
 
 export async function fetchSneakerProfiles(): Promise<SneakerProfile[]> {
-  const res = await fetch(`${BASE_URL}/sneaker-profiles`, { next: { revalidate: 3600 } });
+  const res = await fetch(`${BASE_URL}/sneaker-profiles`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch sneaker profiles');
   return res.json();
 }
 
 export async function fetchSneakerProfileBySlug(slug: string): Promise<SneakerProfile> {
-  const res = await fetch(`${BASE_URL}/sneaker-profiles/${slug}`, { next: { revalidate: 3600 } });
+  const res = await fetch(`${BASE_URL}/sneaker-profiles/${slug}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Sneaker profile not found');
   return res.json();
 }
