@@ -1,7 +1,7 @@
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 
 export const metadata = {
-  title: 'Shipping Info | Free Pan-India Delivery | SNKRS CART',
+  title: { absolute: 'Shipping Info | Free Pan-India Delivery | SNKRS CART' },
   description: 'SNKRS CART ships all orders free across India in 3–7 business days. Faster delivery in Uttarakhand. Track your order anytime.',
   alternates: { canonical: `${SITE_URL}/shipping` },
   openGraph: {

@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const url = `${SITE_URL}/drops/${params.slug}`;
     const releaseDate = new Date(drop.releaseDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
     return {
-      title: `${drop.name} Release Date India | ${releaseDate} | SNKRS CART`,
+      title: { absolute: `${drop.name} Release Date India | ${releaseDate} | SNKRS CART` },
       description: `${drop.name} releases in India on ${releaseDate}${drop.retailPrice ? ` for ₹${drop.retailPrice.toLocaleString('en-IN')}` : ''}. ${drop.description || `Official ${drop.brand} drop — ${drop.where || 'check official channels'}.`}`,
       alternates: { canonical: url },
       openGraph: {
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     };
   } catch {
-    return { title: 'Drop | SNKRS CART' };
+    return { title: { absolute: 'Drop | SNKRS CART' } };
   }
 }
 

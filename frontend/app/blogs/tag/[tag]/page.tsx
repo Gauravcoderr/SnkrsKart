@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: { params: { tag: string } }) 
   const description = `Browse all SNKRS CART blog posts tagged "${label}" — release guides, news, and style tips.`;
   const url = `${SITE_URL}/blogs/tag/${params.tag}`;
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical: url },
     openGraph: { title, description, url, siteName: 'SNKRS CART', type: 'website' },

@@ -1,7 +1,7 @@
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 
 export const metadata = {
-  title: 'Sneaker Size Guide — UK, US, EU & CM | SNKRS CART',
+  title: { absolute: 'Sneaker Size Guide — UK, US, EU & CM | SNKRS CART' },
   description: 'Find your perfect sneaker size with the SNKRS CART size guide. UK, US, EU and CM conversions for men and women — Nike, Jordan, Adidas, New Balance & Crocs.',
   keywords: ['sneaker size guide India', 'Nike size chart India', 'Jordan size guide', 'shoe size UK US EU conversion India'],
   alternates: { canonical: `${SITE_URL}/size-guide` },

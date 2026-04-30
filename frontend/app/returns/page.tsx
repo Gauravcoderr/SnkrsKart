@@ -1,7 +1,7 @@
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 
 export const metadata = {
-  title: 'Returns & Exchanges | SNKRS CART',
+  title: { absolute: 'Returns & Exchanges | SNKRS CART' },
   description: 'SNKRS CART returns policy — damaged items eligible for return within 2 days of delivery. Free return shipping. Contact infosnkrscart@gmail.com for support.',
   alternates: { canonical: `${SITE_URL}/returns` },
   openGraph: {

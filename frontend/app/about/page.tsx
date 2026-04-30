@@ -3,7 +3,7 @@ import Link from 'next/link';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 
 export const metadata = {
-  title: 'About SNKRS CART | India\'s Authentic Sneaker Store',
+  title: { absolute: "About SNKRS CART | India's Authentic Sneaker Store" },
   description: 'Founded in Pauri Garhwal, Uttarakhand in 2020 by sneakerheads who refused to settle for fakes. SNKRS CART delivers 100% authentic Nike, Jordan, Adidas & more across India.',
   keywords: ['about SNKRS CART', 'authentic sneakers India', 'sneaker store India', 'Nike Jordan Adidas India'],
   alternates: { canonical: `${SITE_URL}/about` },

@@ -28,9 +28,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       : null;
 
     return {
-      title: lowestPrice
+      title: { absolute: lowestPrice
         ? `${brand.name} Sneakers India — Starting ₹${lowestPrice.toLocaleString('en-IN')} | SNKRS CART`
-        : `${brand.name} Sneakers India | Buy ${brand.name} Shoes Online | SNKRS CART`,
+        : `${brand.name} Sneakers India | Buy ${brand.name} Shoes Online | SNKRS CART` },
       description: `Shop authentic ${brand.name} sneakers in India${lowestPrice ? ` starting from ₹${lowestPrice.toLocaleString('en-IN')}` : ''}. ${brand.description || `Explore the full ${brand.name} collection — exclusive drops, classics & more.`} 100% authentic, free pan-India shipping.`,
       alternates: { canonical: url },
       openGraph: {
@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     };
   } catch {
-    return { title: 'Brand | SNKRS CART' };
+    return { title: { absolute: 'Brand | SNKRS CART' } };
   }
 }
 

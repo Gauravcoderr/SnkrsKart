@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: '404 | Page Not Found | SNKRS CART',
+  title: { absolute: '404 | Page Not Found | SNKRS CART' },
 };
 
 const LINKS = [

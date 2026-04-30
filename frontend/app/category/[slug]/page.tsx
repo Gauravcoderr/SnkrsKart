@@ -120,10 +120,10 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const config = CATEGORIES[params.slug];
-  if (!config) return { title: 'SNKRS CART' };
+  if (!config) return { title: { absolute: 'SNKRS CART' } };
   const url = `${SITE_URL}/category/${params.slug}`;
   return {
-    title: config.metaTitle,
+    title: { absolute: config.metaTitle },
     description: config.metaDesc,
     alternates: { canonical: url },
     openGraph: { title: config.metaTitle, description: config.metaDesc, url, siteName: 'SNKRS CART', type: 'website' },

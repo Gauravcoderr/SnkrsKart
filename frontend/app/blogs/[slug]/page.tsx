@@ -131,13 +131,13 @@ async function fetchProductsByTags(tags: string[]): Promise<Product[]> {
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const blog = await fetchBlog(params.slug);
-  if (!blog) return { title: 'Blog | SNKRS CART' };
-  const title = blog.metaTitle || `${blog.title} | SNKRS CART Blog`;
+  if (!blog) return { title: { absolute: 'Blog | SNKRS CART' } };
+  const title = blog.metaTitle || `${blog.title} | SNKRS CART`;
   const description = blog.metaDescription || blog.excerpt || `Read "${blog.title}" on the SNKRS CART blog.`;
   const keywords = blog.metaKeywords || blog.tags.join(', ');
   const url = `${SITE_URL}/blogs/${blog.slug}`;
   return {
-    title, description, keywords,
+    title: { absolute: title }, description, keywords,
     alternates: { canonical: url },
     openGraph: {
       title, description, url, siteName: 'SNKRS CART', type: 'article',

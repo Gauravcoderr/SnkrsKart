@@ -61,7 +61,7 @@ function isNew(dateStr: string): boolean {
 }
 
 export const metadata = {
-  title: 'Sneaker Blog | SNKRS CART',
+  title: { absolute: 'Sneaker Blog | SNKRS CART' },
   description: "Latest sneaker news, release guides, style tips, and brand stories from SNKRS CART — India's trusted sneaker platform.",
   alternates: { canonical: `${SITE_URL}/blogs` },
   openGraph: {

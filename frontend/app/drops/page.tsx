@@ -6,7 +6,7 @@ import { fetchDrops } from '@/lib/api';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 
 export const metadata: Metadata = {
-  title: 'Sneaker Release Dates India 2025 | Upcoming Drops | SNKRS CART',
+  title: { absolute: 'Sneaker Release Dates India 2025 | Upcoming Drops | SNKRS CART' },
   description: 'Upcoming sneaker release dates in India 2025 — Nike, Jordan, Adidas & more. Official drop dates, retail prices, and where to buy. Never miss a release.',
   alternates: { canonical: `${SITE_URL}/drops` },
   openGraph: {

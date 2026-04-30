@@ -4,7 +4,7 @@ import { faqs } from './faqs-data';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 
 export const metadata = {
-  title: 'FAQs | SNKRS CART',
+  title: { absolute: 'FAQs | SNKRS CART' },
   description: 'Got questions? Find answers about authenticity, ordering, payment, shipping, returns, sizing, and more at SNKRS CART — India\'s trusted sneaker store.',
   alternates: { canonical: `${SITE_URL}/faqs` },
 };

@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const profile = await fetchSneakerProfileBySlug(params.slug);
     const url = `${SITE_URL}/sneakers/${params.slug}`;
     return {
-      title: `${profile.name} Price India | Buy ${profile.brand} ${profile.name} Online | SNKRS CART`,
+      title: { absolute: `${profile.name} Price India | Buy ${profile.brand} ${profile.name} Online | SNKRS CART` },
       description: `Buy ${profile.name} sneakers in India. ${profile.tagline ? profile.tagline + '. ' : ''}Authentic pairs, free pan-India shipping. ${profile.originalRetailPrice ? `Original retail: $${profile.originalRetailPrice}.` : ''} Shop at SNKRS CART.`,
       alternates: { canonical: url },
       openGraph: {
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     };
   } catch {
-    return { title: 'Sneaker | SNKRS CART' };
+    return { title: { absolute: 'Sneaker | SNKRS CART' } };
   }
 }
 

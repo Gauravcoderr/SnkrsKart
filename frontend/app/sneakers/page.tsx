@@ -6,7 +6,7 @@ import { fetchSneakerProfiles } from '@/lib/api';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
 
 export const metadata: Metadata = {
-  title: 'Sneaker Guide India | All Models & History | SNKRS CART',
+  title: { absolute: 'Sneaker Guide India | All Models & History | SNKRS CART' },
   description: 'Explore the complete sneaker guide — Nike Air Force 1, Jordan 1, Adidas Samba, New Balance 550 & more. History, specs, and where to buy in India.',
   alternates: { canonical: `${SITE_URL}/sneakers` },
   openGraph: {
