@@ -71,6 +71,7 @@ export interface BannerSlide {
   accent: string;
   bg: string;
   imgBg: string;
+  price?: string;
   order: number;
   active: boolean;
 }
