@@ -47,7 +47,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
           {/* Headline */}
           <div className="flex flex-col gap-4">
             <h1 className="font-black uppercase leading-[0.88] tracking-tighter text-white break-words"
-              style={{ fontSize: 'clamp(3rem, 9vw, 8.5rem)' }}>
+              style={{ fontSize: 'clamp(2.4rem, 7vw, 6.5rem)' }}>
               {s.headline.map((line, i) => (
                 <span key={i} className="block">{line}</span>
               ))}
