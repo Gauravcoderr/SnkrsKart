@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 const CLOUDINARY_CLOUD = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dadulg5bs';
 const CLOUDINARY_PRESET = 'admin_uploads';
 

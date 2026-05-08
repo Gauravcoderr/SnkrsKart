@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { fetchProducts } from '@/lib/api';
 import ProductCard from '@/components/products/ProductCard';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
 interface CategoryConfig {
   label: string;

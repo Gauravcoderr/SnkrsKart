@@ -34,7 +34,7 @@ interface PageProps {
   params: { slug: string };
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
 export async function generateMetadata({ params }: PageProps) {
   try {

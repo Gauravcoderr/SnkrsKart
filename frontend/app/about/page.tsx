@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
 export const metadata = {
   title: { absolute: "About SNKRS CART | India's Authentic Sneaker Store" },
