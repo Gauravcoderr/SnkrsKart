@@ -140,6 +140,7 @@ export default async function BlogsPage() {
               initialBlogs={gridBlogs}
               initialPage={1}
               totalPages={pages}
+              total={total}
             />
 
             {/* ── Newsletter ───────────────────────────────────── */}

@@ -13,9 +13,10 @@ interface Props {
   initialBlogs: Blog[];
   initialPage: number;
   totalPages: number;
+  total: number;
 }
 
-export default function BlogsGrid({ initialBlogs, initialPage, totalPages }: Props) {
+export default function BlogsGrid({ initialBlogs, initialPage, totalPages, total }: Props) {
   const [blogs, setBlogs] = useState<Blog[]>(initialBlogs);
   const [page, setPage] = useState(initialPage);
   const [loading, setLoading] = useState(false);
@@ -58,6 +59,7 @@ export default function BlogsGrid({ initialBlogs, initialPage, totalPages }: Pro
         <div className="flex items-center gap-3 mb-8">
           <p className="text-[11px] font-bold tracking-[0.25em] uppercase text-zinc-400">Latest Posts</p>
           <div className="flex-1 h-px bg-zinc-200" />
+          <span className="text-[11px] text-zinc-400">{total} article{total !== 1 ? 's' : ''}</span>
         </div>
       )}
 
