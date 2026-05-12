@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useMutation } from '@tanstack/react-query';
+import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { useAuth, authHeaders } from '@/context/AuthContext';
 import OtpInput from './OtpInput';
 
@@ -132,6 +133,30 @@ export default function AuthModal() {
 
   // ── Handlers ─────────────────────────────────────────────────────────────
 
+  async function handleGoogleSuccess(credentialResponse: CredentialResponse) {
+    if (!credentialResponse.credential) { setError('Google sign-in failed'); return; }
+    setError('');
+    try {
+      const res = await fetch(`${API}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ credential: credentialResponse.credential }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Google sign-in failed'); return; }
+      if (data.user?.isNewUser) {
+        pendingTokenRef.current = data.accessToken;
+        setStep('profile');
+        return;
+      }
+      loginWithData(data.user, data.accessToken);
+      closeAuthModal();
+    } catch {
+      setError('Google sign-in failed. Please try again.');
+    }
+  }
+
   function handleSendOtp(e?: React.FormEvent) {
     e?.preventDefault();
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -187,6 +212,27 @@ export default function AuthModal() {
                   <p className="text-sm text-zinc-500 mt-1">Sign in or create an account</p>
                 </div>
                 {error && <p className="text-sm text-red-500 text-center mb-4">{error}</p>}
+
+                {/* Google Sign-In */}
+                <div className="flex justify-center mb-4">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => setError('Google sign-in failed')}
+                    width="368"
+                    text="continue_with"
+                    shape="pill"
+                    theme="outline"
+                    size="large"
+                  />
+                </div>
+
+                {/* Divider */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex-1 h-px bg-zinc-200" />
+                  <span className="text-xs text-zinc-400 uppercase tracking-widest">or</span>
+                  <div className="flex-1 h-px bg-zinc-200" />
+                </div>
+
                 <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-1.5">What&apos;s your email?</label>
                 <input
                   type="email" value={email} onChange={(e) => setEmail(e.target.value)}

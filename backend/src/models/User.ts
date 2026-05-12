@@ -13,6 +13,7 @@ export interface IUser extends Document {
   email: string;
   name: string;
   phone: string;
+  googleId?: string;
   addresses: IAddress[];
   otp: string | null;
   otpExpiry: Date | null;
@@ -41,6 +42,7 @@ const UserSchema = new Schema<IUser>(
     otpExpiry: { type: Date, default: null },
     otpAttempts: { type: Number, default: 0 },
     lastOtpSent: { type: Date, default: null },
+    googleId: { type: String, default: null },
     refreshToken: { type: String, default: null },
   },
   { timestamps: true }

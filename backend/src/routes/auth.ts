@@ -1,10 +1,13 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import { User } from '../models/User';
 import { Order } from '../models/Order';
 import { customerAuth, AuthRequest } from '../middleware/customerAuth';
 import { sendMail } from '../lib/mailer';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'snkrs-cart-jwt-s3cr3t-k3y-2026';
@@ -208,6 +211,51 @@ router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
     res.json({ message: 'Refreshed', accessToken });
   } catch {
     res.status(500).json({ error: 'Failed to refresh token' });
+  }
+});
+
+// ─── Google OAuth ──────────────────────────────────────────────────────────
+router.post('/google', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { credential } = req.body;
+    if (!credential) { res.status(400).json({ error: 'Missing credential' }); return; }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload?.email) { res.status(400).json({ error: 'Invalid Google token' }); return; }
+
+    const { email, name, sub: googleId } = payload;
+    const cleanEmail = email.toLowerCase();
+
+    const user = await User.findOneAndUpdate(
+      { email: cleanEmail },
+      { $set: { googleId }, $setOnInsert: { name: name ?? '', phone: '' } },
+      { upsert: true, new: true }
+    );
+
+    const { accessToken, refreshToken } = generateTokens(user!._id.toString(), cleanEmail);
+    await User.updateOne({ _id: user!._id }, { $set: { refreshToken: hashOtp(refreshToken) } });
+
+    Order.updateMany({ email: cleanEmail, userId: null }, { $set: { userId: user!._id } }).catch(() => {});
+
+    setTokenCookies(res, accessToken, refreshToken);
+    res.json({
+      accessToken,
+      user: {
+        id: user!._id.toString(),
+        email: cleanEmail,
+        name: user!.name,
+        phone: user!.phone,
+        addresses: user!.addresses ?? [],
+        isNewUser: !user!.name,
+      },
+    });
+  } catch (err: any) {
+    console.error('google-auth error:', err);
+    res.status(401).json({ error: 'Google sign-in failed' });
   }
 });
 

@@ -7,6 +7,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import QueryProvider from '@/components/layout/QueryProvider';
 import LayoutShell from '@/components/layout/LayoutShell';
 import AuthModal from '@/components/auth/AuthModal';
+import GoogleAuthProvider from '@/components/auth/GoogleAuthProvider';
 import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({
@@ -189,16 +190,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="bg-zinc-50 text-zinc-900 font-sans antialiased">
-        <QueryProvider>
-          <AuthProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <LayoutShell>{children}</LayoutShell>
-                <AuthModal />
-              </WishlistProvider>
-            </CartProvider>
-          </AuthProvider>
-        </QueryProvider>
+        <GoogleAuthProvider>
+          <QueryProvider>
+            <AuthProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <LayoutShell>{children}</LayoutShell>
+                  <AuthModal />
+                </WishlistProvider>
+              </CartProvider>
+            </AuthProvider>
+          </QueryProvider>
+        </GoogleAuthProvider>
         <Analytics />
       </body>
     </html>
