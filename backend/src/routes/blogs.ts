@@ -7,10 +7,10 @@ function toSlug(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
-// GET /api/v1/blogs — published blogs list (supports ?search=, ?tag=, ?limit=)
+// GET /api/v1/blogs — published blogs list (supports ?search=, ?tag=, ?limit=, ?page=)
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { tag, limit, search } = req.query;
+    const { tag, limit, search, page } = req.query;
     const query: Record<string, unknown> = { published: true };
     if (tag) query.tags = tag;
     if (search) {
@@ -23,12 +23,24 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
         });
       }
     }
-    const blogs = await Blog.find(query)
-      .sort({ createdAt: -1 })
-      .limit(limit ? parseInt(limit as string) : 50)
-      .select('title slug excerpt coverImage author tags createdAt')
-      .lean();
-    res.json(blogs);
+    const lim = limit ? parseInt(limit as string) : 12;
+    const pageNum = page ? Math.max(1, parseInt(page as string)) : 1;
+    const [blogs, total] = await Promise.all([
+      Blog.find(query)
+        .sort({ createdAt: -1 })
+        .skip((pageNum - 1) * lim)
+        .limit(lim)
+        .select('title slug excerpt coverImage author tags createdAt')
+        .lean(),
+      Blog.countDocuments(query),
+    ]);
+    res.json({
+      blogs,
+      total,
+      page: pageNum,
+      pages: Math.ceil(total / lim),
+      limit: lim,
+    });
   } catch {
     res.status(500).json({ error: 'Failed to fetch blogs' });
   }

@@ -2,63 +2,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { Blog } from '@/types';
 import NewsletterSignup from '@/components/blog/NewsletterSignup';
+import BlogsGrid from './BlogsGrid';
+import { getAccent, formatDate, readingTime, isNew, PAGE_SIZE } from './blogUtils';
+import { fetchPaginated } from '@/lib/pagination';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
-
-const TAG_ACCENTS: Record<string, { bg: string; tagBg: string; tagText: string; accent: string; border: string; dot: string; heroGrad: string }> = {
-  jordan:        { bg: 'bg-red-50',     tagBg: 'bg-red-100',     tagText: 'text-red-700',     accent: 'text-red-600',     border: 'border-red-200',    dot: 'bg-red-400',    heroGrad: 'from-red-900 to-red-700'      },
-  nike:          { bg: 'bg-orange-50',  tagBg: 'bg-orange-100',  tagText: 'text-orange-700',  accent: 'text-orange-600',  border: 'border-orange-200', dot: 'bg-orange-400', heroGrad: 'from-orange-900 to-orange-700' },
-  adidas:        { bg: 'bg-blue-50',    tagBg: 'bg-blue-100',    tagText: 'text-blue-700',    accent: 'text-blue-600',    border: 'border-blue-200',   dot: 'bg-blue-400',   heroGrad: 'from-blue-900 to-blue-700'    },
-  'new-balance': { bg: 'bg-amber-50',   tagBg: 'bg-amber-100',   tagText: 'text-amber-700',   accent: 'text-amber-600',   border: 'border-amber-200',  dot: 'bg-amber-400',  heroGrad: 'from-amber-900 to-amber-700'  },
-  'new balance': { bg: 'bg-amber-50',   tagBg: 'bg-amber-100',   tagText: 'text-amber-700',   accent: 'text-amber-600',   border: 'border-amber-200',  dot: 'bg-amber-400',  heroGrad: 'from-amber-900 to-amber-700'  },
-  crocs:         { bg: 'bg-green-50',   tagBg: 'bg-green-100',   tagText: 'text-green-700',   accent: 'text-green-600',   border: 'border-green-200',  dot: 'bg-green-400',  heroGrad: 'from-green-900 to-green-700'  },
-  guide:         { bg: 'bg-violet-50',  tagBg: 'bg-violet-100',  tagText: 'text-violet-700',  accent: 'text-violet-600',  border: 'border-violet-200', dot: 'bg-violet-400', heroGrad: 'from-violet-900 to-violet-700' },
-  india:         { bg: 'bg-emerald-50', tagBg: 'bg-emerald-100', tagText: 'text-emerald-700', accent: 'text-emerald-600', border: 'border-emerald-200',dot: 'bg-emerald-400',heroGrad: 'from-emerald-900 to-emerald-700'},
-  history:       { bg: 'bg-stone-50',   tagBg: 'bg-stone-200',   tagText: 'text-stone-700',   accent: 'text-stone-600',   border: 'border-stone-200',  dot: 'bg-stone-400',  heroGrad: 'from-stone-800 to-stone-700'  },
-  trends:        { bg: 'bg-pink-50',    tagBg: 'bg-pink-100',    tagText: 'text-pink-700',    accent: 'text-pink-600',    border: 'border-pink-200',   dot: 'bg-pink-400',   heroGrad: 'from-pink-900 to-pink-700'    },
-  releases:      { bg: 'bg-cyan-50',    tagBg: 'bg-cyan-100',    tagText: 'text-cyan-700',    accent: 'text-cyan-600',    border: 'border-cyan-200',   dot: 'bg-cyan-400',   heroGrad: 'from-cyan-900 to-cyan-700'    },
-  collaboration: { bg: 'bg-purple-50',  tagBg: 'bg-purple-100',  tagText: 'text-purple-700',  accent: 'text-purple-600',  border: 'border-purple-200', dot: 'bg-purple-400', heroGrad: 'from-purple-900 to-purple-700' },
-  'style guide': { bg: 'bg-teal-50',    tagBg: 'bg-teal-100',    tagText: 'text-teal-700',    accent: 'text-teal-600',    border: 'border-teal-200',   dot: 'bg-teal-400',   heroGrad: 'from-teal-900 to-teal-700'    },
-  'care guide':  { bg: 'bg-lime-50',    tagBg: 'bg-lime-100',    tagText: 'text-lime-700',    accent: 'text-lime-600',    border: 'border-lime-200',   dot: 'bg-lime-500',   heroGrad: 'from-lime-900 to-lime-700'    },
-};
-
-const DEFAULT_ACCENT = {
-  bg: 'bg-zinc-50', tagBg: 'bg-zinc-100', tagText: 'text-zinc-600',
-  accent: 'text-zinc-600', border: 'border-zinc-200', dot: 'bg-zinc-400',
-  heroGrad: 'from-zinc-900 to-zinc-700',
-};
-
-function getAccent(tags: string[]) {
-  for (const tag of tags) {
-    const key = tag.toLowerCase();
-    if (TAG_ACCENTS[key]) return TAG_ACCENTS[key];
-  }
-  return DEFAULT_ACCENT;
-}
-
-async function fetchBlogs(): Promise<Blog[]> {
-  try {
-    const res = await fetch(`${API}/blogs`, { cache: 'no-store' });
-    if (!res.ok) return [];
-    return res.json();
-  } catch {
-    return [];
-  }
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-function readingTime(content: string): number {
-  const text = (content || '').replace(/<[^>]*>/g, '');
-  return Math.max(1, Math.ceil(text.split(/\s+/).filter(Boolean).length / 200));
-}
-
-function isNew(dateStr: string): boolean {
-  return Date.now() - new Date(dateStr).getTime() < 7 * 24 * 60 * 60 * 1000;
-}
 
 export const metadata = {
   title: { absolute: 'Sneaker Blog | SNKRS CART' },
@@ -73,7 +22,12 @@ export const metadata = {
 };
 
 export default async function BlogsPage() {
-  const blogs = await fetchBlogs();
+  const { blogs: firstPage, total, pages } = await fetchPaginated<Blog>(
+    `${API}/blogs?page=1&limit=${PAGE_SIZE}`,
+    { cache: 'no-store' },
+  );
+
+  const [hero, ...gridBlogs] = firstPage;
 
   const jsonLd = {
     '@context': 'https://schema.org', '@type': 'Blog',
@@ -81,15 +35,13 @@ export default async function BlogsPage() {
     description: 'Sneaker news, release guides, and style content from SNKRS CART.',
     url: `${SITE_URL}/blogs`,
     publisher: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL, logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` } },
-    blogPost: blogs.map((b) => ({
+    blogPost: firstPage.map((b: Blog) => ({
       '@type': 'BlogPosting', headline: b.title,
       url: `${SITE_URL}/blogs/${b.slug}`, datePublished: b.createdAt,
       author: { '@type': 'Person', name: b.author, url: SITE_URL, image: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` } },
       ...(b.coverImage ? { image: b.coverImage } : {}),
     })),
   };
-
-  const [hero, ...rest] = blogs;
 
   return (
     <>
@@ -106,14 +58,14 @@ export default async function BlogsPage() {
           </p>
         </div>
 
-        {blogs.length === 0 ? (
+        {firstPage.length === 0 ? (
           <div className="text-center py-24 text-zinc-400">
             <p className="text-lg font-semibold">No posts yet.</p>
             <p className="text-sm mt-1">Check back soon for sneaker content.</p>
           </div>
         ) : (
           <>
-            {/* ── Hero card (first post) ─────────────────────────── */}
+            {/* ── Hero card (first post, SSR) ───────────────────── */}
             {hero && (() => {
               const a = getAccent(hero.tags);
               return (
@@ -137,7 +89,6 @@ export default async function BlogsPage() {
                           <span className="text-6xl opacity-20">👟</span>
                         </div>
                       )}
-                      {/* Featured badge */}
                       <div className="absolute top-4 left-4 z-20 pointer-events-none">
                         <span className="inline-flex items-center gap-1.5 bg-white/80 backdrop-blur-sm text-zinc-800 text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full shadow-sm">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
@@ -184,86 +135,12 @@ export default async function BlogsPage() {
               );
             })()}
 
-            {/* ── Section divider ────────────────────────────────── */}
-            {rest.length > 0 && (
-              <div className="flex items-center gap-3 mb-8">
-                <p className="text-[11px] font-bold tracking-[0.25em] uppercase text-zinc-400">Latest Posts</p>
-                <div className="flex-1 h-px bg-zinc-200" />
-                <span className="text-[11px] text-zinc-400">{rest.length} article{rest.length !== 1 ? 's' : ''}</span>
-              </div>
-            )}
-
-            {/* ── Grid ──────────────────────────────────────────── */}
-            {rest.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7 mb-16">
-                {rest.map((blog) => {
-                  const a = getAccent(blog.tags);
-                  return (
-                    <div
-                      key={blog._id}
-                      className={`group relative rounded-2xl overflow-hidden border ${a.border} ${a.bg} transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}
-                    >
-                      <Link href={`/blogs/${blog.slug}`} className="absolute inset-0 z-10" aria-label={blog.title} />
-                      {/* Cover image */}
-                      <div className="relative aspect-[16/9] bg-zinc-100 overflow-hidden">
-                        {blog.coverImage ? (
-                          <Image
-                            src={blog.coverImage}
-                            alt={blog.title}
-                            fill
-                            unoptimized
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
-                            sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
-                          />
-                        ) : (
-                          <div className={`absolute inset-0 bg-gradient-to-br ${a.heroGrad} flex items-center justify-center`}>
-                            <span className="text-4xl opacity-20">👟</span>
-                          </div>
-                        )}
-                        {isNew(blog.createdAt) && (
-                          <div className="absolute top-3 right-3 z-20 pointer-events-none">
-                            <span className="bg-zinc-900 text-white text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full shadow">NEW</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Body */}
-                      <div className="relative p-5 sm:p-6 pointer-events-none">
-                        {blog.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mb-3">
-                            {blog.tags.slice(0, 2).map((t) => (
-                              <Link key={t} href={`/blogs/tag/${encodeURIComponent(t.toLowerCase())}`} className={`relative z-20 pointer-events-auto text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${a.tagBg} ${a.tagText} hover:opacity-75 transition-opacity`}>{t}</Link>
-                            ))}
-                          </div>
-                        )}
-                        <h2 className="text-sm font-black tracking-tight text-zinc-950 group-hover:text-zinc-600 transition-colors leading-snug mb-2 line-clamp-2">
-                          {blog.title}
-                        </h2>
-                        {blog.excerpt && (
-                          <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2 mb-4">
-                            {blog.excerpt}
-                          </p>
-                        )}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
-                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${a.dot}`} />
-                            <span>{formatDate(blog.createdAt)}</span>
-                            <span>&middot;</span>
-                            <span>{readingTime(blog.content)} min read</span>
-                          </div>
-                          <svg
-                            className="w-4 h-4 text-zinc-300 group-hover:text-zinc-600 group-hover:translate-x-0.5 transition-all"
-                            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {/* ── Infinite-scroll grid (client component) ───────── */}
+            <BlogsGrid
+              initialBlogs={gridBlogs}
+              initialPage={1}
+              totalPages={pages}
+            />
 
             {/* ── Newsletter ───────────────────────────────────── */}
             <NewsletterSignup />

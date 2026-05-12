@@ -125,7 +125,8 @@ async function fetchBlogContext(query: string): Promise<string> {
     const params = new URLSearchParams({ search: extractProductTerms(query) || query, limit: '5' });
     const res = await fetch(`${BACKEND_URL}/blogs?${params}`, { cache: 'no-store' });
     if (!res.ok) return '';
-    const blogs: any[] = await res.json();
+    const payload = await res.json();
+    const blogs: any[] = Array.isArray(payload) ? payload : (payload.blogs ?? []);
     if (!Array.isArray(blogs) || blogs.length === 0) return '';
     const header = 'title|tags|slug';
     const rows = blogs.map((b: any) => `${b.title}|${(b.tags ?? []).join(' ')}|${b.slug}`);
@@ -138,9 +139,10 @@ async function fetchBlogContext(query: string): Promise<string> {
 async function fetchSuggestedBlogs(slugs: string[]): Promise<any[]> {
   if (!slugs.length) return [];
   try {
-    const res = await fetch(`${BACKEND_URL}/blogs`, { cache: 'no-store' });
+    const res = await fetch(`${BACKEND_URL}/blogs?limit=200`, { cache: 'no-store' });
     if (!res.ok) return [];
-    const blogs: any[] = await res.json();
+    const payload = await res.json();
+    const blogs: any[] = Array.isArray(payload) ? payload : (payload.blogs ?? []);
     return slugs
       .map((slug) => blogs.find((b: any) => b.slug === slug))
       .filter(Boolean);

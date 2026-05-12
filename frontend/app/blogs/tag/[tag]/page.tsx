@@ -39,9 +39,10 @@ function isNew(d: string) {
 
 async function fetchByTag(tag: string): Promise<Blog[]> {
   try {
-    const res = await fetch(`${API}/blogs?tag=${encodeURIComponent(tag)}&limit=50`, { cache: 'no-store' });
+    const res = await fetch(`${API}/blogs?tag=${encodeURIComponent(tag)}&limit=100`, { cache: 'no-store' });
     if (!res.ok) return [];
-    return res.json();
+    const data = await res.json();
+    return Array.isArray(data) ? data : (data.blogs ?? []);
   } catch {
     return [];
   }
