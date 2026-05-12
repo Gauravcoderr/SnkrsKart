@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -27,7 +29,10 @@ export async function GET() {
   let blogs: BlogEntry[] = [];
   try {
     const res = await fetch(`${API}/blogs?limit=50`, { next: { revalidate: 3600 } });
-    if (res.ok) blogs = await res.json();
+    if (res.ok) {
+      const data = await res.json();
+      blogs = Array.isArray(data) ? data : (data.blogs ?? []);
+    }
   } catch { /* ignore */ }
 
   const items = blogs
