@@ -1,4 +1,5 @@
 import { Product, Brand, BannerSlide, ProductsResponse, FilterState, Review, FitSummary, LoyaltyAccount, SneakerProfile, Drop } from '@/types';
+import { fetchWithAuth } from './fetchWithAuth';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -104,12 +105,8 @@ export async function fetchProductReviews(productSlug: string): Promise<{ review
   return res.json();
 }
 
-export async function fetchLoyaltyBalance(accessToken: string): Promise<LoyaltyAccount> {
-  const res = await fetch(`${BASE_URL}/loyalty/me`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-    credentials: 'include',
-    cache: 'no-store',
-  });
+export async function fetchLoyaltyBalance(_accessToken?: string): Promise<LoyaltyAccount> {
+  const res = await fetchWithAuth(`${BASE_URL}/loyalty/me`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch loyalty balance');
   return res.json();
 }
@@ -117,12 +114,11 @@ export async function fetchLoyaltyBalance(accessToken: string): Promise<LoyaltyA
 export async function validateCoinRedemption(
   coins: number,
   orderTotal: number,
-  accessToken: string
+  _accessToken?: string,
 ): Promise<{ discount: number; coinsUsed: number }> {
-  const res = await fetch(`${BASE_URL}/loyalty/redeem`, {
+  const res = await fetchWithAuth(`${BASE_URL}/loyalty/redeem`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ coins, orderTotal }),
   });
   if (!res.ok) {

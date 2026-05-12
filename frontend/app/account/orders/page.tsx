@@ -5,7 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { formatPrice } from '@/lib/utils';
-import { useAuth, authHeaders } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
+import { fetchWithAuth } from '@/lib/fetchWithAuth';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -391,7 +392,7 @@ export default function OrdersPage() {
   const { data: myOrders = [], isLoading } = useQuery<Order[]>({
     queryKey: ['orders', 'my'],
     queryFn: async () => {
-      const res = await fetch(`${BASE_URL}/orders/my`, { credentials: 'include', headers: authHeaders() });
+      const res = await fetchWithAuth(`${BASE_URL}/orders/my`);
       if (!res.ok) return [];
       return res.json();
     },

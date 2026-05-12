@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
-import { useAuth, authHeaders, getStoredToken } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
+import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { formatPrice } from '@/lib/utils';
 import OtpInput from '@/components/auth/OtpInput';
 import { LoyaltyAccount } from '@/types';
@@ -84,12 +85,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!isLoggedIn || step !== 3) return;
-    const token = getStoredToken();
-    if (!token) return;
-    fetch(`${BASE_URL}/loyalty/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-      credentials: 'include',
-    } as RequestInit)
+    fetchWithAuth(`${BASE_URL}/loyalty/me`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => { if (data) setLoyaltyData(data); })
       .catch(() => {});
@@ -213,10 +209,9 @@ export default function CheckoutPage() {
         coinsRedeemed: coinDiscount > 0 ? coinDiscount : 0,
       };
 
-      const res = await fetch(`${BASE_URL}/orders`, {
+      const res = await fetchWithAuth(`${BASE_URL}/orders`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 

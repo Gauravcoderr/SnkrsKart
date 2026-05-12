@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useMutation } from '@tanstack/react-query';
-import { useAuth, authHeaders } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
+import { fetchWithAuth } from '@/lib/fetchWithAuth';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -38,10 +39,9 @@ export default function AddressesPage() {
 
   const addMutation = useMutation({
     mutationFn: async (data: AddressFormState) => {
-      const res = await fetch(`${API}/auth/me/addresses`, {
+      const res = await fetchWithAuth(`${API}/auth/me/addresses`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       if (!res.ok) {
@@ -61,10 +61,9 @@ export default function AddressesPage() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: AddressFormState }) => {
-      const res = await fetch(`${API}/auth/me/addresses/${id}`, {
+      const res = await fetchWithAuth(`${API}/auth/me/addresses/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       if (!res.ok) {
@@ -85,10 +84,8 @@ export default function AddressesPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`${API}/auth/me/addresses/${id}`, {
+      const res = await fetchWithAuth(`${API}/auth/me/addresses/${id}`, {
         method: 'DELETE',
-        headers: authHeaders(),
-        credentials: 'include',
       });
       if (!res.ok) throw new Error('Failed to delete address');
       return res.json();
