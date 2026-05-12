@@ -23,7 +23,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
         });
       }
     }
-    const lim = limit ? parseInt(limit as string) : 12;
+    const lim = limit ? parseInt(limit as string) : 30;
     const pageNum = page ? Math.max(1, parseInt(page as string)) : 1;
     const [blogs, total] = await Promise.all([
       Blog.find(query)

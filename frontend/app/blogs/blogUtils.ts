@@ -42,4 +42,4 @@ export function isNew(dateStr: string): boolean {
   return Date.now() - new Date(dateStr).getTime() < 7 * 24 * 60 * 60 * 1000;
 }
 
-export const PAGE_SIZE = 12;
+export const PAGE_SIZE = 30;

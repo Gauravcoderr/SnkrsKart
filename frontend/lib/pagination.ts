@@ -10,7 +10,7 @@ export async function fetchPaginated<T>(
   url: string,
   options?: RequestInit,
 ): Promise<PaginatedResponse<T>> {
-  const empty: PaginatedResponse<T> = { blogs: [], total: 0, page: 1, pages: 0, limit: 12 };
+  const empty: PaginatedResponse<T> = { blogs: [], total: 0, page: 1, pages: 0, limit: 30 };
   try {
     const res = await fetch(url, options);
     if (!res.ok) return empty;
