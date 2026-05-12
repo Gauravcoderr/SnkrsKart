@@ -15,7 +15,7 @@ const navLinks = [
   { label: 'Shop', href: '/products' },
   { label: 'Brands', href: '#' },
   { label: 'New In', href: '/products?sort=newest' },
-  { label: 'Blog', href: '/blogs' },
+  { label: 'SNKRS Blogs', href: '/blogs' },
 ];
 
 const BRANDS = [
@@ -492,7 +492,7 @@ export default function Header() {
                 New In
               </Link>
               <Link href="/blogs" onClick={() => setMobileOpen(false)} className="text-lg font-semibold tracking-widest uppercase text-zinc-900 hover:text-zinc-500 transition-colors">
-                Blog
+                SNKRS Blogs
               </Link>
 
               {/* Account section */}
