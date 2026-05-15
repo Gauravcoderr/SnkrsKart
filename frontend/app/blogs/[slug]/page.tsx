@@ -79,7 +79,8 @@ async function fetchRelatedBlogs(tags: string[], currentSlug: string): Promise<B
       if (allRelated.length >= 6) break;
       const res = await fetch(`${API}/blogs?tag=${encodeURIComponent(tag)}&limit=4`, { cache: 'no-store' });
       if (!res.ok) continue;
-      const blogs: Blog[] = await res.json();
+      const data = await res.json();
+      const blogs: Blog[] = data.blogs ?? data ?? [];
       for (const b of blogs) {
         if (!seen.has(b.slug) && allRelated.length < 6) {
           seen.add(b.slug);
