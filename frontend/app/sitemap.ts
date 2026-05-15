@@ -31,7 +31,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const res = await fetch(`${API}/blogs?limit=500`, { next: { revalidate: 3600 } });
     if (res.ok) {
-      const blogs: BlogEntry[] = await res.json();
+      const data = await res.json();
+      const blogs: BlogEntry[] = data.blogs ?? data ?? [];
       blogPages = blogs.map((b) => ({
         url: `${SITE_URL}/blogs/${b.slug}`,
         lastModified: b.updatedAt ? new Date(b.updatedAt) : new Date(b.createdAt),
