@@ -62,26 +62,30 @@ function deriveChips(products: Product[], lastQuery = ''): string[] {
   return chips.slice(0, 4);
 }
 
-const URL_REGEX = /(https?:\/\/[^\s]+)/g;
+// Captures URLs but stops before trailing punctuation (., ) ] etc.)
+const URL_REGEX = /(https?:\/\/[^\s]+?)(?=[.,!?;:)\]'"]*(?:\s|$))/g;
 
 function renderWithLinks(text: string) {
   const parts = text.split(URL_REGEX);
-  return parts.map((part, i) =>
-    URL_REGEX.test(part) ? (
+  return parts.map((part, i) => {
+    if (!part.startsWith('http')) return part;
+    // Strip any stray trailing punctuation captured by split
+    const href = part.replace(/[.,!?;:)\]'"]+$/, '');
+    // Show a short readable label: just the path after the domain
+    const display = href.replace(/^https?:\/\/(?:www\.)?snkrscart\.com/, '') || href;
+    return (
       <a
         key={i}
-        href={part}
+        href={href}
         target="_blank"
         rel="noopener noreferrer"
         className="text-blue-600 underline underline-offset-2 hover:text-blue-800 break-all"
         onClick={(e) => e.stopPropagation()}
       >
-        {part}
+        {display}
       </a>
-    ) : (
-      part
-    )
-  );
+    );
+  });
 }
 
 function formatPrice(n: number) {
