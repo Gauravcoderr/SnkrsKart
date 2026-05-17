@@ -12,8 +12,11 @@ const nextConfig = {
   },
   async rewrites() {
     return [
-      { source: '/rss.xml',   destination: '/api/rss'  },
-      { source: '/llms.txt',  destination: '/api/llms' },
+      { source: '/rss.xml',        destination: '/api/rss'        },
+      { source: '/llms.txt',      destination: '/api/llms'       },
+      { source: '/llms-full.txt', destination: '/api/llms-full'  },
+      { source: '/llms-blogs.txt',destination: '/api/llms-blogs' },
+      { source: '/llms-drops.txt',destination: '/api/llms-drops' },
     ];
   },
   images: {
