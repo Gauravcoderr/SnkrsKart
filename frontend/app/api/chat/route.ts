@@ -138,17 +138,34 @@ async function fetchBlogContext(query: string): Promise<string> {
 
 async function fetchSuggestedBlogs(slugs: string[]): Promise<any[]> {
   if (!slugs.length) return [];
+  const results = await Promise.allSettled(
+    slugs.map((slug) =>
+      fetch(`${BACKEND_URL}/blogs/${slug}`, { cache: 'no-store' }).then((r) =>
+        r.ok ? r.json() : null
+      )
+    )
+  );
+  return results
+    .filter((r) => r.status === 'fulfilled' && r.value)
+    .map((r) => (r as PromiseFulfilledResult<any>).value);
+}
+
+async function fetchDropContext(query: string): Promise<string> {
+  const q = query.toLowerCase();
+  if (!/drop|release|launch|upcoming|calendar|when.*cop|restoc|june|july|aug|may|2026/.test(q)) return '';
   try {
-    const res = await fetch(`${BACKEND_URL}/blogs?limit=200`, { cache: 'no-store' });
-    if (!res.ok) return [];
-    const payload = await res.json();
-    const blogs: any[] = Array.isArray(payload) ? payload : (payload.blogs ?? []);
-    return slugs
-      .map((slug) => blogs.find((b: any) => b.slug === slug))
-      .filter(Boolean);
-  } catch {
-    return [];
-  }
+    const res = await fetch(`${BACKEND_URL}/drops`, { cache: 'no-store' });
+    if (!res.ok) return '';
+    const drops: any[] = await res.json();
+    if (!drops.length) return '';
+    const header = 'name|brand|date|price|where|slug';
+    const rows = drops.slice(0, 10).map((d: any) => {
+      const date = new Date(d.releaseDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      const price = d.retailPrice ? `₹${d.retailPrice.toLocaleString('en-IN')}` : 'TBA';
+      return `${d.name}|${d.brand}|${date}|${price}|${d.where}|${d.slug}`;
+    });
+    return [header, ...rows].join('\n');
+  } catch { return ''; }
 }
 
 const SYSTEM_PROMPT = `You are KickBot, a friendly and polite sneaker assistant for SNKRS CART — a premium sneaker store in India.
@@ -188,7 +205,10 @@ Your goals:
 7. Keep responses short — 2-3 sentences max unless the user asks for more detail.
 8. Use ₹ for prices (Indian Rupees). Our price range is ₹7,997–₹28,499. Never suggest budgets below ₹8,000.
 9. NEVER invent or confirm prices, sizes, or product details that are not in the catalog context provided above. If a user tells you a price that differs from the catalog, trust the catalog. If the product is not in the context at all, say you couldn't find it right now and suggest they check the website — do NOT guess or agree with user-provided prices.
-10. When a product has a rating of 4.5 or above, mention it naturally (e.g. "highly rated at ★4.8").`;
+10. When a product has a rating of 4.5 or above, mention it naturally (e.g. "highly rated at ★4.8").
+11. UPCOMING DROPS: When the user asks about upcoming releases, new drops, or the release calendar, use the UPCOMING DROPS context provided. Share the release date, price, and where to cop. Link to https://www.snkrscart.com/drops/{slug} for the specific drop detail, or https://www.snkrscart.com/drops for the full calendar. Never invent drop dates or prices — only use what's in the context.
+12. SNEAKER PROFILES: When a user asks about the history, background, or general info about a sneaker model (not a specific product to buy), you can direct them to https://www.snkrscart.com/sneakers/{model-slug} (e.g. nike-air-force-1, air-jordan-1, adidas-samba). Only use slugs you're confident about.
+13. If the user asks "what's dropping", "upcoming drops", or "release calendar" — always share the full drops page: https://www.snkrscart.com/drops`;
 
 // Patterns that indicate prompt injection attempts
 const INJECTION_PATTERNS = [
@@ -275,16 +295,18 @@ export async function POST(req: NextRequest) {
       .map((m) => m.content)
       .join(' ');
 
-    const [productContext, blogContext] = skipContext
-      ? ['', '']
+    const [productContext, blogContext, dropContext] = skipContext
+      ? ['', '', '']
       : await Promise.all([
           fetchProductContext(cumulativeQuery),
           fetchBlogContext(lastUserMessage),
+          fetchDropContext(cumulativeQuery),
         ]);
 
     let systemWithContext = SYSTEM_PROMPT;
     if (productContext) systemWithContext += `\n\n--- AVAILABLE PRODUCTS ---\n${productContext}\n--- END PRODUCTS ---`;
     if (blogContext) systemWithContext += `\n\n--- RELEVANT BLOG ARTICLES ---\n${blogContext}\n--- END BLOGS ---`;
+    if (dropContext) systemWithContext += `\n\n--- UPCOMING DROPS (release calendar) ---\n${dropContext}\n--- END DROPS ---`;
 
     let rawText = '';
 

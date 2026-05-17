@@ -75,40 +75,38 @@ function ProductCard({ product }: { product: Product }) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="flex items-center gap-3 rounded-xl border border-zinc-100 bg-white p-2.5 hover:border-zinc-300 hover:shadow-sm transition-all group"
+      className="block rounded-xl border border-zinc-100 bg-white overflow-hidden hover:border-zinc-300 hover:shadow-md transition-all group"
     >
-      <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-zinc-50 flex-shrink-0">
+      <div className="relative aspect-square bg-zinc-50 overflow-hidden">
         {product.images?.[0] && (
           <Image
             src={product.images[0]}
             alt={product.name}
             fill
-            className="object-contain p-1"
-            sizes="56px"
+            className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+            sizes="150px"
           />
         )}
+        {product.discount ? (
+          <span className="absolute top-1.5 left-1.5 text-[9px] font-bold text-white bg-emerald-500 rounded px-1 py-0.5 leading-none">
+            {product.discount}% off
+          </span>
+        ) : null}
+        {(product as any).soldOut && (
+          <span className="absolute top-1.5 right-1.5 text-[9px] font-bold text-white bg-red-500 rounded px-1 py-0.5 leading-none">Sold Out</span>
+        )}
       </div>
-      <div className="min-w-0">
-        <p className="text-xs font-semibold text-zinc-900 truncate group-hover:text-zinc-700 leading-tight">
-          {product.name}
-        </p>
-        <p className="text-[11px] text-zinc-400 truncate">{product.brand}</p>
-        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+      <div className="px-2.5 py-2">
+        <p className="text-[10px] text-zinc-400 truncate">{product.brand}</p>
+        <p className="text-[11px] font-semibold text-zinc-900 line-clamp-1 leading-tight">{product.name}</p>
+        <div className="flex items-center gap-1 mt-0.5">
           <span className="text-xs font-bold text-zinc-900">{formatPrice(product.price)}</span>
-          {product.discount && (
-            <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 rounded px-1">
-              {product.discount}% off
-            </span>
-          )}
-          {(product as any).soldOut && (
-            <span className="text-[10px] font-medium text-red-500">Sold Out</span>
-          )}
-          {(product as any).comingSoon && (
-            <span className="text-[10px] font-medium text-violet-500">Coming Soon</span>
+          {(product as any).rating >= 4.5 && (
+            <span className="text-[9px] text-amber-500 font-medium">★{((product as any).rating as number).toFixed(1)}</span>
           )}
         </div>
-        {(product as any).rating >= 4.5 && (
-          <p className="text-[10px] text-amber-500 mt-0.5">★ {((product as any).rating as number).toFixed(1)}</p>
+        {(product as any).comingSoon && (
+          <span className="text-[9px] font-medium text-violet-500">Coming Soon</span>
         )}
       </div>
     </Link>
@@ -208,6 +206,7 @@ export default function ChatBot() {
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [showNudge, setShowNudge] = useState(false);
+  const [unread, setUnread] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const nudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -220,10 +219,18 @@ export default function ChatBot() {
     return () => { if (nudgeTimer.current) clearTimeout(nudgeTimer.current); };
   }, []);
 
-  // Hide nudge when user opens chat
+  // Hide nudge + clear unread when user opens chat
   useEffect(() => {
-    if (open) setShowNudge(false);
+    if (open) { setShowNudge(false); setUnread(0); }
   }, [open]);
+
+  // Increment unread badge when assistant sends a reply while chat is closed
+  useEffect(() => {
+    const last = messages[messages.length - 1];
+    if (last?.role === 'assistant' && !open && messages.length > 1) {
+      setUnread((n) => n + 1);
+    }
+  }, [messages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (open) {
@@ -364,7 +371,7 @@ export default function ChatBot() {
                       {renderWithLinks(msg.content)}
                     </div>
                     {msg.products && msg.products.length > 0 && (
-                      <div className="mt-2 space-y-2">
+                      <div className="mt-2 grid grid-cols-2 gap-2">
                         {msg.products.map((p) => (
                           <ProductCard key={p.slug} product={p} />
                         ))}
@@ -459,6 +466,12 @@ export default function ChatBot() {
             <span className="absolute inset-[-3px] rounded-full animate-ping" style={{ animationDuration: '2s', backgroundColor: '#a3e635', opacity: 0.45 }} />
             <span className="absolute inset-[-7px] rounded-full animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s', backgroundColor: '#84cc16', opacity: 0.2 }} />
           </>
+        )}
+        {/* Unread badge */}
+        {unread > 0 && !open && (
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1 z-10 shadow">
+            {unread > 9 ? '9+' : unread}
+          </span>
         )}
         <button
           type="button"
