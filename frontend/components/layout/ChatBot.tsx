@@ -32,17 +32,34 @@ const FALLBACK_CHIP_SETS = [
 ];
 let _chipSetIdx = 0;
 
-function deriveChips(products: Product[]): string[] {
+function deriveChips(products: Product[], lastQuery = ''): string[] {
   if (products.length === 0) {
-    // Rotate through fallback sets so it doesn't feel repetitive
     const chips = FALLBACK_CHIP_SETS[_chipSetIdx % FALLBACK_CHIP_SETS.length];
     _chipSetIdx++;
     return chips;
   }
-  const brands = [...new Set(products.map((p) => p.brand))].map((b) => `More ${b}`);
-  // Mix brand chips with one action chip to avoid pure-brand repetition
-  const action = ['Under ₹12,000', 'Best rated', 'Latest drops', 'Women\'s picks'][_chipSetIdx++ % 4];
-  return [...brands, action].slice(0, 4);
+  const q = lastQuery.toLowerCase();
+  const chips: string[] = [];
+
+  // Size chip — pick the median available size across shown products
+  const allSizes = [...new Set(products.flatMap((p) => (p as any).availableSizes ?? []))].sort((a: any, b: any) => a - b);
+  if (allSizes.length > 0) chips.push(`Size ${allSizes[Math.floor(allSizes.length / 2)]}`);
+
+  // Opposite gender if not already searched
+  const genders = [...new Set(products.map((p) => p.gender))];
+  if (genders.includes('men') && !/women/.test(q)) chips.push("Women's picks");
+  else if (genders.includes('women') && !/\bmen\b/.test(q)) chips.push("Men's picks");
+
+  // Brand alternative — suggest a brand not in the current results
+  const shownBrands = new Set(products.map((p) => p.brand));
+  const alt = ['Nike', 'Jordan', 'Adidas', 'New Balance', 'Crocs'].find((b) => !shownBrands.has(b));
+  if (alt) chips.push(`Try ${alt}`);
+
+  // Discount / rating toggle
+  const hasDiscount = products.some((p) => p.discount);
+  chips.push(hasDiscount ? 'Best rated' : 'Show sale items');
+
+  return chips.slice(0, 4);
 }
 
 const URL_REGEX = /(https?:\/\/[^\s]+)/g;
@@ -137,14 +154,17 @@ function BlogCard({ blog }: { blog: Blog }) {
   );
 }
 
-function TypingIndicator() {
+function TypingIndicator({ hint }: { hint: string }) {
   return (
-    <div className="flex items-end gap-2">
+    <div className="flex items-end gap-2 animate-in fade-in slide-in-from-bottom-1 duration-200">
       <img src="/icon-192.png" alt="KickBot" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
-      <div className="bg-zinc-100 rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-1">
-        <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:0ms]" />
-        <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:150ms]" />
-        <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:300ms]" />
+      <div className="bg-zinc-100 rounded-2xl rounded-bl-sm px-4 py-2.5 flex items-center gap-2">
+        <div className="flex gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:0ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:150ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:300ms]" />
+        </div>
+        <span className="text-[11px] text-zinc-400 italic">{hint}</span>
       </div>
     </div>
   );
@@ -207,6 +227,7 @@ export default function ChatBot() {
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [showNudge, setShowNudge] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [loadingHint, setLoadingHint] = useState('KickBot is thinking...');
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const nudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -268,10 +289,29 @@ export default function ChatBot() {
     setLeadCaptured(true);
   }
 
+  function deriveHint(text: string): string {
+    const q = text.toLowerCase();
+    if (/new arrival|new drop|just in/.test(q)) return 'Checking latest drops...';
+    if (/under|budget|cheap|₹/.test(q)) return 'Finding budget picks...';
+    if (/nike/i.test(q)) return 'Looking up Nike styles...';
+    if (/jordan/i.test(q)) return 'Checking Jordan catalog...';
+    if (/adidas/i.test(q)) return 'Browsing Adidas styles...';
+    if (/new balance|nb\b/i.test(q)) return 'Looking up New Balance...';
+    if (/crocs/i.test(q)) return 'Checking Crocs collection...';
+    if (/running|gym|training/i.test(q)) return 'Finding performance shoes...';
+    if (/gift|present/i.test(q)) return 'Picking the perfect gift...';
+    if (/drop|release|calendar/i.test(q)) return 'Checking the drop calendar...';
+    if (/size|fit|sizing/i.test(q)) return 'Looking up sizing info...';
+    if (/compare/i.test(q)) return 'Comparing styles...';
+    return 'KickBot is thinking...';
+  }
+
   async function send(overrideText?: string) {
     const text = (overrideText ?? input).trim();
     if (!text || loading) return;
     if (!overrideText) setInput('');
+
+    setLoadingHint(deriveHint(text));
 
     const userMsg: Message = { role: 'user', content: text };
     const updated = [...messages, userMsg];
@@ -294,7 +334,7 @@ export default function ChatBot() {
           content: data.text ?? 'Sorry, something went wrong.',
           products,
           blogs: data.blogs ?? [],
-          chips: deriveChips(products),
+          chips: deriveChips(products, text),
         },
       ]);
 
@@ -362,7 +402,7 @@ export default function ChatBot() {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 min-h-0">
           {messages.map((msg, i) => (
-            <div key={i}>
+            <div key={i} className={i === messages.length - 1 ? 'animate-in fade-in slide-in-from-bottom-2 duration-200' : ''}>
               {msg.role === 'assistant' ? (
                 <div className="flex items-end gap-2">
                   <img src="/icon-192.png" alt="KickBot" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
@@ -370,13 +410,28 @@ export default function ChatBot() {
                     <div className="bg-zinc-100 text-zinc-900 rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-sm leading-relaxed">
                       {renderWithLinks(msg.content)}
                     </div>
-                    {msg.products && msg.products.length > 0 && (
-                      <div className="mt-2 grid grid-cols-2 gap-2">
-                        {msg.products.map((p) => (
-                          <ProductCard key={p.slug} product={p} />
-                        ))}
-                      </div>
-                    )}
+                    {msg.products && msg.products.length > 0 && (() => {
+                      const brands = [...new Set(msg.products.map((p) => p.brand))];
+                      const href = brands.length === 1
+                        ? `/brands/${brands[0].toLowerCase().replace(/\s+/g, '-')}`
+                        : '/products';
+                      const label = brands.length === 1 ? `See all ${brands[0]} →` : 'Browse all shoes →';
+                      return (
+                        <>
+                          <div className="mt-2 grid grid-cols-2 gap-2">
+                            {msg.products.map((p) => (
+                              <ProductCard key={p.slug} product={p} />
+                            ))}
+                          </div>
+                          <Link
+                            href={href}
+                            className="mt-1.5 block text-[11px] font-semibold text-zinc-400 hover:text-zinc-700 transition-colors text-right"
+                          >
+                            {label}
+                          </Link>
+                        </>
+                      );
+                    })()}
                     {msg.blogs && msg.blogs.length > 0 && (
                       <div className="mt-2 space-y-2">
                         {msg.blogs.map((b) => (
@@ -410,7 +465,7 @@ export default function ChatBot() {
               )}
             </div>
           ))}
-          {loading && <TypingIndicator />}
+          {loading && <TypingIndicator hint={loadingHint} />}
           {showLeadForm && !loading && (
             <LeadCaptureCard onSubmit={handleLeadSubmit} onSkip={handleLeadSkip} />
           )}
