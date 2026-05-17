@@ -72,47 +72,46 @@ export default function SneakersClient({ profiles }: Props) {
 
   return (
     <div>
-      {/* Search + Brand Tabs */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        <div className="relative flex-1 max-w-sm">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search sneakers..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm border border-zinc-200 focus:border-zinc-400 focus:outline-none bg-white placeholder:text-zinc-400 rounded-sm"
-          />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {brands.map((b) => (
-            <button
-              key={b}
-              onClick={() => setActiveBrand(b)}
-              className={`px-4 py-2 text-[11px] font-bold tracking-widest uppercase transition-all duration-150 rounded-sm ${
-                activeBrand === b
-                  ? 'bg-zinc-900 text-white'
-                  : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
-              }`}
-            >
-              {b}
-              {b !== ALL && (
-                <span className={`ml-1.5 text-[9px] ${activeBrand === b ? 'text-zinc-400' : 'text-zinc-400'}`}>
-                  {brandCounts[b] ?? 0}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+      {/* Search */}
+      <div className="relative mb-4 max-w-md">
+        <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Search sneakers, brands, designers..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-10 pr-10 py-2.5 text-sm border border-zinc-200 focus:border-zinc-400 focus:outline-none bg-white placeholder:text-zinc-400"
+        />
+        {search && (
+          <button type="button" aria-label="Clear search" onClick={() => setSearch('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* Brand tabs */}
+      <div className="flex gap-2 flex-wrap mb-8">
+        {brands.map((b) => (
+          <button
+            key={b}
+            type="button"
+            onClick={() => setActiveBrand(b)}
+            className={`px-4 py-1.5 text-[11px] font-bold tracking-widest uppercase transition-all duration-150 rounded-sm ${
+              activeBrand === b
+                ? 'bg-zinc-900 text-white'
+                : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
+            }`}
+          >
+            {b}
+            {b !== ALL && (
+              <span className="ml-1.5 text-[9px] opacity-60">{brandCounts[b] ?? 0}</span>
+            )}
+          </button>
+        ))}
       </div>
 
       {Object.keys(byBrand).length === 0 ? (
