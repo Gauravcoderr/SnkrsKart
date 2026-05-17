@@ -57,6 +57,20 @@ export default async function DropPage({ params }: Props) {
   const days = daysUntil(drop.releaseDate);
   const released = days < 0;
 
+  const urgency = !released && days === 0 ? 'today'
+    : !released && days === 1 ? 'tomorrow'
+    : !released && days <= 7 ? 'soon'
+    : released ? 'released'
+    : 'upcoming';
+
+  const urgencyConfig = {
+    today:    { bar: 'bg-red-500',   text: 'text-red-600',   label: 'Dropping Today' },
+    tomorrow: { bar: 'bg-orange-500', text: 'text-orange-600', label: 'Dropping Tomorrow' },
+    soon:     { bar: 'bg-amber-400', text: 'text-amber-700', label: `${days} days to drop` },
+    upcoming: { bar: 'bg-zinc-200',  text: 'text-zinc-600',  label: `Releasing in ${days} days` },
+    released: { bar: 'bg-zinc-100',  text: 'text-zinc-500',  label: `Released — ${formatDate(drop.releaseDate)}` },
+  }[urgency];
+
   const eventJson = {
     '@context': 'https://schema.org',
     '@type': 'SaleEvent',
@@ -85,6 +99,14 @@ export default async function DropPage({ params }: Props) {
     ],
   };
 
+  const specs = [
+    ['Brand', drop.brand],
+    ['Release Date', formatDate(drop.releaseDate)],
+    ['Retail Price', drop.retailPrice ? `₹${drop.retailPrice.toLocaleString('en-IN')}` : 'TBC'],
+    ['Colorway', drop.colorway || null],
+    ['Where to Buy', drop.where || null],
+  ].filter(([, v]) => v) as [string, string][];
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJson) }} />
@@ -92,73 +114,121 @@ export default async function DropPage({ params }: Props) {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Breadcrumb */}
-        <nav className="text-[10px] text-zinc-400 mb-6 flex items-center gap-1.5">
+        <nav className="text-[10px] text-zinc-400 mb-8 flex items-center gap-1.5">
           <Link href="/" className="hover:text-zinc-900 transition-colors">Home</Link>
           <span>/</span>
           <Link href="/drops" className="hover:text-zinc-900 transition-colors">Drop Calendar</Link>
           <span>/</span>
-          <span className="text-zinc-900 font-semibold">{drop.name}</span>
+          <span className="text-zinc-900 font-semibold truncate max-w-[200px]">{drop.name}</span>
         </nav>
 
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-10">
-          {/* Image */}
-          <div className="relative aspect-square bg-zinc-50 border border-zinc-100 overflow-hidden">
+        {/* Urgency bar */}
+        <div className={`h-1 w-full mb-8 rounded-full ${urgencyConfig.bar}`} />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
+          {/* ── Image ── */}
+          <div className="relative aspect-square bg-zinc-50 border border-zinc-100 overflow-hidden rounded-sm">
             {drop.image ? (
-              <Image src={drop.image} alt={drop.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" priority />
+              <Image
+                src={drop.image}
+                alt={drop.name}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <p className="text-zinc-300 text-xs">{drop.brand}</p>
+                <p className="text-zinc-300 text-xs font-bold tracking-widest uppercase">{drop.brand}</p>
+              </div>
+            )}
+
+            {/* Countdown overlay */}
+            {!released && (
+              <div className="absolute top-3 right-3">
+                <div className={`px-3 py-1.5 rounded-sm font-black text-[11px] tracking-widest uppercase shadow-lg ${
+                  urgency === 'today' ? 'bg-red-500 text-white' :
+                  urgency === 'tomorrow' ? 'bg-orange-500 text-white' :
+                  urgency === 'soon' ? 'bg-amber-400 text-zinc-900' :
+                  'bg-zinc-900/80 backdrop-blur text-white'
+                }`}>
+                  {urgency === 'today' ? 'TODAY' : urgency === 'tomorrow' ? 'TOMORROW' : `${days}D`}
+                </div>
+              </div>
+            )}
+
+            {drop.availableAtStore && (
+              <div className="absolute top-3 left-3 bg-zinc-900 text-white text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-sm">
+                In Store
               </div>
             )}
           </div>
 
-          {/* Details */}
-          <div>
-            <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-1">{drop.brand}</p>
-            <h1 className="text-3xl font-black tracking-tight text-zinc-900 mb-1">{drop.name}</h1>
+          {/* ── Details ── */}
+          <div className="flex flex-col">
+            <p className="text-[10px] font-black tracking-[0.3em] uppercase text-zinc-400 mb-1">{drop.brand}</p>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900 mb-1 leading-tight">{drop.name}</h1>
             {drop.colorway && <p className="text-sm text-zinc-400 mb-5">{drop.colorway}</p>}
 
-            {/* Release status banner */}
-            <div className={`px-4 py-3 mb-5 ${released ? 'bg-zinc-100 border border-zinc-200' : days <= 3 ? 'bg-red-50 border border-red-200' : 'bg-amber-50 border border-amber-200'}`}>
-              <p className={`text-xs font-bold ${released ? 'text-zinc-600' : days <= 3 ? 'text-red-700' : 'text-amber-800'}`}>
-                {released ? `Released — ${formatDate(drop.releaseDate)}` : days === 0 ? 'Dropping Today' : days === 1 ? 'Dropping Tomorrow' : `Releasing in ${days} days — ${formatDate(drop.releaseDate)}`}
-              </p>
+            {/* Status pill */}
+            <div className="inline-flex items-center gap-2 mb-6">
+              <span className={`inline-block w-1.5 h-1.5 rounded-full ${urgencyConfig.bar}`} />
+              <p className={`text-xs font-bold ${urgencyConfig.text}`}>{urgencyConfig.label}</p>
             </div>
 
-            {/* Specs */}
-            <div className="grid grid-cols-2 gap-3 mb-5">
-              {[
-                ['Release Date', formatDate(drop.releaseDate)],
-                ['Retail Price', drop.retailPrice ? `₹${drop.retailPrice.toLocaleString('en-IN')}` : 'TBC'],
-                ['Where', drop.where || '—'],
-              ].map(([label, value]) => (
-                <div key={label} className="p-3 bg-zinc-50 border border-zinc-100">
-                  <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-400 mb-0.5">{label}</p>
-                  <p className="text-sm font-semibold text-zinc-900">{value}</p>
+            {/* Price + Date prominent */}
+            {drop.retailPrice && (
+              <div className="mb-5 p-4 bg-zinc-950 text-white flex items-center justify-between rounded-sm">
+                <div>
+                  <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 mb-0.5">Retail Price</p>
+                  <p className="text-2xl font-black">₹{drop.retailPrice.toLocaleString('en-IN')}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 mb-0.5">Release</p>
+                  <p className="text-sm font-bold text-zinc-200">{new Date(drop.releaseDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Specs table */}
+            <div className="grid grid-cols-1 gap-2 mb-5">
+              {specs.map(([label, value]) => (
+                <div key={label} className="flex items-start gap-3 py-2 border-b border-zinc-100 last:border-0">
+                  <p className="text-[9px] font-black tracking-widest uppercase text-zinc-400 w-24 shrink-0 mt-0.5">{label}</p>
+                  <p className="text-sm font-semibold text-zinc-800 leading-snug">{value}</p>
                 </div>
               ))}
             </div>
 
             {drop.description && (
-              <p className="text-sm text-zinc-500 leading-relaxed mb-5">{drop.description}</p>
+              <p className="text-sm text-zinc-500 leading-relaxed mb-5 flex-1">{drop.description}</p>
             )}
 
             {/* CTA */}
             {drop.availableAtStore && drop.productSlug ? (
-              <Link href={`/products/${drop.productSlug}`} className="block w-full py-3.5 bg-zinc-900 text-white text-sm font-bold tracking-widest uppercase text-center hover:bg-zinc-700 transition-colors">
+              <Link
+                href={`/products/${drop.productSlug}`}
+                className="block w-full py-4 bg-zinc-900 text-white text-sm font-black tracking-widest uppercase text-center hover:bg-zinc-700 transition-colors rounded-sm"
+              >
                 Shop Now at SNKRS CART
               </Link>
             ) : (
-              <div className="p-4 bg-zinc-50 border border-zinc-100 text-center">
-                <p className="text-xs text-zinc-500 mb-2">Not available at SNKRS CART. Check official channels:</p>
-                <p className="text-sm font-semibold text-zinc-700">{drop.where || 'Official brand site'}</p>
+              <div className="border border-zinc-100 rounded-sm p-4 text-center bg-zinc-50">
+                <p className="text-[10px] text-zinc-400 font-bold tracking-widest uppercase mb-1">Where to Buy</p>
+                <p className="text-sm font-bold text-zinc-700">{drop.where || 'Official brand site'}</p>
               </div>
             )}
           </div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-zinc-100">
-          <Link href="/drops" className="text-xs text-zinc-400 hover:text-zinc-900 transition-colors">← Back to Drop Calendar</Link>
+        {/* Footer nav */}
+        <div className="pt-6 border-t border-zinc-100 flex items-center justify-between">
+          <Link href="/drops" className="text-xs text-zinc-400 hover:text-zinc-900 transition-colors font-semibold">
+            ← Drop Calendar
+          </Link>
+          <Link href="/products" className="text-xs text-zinc-400 hover:text-zinc-900 transition-colors font-semibold">
+            Shop All Sneakers →
+          </Link>
         </div>
       </div>
     </>
