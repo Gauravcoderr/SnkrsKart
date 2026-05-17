@@ -24,7 +24,8 @@ async function fetchBlogsByBrand(brand: string): Promise<BlogSnippet[]> {
   try {
     const res = await fetch(`${API}/blogs?tag=${tag}&limit=3`, { next: { revalidate: 300 } });
     if (!res.ok) return [];
-    return res.json();
+    const data = await res.json();
+    return data.blogs ?? data ?? [];
   } catch { return []; }
 }
 
