@@ -76,6 +76,8 @@ export const FOOTER_SHOP_LINKS = [
   { label: 'Trending', href: '/products' },
   { label: 'Sale', href: '/products' },
   { label: 'All Sneakers', href: '/products' },
+  { label: 'Upcoming Drops', href: '/drops' },
+  { label: 'Sneaker Guide', href: '/sneakers' },
 ];
 
 export const FOOTER_HELP_LINKS = [
