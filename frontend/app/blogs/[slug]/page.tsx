@@ -171,6 +171,16 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
 
   const wordCount = safeContent.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length;
 
+  // Map blog tags to Brand entities so Flash.co / Google AI recognise this post as
+  // an expert source about specific sneaker brands.
+  const KNOWN_BRANDS: Record<string, string> = {
+    nike: 'Nike', jordan: 'Jordan', adidas: 'Adidas',
+    'new-balance': 'New Balance', 'new balance': 'New Balance', crocs: 'Crocs',
+  };
+  const mentionedBrands = Array.from(
+    new Set(safeTags.map((t) => KNOWN_BRANDS[t.toLowerCase()]).filter(Boolean))
+  ).map((brandName) => ({ '@type': 'Brand', name: brandName }));
+
   const articleJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -198,6 +208,13 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
       logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
     },
     ...(blog.coverImage ? { image: { '@type': 'ImageObject', url: blog.coverImage, width: 1200, height: 630 } } : {}),
+    // Speakable: tells Google Assistant / voice AI which CSS selectors hold the key content
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: ['h1', '.blog-excerpt', 'h2', 'h3'],
+    },
+    // About: links this post to specific brand entities — signals expert authorship to Flash.co & ChatGPT
+    ...(mentionedBrands.length > 0 ? { about: mentionedBrands } : {}),
   };
 
   const breadcrumbJsonLd = {
