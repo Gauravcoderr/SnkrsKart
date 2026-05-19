@@ -117,7 +117,7 @@ export default function BlogsGrid({ initialBlogs, initialPage, totalPages, total
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${a.dot}`} />
                       <span>{formatDate(blog.createdAt)}</span>
                       <span>&middot;</span>
-                      <span>{blog.wordCount ? Math.max(1, Math.ceil(blog.wordCount / 200)) : readingTime(blog.content)} min read</span>
+                      <span>{blog.wordCount != null && blog.wordCount > 0 ? Math.max(1, Math.ceil(blog.wordCount / 200)) : readingTime(blog.content)} min read</span>
                     </div>
                     <svg
                       className="w-4 h-4 text-zinc-300 group-hover:text-zinc-600 group-hover:translate-x-0.5 transition-all"
