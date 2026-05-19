@@ -121,6 +121,7 @@ export interface Blog {
   metaDescription?: string;
   metaKeywords?: string;
   published: boolean;
+  wordCount?: number;
   createdAt: string;
   updatedAt: string;
 }

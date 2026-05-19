@@ -12,6 +12,7 @@ export interface IBlog extends Document {
   metaDescription?: string;
   metaKeywords?: string;
   published: boolean;
+  wordCount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,8 +30,13 @@ const BlogSchema = new Schema<IBlog>(
     metaDescription: { type: String, default: '' },
     metaKeywords: { type: String, default: '' },
     published: { type: Boolean, default: false },
+    wordCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
+
+BlogSchema.pre('save', async function () {
+  this.wordCount = (this.content || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length;
+});
 
 export const Blog = mongoose.model<IBlog>('Blog', BlogSchema);

@@ -30,7 +30,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
         .sort({ createdAt: -1 })
         .skip((pageNum - 1) * lim)
         .limit(lim)
-        .select('title slug excerpt coverImage author tags createdAt')
+        .select('title slug excerpt coverImage author tags createdAt wordCount')
         .lean(),
       Blog.countDocuments(query),
     ]);

@@ -284,6 +284,9 @@ router.post('/blogs', adminAuth, async (req: Request, res: Response): Promise<vo
 
 router.put('/blogs/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
+    if (req.body.content !== undefined) {
+      req.body.wordCount = (req.body.content || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length;
+    }
     const blog = await Blog.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true, runValidators: true });
     if (!blog) { res.status(404).json({ error: 'Not found' }); return; }
     res.json(blog);
