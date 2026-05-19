@@ -72,10 +72,9 @@ export const SORT_OPTIONS = [
 
 // ─── Footer navigation ────────────────────────────────────────────────────────
 export const FOOTER_SHOP_LINKS = [
-  { label: 'New Arrivals', href: '/products' },
-  { label: 'Trending', href: '/products' },
-  { label: 'Sale', href: '/products' },
-  { label: 'All Sneakers', href: '/products' },
+  { label: 'New Arrivals', href: '/products?sort=newest' },
+  { label: 'Trending', href: '/products?sort=popular' },
+  { label: 'Sale', href: '/products?sort=price_asc' },
   { label: 'Upcoming Drops', href: '/drops' },
   { label: 'Sneaker Guide', href: '/sneakers' },
 ];
