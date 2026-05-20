@@ -381,7 +381,7 @@ const TABS: { key: FilterTab; label: string; color: string; activeColor: string 
 ];
 
 export default function OrdersPage() {
-  const { isLoggedIn, loading: authLoading, openAuthModal } = useAuth();
+  const { isLoggedIn, loading: authLoading, openAuthModal, user } = useAuth();
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [trackQuery, setTrackQuery] = useState('');
@@ -402,7 +402,8 @@ export default function OrdersPage() {
 
   const lookupMutation = useMutation({
     mutationFn: async (orderNumber: string) => {
-      const res = await fetch(`${BASE_URL}/orders/lookup?orderNumber=${encodeURIComponent(orderNumber)}`);
+      const email = user?.email || '';
+      const res = await fetch(`${BASE_URL}/orders/lookup?orderNumber=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(email)}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Order not found');
       return data as Order;
