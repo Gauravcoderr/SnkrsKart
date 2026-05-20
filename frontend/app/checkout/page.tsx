@@ -301,9 +301,8 @@ export default function CheckoutPage() {
       },
       modal: {
         ondismiss: () => {
-          setError('Payment was cancelled. You can retry or pay via UPI.');
+          setError('Payment cancelled. You can try again.');
           setLoading(false);
-          router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=pending`);
         },
       },
     });
