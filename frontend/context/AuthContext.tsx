@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -119,6 +119,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshUser = useCallback(async () => {
     await queryClient.refetchQueries({ queryKey: ['auth', 'me'] });
     queryClient.invalidateQueries({ queryKey: ['orders', 'my'] });
+  }, [queryClient]);
+
+  // Sync login/logout across tabs — when another tab writes or removes the token,
+  // refetch auth state so all tabs stay consistent.
+  useEffect(() => {
+    function onStorage(e: StorageEvent) {
+      if (e.key !== TOKEN_KEY) return;
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+    }
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, [queryClient]);
 
   return (
