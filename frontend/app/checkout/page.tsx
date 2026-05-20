@@ -251,17 +251,16 @@ export default function CheckoutPage() {
         redirectTarget: '_modal',
       });
       if (result?.error) {
-        setError(`Payment failed: ${result.error.message}. You can also pay via UPI manually.`);
+        const isDropped = result.error.type === 'USER_DROPPED' || result.error.code === 'PAYMENT_CANCELLED';
+        setError(isDropped ? 'Payment cancelled. You can try again.' : `Payment failed: ${result.error.message || 'Please try again.'}`);
         setLoading(false);
-        router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=pending`);
       } else {
         clearCart();
         router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=paid`);
       }
     } catch {
-      setError('Payment could not be initialised. You can pay manually via UPI.');
+      setError('Payment could not be initialised. Please try again.');
       setLoading(false);
-      router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=pending`);
     }
   }
 
