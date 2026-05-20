@@ -127,7 +127,7 @@ export default function Footer() {
       <div className="border-t border-zinc-800 py-6 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
           <p className="text-xs text-zinc-500">
-            © {new Date().getFullYear()} Ashutosh Lingwal trading as SNKRS CART. All rights reserved.
+            © {new Date().getFullYear()} SNKRS CART. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="text-xs text-zinc-500 hover:text-zinc-300">Privacy Policy</Link>
