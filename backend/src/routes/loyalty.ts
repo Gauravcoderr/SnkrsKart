@@ -1,12 +1,14 @@
 import { Router, Response } from 'express';
 import { customerAuth, AuthRequest } from '../middleware/customerAuth';
 import { Loyalty, getTier, COINS_TO_RUPEE, MAX_REDEEM_PCT, MIN_REDEEM } from '../models/Loyalty';
+import { processPendingCoins } from '../lib/processCoins';
 
 const router = Router();
 
 // GET /api/v1/loyalty/me — balance, tier, history
 router.get('/me', customerAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    await processPendingCoins(req.user!.id);
     const loyalty = await Loyalty.findOne({ userId: req.user!.id }).lean();
     const coins = loyalty?.coins ?? 0;
     res.json({

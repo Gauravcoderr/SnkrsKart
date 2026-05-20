@@ -34,6 +34,8 @@ export interface IOrder extends Document {
   notes?: string;
   coinsEarned: number;
   coinsRedeemed: number;
+  coinsAwarded: boolean;
+  deliveredAt?: Date;
   paymentStatus: PaymentStatus;
   paymentSessionId?: string;
   cfOrderId?: string;
@@ -73,6 +75,8 @@ const OrderSchema = new Schema<IOrder>(
     notes: { type: String, default: '' },
     coinsEarned:   { type: Number, default: 0 },
     coinsRedeemed: { type: Number, default: 0 },
+    coinsAwarded:  { type: Boolean, default: false },
+    deliveredAt:   { type: Date, default: null },
     paymentStatus:    { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
     paymentSessionId: { type: String, default: '' },
     cfOrderId:        { type: String, default: '' },

@@ -330,7 +330,13 @@ router.put('/orders/:id', adminAuth, async (req: Request, res: Response): Promis
   try {
     const { status, trackingNumber, notes } = req.body;
     const update: Record<string, unknown> = {};
-    if (status) update.status = status;
+    if (status) {
+      update.status = status;
+      if (status === 'delivered') {
+        const existing = await Order.findById(req.params.id).select('deliveredAt').lean();
+        if (existing && !existing.deliveredAt) update.deliveredAt = new Date();
+      }
+    }
     if (trackingNumber !== undefined) update.trackingNumber = trackingNumber;
     if (notes !== undefined) update.notes = notes;
     const order = await Order.findByIdAndUpdate(req.params.id, { $set: update }, { new: true, runValidators: true });

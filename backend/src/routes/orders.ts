@@ -274,20 +274,13 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       ...(req.user ? { userId: req.user.id } : {}),
     });
 
-    // Update loyalty coins (fire-and-forget)
-    if (req.user) {
+    // Deduct redeemed coins immediately; earned coins are credited after delivery + 3-day return window
+    if (req.user && coinsRedeemed > 0) {
       Loyalty.findOneAndUpdate(
         { userId: req.user.id },
         {
-          $inc: { coins: coinsEarned - coinsRedeemed },
-          $push: {
-            history: {
-              $each: [
-                ...(coinsRedeemed > 0 ? [{ type: 'redeem', amount: coinsRedeemed, reason: 'Order redemption', orderId: String(order._id), createdAt: new Date() }] : []),
-                ...(coinsEarned > 0 ? [{ type: 'earn', amount: coinsEarned, reason: `Order ${orderNumber}`, orderId: String(order._id), createdAt: new Date() }] : []),
-              ],
-            },
-          },
+          $inc: { coins: -coinsRedeemed },
+          $push: { history: { type: 'redeem', amount: coinsRedeemed, reason: 'Order redemption', orderId: String(order._id), createdAt: new Date() } },
         },
         { upsert: true, new: true }
       ).catch(() => {});
