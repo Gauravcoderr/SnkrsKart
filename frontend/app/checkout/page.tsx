@@ -244,7 +244,8 @@ export default function CheckoutPage() {
   async function handleCashfreeCheckout(paymentSessionId: string, confirmBase: string) {
     try {
       const { load } = await import('@cashfreepayments/cashfree-js');
-      const cashfree = await load({ mode: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox' });
+      const cfMode = (process.env.NEXT_PUBLIC_CASHFREE_ENV || 'sandbox') as 'sandbox' | 'production';
+      const cashfree = await load({ mode: cfMode });
       const result = await (cashfree as any).checkout({
         paymentSessionId,
         redirectTarget: '_modal',
