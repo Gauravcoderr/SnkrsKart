@@ -159,7 +159,8 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     if (!removeBgEnabled) return file;
     setUploadStatus('Removing background…');
     try {
-      const res = await fetch('/api/remove-bg', { method: 'POST', body: file });
+      const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : '';
+      const res = await fetch('/api/remove-bg', { method: 'POST', body: file, headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) return file; // fall back silently
       const blob = await res.blob();
       return new File([blob], file.name.replace(/\.[^.]+$/, '.png'), { type: 'image/png' });

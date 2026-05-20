@@ -10,7 +10,8 @@ import { sendMail } from '../lib/mailer';
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'snkrs-cart-jwt-s3cr3t-k3y-2026';
+const JWT_SECRET = process.env.JWT_SECRET as string;
+if (!JWT_SECRET) throw new Error('JWT_SECRET env var is required');
 
 function hashOtp(otp: string): string {
   return crypto.createHash('sha256').update(otp).digest('hex');

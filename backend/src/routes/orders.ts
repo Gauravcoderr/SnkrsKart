@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { Order, IOrder } from '../models/Order';
 import { customerAuth, optionalAuth, AuthRequest } from '../middleware/customerAuth';
 import { User } from '../models/User';
+import { Product } from '../models/Product';
 import { sendMail } from '../lib/mailer';
 import { Loyalty, COINS_PER_100, COINS_TO_RUPEE, MAX_REDEEM_PCT, MIN_REDEEM } from '../models/Loyalty';
 import { Cashfree, CFEnvironment } from 'cashfree-pg';
@@ -76,6 +77,9 @@ function sendPaymentConfirmedEmail(order: IOrder, siteUrl: string) {
     `,
   });
 }
+
+const SHIPPING_THRESHOLD = 3000;
+const SHIPPING_COST = 199;
 
 const router = Router();
 
@@ -165,7 +169,7 @@ router.post('/razorpay/verify', async (req: Request, res: Response) => {
 
 function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
-  const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const rand = crypto.randomBytes(2).toString('hex').toUpperCase();
   return `SC-${timestamp}-${rand}`;
 }
 
@@ -249,21 +253,57 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    // Validate and apply coin redemption
+    // Server-side price recomputation — never trust client-supplied totals
+    const uniqueProductIds = [...new Set(items.map((it: any) => it.productId))];
+    const products = await Product.find({ _id: { $in: uniqueProductIds } }).lean();
+    const productMap = new Map(products.map((p) => [String(p._id), p]));
+
+    let serverSubtotal = 0;
+    for (const item of items as any[]) {
+      const product = productMap.get(String(item.productId));
+      if (!product) {
+        res.status(400).json({ error: `Product not found: ${item.productId}` });
+        return;
+      }
+      const variant = product.variants?.find((v) => Number(v.size) === Number(item.size));
+      const authPrice = variant?.price ?? product.price;
+      serverSubtotal += authPrice * item.qty;
+    }
+    const serverShipping = serverSubtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+    const serverTotal = serverSubtotal + serverShipping;
+
+    if (Math.abs(serverTotal - (subtotal + shipping)) > 1) {
+      res.status(400).json({ error: 'Order total mismatch. Please refresh and try again.' });
+      return;
+    }
+
+    // Atomic coin redemption — deduct only if user has sufficient balance
     let coinsRedeemed = 0;
     let coinDiscount = 0;
-    if (req.user && rawCoinsRedeemed && rawCoinsRedeemed >= MIN_REDEEM) {
-      const loyalty = await Loyalty.findOne({ userId: req.user.id });
-      const available = loyalty?.coins ?? 0;
+
+    if (req.user && rawCoinsRedeemed >= MIN_REDEEM) {
       const requested = Math.floor(rawCoinsRedeemed);
-      if (requested <= available) {
-        const rawDiscount = requested * COINS_TO_RUPEE;
-        const maxDiscount = Math.floor(total * MAX_REDEEM_PCT);
-        coinDiscount = Math.min(rawDiscount, maxDiscount);
-        coinsRedeemed = coinDiscount / COINS_TO_RUPEE;
+      const rawDiscount = requested * COINS_TO_RUPEE;
+      const maxDiscount = Math.floor(serverTotal * MAX_REDEEM_PCT);
+      coinDiscount = Math.min(rawDiscount, maxDiscount);
+      coinsRedeemed = Math.round(coinDiscount / COINS_TO_RUPEE);
+
+      const updated = await Loyalty.findOneAndUpdate(
+        { userId: req.user.id, coins: { $gte: coinsRedeemed } },
+        {
+          $inc: { coins: -coinsRedeemed },
+          $push: { history: { type: 'redeem', amount: coinsRedeemed, reason: 'Order redemption', orderId: 'pending', createdAt: new Date() } },
+        },
+        { upsert: false, new: true },
+      );
+
+      if (!updated) {
+        coinDiscount = 0;
+        coinsRedeemed = 0;
       }
     }
-    const finalTotal = Math.max(0, total - coinDiscount);
+
+    const finalTotal = Math.max(0, serverTotal - coinDiscount);
     const coinsEarned = Math.floor(finalTotal / 100) * COINS_PER_100;
 
     const orderNumber = generateOrderNumber();
@@ -274,15 +314,11 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       ...(req.user ? { userId: req.user.id } : {}),
     });
 
-    // Deduct redeemed coins immediately; earned coins are credited after delivery + 3-day return window
+    // Patch the loyalty history orderId now that we have the real order._id
     if (req.user && coinsRedeemed > 0) {
-      Loyalty.findOneAndUpdate(
-        { userId: req.user.id },
-        {
-          $inc: { coins: -coinsRedeemed },
-          $push: { history: { type: 'redeem', amount: coinsRedeemed, reason: 'Order redemption', orderId: String(order._id), createdAt: new Date() } },
-        },
-        { upsert: true, new: true }
+      Loyalty.updateOne(
+        { userId: req.user.id, 'history.orderId': 'pending' },
+        { $set: { 'history.$.orderId': String(order._id) } },
       ).catch(() => {});
     }
 
@@ -421,24 +457,30 @@ router.get('/my', customerAuth, async (req: AuthRequest, res: Response) => {
   }
 });
 
-// GET /api/v1/orders/lookup?orderNumber=SC-XXX — lookup by order number
+// GET /api/v1/orders/lookup?orderNumber=SC-XXX&email=x — lookup by order number + email verification
 router.get('/lookup', async (req: Request, res: Response) => {
   try {
-    const { orderNumber } = req.query as { orderNumber?: string };
-    if (!orderNumber) { res.status(400).json({ error: 'orderNumber is required' }); return; }
+    const { orderNumber, email } = req.query as { orderNumber?: string; email?: string };
+    if (!orderNumber || !email) { res.status(400).json({ error: 'orderNumber and email are required' }); return; }
     const order = await Order.findOne({ orderNumber: orderNumber.toUpperCase() }).lean();
-    if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
+    if (!order || order.email.toLowerCase() !== email.trim().toLowerCase()) {
+      res.status(404).json({ error: 'Order not found' });
+      return;
+    }
     res.json(order);
   } catch {
     res.status(500).json({ error: 'Failed to fetch order' });
   }
 });
 
-// GET /api/v1/orders/:id — get order by ID (for confirmation page)
-router.get('/:id', async (req: Request, res: Response) => {
+// GET /api/v1/orders/:id — get order by ID (auth required or email query param)
+router.get('/:id', optionalAuth, async (req: AuthRequest, res: Response) => {
   try {
     const order = await Order.findById(req.params.id).lean();
     if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
+    const authed = req.user && (order.userId?.toString() === req.user.id || order.email === req.user.email);
+    const emailMatch = !req.user && req.query.email && order.email.toLowerCase() === String(req.query.email).trim().toLowerCase();
+    if (!authed && !emailMatch) { res.status(403).json({ error: 'Forbidden' }); return; }
     res.json(order);
   } catch {
     res.status(500).json({ error: 'Failed to fetch order' });

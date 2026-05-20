@@ -52,6 +52,15 @@ const postLimiter = rateLimit({
   skip: (req) => req.method !== 'POST',
 });
 
+// Strict rate limit for admin login — 10 attempts per 15 minutes per IP
+const adminLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many login attempts. Try again in 15 minutes.' },
+});
+
 app.use('/api/v1/reviews', postLimiter);
 app.use('/api/v1/inquiries', postLimiter);
 app.use('/api/v1/orders', postLimiter);
@@ -66,6 +75,7 @@ app.use('/api/v1/inquiries', inquiryRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/seller', sellerRoutes);
 app.use('/api/v1/blogs', blogRoutes);
+app.use('/api/v1/admin/login', adminLoginLimiter);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/newsletter', newsletterRoutes);

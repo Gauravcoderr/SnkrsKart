@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'snkrs-cart-jwt-s3cr3t-k3y-2026';
+const JWT_SECRET = process.env.JWT_SECRET as string;
+if (!JWT_SECRET) throw new Error('JWT_SECRET env var is required');
 
 export interface AuthRequest extends Request {
   user?: { id: string; email: string };

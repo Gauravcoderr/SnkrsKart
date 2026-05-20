@@ -17,11 +17,13 @@ import { SneakerProfile } from '../models/SneakerProfile';
 import { Drop } from '../models/Drop';
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'snkrs-cart-admin-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET as string;
+if (!JWT_SECRET) throw new Error('JWT_SECRET env var is required');
 
-// Admin credentials from env (or defaults for dev)
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASSWORD_HASH = bcrypt.hashSync(process.env.ADMIN_PASSWORD || 'snkrs@admin123', 10);
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+if (!ADMIN_USERNAME || !ADMIN_PASSWORD) throw new Error('ADMIN_USERNAME and ADMIN_PASSWORD env vars are required');
+const ADMIN_PASSWORD_HASH = bcrypt.hashSync(ADMIN_PASSWORD, 10);
 
 // ─── Auth ──────────────────────────────────────────────────────────────────
 
