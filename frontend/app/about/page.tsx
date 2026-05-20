@@ -158,6 +158,33 @@ export default function AboutPage() {
             </div>
           </div>
 
+          {/* Legal Information */}
+          <div className="mt-12 border border-zinc-700 p-6">
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-4">Legal Information</p>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
+              <div>
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Business Name</dt>
+                <dd className="text-zinc-300">SNKRS CART</dd>
+              </div>
+              <div>
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Operated By</dt>
+                <dd className="text-zinc-300">Ashutosh Lingwal (Sole Proprietor)</dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Registered Address</dt>
+                <dd className="text-zinc-300">Circuit House, Pauri Garhwal – 246001, Uttarakhand, India</dd>
+              </div>
+              <div>
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Email</dt>
+                <dd className="text-zinc-300">infosnkrscart@gmail.com</dd>
+              </div>
+              <div>
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Phone</dt>
+                <dd className="text-zinc-300">+91 94109 03791</dd>
+              </div>
+            </dl>
+          </div>
+
           <div className="mt-10">
             <Link
               href="/products"

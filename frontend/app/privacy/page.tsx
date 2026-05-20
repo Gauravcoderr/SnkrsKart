@@ -4,6 +4,8 @@ export default function PrivacyPolicy() {
       <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Legal</p>
       <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-8">Privacy Policy</h1>
 
+      <p className="text-sm text-zinc-500 mb-8">This policy is maintained by SNKRS CART, operated by Ashutosh Lingwal (sole proprietor), as the data controller.</p>
+
       <div className="space-y-8 text-sm text-zinc-600 leading-relaxed">
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Information We Collect</h2>

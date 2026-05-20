@@ -4,6 +4,8 @@ export default function TermsOfService() {
       <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Legal</p>
       <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-8">Terms of Service</h1>
 
+      <p className="text-sm text-zinc-500 mb-8">SNKRS CART is owned and operated by Ashutosh Lingwal, a sole proprietor.</p>
+
       <div className="space-y-8 text-sm text-zinc-600 leading-relaxed">
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Acceptance of Terms</h2>
