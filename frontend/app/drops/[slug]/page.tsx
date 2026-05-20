@@ -76,14 +76,24 @@ export default async function DropPage({ params }: Props) {
     '@type': 'SaleEvent',
     name: drop.name,
     startDate: drop.releaseDate,
+    endDate: drop.releaseDate,
+    eventStatus: 'https://schema.org/EventScheduled',
+    location: {
+      '@type': 'VirtualLocation',
+      url: drop.where?.toLowerCase().includes('snkrs') ? 'https://www.nike.com/launch'
+        : drop.where?.toLowerCase().includes('adidas') ? 'https://www.adidas.co.in'
+        : url,
+    },
     description: drop.description || `${drop.name} — official ${drop.brand} release`,
     url,
     organizer: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL },
+    performer: { '@type': 'Organization', name: drop.brand },
     offers: drop.retailPrice ? {
       '@type': 'Offer',
       price: drop.retailPrice,
       priceCurrency: 'INR',
       availability: released ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder',
+      validFrom: drop.releaseDate,
       url: drop.availableAtStore && drop.productSlug ? `${SITE_URL}/products/${drop.productSlug}` : url,
     } : undefined,
     image: drop.image || undefined,
