@@ -13,6 +13,8 @@ export interface IOrderItem {
 
 export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
 
+export type PaymentStatus = 'pending' | 'paid' | 'failed';
+
 export interface IOrder extends Document {
   orderNumber: string;
   userId?: string;
@@ -32,6 +34,10 @@ export interface IOrder extends Document {
   notes?: string;
   coinsEarned: number;
   coinsRedeemed: number;
+  paymentStatus: PaymentStatus;
+  paymentSessionId?: string;
+  cfOrderId?: string;
+  razorpayOrderId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,6 +73,10 @@ const OrderSchema = new Schema<IOrder>(
     notes: { type: String, default: '' },
     coinsEarned:   { type: Number, default: 0 },
     coinsRedeemed: { type: Number, default: 0 },
+    paymentStatus:    { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
+    paymentSessionId: { type: String, default: '' },
+    cfOrderId:        { type: String, default: '' },
+    razorpayOrderId:  { type: String, default: '' },
   },
   { timestamps: true }
 );

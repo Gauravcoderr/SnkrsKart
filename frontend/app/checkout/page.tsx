@@ -4,12 +4,19 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import Script from 'next/script';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { formatPrice } from '@/lib/utils';
 import OtpInput from '@/components/auth/OtpInput';
 import { LoyaltyAccount } from '@/types';
+
+declare global {
+  interface Window {
+    Razorpay: new (options: Record<string, unknown>) => { open(): void };
+  }
+}
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SHIPPING_THRESHOLD = 3000;
@@ -218,12 +225,89 @@ export default function CheckoutPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to place order');
 
-      clearCart();
-      router.push(`/checkout/confirmation?id=${data.orderId}&order=${data.orderNumber}&total=${finalTotal}`);
-    } catch (err: any) {
-      setError(err.message);
+      const confirmBase = `id=${data.orderId}&order=${data.orderNumber}&total=${data.finalTotal}`;
+
+      if (data.paymentMode === 'cashfree') {
+        await handleCashfreeCheckout(data.paymentSessionId, confirmBase);
+      } else if (data.paymentMode === 'razorpay') {
+        await handleRazorpayCheckout(data, confirmBase);
+      } else {
+        clearCart();
+        router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=pending`);
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
       setLoading(false);
     }
+  }
+
+  async function handleCashfreeCheckout(paymentSessionId: string, confirmBase: string) {
+    try {
+      const { load } = await import('@cashfreepayments/cashfree-js');
+      const cashfree = await load({ mode: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox' });
+      const result = await (cashfree as any).checkout({
+        paymentSessionId,
+        redirectTarget: '_modal',
+      });
+      if (result?.error) {
+        setError(`Payment failed: ${result.error.message}. You can also pay via UPI manually.`);
+        setLoading(false);
+        router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=pending`);
+      } else {
+        clearCart();
+        router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=paid`);
+      }
+    } catch {
+      setError('Payment could not be initialised. You can pay manually via UPI.');
+      setLoading(false);
+      router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=pending`);
+    }
+  }
+
+  async function handleRazorpayCheckout(data: Record<string, any>, confirmBase: string) {
+    const rzp = new window.Razorpay({
+      key: data.razorpayKeyId,
+      order_id: data.razorpayOrderId,
+      amount: data.amount,
+      currency: 'INR',
+      name: 'SNKRS CART',
+      description: `Order ${data.orderNumber}`,
+      image: '/logo.jpg',
+      prefill: { name: contact.name, email: contact.email, contact: contact.phone },
+      theme: { color: '#18181b' },
+      handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
+        try {
+          const verifyRes = await fetch(`${BASE_URL}/orders/razorpay/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              orderId: data.orderId,
+            }),
+          });
+          if (verifyRes.ok) {
+            clearCart();
+            router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=paid`);
+          } else {
+            setError('Payment verification failed. Please contact support with your order number.');
+            setLoading(false);
+          }
+        } catch {
+          setError('Payment verification failed. Contact support.');
+          setLoading(false);
+        }
+      },
+      modal: {
+        ondismiss: () => {
+          setError('Payment was cancelled. You can retry or pay via UPI.');
+          setLoading(false);
+          router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=pending`);
+        },
+      },
+    });
+    rzp.open();
   }
 
   if (items.length === 0 && step !== 3) {
@@ -240,6 +324,8 @@ export default function CheckoutPage() {
 
 
   return (
+    <>
+    <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Step indicator */}
       <div className="flex items-center gap-2 mb-10">
@@ -521,10 +607,10 @@ export default function CheckoutPage() {
               )}
 
               {/* Payment note */}
-              <div className="bg-amber-50 border border-amber-200 rounded p-4">
-                <p className="text-xs font-bold text-amber-800 mb-1">Payment via UPI</p>
-                <p className="text-xs text-amber-700 leading-relaxed">
-                  After placing your order, you&apos;ll receive UPI payment instructions. Pay via PhonePe, Google Pay, or Paytm and send a screenshot on WhatsApp with your order number.
+              <div className="bg-zinc-50 border border-zinc-200 rounded p-4">
+                <p className="text-xs font-bold text-zinc-800 mb-1">Secure Payment</p>
+                <p className="text-xs text-zinc-600 leading-relaxed">
+                  You&apos;ll be taken to a secure payment screen after placing your order. Supports UPI, cards, netbanking, and wallets.
                 </p>
               </div>
 
@@ -597,5 +683,6 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

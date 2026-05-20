@@ -37,6 +37,8 @@ const allowedOrigins = [
   'https://www.snkrscart.com',
 ];
 app.use(cors({ origin: (origin, cb) => cb(null, !origin || allowedOrigins.includes(origin)), credentials: true }));
+// Raw body needed for Cashfree webhook signature verification (must be before express.json)
+app.use('/api/v1/orders/cashfree/webhook', express.raw({ type: '*/*' }));
 app.use(express.json());
 app.use(cookieParser());
 

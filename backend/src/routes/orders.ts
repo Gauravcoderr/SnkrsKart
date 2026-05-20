@@ -1,16 +1,225 @@
 import { Router, Request, Response } from 'express';
-import { Order } from '../models/Order';
+import crypto from 'crypto';
+import { Order, IOrder } from '../models/Order';
 import { customerAuth, optionalAuth, AuthRequest } from '../middleware/customerAuth';
 import { User } from '../models/User';
 import { sendMail } from '../lib/mailer';
-import { Loyalty, getTier, COINS_PER_100, COINS_TO_RUPEE, MAX_REDEEM_PCT, MIN_REDEEM } from '../models/Loyalty';
+import { Loyalty, COINS_PER_100, COINS_TO_RUPEE, MAX_REDEEM_PCT, MIN_REDEEM } from '../models/Loyalty';
+import { Cashfree, CFEnvironment } from 'cashfree-pg';
+import Razorpay from 'razorpay';
+
+// Lazy-initialised gateway instances
+let _cashfree: InstanceType<typeof Cashfree> | null = null;
+function getCashfree() {
+  if (!_cashfree) {
+    _cashfree = new Cashfree(
+      process.env.CASHFREE_ENV === 'production' ? CFEnvironment.PRODUCTION : CFEnvironment.SANDBOX,
+      process.env.CASHFREE_APP_ID || '',
+      process.env.CASHFREE_SECRET_KEY || '',
+    );
+  }
+  return _cashfree;
+}
+
+let _razorpay: InstanceType<typeof Razorpay> | null = null;
+function getRazorpay() {
+  if (!_razorpay) {
+    _razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID || '',
+      key_secret: process.env.RAZORPAY_KEY_SECRET || '',
+    });
+  }
+  return _razorpay;
+}
+
+function sendPaymentConfirmedEmail(order: IOrder, siteUrl: string) {
+  const itemsHtml = (order.items as any[]).map((it) => `
+    <tr>
+      <td style="padding:8px 4px;border-bottom:1px solid #f0f0f0;">
+        ${it.image ? `<img src="${it.image}" width="48" height="48" style="object-fit:contain;border-radius:6px;background:#f9f9f9;" />` : ''}
+      </td>
+      <td style="padding:8px;border-bottom:1px solid #f0f0f0;font-size:13px;">
+        <strong>${it.brand}</strong> ${it.name}<br/>
+        <span style="color:#888;">Size: ${it.size} · Qty: ${it.qty}</span>
+      </td>
+      <td style="padding:8px;border-bottom:1px solid #f0f0f0;font-size:13px;text-align:right;font-weight:bold;">
+        ₹${(it.price * it.qty).toLocaleString('en-IN')}
+      </td>
+    </tr>
+  `).join('');
+
+  sendMail({
+    to: order.email,
+    subject: `Payment Confirmed — ${order.orderNumber} | SNKRS CART`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
+        <div style="background:#111;padding:20px 32px;text-align:center;">
+          <img src="${siteUrl}/logo.jpg" alt="SNKRS CART" style="height:56px;width:auto;" />
+        </div>
+        <div style="padding:32px;">
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:20px;margin-bottom:24px;text-align:center;">
+            <p style="font-size:13px;color:#166534;font-weight:bold;margin:0 0 4px;">✅ Payment Confirmed</p>
+            <p style="font-size:22px;font-weight:bold;color:#111;margin:0;">₹${order.total.toLocaleString('en-IN')}</p>
+          </div>
+          <p style="font-size:16px;font-weight:bold;margin-top:0;">Thank you, ${order.name}!</p>
+          <p style="color:#444;">Your payment for order <strong>${order.orderNumber}</strong> has been confirmed. We're now processing your order.</p>
+          <table style="width:100%;border-collapse:collapse;margin-top:20px;">${itemsHtml}</table>
+          <table style="width:100%;margin-top:12px;font-size:14px;">
+            <tr><td style="padding:4px 0;color:#666;">Subtotal</td><td style="text-align:right;">₹${order.subtotal.toLocaleString('en-IN')}</td></tr>
+            <tr><td style="padding:4px 0;color:#666;">Shipping</td><td style="text-align:right;">${order.shipping === 0 ? 'Free' : '₹' + order.shipping.toLocaleString('en-IN')}</td></tr>
+            <tr><td style="padding:8px 0;font-weight:bold;border-top:2px solid #111;">Total Paid</td><td style="text-align:right;font-weight:bold;border-top:2px solid #111;">₹${order.total.toLocaleString('en-IN')}</td></tr>
+          </table>
+          <p style="color:#888;font-size:12px;margin-top:32px;">Delivery: 3–7 business days · <a href="${siteUrl}/account/orders" style="color:#888;">Track your order</a></p>
+          <p style="color:#888;font-size:12px;">— SNKRS CART Team</p>
+        </div>
+      </div>
+    `,
+  });
+}
 
 const router = Router();
+
+// POST /api/v1/orders/cashfree/webhook — must be before /:id
+router.post('/cashfree/webhook', async (req: Request, res: Response) => {
+  try {
+    const rawBody = Buffer.isBuffer(req.body) ? req.body.toString() : JSON.stringify(req.body);
+    const signature = req.headers['x-webhook-signature'] as string;
+    const timestamp  = req.headers['x-webhook-timestamp'] as string;
+
+    if (!signature || !timestamp) {
+      res.status(400).json({ error: 'Missing webhook headers' });
+      return;
+    }
+
+    let event: any;
+    try {
+      event = getCashfree().PGVerifyWebhookSignature(signature, rawBody, timestamp);
+    } catch {
+      res.status(400).json({ error: 'Invalid webhook signature' });
+      return;
+    }
+
+    const obj = event.object || {};
+    const cfOrderId = String(obj.data?.order?.order_id || '');
+    if (!cfOrderId) { res.status(200).json({ received: true }); return; }
+
+    const order = await Order.findById(cfOrderId);
+    if (!order) { res.status(200).json({ received: true }); return; }
+
+    const paymentStatus = obj.data?.payment?.payment_status as string;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+
+    if (paymentStatus === 'SUCCESS' && order.paymentStatus !== 'paid') {
+      order.paymentStatus = 'paid';
+      order.status = 'confirmed';
+      await order.save();
+      sendPaymentConfirmedEmail(order, siteUrl);
+    } else if (paymentStatus === 'FAILED' && order.paymentStatus === 'pending') {
+      order.paymentStatus = 'failed';
+      await order.save();
+    }
+
+    res.status(200).json({ received: true });
+  } catch (err) {
+    console.error('Cashfree webhook error:', err);
+    res.status(200).json({ received: true }); // always ack to Cashfree
+  }
+});
+
+// POST /api/v1/orders/razorpay/verify
+router.post('/razorpay/verify', async (req: Request, res: Response) => {
+  try {
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, orderId } = req.body;
+    if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature || !orderId) {
+      res.status(400).json({ error: 'Missing required fields' });
+      return;
+    }
+
+    const expected = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest('hex');
+
+    if (expected !== razorpay_signature) {
+      res.status(400).json({ error: 'Invalid payment signature' });
+      return;
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
+
+    if (order.paymentStatus !== 'paid') {
+      order.paymentStatus = 'paid';
+      order.status = 'confirmed';
+      await order.save();
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+      sendPaymentConfirmedEmail(order, siteUrl);
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Razorpay verify error:', err);
+    res.status(500).json({ error: 'Verification failed' });
+  }
+});
 
 function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
   const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
   return `SC-${timestamp}-${rand}`;
+}
+
+async function initCashfreePayment(
+  order: IOrder,
+  ctx: { name: string; email: string; phone: string; finalTotal: number; orderNumber: string; siteUrl: string },
+  userId?: string,
+): Promise<{ paymentMode: 'cashfree'; paymentSessionId: string }> {
+  try {
+    const cfRes = await getCashfree().PGCreateOrder({
+      order_id: String(order._id),
+      order_amount: ctx.finalTotal,
+      order_currency: 'INR',
+      customer_details: {
+        customer_id: userId || ctx.email.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 50),
+        customer_name: ctx.name,
+        customer_email: ctx.email,
+        customer_phone: ctx.phone.replace(/[^0-9]/g, '').slice(-10),
+      },
+      order_meta: {
+        return_url: `${ctx.siteUrl}/checkout/confirmation?id=${order._id}&order=${ctx.orderNumber}&total=${ctx.finalTotal}&paymentStatus=pending`,
+      },
+    } as any);
+    const sessionId = (cfRes as any).data?.payment_session_id || '';
+    const cfOrderId = String((cfRes as any).data?.cf_order_id || '');
+    await Order.findByIdAndUpdate(order._id, { paymentSessionId: sessionId, cfOrderId });
+    return { paymentMode: 'cashfree', paymentSessionId: sessionId };
+  } catch (err) {
+    console.error('Cashfree order creation failed:', err);
+    throw new Error('Payment gateway unavailable. Change PAYMENT_MODE to manual to use UPI.');
+  }
+}
+
+async function initRazorpayPayment(
+  order: IOrder,
+  ctx: { finalTotal: number; orderNumber: string },
+): Promise<{ paymentMode: 'razorpay'; razorpayOrderId: string; razorpayKeyId: string | undefined; amount: number }> {
+  try {
+    const rzpOrder = await getRazorpay().orders.create({
+      amount: Math.round(ctx.finalTotal * 100),
+      currency: 'INR',
+      receipt: ctx.orderNumber,
+    });
+    await Order.findByIdAndUpdate(order._id, { razorpayOrderId: rzpOrder.id });
+    return {
+      paymentMode: 'razorpay',
+      razorpayOrderId: rzpOrder.id,
+      razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+      amount: Math.round(ctx.finalTotal * 100),
+    };
+  } catch (err) {
+    console.error('Razorpay order creation failed:', err);
+    throw new Error('Payment gateway unavailable. Change PAYMENT_MODE to manual to use UPI.');
+  }
 }
 
 // POST /api/v1/orders — place a new order (optionally authenticated)
@@ -99,13 +308,24 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       }).catch(() => {});
     }
 
-    res.status(201).json({ success: true, orderId: order._id, orderNumber, coinsEarned, coinsRedeemed, finalTotal });
-
     const storeEmail = process.env.GMAIL_USER || 'infosnkrscart@gmail.com';
     const storeWA = process.env.NEXT_PUBLIC_WHATSAPP || '919410903791';
     const UPI_ID = process.env.UPI_ID || 'snkrscart@upi';
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+    const paymentMode = (process.env.PAYMENT_MODE || 'manual') as 'cashfree' | 'razorpay' | 'manual';
 
+    const baseResponse = { success: true, orderId: order._id, orderNumber, coinsEarned, coinsRedeemed, finalTotal };
+
+    // Delegate to per-gateway handler
+    const gatewayResult = await (
+      paymentMode === 'cashfree'  ? initCashfreePayment(order, { name, email, phone, finalTotal, orderNumber, siteUrl }, req.user?.id) :
+      paymentMode === 'razorpay'  ? initRazorpayPayment(order, { finalTotal, orderNumber }) :
+      /* manual */                  Promise.resolve({ paymentMode: 'manual' as const })
+    );
+
+    res.status(201).json({ ...baseResponse, ...gatewayResult });
+
+    const resolvedPaymentMode = gatewayResult.paymentMode;
     const itemsHtml = items.map((it: { image: string; brand: string; name: string; size: string; qty: number; price: number }) => `
       <tr>
         <td style="padding:8px 4px;border-bottom:1px solid #f0f0f0;">
@@ -144,14 +364,15 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
               <tr><td style="padding:4px 0;color:#666;">Shipping</td><td style="text-align:right;">${shipping === 0 ? 'Free' : '₹' + shipping.toLocaleString('en-IN')}</td></tr>
               <tr><td style="padding:8px 0;font-weight:bold;font-size:16px;border-top:2px solid #111;">Total</td><td style="text-align:right;font-weight:bold;font-size:16px;border-top:2px solid #111;">₹${total.toLocaleString('en-IN')}</td></tr>
             </table>
-            <p style="margin-top:20px;font-size:13px;color:#666;">⚠️ Awaiting UPI payment confirmation from customer. Once received, confirm order in admin panel.</p>
+            <p style="margin-top:20px;font-size:13px;color:#666;">${resolvedPaymentMode === 'manual' ? '⚠️ Awaiting UPI payment confirmation from customer. Once received, confirm order in admin panel.' : '🔄 Customer is completing payment via ' + resolvedPaymentMode.charAt(0).toUpperCase() + resolvedPaymentMode.slice(1) + '. Order will auto-confirm on payment.'}</p>
             <a href="${siteUrl}/admin/orders" style="display:inline-block;margin-top:12px;background:#111;color:#fff;padding:10px 20px;text-decoration:none;font-size:13px;font-weight:bold;border-radius:6px;">View in Admin Panel →</a>
           </div>
         </div>
       `,
     });
 
-    // Confirmation email to customer
+    // Customer UPI instructions email — only for manual mode; gateway modes send after webhook confirms
+    if (resolvedPaymentMode !== 'manual') return;
     sendMail({
       to: email,
       subject: `Order Confirmed — ${orderNumber} | SNKRS CART`,
