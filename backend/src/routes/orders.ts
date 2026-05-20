@@ -91,7 +91,7 @@ router.post('/cashfree/webhook', async (req: Request, res: Response) => {
     const timestamp  = req.headers['x-webhook-timestamp'] as string;
 
     if (!signature || !timestamp) {
-      res.status(400).json({ error: 'Missing webhook headers' });
+      res.status(200).json({ received: true }); // accept test pings without signature
       return;
     }
 
