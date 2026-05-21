@@ -524,15 +524,17 @@ export default function CheckoutPage() {
               {/* Items */}
               <div className="border border-zinc-100">
                 {items.map((item) => (
-                  <div key={`${item.product.id}-${item.size}`} className="flex gap-4 p-4 border-b border-zinc-100 last:border-0">
-                    <div className="relative w-16 h-16 bg-zinc-50 shrink-0">
+                  <div key={`${item.product.id}-${item.size}`} className="flex gap-4 p-4 border-b border-zinc-100 last:border-0 group">
+                    <Link href={`/products/${item.product.slug}`} className="relative w-16 h-16 bg-zinc-50 shrink-0 overflow-hidden block ring-1 ring-zinc-100 hover:ring-zinc-300 transition-all">
                       {item.product.images?.[0] && (
-                        <Image src={item.product.images[0]} alt={item.product.name} fill className="object-cover" sizes="64px" />
+                        <Image src={item.product.images[0]} alt={item.product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="64px" />
                       )}
-                    </div>
+                    </Link>
                     <div className="flex-1 min-w-0">
                       <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400">{item.product.brand}</p>
-                      <p className="text-sm font-semibold text-zinc-900 truncate">{item.product.name}</p>
+                      <Link href={`/products/${item.product.slug}`} className="text-sm font-semibold text-zinc-900 truncate hover:text-zinc-500 transition-colors block">
+                        {item.product.name}
+                      </Link>
                       <p className="text-xs text-zinc-500">UK {item.size} · Qty {item.quantity}</p>
                     </div>
                     <p className="text-sm font-bold text-zinc-900 shrink-0">{formatPrice(item.product.price * item.quantity)}</p>
