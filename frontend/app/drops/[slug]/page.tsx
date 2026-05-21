@@ -80,8 +80,10 @@ export default async function DropPage({ params }: Props) {
     eventStatus: 'https://schema.org/EventScheduled',
     location: {
       '@type': 'VirtualLocation',
-      url: drop.where?.toLowerCase().includes('snkrs') ? 'https://www.nike.com/launch'
-        : drop.where?.toLowerCase().includes('adidas') ? 'https://www.adidas.co.in'
+      name: drop.brand,
+      url: drop.where?.toLowerCase()?.includes('snkrs') ? 'https://www.nike.com/launch'
+        : drop.where?.toLowerCase()?.includes('adidas') ? 'https://www.adidas.co.in'
+        : drop.where?.toLowerCase()?.includes('jordan') ? 'https://www.nike.com/launch'
         : url,
     },
     description: drop.description || `${drop.name} — official ${drop.brand} release`,
