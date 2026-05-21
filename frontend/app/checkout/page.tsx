@@ -45,6 +45,22 @@ export default function CheckoutPage() {
   const [contact, setContact] = useState({ name: '', email: '', phone: '' });
   const [address, setAddress] = useState({ addressLine: '', city: '', state: '', pincode: '' });
 
+  // Restore checkout progress from sessionStorage on refresh
+  useEffect(() => {
+    try {
+      const savedContact = sessionStorage.getItem('checkout_contact');
+      const savedAddress = sessionStorage.getItem('checkout_address');
+      const savedStep = sessionStorage.getItem('checkout_step');
+      if (savedContact) setContact(JSON.parse(savedContact));
+      if (savedAddress) setAddress(JSON.parse(savedAddress));
+      if (savedStep) setStep(parseInt(savedStep) as 1 | 2 | 3);
+    } catch {}
+  }, []);
+
+  useEffect(() => { sessionStorage.setItem('checkout_contact', JSON.stringify(contact)); }, [contact]);
+  useEffect(() => { sessionStorage.setItem('checkout_address', JSON.stringify(address)); }, [address]);
+  useEffect(() => { sessionStorage.setItem('checkout_step', String(step)); }, [step]);
+
   // OTP verification at review step
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
@@ -106,6 +122,12 @@ export default function CheckoutPage() {
 
   function setC(k: string, v: string) { setContact((p) => ({ ...p, [k]: v })); }
   function setA(k: string, v: string) { setAddress((p) => ({ ...p, [k]: v })); }
+
+  function clearCheckoutSession() {
+    sessionStorage.removeItem('checkout_contact');
+    sessionStorage.removeItem('checkout_address');
+    sessionStorage.removeItem('checkout_step');
+  }
 
   function validateContact() {
     if (!contact.name.trim()) return 'Full name is required';
@@ -232,7 +254,7 @@ export default function CheckoutPage() {
       } else if (data.paymentMode === 'razorpay') {
         await handleRazorpayCheckout(data, confirmBase);
       } else {
-        clearCart();
+        clearCart(); clearCheckoutSession();
         router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=pending`);
       }
     } catch (err: unknown) {
@@ -255,7 +277,7 @@ export default function CheckoutPage() {
         setError(isDropped ? 'Payment cancelled. You can try again.' : `Payment failed: ${result.error.message || 'Please try again.'}`);
         setLoading(false);
       } else {
-        clearCart();
+        clearCart(); clearCheckoutSession();
         router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=paid`);
       }
     } catch {
@@ -288,7 +310,7 @@ export default function CheckoutPage() {
             }),
           });
           if (verifyRes.ok) {
-            clearCart();
+            clearCart(); clearCheckoutSession();
             router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=paid`);
           } else {
             setError('Payment verification failed. Please contact support with your order number.');
@@ -635,18 +657,23 @@ export default function CheckoutPage() {
         {/* Right — order summary */}
         <div className="lg:sticky lg:top-8 self-start">
           <div className="border border-zinc-100 p-6">
-            <p className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-4">Order Summary</p>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-xs font-bold tracking-widest uppercase text-zinc-900">Order Summary</p>
+              <span className="text-[10px] text-zinc-400 font-medium">{items.length} {items.length === 1 ? 'item' : 'items'}</span>
+            </div>
             <div className="space-y-3 mb-4">
               {items.map((item) => (
-                <div key={`${item.product.id}-${item.size}`} className="flex items-center gap-3">
-                  <div className="relative w-12 h-12 bg-zinc-50 shrink-0">
+                <div key={`${item.product.id}-${item.size}`} className="flex items-center gap-3 group">
+                  <Link href={`/products/${item.product.slug}`} className="relative w-14 h-14 bg-zinc-50 shrink-0 overflow-hidden block ring-1 ring-zinc-100 hover:ring-zinc-300 transition-all">
                     {item.product.images?.[0] && (
-                      <Image src={item.product.images[0]} alt={item.product.name} fill className="object-cover" sizes="48px" />
+                      <Image src={item.product.images[0]} alt={item.product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="56px" />
                     )}
-                  </div>
+                  </Link>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-zinc-900 truncate">{item.product.name}</p>
-                    <p className="text-[10px] text-zinc-400">UK {item.size} · Qty {item.quantity}</p>
+                    <Link href={`/products/${item.product.slug}`} className="text-xs font-semibold text-zinc-900 truncate hover:text-zinc-500 transition-colors block">
+                      {item.product.name}
+                    </Link>
+                    <p className="text-[10px] text-zinc-400 mt-0.5">UK {item.size} · Qty {item.quantity}</p>
                   </div>
                   <p className="text-xs font-bold text-zinc-900 shrink-0">{formatPrice(item.product.price * item.quantity)}</p>
                 </div>
@@ -663,6 +690,9 @@ export default function CheckoutPage() {
                   {shipping === 0 ? 'Free' : formatPrice(shipping)}
                 </span>
               </div>
+              {shipping === 0 && (
+                <p className="text-[10px] text-emerald-600 text-right">You saved {formatPrice(SHIPPING_COST)} on shipping</p>
+              )}
               {coinDiscount > 0 && (
                 <div className="flex justify-between text-sm text-amber-600">
                   <span className="font-medium">Kart Coins</span>
@@ -677,7 +707,7 @@ export default function CheckoutPage() {
           </div>
 
           <p className="text-[11px] text-zinc-400 text-center mt-4 leading-relaxed">
-            Delivery in 3–7 business days after payment confirmation.
+            🚚 Delivery in 3–7 business days after payment confirmation.
           </p>
         </div>
       </div>
