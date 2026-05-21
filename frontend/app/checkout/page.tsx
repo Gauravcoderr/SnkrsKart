@@ -630,11 +630,74 @@ export default function CheckoutPage() {
               )}
 
               {/* Payment note */}
-              <div className="bg-zinc-50 border border-zinc-200 rounded p-4">
-                <p className="text-xs font-bold text-zinc-800 mb-1">Secure Payment</p>
-                <p className="text-xs text-zinc-600 leading-relaxed">
-                  You&apos;ll be taken to a secure payment screen after placing your order. Supports UPI, cards, netbanking, and wallets.
+              <div className="border border-zinc-200 rounded-lg p-4 bg-white">
+                <div className="flex items-center gap-2 mb-3">
+                  <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                  </svg>
+                  <p className="text-xs font-bold text-zinc-800">100% Secure Payment</p>
+                </div>
+                <p className="text-[11px] text-zinc-500 mb-4 leading-relaxed">
+                  You&apos;ll be redirected to a secure payment screen. All transactions are encrypted end-to-end.
                 </p>
+                {/* Payment method icons */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* UPI */}
+                  <div className="flex items-center gap-1 border border-zinc-200 rounded px-2 py-1 bg-white">
+                    <svg viewBox="0 0 48 20" className="h-4 w-auto" aria-label="UPI">
+                      <rect width="48" height="20" rx="3" fill="#fff"/>
+                      <text x="4" y="14" fontFamily="Arial" fontSize="9" fontWeight="800" fill="#6B2D8B">UPI</text>
+                      <rect x="24" y="4" width="2" height="12" rx="1" fill="#097939"/>
+                      <polygon points="26,4 34,10 26,16" fill="#F26522"/>
+                      <polygon points="24,4 16,10 24,16" fill="#097939"/>
+                    </svg>
+                  </div>
+                  {/* Visa */}
+                  <div className="flex items-center border border-zinc-200 rounded px-2 py-1 bg-white">
+                    <svg viewBox="0 0 50 20" className="h-4 w-auto" aria-label="Visa">
+                      <rect width="50" height="20" rx="3" fill="#fff"/>
+                      <text x="6" y="14" fontFamily="Arial" fontSize="13" fontWeight="900" fontStyle="italic" fill="#1A1F71">VISA</text>
+                    </svg>
+                  </div>
+                  {/* Mastercard */}
+                  <div className="flex items-center border border-zinc-200 rounded px-2 py-1 bg-white">
+                    <svg viewBox="0 0 38 20" className="h-4 w-auto" aria-label="Mastercard">
+                      <rect width="38" height="20" rx="3" fill="#fff"/>
+                      <circle cx="14" cy="10" r="7" fill="#EB001B"/>
+                      <circle cx="24" cy="10" r="7" fill="#F79E1B"/>
+                      <path d="M19 4.8a7 7 0 010 10.4A7 7 0 0119 4.8z" fill="#FF5F00"/>
+                    </svg>
+                  </div>
+                  {/* RuPay */}
+                  <div className="flex items-center border border-zinc-200 rounded px-2 py-1 bg-white">
+                    <svg viewBox="0 0 52 20" className="h-4 w-auto" aria-label="RuPay">
+                      <rect width="52" height="20" rx="3" fill="#fff"/>
+                      <text x="4" y="13" fontFamily="Arial" fontSize="9" fontWeight="800" fill="#1a56db">Ru</text>
+                      <text x="16" y="13" fontFamily="Arial" fontSize="9" fontWeight="800" fill="#e3a008">Pay</text>
+                      <rect x="3" y="14" width="44" height="2" rx="1" fill="url(#rg)"/>
+                      <defs>
+                        <linearGradient id="rg" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#1a56db"/>
+                          <stop offset="100%" stopColor="#e3a008"/>
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </div>
+                  {/* Net Banking */}
+                  <div className="flex items-center gap-1.5 border border-zinc-200 rounded px-2 py-1 bg-white">
+                    <svg className="w-3.5 h-3.5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 6l9-3 9 3M3 10h18M5 10v8m14-8v8M3 18h18" />
+                    </svg>
+                    <span className="text-[10px] font-semibold text-zinc-600">Net Banking</span>
+                  </div>
+                  {/* Wallets */}
+                  <div className="flex items-center gap-1.5 border border-zinc-200 rounded px-2 py-1 bg-white">
+                    <svg className="w-3.5 h-3.5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5m0 0h-4a2 2 0 000 4h4" />
+                    </svg>
+                    <span className="text-[10px] font-semibold text-zinc-600">Wallets</span>
+                  </div>
+                </div>
               </div>
 
               {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
