@@ -190,6 +190,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js'))}`,
           }}
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:'en',layout:google.translate.TranslateElement.InlineLayout.SIMPLE,autoDisplay:false},'google_translate_element')}`,
+          }}
+        />
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" />
       </head>
       <body className="bg-zinc-50 text-zinc-900 font-sans antialiased">
         <GoogleAuthProvider>

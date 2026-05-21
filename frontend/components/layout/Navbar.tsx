@@ -76,6 +76,7 @@ export default function Navbar() {
 
           {/* Right actions */}
           <div className="flex items-center gap-3">
+            <div id="google_translate_element" className="translate-widget" />
             {searchOpen ? (
               <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 animate-slide-in-up">
                 <input
