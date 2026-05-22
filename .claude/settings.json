@@ -38,7 +38,10 @@
       "WebFetch(domain:www.digitaltoppers.com)",
       "WebFetch(domain:mathewdigital.com)",
       "WebFetch(domain:www.modash.io)",
-      "WebFetch(domain:www.shopify.com)"
+      "WebFetch(domain:www.shopify.com)",
+      "Bash(curl -o /dev/null -s -w \"%{http_code}\" \"https://sneakerbardetroit.com/wp-content/uploads/2026/05/puma-stewie-5-312745-01-release-date.webp\")",
+      "Bash(curl -o /dev/null -s -w \"%{http_code}\" \"https://sneakerbardetroit.com/wp-content/uploads/2026/05/puma-stewie-5-312745-01-1.jpg\")",
+      "Bash(curl -o /dev/null -s -w \"%{http_code}\" \"https://sneakerbardetroit.com/wp-content/uploads/2026/05/puma-stewie-5-312745-01-2.jpg\")"
     ],
     "additionalDirectories": [
       "/Users/gauravrauthan/shoe-auth"
