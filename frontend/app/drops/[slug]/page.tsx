@@ -71,34 +71,39 @@ export default async function DropPage({ params }: Props) {
     released: { bar: 'bg-zinc-100',  text: 'text-zinc-500',  label: `Released — ${formatDate(drop.releaseDate)}` },
   }[urgency];
 
+  // ISO date-only string (YYYY-MM-DD) — required format for Google Event rich results
+  const isoDate = drop.releaseDate.slice(0, 10);
+
+  const locationUrl = drop.where?.toLowerCase()?.includes('snkrs') || drop.where?.toLowerCase()?.includes('jordan')
+    ? 'https://www.nike.com/launch'
+    : drop.where?.toLowerCase()?.includes('adidas') ? 'https://www.adidas.co.in'
+    : url;
+
   const eventJson = {
     '@context': 'https://schema.org',
-    '@type': 'SaleEvent',
+    '@type': 'Event',
     name: drop.name,
-    startDate: drop.releaseDate,
-    endDate: drop.releaseDate,
+    startDate: isoDate,
+    endDate: isoDate,
     eventStatus: 'https://schema.org/EventScheduled',
+    eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
     location: {
       '@type': 'VirtualLocation',
-      name: drop.brand,
-      url: drop.where?.toLowerCase()?.includes('snkrs') ? 'https://www.nike.com/launch'
-        : drop.where?.toLowerCase()?.includes('adidas') ? 'https://www.adidas.co.in'
-        : drop.where?.toLowerCase()?.includes('jordan') ? 'https://www.nike.com/launch'
-        : url,
+      url: locationUrl,
     },
     description: drop.description || `${drop.name} — official ${drop.brand} release`,
     url,
+    image: drop.image || undefined,
     organizer: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL },
-    performer: { '@type': 'Organization', name: drop.brand },
     offers: drop.retailPrice ? {
       '@type': 'Offer',
       price: drop.retailPrice,
       priceCurrency: 'INR',
       availability: released ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder',
-      validFrom: drop.releaseDate,
-      url: drop.availableAtStore && drop.productSlug ? `${SITE_URL}/products/${drop.productSlug}` : url,
+      validFrom: isoDate,
+      url: drop.availableAtStore && drop.productSlug ? `${SITE_URL}/products/${drop.productSlug}` : locationUrl,
+      seller: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL },
     } : undefined,
-    image: drop.image || undefined,
   };
 
   const breadcrumbJson = {
