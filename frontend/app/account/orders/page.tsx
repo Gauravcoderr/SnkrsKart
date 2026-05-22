@@ -147,53 +147,21 @@ function OrderCard({ order, onViewDetails }: { order: Order; onViewDetails: (o: 
 
       <div className="pl-4">
         {/* Top bar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-50">
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-mono font-bold text-zinc-700">{order.orderNumber}</span>
-            <span className="text-zinc-300 text-xs">·</span>
-            <span className="text-xs text-zinc-400">{date}</span>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-xs font-mono font-bold text-zinc-700 shrink-0">{order.orderNumber}</span>
+            <span className="text-zinc-300 text-xs shrink-0">·</span>
+            <span className="text-xs text-zinc-400 shrink-0">{date}</span>
           </div>
-          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${s.bg}`}>
-            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${s.dot}`} />
-            <span className={`text-[10px] font-bold tracking-wide ${s.text}`}>{s.label}</span>
-          </div>
-        </div>
-
-        {/* Main content */}
-        <div className="px-4 py-4">
-          <div className="flex items-start gap-4">
-            {/* Product thumbnails */}
-            <div className="flex -space-x-3 shrink-0">
-              {order.items.slice(0, 3).map((item, i) =>
-                item.image ? (
-                  <div key={i} className="relative w-16 h-16 rounded-xl border-2 border-white bg-zinc-100 overflow-hidden shadow-sm ring-1 ring-zinc-100">
-                    <Image src={item.image} alt={item.name} fill className="object-cover" sizes="64px" />
-                  </div>
-                ) : null
-              )}
-              {order.items.length > 3 && (
-                <div className="w-16 h-16 rounded-xl border-2 border-white bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center shadow-sm ring-1 ring-zinc-100">
-                  <span className="text-xs font-black text-indigo-500">+{order.items.length - 3}</span>
-                </div>
-              )}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${s.bg}`}>
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${s.dot}`} />
+              <span className={`text-[10px] font-bold tracking-wide ${s.text}`}>{s.label}</span>
             </div>
-
-            {/* Details */}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-zinc-900 truncate">{order.items.map((i) => i.name).join(', ')}</p>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                {order.items.length} item{order.items.length > 1 ? 's' : ''} · UK {order.items[0]?.size}
-              </p>
-              <p className="text-base font-black text-zinc-900 mt-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                {formatPrice(order.total)}
-              </p>
-            </div>
-
-            {/* View Details */}
             <button
               type="button"
               onClick={() => onViewDetails(order)}
-              className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-zinc-900 text-white text-xs font-bold hover:bg-indigo-600 transition-colors mt-1"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-zinc-900 text-white text-xs font-bold hover:bg-indigo-600 transition-colors"
             >
               Details
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -201,11 +169,48 @@ function OrderCard({ order, onViewDetails }: { order: Order; onViewDetails: (o: 
               </svg>
             </button>
           </div>
+        </div>
 
-          {/* Stepper */}
-          <div className="mt-4 pt-3 border-t border-zinc-50">
-            <StatusStepper status={order.status} compact />
+        {/* Item rows — one per product */}
+        <div className="px-4 pt-3 pb-1 space-y-3">
+          {order.items.map((item, i) => (
+            <div key={i} className="flex items-center gap-3">
+              {/* Thumbnail */}
+              {item.image ? (
+                <div className="relative w-14 h-14 rounded-xl bg-zinc-100 overflow-hidden shrink-0 ring-1 ring-zinc-100">
+                  <Image src={item.image} alt={item.name} fill className="object-cover" sizes="56px" />
+                </div>
+              ) : (
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center shrink-0">
+                  <span className="text-xl">👟</span>
+                </div>
+              )}
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-black tracking-widest uppercase text-indigo-500 leading-none mb-0.5">{item.brand}</p>
+                <p className="text-sm font-bold text-zinc-900 leading-snug truncate">{item.name}</p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-md">UK {item.size}</span>
+                  {item.qty > 1 && (
+                    <span className="text-[10px] font-bold bg-zinc-100 text-zinc-500 px-1.5 py-0.5 rounded-md">×{item.qty}</span>
+                  )}
+                </div>
+              </div>
+              {/* Price */}
+              <p className="text-sm font-black text-zinc-900 shrink-0">{formatPrice(item.price * item.qty)}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer: total + stepper */}
+        <div className="px-4 py-3 mt-1 border-t border-zinc-50 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-[9px] font-black tracking-widest uppercase text-zinc-400 mb-0.5">Order Total</p>
+            <p className="text-base font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              {formatPrice(order.total)}
+            </p>
           </div>
+          <StatusStepper status={order.status} compact />
         </div>
       </div>
     </div>
