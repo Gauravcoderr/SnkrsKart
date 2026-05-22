@@ -56,6 +56,7 @@ interface OrderItem {
   price: number;
   qty: number;
   image: string;
+  slug?: string;
 }
 
 interface Order {
@@ -300,29 +301,35 @@ function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
           <p className="text-xs font-black tracking-widest uppercase text-zinc-500">Items Ordered</p>
           <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{order.items.length} item{order.items.length > 1 ? 's' : ''}</span>
         </div>
-        {order.items.map((item, i) => (
-          <div key={i} className="flex gap-4 p-4 border-b border-zinc-50 last:border-0 hover:bg-zinc-50/50 transition-colors">
-            {item.image ? (
-              <div className="relative w-[72px] h-[72px] bg-zinc-100 rounded-xl shrink-0 overflow-hidden ring-1 ring-zinc-100">
-                <Image src={item.image} alt={item.name} fill className="object-cover" sizes="72px" />
+        {order.items.map((item, i) => {
+          const href = item.slug ? `/products/${item.slug}` : `/products?search=${encodeURIComponent(item.name)}`;
+          return (
+            <Link key={i} href={href} className="flex gap-4 p-4 border-b border-zinc-50 last:border-0 hover:bg-zinc-50/50 transition-colors group/item">
+              {item.image ? (
+                <div className="relative w-[72px] h-[72px] bg-zinc-100 rounded-xl shrink-0 overflow-hidden ring-1 ring-zinc-100">
+                  <Image src={item.image} alt={item.name} fill className="object-cover" sizes="72px" />
+                </div>
+              ) : (
+                <div className="w-[72px] h-[72px] bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shrink-0 flex items-center justify-center">
+                  <span className="text-2xl">👟</span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-black tracking-widest uppercase text-indigo-500">{item.brand}</p>
+                <p className="text-sm font-bold text-zinc-900 leading-snug mt-0.5 group-hover/item:text-indigo-600 transition-colors">{item.name}</p>
+                {item.colorway && <p className="text-xs text-zinc-400 mt-0.5">{item.colorway}</p>}
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md">UK {item.size}</span>
+                  <span className="text-[10px] font-bold bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-md">Qty {item.qty}</span>
+                </div>
               </div>
-            ) : (
-              <div className="w-[72px] h-[72px] bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shrink-0 flex items-center justify-center">
-                <span className="text-2xl">👟</span>
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                <p className="text-sm font-black text-zinc-900">{formatPrice(item.price * item.qty)}</p>
+                <span className="text-[10px] font-bold text-indigo-400 group-hover/item:text-indigo-600 transition-colors">View →</span>
               </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-black tracking-widest uppercase text-indigo-500">{item.brand}</p>
-              <p className="text-sm font-bold text-zinc-900 leading-snug mt-0.5">{item.name}</p>
-              {item.colorway && <p className="text-xs text-zinc-400 mt-0.5">{item.colorway}</p>}
-              <div className="flex items-center gap-2 mt-1.5">
-                <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md">UK {item.size}</span>
-                <span className="text-[10px] font-bold bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-md">Qty {item.qty}</span>
-              </div>
-            </div>
-            <p className="text-sm font-black text-zinc-900 shrink-0">{formatPrice(item.price * item.qty)}</p>
-          </div>
-        ))}
+            </Link>
+          );
+        })}
       </div>
 
       {/* Summary + Address */}

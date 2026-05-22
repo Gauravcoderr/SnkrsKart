@@ -306,10 +306,15 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
     const finalTotal = Math.max(0, serverTotal - coinDiscount);
     const coinsEarned = Math.floor(finalTotal / 100) * COINS_PER_100;
 
+    const enrichedItems = (items as any[]).map((item) => ({
+      ...item,
+      slug: productMap.get(String(item.productId))?.slug ?? '',
+    }));
+
     const orderNumber = generateOrderNumber();
     const order = await Order.create({
       orderNumber, name, email, phone, addressLine, city, state, pincode,
-      items, subtotal, shipping, total: finalTotal, status: 'pending',
+      items: enrichedItems, subtotal, shipping, total: finalTotal, status: 'pending',
       coinsEarned, coinsRedeemed,
       ...(req.user ? { userId: req.user.id } : {}),
     });
