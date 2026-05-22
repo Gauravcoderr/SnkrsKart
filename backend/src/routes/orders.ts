@@ -33,6 +33,57 @@ function getRazorpay() {
   return _razorpay;
 }
 
+function sendAdminNewOrderEmail(order: IOrder, siteUrl: string, paymentMode: string) {
+  const storeEmail = process.env.GMAIL_USER || 'infosnkrscart@gmail.com';
+  const itemsHtml = (order.items as any[]).map((it) => `
+    <tr>
+      <td style="padding:8px 4px;border-bottom:1px solid #f0f0f0;">
+        ${it.image ? `<img src="${it.image}" width="48" height="48" style="object-fit:contain;border-radius:6px;background:#f9f9f9;" />` : ''}
+      </td>
+      <td style="padding:8px;border-bottom:1px solid #f0f0f0;font-size:13px;">
+        <strong>${it.brand}</strong> ${it.name}<br/>
+        <span style="color:#888;">Size: ${it.size} · Qty: ${it.qty}</span>
+      </td>
+      <td style="padding:8px;border-bottom:1px solid #f0f0f0;font-size:13px;text-align:right;font-weight:bold;">
+        ₹${(it.price * it.qty).toLocaleString('en-IN')}
+      </td>
+    </tr>
+  `).join('');
+
+  const note = paymentMode === 'manual'
+    ? '⚠️ Awaiting UPI payment confirmation from customer. Once received, confirm order in admin panel.'
+    : '✅ Payment confirmed via ' + paymentMode.charAt(0).toUpperCase() + paymentMode.slice(1) + '. Order is now confirmed.';
+
+  sendMail({
+    to: storeEmail,
+    subject: `New Order #${order.orderNumber} — ₹${order.total.toLocaleString('en-IN')} — ${order.name}`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;color:#111;">
+        <div style="background:#111;padding:16px 24px;text-align:center;">
+          <img src="${siteUrl}/logo.jpg" alt="SNKRS CART" style="height:48px;width:auto;" />
+        </div>
+        <div style="padding:24px;">
+          <p style="font-size:16px;font-weight:bold;margin-top:0;">New Order Received — ${order.orderNumber}</p>
+          <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px;">
+            <tr><td style="padding:6px 0;color:#666;width:120px;">Customer</td><td style="padding:6px 0;font-weight:bold;">${order.name}</td></tr>
+            <tr><td style="padding:6px 0;color:#666;">Email</td><td style="padding:6px 0;"><a href="mailto:${order.email}">${order.email}</a></td></tr>
+            <tr><td style="padding:6px 0;color:#666;">Phone</td><td style="padding:6px 0;"><a href="tel:${order.phone}">${order.phone}</a></td></tr>
+            <tr><td style="padding:6px 0;color:#666;">Address</td><td style="padding:6px 0;">${order.addressLine}, ${order.city}, ${order.state} — ${order.pincode}</td></tr>
+          </table>
+          <table style="width:100%;border-collapse:collapse;">${itemsHtml}</table>
+          <table style="width:100%;margin-top:12px;font-size:14px;">
+            <tr><td style="padding:4px 0;color:#666;">Subtotal</td><td style="text-align:right;">₹${order.subtotal.toLocaleString('en-IN')}</td></tr>
+            <tr><td style="padding:4px 0;color:#666;">Shipping</td><td style="text-align:right;">${order.shipping === 0 ? 'Free' : '₹' + order.shipping.toLocaleString('en-IN')}</td></tr>
+            <tr><td style="padding:8px 0;font-weight:bold;font-size:16px;border-top:2px solid #111;">Total</td><td style="text-align:right;font-weight:bold;font-size:16px;border-top:2px solid #111;">₹${order.total.toLocaleString('en-IN')}</td></tr>
+          </table>
+          <p style="margin-top:20px;font-size:13px;color:#666;">${note}</p>
+          <a href="${siteUrl}/admin/orders" style="display:inline-block;margin-top:12px;background:#111;color:#fff;padding:10px 20px;text-decoration:none;font-size:13px;font-weight:bold;border-radius:6px;">View in Admin Panel →</a>
+        </div>
+      </div>
+    `,
+  });
+}
+
 function sendPaymentConfirmedEmail(order: IOrder, siteUrl: string) {
   const itemsHtml = (order.items as any[]).map((it) => `
     <tr>
@@ -118,6 +169,7 @@ router.post('/cashfree/webhook', async (req: Request, res: Response) => {
       order.status = 'confirmed';
       await order.save();
       sendPaymentConfirmedEmail(order, siteUrl);
+      sendAdminNewOrderEmail(order, siteUrl, 'cashfree');
     } else if (paymentStatus === 'FAILED' && order.paymentStatus === 'pending') {
       order.paymentStatus = 'failed';
       await order.save();
@@ -158,6 +210,7 @@ router.post('/razorpay/verify', async (req: Request, res: Response) => {
       await order.save();
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
       sendPaymentConfirmedEmail(order, siteUrl);
+      sendAdminNewOrderEmail(order, siteUrl, 'razorpay');
     }
 
     res.json({ success: true });
@@ -375,35 +428,10 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       </tr>
     `).join('');
 
-    // Email to store owner
-    sendMail({
-      to: storeEmail,
-      subject: `New Order #${orderNumber} — ₹${total.toLocaleString('en-IN')} — ${name}`,
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:600px;color:#111;">
-          <div style="background:#111;padding:16px 24px;text-align:center;">
-            <img src="${siteUrl}/logo.jpg" alt="SNKRS CART" style="height:48px;width:auto;" />
-          </div>
-          <div style="padding:24px;">
-            <p style="font-size:16px;font-weight:bold;margin-top:0;">New Order Received — ${orderNumber}</p>
-            <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px;">
-              <tr><td style="padding:6px 0;color:#666;width:120px;">Customer</td><td style="padding:6px 0;font-weight:bold;">${name}</td></tr>
-              <tr><td style="padding:6px 0;color:#666;">Email</td><td style="padding:6px 0;"><a href="mailto:${email}">${email}</a></td></tr>
-              <tr><td style="padding:6px 0;color:#666;">Phone</td><td style="padding:6px 0;"><a href="tel:${phone}">${phone}</a></td></tr>
-              <tr><td style="padding:6px 0;color:#666;">Address</td><td style="padding:6px 0;">${addressLine}, ${city}, ${state} — ${pincode}</td></tr>
-            </table>
-            <table style="width:100%;border-collapse:collapse;">${itemsHtml}</table>
-            <table style="width:100%;margin-top:12px;font-size:14px;">
-              <tr><td style="padding:4px 0;color:#666;">Subtotal</td><td style="text-align:right;">₹${subtotal.toLocaleString('en-IN')}</td></tr>
-              <tr><td style="padding:4px 0;color:#666;">Shipping</td><td style="text-align:right;">${shipping === 0 ? 'Free' : '₹' + shipping.toLocaleString('en-IN')}</td></tr>
-              <tr><td style="padding:8px 0;font-weight:bold;font-size:16px;border-top:2px solid #111;">Total</td><td style="text-align:right;font-weight:bold;font-size:16px;border-top:2px solid #111;">₹${total.toLocaleString('en-IN')}</td></tr>
-            </table>
-            <p style="margin-top:20px;font-size:13px;color:#666;">${resolvedPaymentMode === 'manual' ? '⚠️ Awaiting UPI payment confirmation from customer. Once received, confirm order in admin panel.' : '🔄 Customer is completing payment via ' + resolvedPaymentMode.charAt(0).toUpperCase() + resolvedPaymentMode.slice(1) + '. Order will auto-confirm on payment.'}</p>
-            <a href="${siteUrl}/admin/orders" style="display:inline-block;margin-top:12px;background:#111;color:#fff;padding:10px 20px;text-decoration:none;font-size:13px;font-weight:bold;border-radius:6px;">View in Admin Panel →</a>
-          </div>
-        </div>
-      `,
-    });
+    // Admin email — only for manual (UPI) mode; gateway modes send after payment is confirmed
+    if (resolvedPaymentMode === 'manual') {
+      sendAdminNewOrderEmail(order, siteUrl, 'manual');
+    }
 
     // Customer UPI instructions email — only for manual mode; gateway modes send after webhook confirms
     if (resolvedPaymentMode !== 'manual') return;
