@@ -493,10 +493,17 @@ router.get('/my', customerAuth, async (req: AuthRequest, res: Response) => {
 // GET /api/v1/orders/lookup?orderNumber=SC-XXX&email=x — lookup by order number + email verification
 router.get('/lookup', async (req: Request, res: Response) => {
   try {
-    const { orderNumber, email } = req.query as { orderNumber?: string; email?: string };
-    if (!orderNumber || !email) { res.status(400).json({ error: 'orderNumber and email are required' }); return; }
+    const { orderNumber, email, phone } = req.query as { orderNumber?: string; email?: string; phone?: string };
+    if (!orderNumber || (!email && !phone)) {
+      res.status(400).json({ error: 'orderNumber and email or phone are required' });
+      return;
+    }
     const order = await Order.findOne({ orderNumber: orderNumber.toUpperCase() }).lean();
-    if (!order || order.email.toLowerCase() !== email.trim().toLowerCase()) {
+    if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
+    const emailMatch = email && order.email.toLowerCase() === email.trim().toLowerCase();
+    const cleanPhone = (s: string) => s.replace(/\D/g, '').slice(-10);
+    const phoneMatch = phone && cleanPhone(order.phone) === cleanPhone(phone);
+    if (!emailMatch && !phoneMatch) {
       res.status(404).json({ error: 'Order not found' });
       return;
     }

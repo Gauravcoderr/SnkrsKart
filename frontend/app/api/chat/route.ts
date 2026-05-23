@@ -214,6 +214,24 @@ async function fetchProductContext(query: string): Promise<string> {
   }
 }
 
+async function lookupOrder(text: string): Promise<any | null> {
+  const orderMatch = text.match(/(?:order\s*(?:id|number|#)?\s*[:#]?\s*)([A-Z0-9]{6,})/i)
+    ?? text.match(/#([0-9]{5,})/);
+  if (!orderMatch) return null;
+  const orderNumber = orderMatch[1].toUpperCase();
+  const emailMatch = text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
+  const phoneMatch = text.match(/(?:\+91|91)?[6-9]\d{9}/);
+  if (!emailMatch && !phoneMatch) return null;
+  try {
+    const params = new URLSearchParams({ orderNumber });
+    if (emailMatch) params.set('email', emailMatch[0]);
+    else if (phoneMatch) params.set('phone', phoneMatch[0]);
+    const res = await fetch(`${BACKEND_URL}/orders/lookup?${params}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
 async function fetchSuggestedProducts(slugs: string[]): Promise<any[]> {
   if (!slugs.length) return [];
   const results = await Promise.allSettled(
@@ -403,6 +421,51 @@ export async function POST(req: NextRequest) {
         text: english
           ? "Just ask me about sneakers! What kicks are you looking for? 👟"
           : 'Bhai seedha baat kar! Kaunsa sneaker chahiye tujhe? 👟',
+        products: [],
+      });
+    }
+
+    // Order lookup — if user provides order number + email/phone, fetch and return
+    const isOrderQuery = /order|delivered|shipped|tracking|dispatch/i.test(lastUserMessage);
+    if (isOrderQuery) {
+      const allUserText = messages.filter((m) => m.role === 'user').map((m) => m.content).join(' ');
+      const order = await lookupOrder(allUserText);
+      if (order) {
+        const statusLabel: Record<string, string> = {
+          pending: 'Pending', confirmed: 'Confirmed', shipped: 'Shipped',
+          delivered: 'Delivered', cancelled: 'Cancelled',
+        };
+        const productNames = order.items?.map((i: any) => i.name).join(', ') ?? 'N/A';
+        const orderDate = new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        return NextResponse.json({
+          text: `Here are the details for order **#${order.orderNumber}**:`,
+          products: [],
+          order: {
+            _id: order._id,
+            orderNumber: order.orderNumber,
+            status: statusLabel[order.status] ?? order.status,
+            productNames,
+            orderDate,
+            trackingNumber: order.trackingNumber || null,
+            total: order.total,
+          },
+        });
+      }
+      // Has order keywords but couldn't look up — prompt for details
+      const hasOrderNum = /[0-9]{5,}/.test(lastUserMessage);
+      if (!hasOrderNum) {
+        return NextResponse.json({
+          text: english
+            ? "To look up your order, share your order number and registered email or phone number. 📦"
+            : "Order check karne ke liye apna order number aur registered email ya phone bata. 📦",
+          products: [],
+        });
+      }
+      // Has order number but no email/phone match
+      return NextResponse.json({
+        text: english
+          ? "I couldn't find that order. Please check your order number and make sure you're sharing the email or phone used when ordering. 📦"
+          : "Yeh order ID aapke account se match nahi kar raha. Order number aur registered email/phone dobara check karo. 📦",
         products: [],
       });
     }

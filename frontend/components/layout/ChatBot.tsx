@@ -8,12 +8,23 @@ import { Product, Blog } from '@/types';
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const LEAD_TRIGGER = 5; // show form after this many user messages
 
+interface OrderSummary {
+  _id: string;
+  orderNumber: string;
+  status: string;
+  productNames: string;
+  orderDate: string;
+  trackingNumber: string | null;
+  total: number;
+}
+
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   products?: Product[];
   blogs?: Blog[];
   chips?: string[];
+  order?: OrderSummary;
 }
 
 const STARTER_CHIPS = ['🔥 New Arrivals', '⭐ Best Sellers', '💰 Under ₹12,000', '🎁 Help me pick a gift'];
@@ -339,6 +350,7 @@ export default function ChatBot() {
           products,
           blogs: data.blogs ?? [],
           chips: deriveChips(products, text),
+          order: data.order ?? undefined,
         },
       ]);
 
@@ -436,6 +448,33 @@ export default function ChatBot() {
                         </>
                       );
                     })()}
+                    {msg.order && (
+                      <Link
+                        href={`/account/orders/${msg.order._id}`}
+                        className="mt-2 block rounded-xl border border-zinc-200 bg-white overflow-hidden hover:border-zinc-400 hover:shadow-md transition-all group"
+                      >
+                        <div className="bg-zinc-900 px-3 py-2 flex items-center justify-between">
+                          <span className="text-[10px] font-bold tracking-widest uppercase text-zinc-400">Order #{msg.order.orderNumber}</span>
+                          <span className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-sm ${
+                            msg.order.status === 'Delivered' ? 'bg-emerald-500 text-white' :
+                            msg.order.status === 'Shipped' ? 'bg-blue-500 text-white' :
+                            msg.order.status === 'Cancelled' ? 'bg-red-500 text-white' :
+                            'bg-amber-400 text-zinc-900'
+                          }`}>{msg.order.status}</span>
+                        </div>
+                        <div className="px-3 py-2.5 space-y-1">
+                          <p className="text-xs font-semibold text-zinc-900 leading-snug line-clamp-2">{msg.order.productNames}</p>
+                          <p className="text-[11px] text-zinc-500">Ordered {msg.order.orderDate}</p>
+                          {msg.order.trackingNumber && (
+                            <p className="text-[11px] text-zinc-500">Tracking: <span className="font-mono text-zinc-700">{msg.order.trackingNumber}</span></p>
+                          )}
+                          <p className="text-[11px] font-bold text-zinc-900">₹{msg.order.total?.toLocaleString('en-IN')}</p>
+                        </div>
+                        <div className="px-3 pb-2.5">
+                          <span className="text-[11px] font-semibold text-zinc-400 group-hover:text-zinc-700 transition-colors">View full order details →</span>
+                        </div>
+                      </Link>
+                    )}
                     {msg.blogs && msg.blogs.length > 0 && (
                       <div className="mt-2 space-y-2">
                         {msg.blogs.map((b) => (
