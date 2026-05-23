@@ -488,7 +488,7 @@ export async function POST(req: NextRequest) {
             Authorization: `Bearer ${process.env.NVIDIA_API_KEY}`,
           },
           body: JSON.stringify({
-            model: 'meta/llama-3.3-70b-instruct',
+            model: 'meta/llama-4-maverick-17b-128e-instruct',
             messages: [
               { role: 'system', content: systemWithContext },
               ...historyMessages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
