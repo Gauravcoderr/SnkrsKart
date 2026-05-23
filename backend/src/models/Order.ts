@@ -32,6 +32,7 @@ export interface IOrder extends Document {
   total: number;
   status: OrderStatus;
   trackingNumber?: string;
+  deliveryService?: string;
   notes?: string;
   coinsEarned: number;
   coinsRedeemed: number;
@@ -74,6 +75,7 @@ const OrderSchema = new Schema<IOrder>(
     total: { type: Number, required: true },
     status: { type: String, enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'], default: 'pending' },
     trackingNumber: { type: String, default: '' },
+    deliveryService: { type: String, default: '' },
     notes: { type: String, default: '' },
     coinsEarned:   { type: Number, default: 0 },
     coinsRedeemed: { type: Number, default: 0 },

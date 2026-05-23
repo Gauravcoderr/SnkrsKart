@@ -8,6 +8,7 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useAuth } from '@/context/AuthContext';
 import { Product } from '@/types';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -53,11 +54,7 @@ export default function Header() {
   const brandsTimeout = useRef<NodeJS.Timeout>();
   const debounceRef = useRef<NodeJS.Timeout>();
 
-  // Lock body scroll when search is open
-  useEffect(() => {
-    document.body.style.overflow = searchOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [searchOpen]);
+  useScrollLock(searchOpen);
 
   useEffect(() => {
     if (searchOpen) {

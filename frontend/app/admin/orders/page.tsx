@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getTrackingUrl } from '@/lib/tracking';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 import Paginator from '../_components/Paginator';
@@ -31,6 +32,7 @@ interface Order {
   total: number;
   status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
   trackingNumber: string;
+  deliveryService: string;
   notes: string;
   createdAt: string;
 }
@@ -45,13 +47,29 @@ const STATUS_COLORS: Record<string, string> = {
 
 const STATUS_OPTIONS = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
 
+const DELIVERY_SERVICES = [
+  { value: '', label: '— Select courier —' },
+  { value: 'Shiprocket', label: 'Shiprocket' },
+  { value: 'Delhivery', label: 'Delhivery' },
+  { value: 'DTDC', label: 'DTDC' },
+  { value: 'Blue Dart', label: 'Blue Dart' },
+  { value: 'Ekart Logistics', label: 'Ekart Logistics' },
+  { value: 'XpressBees', label: 'XpressBees' },
+  { value: 'Shadowfax', label: 'Shadowfax' },
+  { value: 'Ecom Express', label: 'Ecom Express' },
+  { value: 'India Post', label: 'India Post (Speed Post)' },
+  { value: 'FedEx', label: 'FedEx' },
+  { value: 'DHL', label: 'DHL' },
+  { value: 'Other', label: 'Other' },
+];
+
 export default function AdminOrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Order | null>(null);
   const [updating, setUpdating] = useState(false);
-  const [updateForm, setUpdateForm] = useState({ status: '', trackingNumber: '', notes: '' });
+  const [updateForm, setUpdateForm] = useState({ status: '', trackingNumber: '', deliveryService: '', notes: '' });
   const [filterStatus, setFilterStatus] = useState('all');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -79,7 +97,7 @@ export default function AdminOrdersPage() {
 
   function openOrder(order: Order) {
     setSelected(order);
-    setUpdateForm({ status: order.status, trackingNumber: order.trackingNumber || '', notes: order.notes || '' });
+    setUpdateForm({ status: order.status, trackingNumber: order.trackingNumber || '', deliveryService: order.deliveryService || '', notes: order.notes || '' });
   }
 
   async function handleUpdate() {
@@ -274,6 +292,33 @@ export default function AdminOrdersPage() {
                 </div>
               </div>
 
+              {/* Current tracking summary */}
+              {selected.trackingNumber && (
+                <div className="border-t border-zinc-800 pt-4 pb-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">Current Tracking</p>
+                  {(() => {
+                    const url = selected.deliveryService ? getTrackingUrl(selected.deliveryService, selected.trackingNumber) : null;
+                    return (
+                      <div className="flex items-center gap-2 bg-zinc-800 px-3 py-2 rounded">
+                        {selected.deliveryService && (
+                          <span className="text-[10px] font-black tracking-widest uppercase text-zinc-400 shrink-0">
+                            {selected.deliveryService}:
+                          </span>
+                        )}
+                        {url ? (
+                          <a href={url} target="_blank" rel="noopener noreferrer"
+                            className="text-sm font-mono text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors truncate">
+                            {selected.trackingNumber}
+                          </a>
+                        ) : (
+                          <span className="text-sm font-mono text-white truncate">{selected.trackingNumber}</span>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
               {/* Update form */}
               <div className="border-t border-zinc-800 pt-4">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Update Order</p>
@@ -289,12 +334,24 @@ export default function AdminOrdersPage() {
                     </select>
                   </div>
                   <div>
+                    <label className="block text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Courier / Delivery Service</label>
+                    <select
+                      value={updateForm.deliveryService}
+                      onChange={(e) => setUpdateForm((p) => ({ ...p, deliveryService: e.target.value }))}
+                      className="w-full bg-zinc-800 border border-zinc-700 text-white text-sm px-3 py-2 rounded focus:outline-none focus:border-zinc-500"
+                    >
+                      {DELIVERY_SERVICES.map((s) => (
+                        <option key={s.value} value={s.value}>{s.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
                     <label className="block text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Tracking Number</label>
                     <input
                       type="text"
                       value={updateForm.trackingNumber}
                       onChange={(e) => setUpdateForm((p) => ({ ...p, trackingNumber: e.target.value }))}
-                      placeholder="e.g. DTDC1234567890"
+                      placeholder="e.g. 123456789012"
                       className="w-full bg-zinc-800 border border-zinc-700 text-white text-sm px-3 py-2 rounded focus:outline-none focus:border-zinc-500 placeholder:text-zinc-600"
                     />
                   </div>

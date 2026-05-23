@@ -22,7 +22,7 @@ export default function StickyCartBar({
   onRequireSize,
   triggerRef,
 }: StickyCartBarProps) {
-  const { addItem, openDrawer } = useCart();
+  const { addItem, openDrawer, isDrawerOpen } = useCart();
   const [visible, setVisible] = useState(false);
   const [adding, setAdding] = useState(false);
 
@@ -39,6 +39,8 @@ export default function StickyCartBar({
   }, [triggerRef]);
 
   if (!visible || product.soldOut || product.comingSoon) return null;
+  // On mobile the cart drawer slides up from the bottom — hide sticky bar to avoid overlap
+  if (isDrawerOpen) return null;
 
   const quickSizes = (product.availableSizes ?? []).slice(0, 6);
 

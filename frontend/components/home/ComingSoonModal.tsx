@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import * as Dialog from '@radix-ui/react-dialog';
@@ -8,6 +7,7 @@ import { Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useWishlist } from '@/context/WishlistContext';
 import { useCountdown } from '@/hooks/useCountdown';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 interface ComingSoonModalProps {
   product: Product;
@@ -19,11 +19,7 @@ export default function ComingSoonModal({ product, onClose }: ComingSoonModalPro
   const wishlisted = isWishlisted(product.slug);
   const { days, hours, minutes, seconds, expired, hasDate } = useCountdown(product.releaseDate);
 
-  // Body scroll lock
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
-  }, []);
+  useScrollLock(true);
 
   const CountdownBox = ({ value, label }: { value: number; label: string }) => (
     <div className="bg-zinc-900 border border-zinc-800 rounded flex flex-col items-center justify-center py-3 px-1">

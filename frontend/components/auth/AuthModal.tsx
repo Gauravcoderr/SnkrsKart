@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { useAuth, authHeaders } from '@/context/AuthContext';
 import OtpInput from './OtpInput';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -44,11 +45,7 @@ export default function AuthModal() {
     return () => clearTimeout(t);
   }, [countdown]);
 
-  // Lock body scroll
-  useEffect(() => {
-    document.body.style.overflow = authModalOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [authModalOpen]);
+  useScrollLock(authModalOpen);
 
   // ── Mutations ────────────────────────────────────────────────────────────
 

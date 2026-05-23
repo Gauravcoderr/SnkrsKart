@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { formatPrice } from '@/lib/utils';
+import { getTrackingUrl } from '@/lib/tracking';
 import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 
@@ -75,6 +76,7 @@ interface Order {
   total: number;
   status: string;
   trackingNumber?: string;
+  deliveryService?: string;
   createdAt: string;
 }
 
@@ -262,19 +264,45 @@ function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
       </div>
 
       {/* Tracking + Payment alerts */}
-      {order.trackingNumber && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-violet-50 border border-violet-100 rounded-xl">
-          <div className="w-8 h-8 bg-violet-100 rounded-full flex items-center justify-center shrink-0">
-            <svg className="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-            </svg>
+      {order.trackingNumber && (() => {
+        const trackUrl = order.deliveryService ? getTrackingUrl(order.deliveryService, order.trackingNumber) : null;
+        return (
+          <div className="flex items-center gap-3 px-4 py-3 bg-violet-50 border border-violet-100 rounded-xl">
+            <div className="w-8 h-8 bg-violet-100 rounded-full flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-bold tracking-widest uppercase text-violet-500 mb-0.5">
+                {order.deliveryService ? `Tracking — ${order.deliveryService.toUpperCase()}` : 'Tracking Number'}
+              </p>
+              {trackUrl ? (
+                <a
+                  href={trackUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-mono font-bold text-violet-700 underline underline-offset-2 hover:text-violet-900 transition-colors truncate block"
+                >
+                  {order.trackingNumber}
+                </a>
+              ) : (
+                <p className="text-sm font-mono font-bold text-violet-900 truncate">{order.trackingNumber}</p>
+              )}
+            </div>
+            {trackUrl && (
+              <a
+                href={trackUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 text-[10px] font-bold tracking-widest uppercase bg-violet-600 text-white px-2.5 py-1 rounded hover:bg-violet-700 transition-colors"
+              >
+                Track →
+              </a>
+            )}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-bold tracking-widest uppercase text-violet-500 mb-0.5">Tracking Number</p>
-            <p className="text-sm font-mono font-bold text-violet-900 truncate">{order.trackingNumber}</p>
-          </div>
-        </div>
-      )}
+        );
+      })()}
       {order.status === 'pending' && (
         <div className="flex items-start gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl">
           <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">

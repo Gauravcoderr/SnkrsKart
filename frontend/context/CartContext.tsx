@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useReducer, useEffect, useMemo } from 'react';
 import { CartItem, Product } from '@/types';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 interface CartState {
   items: CartItem[];
@@ -129,6 +130,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem('snkrs-cart', JSON.stringify(state.items));
   }, [state.items]);
+
+  // Lock body scroll when drawer is open
+  useScrollLock(state.isDrawerOpen);
 
   // Escape key closes drawer
   useEffect(() => {
