@@ -127,7 +127,7 @@ function resolveProductUrl(query: string): string {
     return `${BACKEND_URL}/products/featured`;
 
   // Build parametric URL from detected entities
-  const params = new URLSearchParams({ limit: '8' });
+  const params = new URLSearchParams({ limit: '20' });
 
   const brand = detectBrand(q);
   if (brand) params.set('brand', brand);
