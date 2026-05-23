@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
-// Rate limiter: max 5 requests per IP per minute
+// Rate limiter: max 15 requests per IP per minute
 const rateLimitMap = new Map<string, { count: number; reset: number }>();
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
@@ -13,12 +13,12 @@ function isRateLimited(ip: string): boolean {
     rateLimitMap.set(ip, { count: 1, reset: now + 60_000 });
     return false;
   }
-  if (entry.count >= 5) return true;
+  if (entry.count >= 15) return true;
   entry.count++;
   return false;
 }
 
-// Daily message cap: max 10 messages per IP per day
+// Daily message cap: max 200 messages per IP per day
 const dailyMap = new Map<string, { count: number; reset: number }>();
 function isDailyCapped(ip: string): boolean {
   const now = Date.now();
@@ -27,7 +27,7 @@ function isDailyCapped(ip: string): boolean {
     dailyMap.set(ip, { count: 1, reset: now + 24 * 60 * 60 * 1000 });
     return false;
   }
-  if (entry.count >= 100) return true;
+  if (entry.count >= 200) return true;
   entry.count++;
   return false;
 }
@@ -367,7 +367,7 @@ function isEnglish(text: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  if (!process.env.GEMINI_API_KEY && !process.env.GROQ_API_KEY) {
+  if (!process.env.GEMINI_API_KEY && !process.env.GROQ_API_KEY && !process.env.NVIDIA_API_KEY) {
     console.error('No AI API key set');
     return NextResponse.json(BUSY_MSG_EN);
   }
@@ -430,11 +430,20 @@ export async function POST(req: NextRequest) {
 
     let rawText = '';
 
-    // Keep last 10 messages for context (5 turns), sanitizing user messages
-    const historyMessages = messages.slice(-10).map((m) => ({
+    // Keep last 20 messages as full context, sanitizing user messages
+    const historyMessages = messages.slice(-20).map((m) => ({
       role: m.role,
       content: m.role === 'user' ? sanitizeInput(m.content) : m.content,
     }));
+
+    // Compress older messages into a summary prepended to the system prompt
+    const olderMessages = messages.slice(0, -20);
+    if (olderMessages.length > 0) {
+      const summary = olderMessages
+        .map((m) => `${m.role === 'user' ? 'Customer' : 'KickBot'}: ${m.content.slice(0, 200)}`)
+        .join('\n');
+      systemWithContext = `[Earlier conversation]\n${summary}\n\n[Recent conversation — continue from here]\n\n${systemWithContext}`;
+    }
 
     // Primary: Gemini — pass full conversation history
     if (process.env.GEMINI_API_KEY) {
@@ -467,6 +476,31 @@ export async function POST(req: NextRequest) {
         max_tokens: 512,
       });
       rawText = result.choices[0]?.message?.content ?? '';
+    }
+
+    // Fallback 2: NVIDIA NIM — OpenAI-compatible, free tier
+    if (!rawText && process.env.NVIDIA_API_KEY) {
+      try {
+        const res = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.NVIDIA_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: 'meta/llama-3.3-70b-instruct',
+            messages: [
+              { role: 'system', content: systemWithContext },
+              ...historyMessages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+            ],
+            max_tokens: 512,
+          }),
+        });
+        const data = await res.json();
+        rawText = data.choices?.[0]?.message?.content ?? '';
+      } catch (nvidiaErr: any) {
+        console.warn('NVIDIA NIM failed:', nvidiaErr?.message);
+      }
     }
 
     // Parse compact TOON tags: [S:slug-1,slug-2] and [BS:slug-1]
