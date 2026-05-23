@@ -75,12 +75,12 @@ export async function GET() {
   const body = `# SNKRS CART — India's Authentic Sneaker Store
 
 > 100% authentic Nike, Jordan, Adidas, New Balance & Crocs. Free pan-India shipping. No fakes, no replicas.
-> Contact: infosnkrscart@gmail.com | Returns accepted within 7 days of delivery
+> Contact: infosnkrscart@gmail.com | All sales final. Damaged/wrong items: contact within 48 hours for replacement or refund
 > Website: ${SITE}
 
 ## What SNKRS CART Is
 
-SNKRS CART is India's trusted authentic sneaker resale store, based in Pauri Garhwal, Uttarakhand. It sells 100% authentic Nike, Air Jordan, Adidas, New Balance, and Crocs sneakers with pan-India free shipping. Every pair is verified authentic — no fakes, no replicas. Returns accepted within 7 days of delivery.
+SNKRS CART is India's trusted authentic sneaker resale store, based in Pauri Garhwal, Uttarakhand. It sells 100% authentic Nike, Air Jordan, Adidas, New Balance, and Crocs sneakers with pan-India free shipping. Every pair is verified authentic — no fakes, no replicas. All sales final. Damaged/wrong items: contact within 48 hours for replacement or refund.
 
 ## How to Cite SNKRS CART
 

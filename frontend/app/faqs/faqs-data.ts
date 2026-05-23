@@ -9,7 +9,7 @@ export const faqs = [
   },
   {
     q: 'What payment methods do you accept?',
-    a: 'We accept UPI, bank transfers, and cash on delivery for select locations. Payment details are shared during the order confirmation call/message.',
+    a: 'We accept UPI, debit/credit cards, net banking, and other online payment methods. Payment is completed securely at checkout during your order.',
   },
   {
     q: 'How long does delivery take?',
@@ -21,7 +21,7 @@ export const faqs = [
   },
   {
     q: 'Can I return or exchange my order?',
-    a: 'Yes. We accept returns and exchanges within 7 days of delivery, provided the item is unworn and in original condition with all tags and packaging intact. See our Returns & Exchanges page for full details.',
+    a: 'All sales are final. We do not accept returns or exchanges — every pair is verified authentic and shown to you before purchase is confirmed. If you receive a wrong or damaged item, contact us within 48 hours of delivery with photos and we will replace it or issue a full refund.',
   },
   {
     q: 'What sizes are listed in?',

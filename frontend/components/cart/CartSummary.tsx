@@ -63,7 +63,7 @@ export default function CartSummary({ items, subtotal }: CartSummaryProps) {
       </Link>
 
       <p className="text-center text-xs text-zinc-400">
-        Pay via UPI · Delivery in 3–7 business days
+        Secure online payment · Delivery in 3–7 business days
       </p>
     </div>
   );

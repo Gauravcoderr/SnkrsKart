@@ -108,7 +108,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
     faqs: [
       { q: 'Are sale sneakers authentic?', a: 'Absolutely. Every pair on SNKRS KART — sale or full price — is 100% authentic. We source directly and verify every unit.' },
       { q: 'Why are some sneakers discounted?', a: 'Sale items may be end-of-season stock, older colourways, or pairs with limited size runs. Quality and authenticity are never compromised.' },
-      { q: 'Can I return sale sneakers?', a: 'Yes — our standard return policy applies to sale items. See /returns for details.' },
+      { q: 'Can I return sale sneakers?', a: 'All sales are final — sale and full-price items. If you receive a wrong or damaged pair, contact us within 48 hours for a replacement or refund.' },
     ],
     filter: { minPrice: 0 },
   },

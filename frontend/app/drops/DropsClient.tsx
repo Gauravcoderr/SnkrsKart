@@ -10,7 +10,9 @@ function formatDate(dateStr: string) {
 }
 
 function daysUntil(dateStr: string): number {
-  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
+  const release = dateStr.slice(0, 10);
+  const today = new Date().toISOString().slice(0, 10);
+  return Math.round((new Date(release).getTime() - new Date(today).getTime()) / 86400000);
 }
 
 function CountdownBadge({ days }: { days: number }) {
