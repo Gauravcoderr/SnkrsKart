@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product, Blog } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const LEAD_TRIGGER = 5; // show form after this many user messages
@@ -234,6 +235,7 @@ function LeadCaptureCard({ onSubmit, onSkip }: { onSubmit: (name: string, email:
 }
 
 export default function ChatBot() {
+  const { isLoggedIn } = useAuth();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([GREETING]);
   const [input, setInput] = useState('');
@@ -350,7 +352,7 @@ export default function ChatBot() {
           products,
           blogs: data.blogs ?? [],
           chips: deriveChips(products, text),
-          order: data.order ?? undefined,
+          order: data.order,
         },
       ]);
 
@@ -450,7 +452,7 @@ export default function ChatBot() {
                     })()}
                     {msg.order && (
                       <Link
-                        href={`/account/orders/${msg.order._id}`}
+                        href={isLoggedIn ? `/account/orders/${msg.order._id}` : `/track-order?order=${msg.order.orderNumber}`}
                         className="mt-2 block rounded-xl border border-zinc-200 bg-white overflow-hidden hover:border-zinc-400 hover:shadow-md transition-all group"
                       >
                         <div className="bg-zinc-900 px-3 py-2 flex items-center justify-between">

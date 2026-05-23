@@ -220,6 +220,10 @@ router.post('/razorpay/verify', async (req: Request, res: Response) => {
   }
 });
 
+function cleanPhone(s: string): string {
+  return s.replace(/\D/g, '').slice(-10);
+}
+
 function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
   const rand = crypto.randomBytes(2).toString('hex').toUpperCase();
@@ -501,7 +505,6 @@ router.get('/lookup', async (req: Request, res: Response) => {
     const order = await Order.findOne({ orderNumber: orderNumber.toUpperCase() }).lean();
     if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
     const emailMatch = email && order.email.toLowerCase() === email.trim().toLowerCase();
-    const cleanPhone = (s: string) => s.replace(/\D/g, '').slice(-10);
     const phoneMatch = phone && cleanPhone(order.phone) === cleanPhone(phone);
     if (!emailMatch && !phoneMatch) {
       res.status(404).json({ error: 'Order not found' });
