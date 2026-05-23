@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { formatPrice } from '@/lib/utils';
-import { getTrackingUrl } from '@/lib/tracking';
+import { getTrackingUrl, isDeepLink } from '@/lib/tracking';
 import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 
@@ -223,6 +223,14 @@ function OrderCard({ order, onViewDetails }: { order: Order; onViewDetails: (o: 
 function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
   const s = STATUS_STYLES[order.status] ?? STATUS_STYLES.pending;
   const date = new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+  const [copied, setCopied] = useState(false);
+  const copyTracking = useCallback(() => {
+    if (!order.trackingNumber) return;
+    navigator.clipboard.writeText(order.trackingNumber).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [order.trackingNumber]);
 
   return (
     <div className="space-y-4">
@@ -263,9 +271,10 @@ function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
         </div>
       </div>
 
-      {/* Tracking + Payment alerts */}
+      {/* Tracking */}
       {order.trackingNumber && (() => {
         const trackUrl = order.deliveryService ? getTrackingUrl(order.deliveryService, order.trackingNumber) : null;
+        const deepLink = order.deliveryService ? isDeepLink(order.deliveryService) : false;
         return (
           <div className="flex items-center gap-3 px-4 py-3 bg-violet-50 border border-violet-100 rounded-xl">
             <div className="w-8 h-8 bg-violet-100 rounded-full flex items-center justify-center shrink-0">
@@ -275,31 +284,32 @@ function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-bold tracking-widest uppercase text-violet-500 mb-0.5">
-                {order.deliveryService ? `Tracking — ${order.deliveryService.toUpperCase()}` : 'Tracking Number'}
+                {order.deliveryService ? `${order.deliveryService.toUpperCase()}` : 'Tracking Number'}
               </p>
-              {trackUrl ? (
+              <p className="text-sm font-mono font-bold text-violet-900 truncate">{order.trackingNumber}</p>
+              {trackUrl && !deepLink && (
+                <p className="text-[10px] text-violet-400 mt-0.5">Copy your number and enter it on the carrier's site</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={copyTracking}
+                className="text-[10px] font-bold tracking-widest uppercase border border-violet-300 text-violet-600 px-2.5 py-1 rounded hover:bg-violet-100 transition-colors"
+              >
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+              {trackUrl && (
                 <a
                   href={trackUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-mono font-bold text-violet-700 underline underline-offset-2 hover:text-violet-900 transition-colors truncate block"
+                  className="text-[10px] font-bold tracking-widest uppercase bg-violet-600 text-white px-2.5 py-1 rounded hover:bg-violet-700 transition-colors"
                 >
-                  {order.trackingNumber}
+                  {deepLink ? 'Track →' : 'Visit →'}
                 </a>
-              ) : (
-                <p className="text-sm font-mono font-bold text-violet-900 truncate">{order.trackingNumber}</p>
               )}
             </div>
-            {trackUrl && (
-              <a
-                href={trackUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="shrink-0 text-[10px] font-bold tracking-widest uppercase bg-violet-600 text-white px-2.5 py-1 rounded hover:bg-violet-700 transition-colors"
-              >
-                Track →
-              </a>
-            )}
           </div>
         );
       })()}

@@ -32,7 +32,7 @@ interface Order {
   total: number;
   status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
   trackingNumber: string;
-  deliveryService: string;
+  deliveryService?: string;
   notes: string;
   createdAt: string;
 }

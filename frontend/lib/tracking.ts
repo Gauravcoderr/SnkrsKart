@@ -41,3 +41,14 @@ export function getTrackingUrl(service: string, trackingNumber: string): string 
   const fn = TRACKING_URLS[service];
   return fn ? fn(trackingNumber) : null;
 }
+
+// Carriers whose URL includes the AWB number (deep link — opens pre-filled tracking).
+// Others link to the carrier homepage and the customer must enter the number manually.
+const DEEP_LINK_CARRIERS = new Set([
+  'Shiprocket', 'Blue Dart', 'Ekart Logistics', 'XpressBees',
+  'Shadowfax', 'FedEx', 'DHL',
+]);
+
+export function isDeepLink(service: string): boolean {
+  return DEEP_LINK_CARRIERS.has(service);
+}

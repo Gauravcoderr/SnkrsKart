@@ -39,8 +39,8 @@ export default function StickyCartBar({
   }, [triggerRef]);
 
   if (!visible || product.soldOut || product.comingSoon) return null;
-  // On mobile the cart drawer slides up from the bottom — hide sticky bar to avoid overlap
-  if (isDrawerOpen) return null;
+  // Cart drawer overlaps the sticky bar only on mobile (slides up from bottom)
+  if (isDrawerOpen && window.innerWidth < 768) return null;
 
   const quickSizes = (product.availableSizes ?? []).slice(0, 6);
 
