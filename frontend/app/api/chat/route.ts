@@ -62,8 +62,7 @@ const STOP_WORDS = new Set([
   'do','u','you','we','have','has','is','it','a','an','the','and','or','for',
   'are','can','give','show','me','my','our','any','got','get','buy','what',
   'how','much','want','need','looking','find','like','about','tell','more',
-  'check','see','hi','hey','bhai','yaar','koi','hai','mujhe','chahiye','kya',
-  'bata','dikhao','ek','best','good','nice','cool','cheap','price','cost',
+  'check','see','hi','hey','best','good','nice','cool','cheap','price','cost',
 ]);
 function extractProductTerms(text: string): string {
   return text
@@ -75,11 +74,12 @@ function extractProductTerms(text: string): string {
     .trim();
 }
 
+// Pre-sorted alias keys (longest first) — computed once at module level
+const SORTED_BRAND_ALIASES = Object.keys(BRAND_ALIASES).sort((a, b) => b.length - a.length);
+
 // Detect brand from query using alias map
 function detectBrand(q: string): string | null {
-  // Check multi-word aliases first (longest match wins)
-  const sorted = Object.keys(BRAND_ALIASES).sort((a, b) => b.length - a.length);
-  for (const alias of sorted) {
+  for (const alias of SORTED_BRAND_ALIASES) {
     if (q.includes(alias)) return BRAND_ALIASES[alias];
   }
   // Direct brand name match
@@ -275,7 +275,7 @@ async function fetchSuggestedBlogs(slugs: string[]): Promise<any[]> {
 
 async function fetchDropContext(query: string): Promise<string> {
   const q = query.toLowerCase();
-  if (!/drop|release|launch|upcoming|calendar|when.*cop|restoc|june|july|aug|may|2026/.test(q)) return '';
+  if (!/drop|release|launch|upcoming|calendar|when.*cop|restoc|june|july|aug|may|20\d{2}/.test(q)) return '';
   try {
     const res = await fetch(`${BACKEND_URL}/drops`, { cache: 'no-store' });
     if (!res.ok) return '';
@@ -290,7 +290,6 @@ async function fetchDropContext(query: string): Promise<string> {
     return [header, ...rows].join('\n');
   } catch { return ''; }
 }
-
 
 // Patterns that indicate prompt injection attempts
 const INJECTION_PATTERNS = [
@@ -315,17 +314,9 @@ function isInjectionAttempt(text: string): boolean {
   return INJECTION_PATTERNS.some((pattern) => pattern.test(text));
 }
 
-const BUSY_MSG_EN = { text: "KickBot is slammed rn due to high volume — try again in a bit! 🙏👟", products: [] };
-const BUSY_MSG_HI = { text: 'KickBot abhi thoda busy hai — high volume ki wajah se! Thodi der mein try karo. 🙏👟', products: [] };
-const RATE_MSG_EN = { text: "Slow down bestie! 😅 Give me a minute — you're sending too many messages!", products: [] };
-const RATE_MSG_HI = { text: 'Bhai slow down! 😅 Ek minute baad try karo — KickBot thak gaya hai!', products: [] };
+const BUSY_MSG_EN = { text: "KickBot is slammed right now — try again in a bit! 🙏👟", products: [] };
+const RATE_MSG_EN = { text: "Slow down! 😅 Give me a minute — you're sending too many messages.", products: [] };
 
-function isEnglish(text: string): boolean {
-  // If more than 80% of word characters are ASCII, treat as English
-  const ascii = (text.match(/[a-zA-Z]/g) ?? []).length;
-  const total = (text.match(/\p{L}/gu) ?? []).length;
-  return total === 0 || ascii / total > 0.8;
-}
 
 export async function POST(req: NextRequest) {
   if (!process.env.GEMINI_API_KEY && !process.env.GROQ_API_KEY && !process.env.NVIDIA_API_KEY) {
@@ -345,7 +336,6 @@ export async function POST(req: NextRequest) {
   }
 
   let messages: Message[] = [];
-  let english = true;
 
   try {
     ({ messages } = await req.json() as { messages: Message[] });
@@ -355,13 +345,10 @@ export async function POST(req: NextRequest) {
 
     const raw = messages.findLast((m) => m.role === 'user')?.content ?? '';
     const lastUserMessage = sanitizeInput(raw);
-    english = isEnglish(lastUserMessage);
 
     if (isInjectionAttempt(lastUserMessage)) {
       return NextResponse.json({
-        text: english
-          ? "Just ask me about sneakers! What kicks are you looking for? 👟"
-          : 'Bhai seedha baat kar! Kaunsa sneaker chahiye tujhe? 👟',
+        text: "Just ask me about sneakers! What kicks are you looking for? 👟",
         products: [],
       });
     }
@@ -397,17 +384,13 @@ export async function POST(req: NextRequest) {
         }
         // SC- number found but email/phone didn't match
         return NextResponse.json({
-          text: english
-            ? "I couldn't find that order. Check your order number and make sure you're using the email or phone from when you ordered. 📦"
-            : "Yeh order ID match nahi kar raha. Order number aur registered email/phone dobara check karo. 📦",
+          text: "I couldn't find that order. Please check your order number and make sure you're using the email or phone from when you ordered. 📦",
           products: [],
         });
       }
       // Order intent but no SC- number — prompt for it
       return NextResponse.json({
-        text: english
-          ? "To look up your order, share your order number (starts with SC-) and your registered email or phone. 📦"
-          : "Order check karne ke liye SC- wala order number aur registered email ya phone bata. 📦",
+        text: "To look up your order, share your order number (starts with SC-) along with your registered email or phone number. 📦",
         products: [],
       });
     }
@@ -473,16 +456,20 @@ export async function POST(req: NextRequest) {
 
     // Fallback: Groq — pass full conversation history
     if (!rawText && process.env.GROQ_API_KEY) {
-      const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-      const result = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemWithContext },
-          ...historyMessages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
-        ],
-        max_tokens: 512,
-      });
-      rawText = result.choices[0]?.message?.content ?? '';
+      try {
+        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+        const result = await groq.chat.completions.create({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: systemWithContext },
+            ...historyMessages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+          ],
+          max_tokens: 512,
+        });
+        rawText = result.choices[0]?.message?.content ?? '';
+      } catch (groqErr: any) {
+        console.warn('Groq failed, falling back to NVIDIA:', groqErr?.message);
+      }
     }
 
     // Fallback 2: NVIDIA NIM — OpenAI-compatible, free tier
@@ -521,8 +508,8 @@ export async function POST(req: NextRequest) {
     if (suggestionMatch) {
       displayText = displayText.replace(suggestionMatch[0], '').trim();
       try {
-        const raw = suggestionMatch[1];
-        const slugs = raw.startsWith('{') ? JSON.parse(raw).slugs : raw.split(',').map((s: string) => s.trim()).filter(Boolean);
+        const matched = suggestionMatch[1];
+        const slugs = matched.startsWith('{') ? JSON.parse(matched).slugs : matched.split(',').map((s: string) => s.trim()).filter(Boolean);
         suggestedProducts = await fetchSuggestedProducts(slugs);
       } catch {}
     }
@@ -530,8 +517,8 @@ export async function POST(req: NextRequest) {
     if (blogMatch) {
       displayText = displayText.replace(blogMatch[0], '').trim();
       try {
-        const raw = blogMatch[1];
-        const slugs = raw.startsWith('{') ? JSON.parse(raw).slugs : raw.split(',').map((s: string) => s.trim()).filter(Boolean);
+        const matched = blogMatch[1];
+        const slugs = matched.startsWith('{') ? JSON.parse(matched).slugs : matched.split(',').map((s: string) => s.trim()).filter(Boolean);
         suggestedBlogs = await fetchSuggestedBlogs(slugs);
       } catch {}
     }
@@ -550,8 +537,8 @@ export async function POST(req: NextRequest) {
     const msg = err?.message ?? String(err);
     console.error('Chat API error (full):', JSON.stringify(err, Object.getOwnPropertyNames(err)));
     if (msg.includes('429') || msg.toLowerCase().includes('quota')) {
-      return NextResponse.json(english ? RATE_MSG_EN : RATE_MSG_HI);
+      return NextResponse.json(RATE_MSG_EN);
     }
-    return NextResponse.json(english ? BUSY_MSG_EN : BUSY_MSG_HI);
+    return NextResponse.json(BUSY_MSG_EN);
   }
 }
