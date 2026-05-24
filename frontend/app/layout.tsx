@@ -195,6 +195,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:'en',layout:google.translate.TranslateElement.InlineLayout.SIMPLE,autoDisplay:false},'google_translate_element')}`,
           }}
         />
+        {/* Google tag (gtag.js) — GA4 G-S7VRFS4LLG */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="https://www.googletagmanager.com/gtag/js?id=G-S7VRFS4LLG" async />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-S7VRFS4LLG');`,
+          }}
+        />
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" />
       </head>
