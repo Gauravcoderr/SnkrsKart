@@ -3,6 +3,7 @@ import { connectDB } from '../config/database';
 import { Blog } from '../models/Blog';
 
 const blogs = [
+  // ai-legit-check-sneakers-india-guide-2026 — seeded 2026-05-30
   {
     title: 'V.A.A. Air Jordan 1 "Alaska" — Virgil Abloh\'s Archive Drops Its First Sneaker',
     slug: 'vaa-air-jordan-1-alaska-virgil-abloh-archive',
