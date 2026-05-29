@@ -1,3 +1,24 @@
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
+
+export const metadata = {
+  title: { absolute: 'Terms of Service | SNKRS CART' },
+  description: 'Terms of Service for SNKRS CART — India\'s authentic sneaker store. Read about our inquiry-based purchase process, return policy, and product authenticity guarantee.',
+  alternates: { canonical: `${SITE_URL}/terms` },
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: 'Terms of Service | SNKRS CART',
+    description: 'Inquiry-based purchase model, 100% authentic products, and transparent policies at SNKRS CART.',
+    url: `${SITE_URL}/terms`,
+    siteName: 'SNKRS CART',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Terms of Service | SNKRS CART',
+    description: 'Inquiry-based purchase model, 100% authentic products, and transparent policies at SNKRS CART.',
+  },
+};
+
 export default function TermsOfService() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-16">

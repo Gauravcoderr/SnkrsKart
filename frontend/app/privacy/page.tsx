@@ -1,3 +1,24 @@
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
+
+export const metadata = {
+  title: { absolute: 'Privacy Policy | SNKRS CART' },
+  description: 'Read the SNKRS CART privacy policy. We collect only what is needed to process your order and never sell your personal information to third parties.',
+  alternates: { canonical: `${SITE_URL}/privacy` },
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: 'Privacy Policy | SNKRS CART',
+    description: 'We collect only what is needed to process your order and never sell your personal information.',
+    url: `${SITE_URL}/privacy`,
+    siteName: 'SNKRS CART',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Privacy Policy | SNKRS CART',
+    description: 'We collect only what is needed to process your order and never sell your personal information.',
+  },
+};
+
 export default function PrivacyPolicy() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-16">

@@ -1,3 +1,24 @@
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
+
+export const metadata = {
+  title: { absolute: 'Track My Order | SNKRS CART' },
+  description: 'Track your SNKRS CART sneaker order. Get real-time updates on your delivery status via WhatsApp and email. Typical delivery: 3–7 business days across India.',
+  alternates: { canonical: `${SITE_URL}/track-order` },
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: 'Track My Order | SNKRS CART',
+    description: 'Track your SNKRS CART order. Delivery updates via WhatsApp and email. 3–7 business days across India.',
+    url: `${SITE_URL}/track-order`,
+    siteName: 'SNKRS CART',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Track My Order | SNKRS CART',
+    description: 'Track your SNKRS CART order. Delivery updates via WhatsApp and email. 3–7 business days across India.',
+  },
+};
+
 export default function TrackOrder() {
   return (
     <main className="max-w-2xl mx-auto px-4 py-16">

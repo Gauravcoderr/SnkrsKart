@@ -2,6 +2,53 @@ import Link from 'next/link';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': ['Organization', 'Store'],
+  name: 'SNKRS CART',
+  url: SITE_URL,
+  logo: `${SITE_URL}/logo.png`,
+  description: 'India\'s authentic sneaker store. 100% genuine Nike, Jordan, Adidas, New Balance & Crocs — pan-India shipping.',
+  foundingDate: '2020',
+  founder: {
+    '@type': 'Person',
+    name: 'Ashutosh Lingwal',
+  },
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Circuit House',
+    addressLocality: 'Pauri Garhwal',
+    addressRegion: 'Uttarakhand',
+    postalCode: '246001',
+    addressCountry: 'IN',
+  },
+  contactPoint: [
+    {
+      '@type': 'ContactPoint',
+      telephone: '+91-94109-03791',
+      contactType: 'customer service',
+      availableLanguage: ['English', 'Hindi'],
+      hoursAvailable: { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], opens: '10:00', closes: '19:00' },
+    },
+    {
+      '@type': 'ContactPoint',
+      email: 'infosnkrscart@gmail.com',
+      contactType: 'customer support',
+    },
+  ],
+  sameAs: [
+    'https://www.instagram.com/snkrs_cart',
+    'https://www.facebook.com/snkrscart',
+  ],
+  brand: [
+    { '@type': 'Brand', name: 'Nike' },
+    { '@type': 'Brand', name: 'Jordan' },
+    { '@type': 'Brand', name: 'Adidas' },
+    { '@type': 'Brand', name: 'New Balance' },
+    { '@type': 'Brand', name: 'Crocs' },
+  ],
+};
+
 export const metadata = {
   title: { absolute: "About SNKRS CART | India's Authentic Sneaker Store" },
   description: 'Founded in Pauri Garhwal, Uttarakhand in 2020 by sneakerheads who refused to settle for fakes. SNKRS CART delivers 100% authentic Nike, Jordan, Adidas & more across India.',
@@ -19,7 +66,9 @@ export const metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="bg-zinc-950 text-white min-h-screen">
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
+      <main className="bg-zinc-950 text-white min-h-screen">
 
       {/* Hero */}
       <section className="border-b border-zinc-800 py-24 px-4 sm:px-6 lg:px-8">
@@ -198,6 +247,7 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   );
 }
