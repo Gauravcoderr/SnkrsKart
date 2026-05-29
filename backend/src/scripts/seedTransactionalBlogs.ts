@@ -73,7 +73,7 @@ const blogs = [
     title: 'Air Jordan 3 Black Cement India: Price, Where to Buy & Is It Worth It (2026)',
     slug: 'air-jordan-3-black-cement-price-india-2026',
     excerpt: 'The Air Jordan 3 Black Cement is the benchmark Jordan. Released in 1988, revived multiple times, and always worth owning. Here\'s the 2026 India price guide, authentication tips, and which version to actually buy.',
-    coverImage: 'https://res.cloudinary.com/dadulg5bs/image/upload/v1780080687/blog-images/air-jordan-3-black-cement-price-india-2026-cover-fix.jpg',
+    coverImage: 'https://res.cloudinary.com/dadulg5bs/image/upload/v1780081461/blog-images/air-jordan-3-black-cement-price-india-2026-cover-v2.jpg',
     author: 'SNKRS CART',
     tags: ['jordan', 'air-jordan-3', 'black-cement', 'price-india', 'buy-india'],
     metaTitle: 'Air Jordan 3 Black Cement Price India 2026 — Buy Authentic | SNKRS CART',
