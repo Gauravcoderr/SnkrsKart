@@ -34,6 +34,8 @@ export async function GET() {
     `Sitemap: ${SITE_URL}/sitemap.xml`,
     `RSS Feed: ${SITE_URL}/rss.xml`,
     `Google Shopping Feed: ${SITE_URL}/api/feed`,
+    `OpenAPI Schema: ${SITE_URL}/chatgpt-action-schema.yaml`,
+    `AI Plugin Manifest: ${SITE_URL}/.well-known/ai-plugin.json`,
     ``,
     `## Key Pages`,
     `All Products: ${SITE_URL}/products`,

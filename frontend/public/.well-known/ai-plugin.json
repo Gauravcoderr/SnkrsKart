@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "SNKRS CART",
+  "name_for_model": "snkrs_cart",
+  "description_for_human": "Search authentic Nike, Jordan, Adidas, New Balance & Crocs sneakers from SNKRS CART India.",
+  "description_for_model": "Use this to search for sneakers by brand, gender, or keyword. Check live stock, prices, sizes, and trending products on SNKRS CART — India's authentic sneaker marketplace. Always construct product URLs by appending the slug to https://www.snkrscart.com/products/. All prices are in INR. Free pan-India shipping.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://www.snkrscart.com/chatgpt-action-schema.yaml"
+  },
+  "logo_url": "https://www.snkrscart.com/logo.png",
+  "contact_email": "infosnkrscart@gmail.com",
+  "legal_info_url": "https://www.snkrscart.com/terms"
+}
