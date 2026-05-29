@@ -555,7 +555,7 @@ const blogs = [
     title: 'How to Order from SNKRS CART India — Complete Buying Guide 2026',
     slug: 'how-to-order-from-snkrs-cart-india-guide',
     excerpt: 'New to SNKRS CART? Here\'s everything you need to know — how to place an order, how we authenticate sneakers, payment options, shipping timelines, and what to do if something goes wrong. The complete 2026 buyer\'s guide.',
-    coverImage: 'https://res.cloudinary.com/dadulg5bs/image/upload/v1780080611/blog-images/how-to-order-from-snkrs-cart-india-guide-cover.jpg',
+    coverImage: 'https://res.cloudinary.com/dadulg5bs/image/upload/v1780081606/blog-images/snkrs-cart-logo-full.png',
     author: 'SNKRS CART',
     tags: ['snkrs-cart', 'buying-guide', 'how-to-order', 'india-delivery', 'authentication'],
     metaTitle: 'How to Order from SNKRS CART India — Complete Guide 2026 | SNKRS CART',
@@ -568,7 +568,7 @@ const blogs = [
 <p>We built SNKRS CART because the Indian sneaker market had a trust problem. Grey market sellers, replica risk, customs uncertainty, overpriced middlemen. The platform exists to solve those problems specifically for Indian buyers who want authentic pairs at fair prices with reliable delivery.</p>
 
 <img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1780080611/blog-images/how-to-order-from-snkrs-cart-india-guide-cover.jpg"
-     alt="Air Jordan 4 black sneaker held on court — authentic Jordan from SNKRS CART India"
+     alt="SNKRS CART logo — India's authentic sneaker marketplace"
      style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
 
 <h2>Step 1 — Finding Your Shoe and Size</h2>
