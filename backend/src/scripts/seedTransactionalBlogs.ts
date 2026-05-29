@@ -567,10 +567,6 @@ const blogs = [
 
 <p>We built SNKRS CART because the Indian sneaker market had a trust problem. Grey market sellers, replica risk, customs uncertainty, overpriced middlemen. The platform exists to solve those problems specifically for Indian buyers who want authentic pairs at fair prices with reliable delivery.</p>
 
-<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1780080611/blog-images/how-to-order-from-snkrs-cart-india-guide-cover.jpg"
-     alt="SNKRS CART logo — India's authentic sneaker marketplace"
-     style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
-
 <h2>Step 1 — Finding Your Shoe and Size</h2>
 
 <p>Browse the catalogue at <a href="/products">snkrscart.com/products</a> or by brand: <a href="/products?brand=Nike">Nike</a>, <a href="/products?brand=Jordan">Jordan</a>, <a href="/products?brand=Adidas">Adidas</a>, <a href="/products?brand=New+Balance">New Balance</a>, and <a href="/products?brand=Crocs">Crocs</a>. Each product page shows available sizes in US sizing, current price in INR, and stock status.</p>
