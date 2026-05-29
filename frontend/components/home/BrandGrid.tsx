@@ -9,7 +9,7 @@ interface BrandGridProps {
 
 export default function BrandGrid({ brands }: BrandGridProps) {
   return (
-    <section className="bg-white py-14 lg:py-20">
+    <section className="bg-white py-12 lg:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}

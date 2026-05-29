@@ -8,7 +8,7 @@ interface NewArrivalsProps {
 
 export default function NewArrivals({ products }: NewArrivalsProps) {
   return (
-    <section className="py-16 lg:py-20">
+    <section className="py-12 lg:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-end justify-between mb-8">
