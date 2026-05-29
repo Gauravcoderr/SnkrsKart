@@ -10,8 +10,6 @@ export const metadata = {
   alternates: { canonical: `${SITE_URL}/products` },
 };
 
-export const dynamic = 'force-dynamic';
-
 export default async function ProductsPage() {
   let catalogSchema = null;
   try {

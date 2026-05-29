@@ -166,6 +166,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="alternate" type="application/rss+xml" title="SNKRS CART Blog" href="/rss.xml" />
         <link rel="llms.txt" type="text/plain" href="/llms.txt" title="SNKRS CART AI Content Feed" />
         <link rel="alternate" type="text/plain" href="/llms.txt" title="AI Content Feed (llms.txt)" />
+        <link rel="alternate" type="text/plain" href="/llms-full.txt" title="AI Full Content Feed (llms-full.txt)" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
