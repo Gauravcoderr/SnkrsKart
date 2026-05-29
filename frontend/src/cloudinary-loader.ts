@@ -1,6 +1,7 @@
 type ImageLoaderProps = { src: string; width: number; quality?: number };
 
-export default function imageLoader({ src, width, quality = 75 }: ImageLoaderProps): string {
+export default function imageLoader({ src, width, quality }: ImageLoaderProps): string {
+  const q = quality ?? (width <= 150 ? 50 : 75);
   if (!src.includes('res.cloudinary.com')) return src;
 
   const uploadIdx = src.indexOf('/upload/');
@@ -10,5 +11,5 @@ export default function imageLoader({ src, width, quality = 75 }: ImageLoaderPro
   // Strip any existing transform segments (e.g. "q_auto/f_auto/") — they contain underscores
   const rest = src.slice(uploadIdx + '/upload/'.length).replace(/^([\w,]+_[\w,]+\/)+/, '');
 
-  return `${base}w_${width},q_${quality},f_auto/${rest}`;
+  return `${base}w_${width},q_${q},f_auto/${rest}`;
 }
