@@ -127,7 +127,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
         </div>
 
         {/* ── Right: product image — NO separate background, inherits section bg ── */}
-        <div className="relative md:w-[48%] overflow-hidden" style={{ minHeight: 320 }}>
+        <div className="relative md:w-[48%] overflow-hidden isolate" style={{ minHeight: 320 }}>
 
           {/* Accent radial glow — shoe feels lit from behind */}
           <div
@@ -150,7 +150,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
                 alt={slide.brand}
                 fill
                 priority={i === 0}
-                className="object-contain drop-shadow-2xl"
+                className="object-contain mix-blend-multiply"
                 sizes="(max-width: 768px) 100vw, 48vw"
               />
             </div>
