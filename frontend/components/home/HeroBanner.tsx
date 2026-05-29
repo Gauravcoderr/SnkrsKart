@@ -150,7 +150,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
                 alt={slide.brand}
                 fill
                 priority={i === 0}
-                className="object-contain mix-blend-multiply"
+                className="object-contain drop-shadow-2xl"
                 sizes="(max-width: 768px) 100vw, 48vw"
               />
             </div>
