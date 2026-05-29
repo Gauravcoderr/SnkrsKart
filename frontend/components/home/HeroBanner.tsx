@@ -9,11 +9,8 @@ const CLOUD_NAME = 'dadulg5bs';
 
 function normalizeBannerImage(url: string): string {
   if (!url.includes(`res.cloudinary.com/${CLOUD_NAME}/image/upload/`)) return url;
-  // Trim uniform background (auto-detect corner color) with 20% tolerance, output WebP/PNG for transparency
-  return url.replace(
-    '/image/upload/',
-    '/image/upload/e_trim:20/'
-  );
+  // Aggressive trim (50% tolerance) + f_auto so Cloudinary picks WebP with transparency
+  return url.replace('/image/upload/', '/image/upload/e_trim:50,f_auto/');
 }
 
 export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
@@ -57,11 +54,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
           <span
             aria-hidden="true"
             className="absolute bottom-2 right-4 font-black text-white select-none pointer-events-none leading-none"
-            style={{
-              fontSize: 'clamp(100px, 16vw, 180px)',
-              opacity: 0.04,
-              letterSpacing: '-0.04em',
-            }}
+            style={{ fontSize: 'clamp(100px, 16vw, 180px)', opacity: 0.04, letterSpacing: '-0.04em' }}
           >
             {slideNum}
           </span>
@@ -70,10 +63,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
             {/* Brand tag */}
             <div className="flex items-center gap-2">
               <span className="h-px w-6 shrink-0" style={{ background: s.accent }} />
-              <span
-                className="text-[10px] font-bold tracking-[0.35em] uppercase"
-                style={{ color: s.accent }}
-              >
+              <span className="text-[10px] font-bold tracking-[0.35em] uppercase" style={{ color: s.accent }}>
                 {s.tag}
               </span>
             </div>
@@ -106,10 +96,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </Link>
-              <Link
-                href="/products"
-                className="text-[11px] font-bold tracking-[0.2em] uppercase text-white/60 hover:text-white transition-colors"
-              >
+              <Link href="/products" className="text-[11px] font-bold tracking-[0.2em] uppercase text-white/60 hover:text-white transition-colors">
                 View All
               </Link>
             </div>
@@ -138,11 +125,19 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
           </div>
         </div>
 
-        {/* ── Right: product image ── */}
-        <div
-          className="relative md:w-[48%] overflow-hidden"
-          style={{ minHeight: 320, background: s.imgBg, transition: 'background 0.5s ease' }}
-        >
+        {/* ── Right: product image — NO separate background, inherits section bg ── */}
+        <div className="relative md:w-[48%] overflow-hidden" style={{ minHeight: 320 }}>
+
+          {/* Accent radial glow — shoe feels lit from behind */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `radial-gradient(ellipse 85% 85% at 60% 50%, ${s.accent}28 0%, transparent 70%)`,
+              transition: 'background 0.5s ease',
+            }}
+          />
+
           {slides.map((slide, i) => (
             <div
               key={i}
@@ -160,13 +155,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
             </div>
           ))}
 
-          {/* Left blend — desktop: fades image into text panel */}
-          <div
-            aria-hidden="true"
-            className="absolute inset-y-0 left-0 w-2/5 pointer-events-none z-10 hidden md:block"
-            style={{ background: `linear-gradient(to right, ${s.bg}, transparent)`, transition: 'background 0.5s ease' }}
-          />
-          {/* Bottom blend — mobile: fades image into text panel below */}
+          {/* Mobile: fade image into text panel below */}
           <div
             aria-hidden="true"
             className="absolute bottom-0 left-0 right-0 h-1/3 pointer-events-none z-10 md:hidden"
