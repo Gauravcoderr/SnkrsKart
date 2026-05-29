@@ -154,15 +154,28 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
                 alt={slide.brand}
                 fill
                 priority={i === 0}
-                className="object-contain p-2 sm:p-4 drop-shadow-2xl"
+                className="object-contain drop-shadow-2xl"
                 sizes="(max-width: 768px) 100vw, 48vw"
               />
             </div>
           ))}
 
+          {/* Left blend — desktop: fades image into text panel */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-y-0 left-0 w-2/5 pointer-events-none z-10 hidden md:block"
+            style={{ background: `linear-gradient(to right, ${s.bg}, transparent)`, transition: 'background 0.5s ease' }}
+          />
+          {/* Bottom blend — mobile: fades image into text panel below */}
+          <div
+            aria-hidden="true"
+            className="absolute bottom-0 left-0 right-0 h-1/3 pointer-events-none z-10 md:hidden"
+            style={{ background: `linear-gradient(to top, ${s.bg}, transparent)`, transition: 'background 0.5s ease' }}
+          />
+
           {/* Price badge */}
           {s.price && (
-            <div className="absolute bottom-6 left-6 z-10">
+            <div className="absolute bottom-6 right-6 z-20">
               <div className="bg-black/70 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-bold tracking-wide">
                 ₹{s.price.toLocaleString('en-IN')}
               </div>
