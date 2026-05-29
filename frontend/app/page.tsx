@@ -11,7 +11,15 @@ import GenderSplit from '@/components/home/GenderSplit';
 import WhyChooseUs from '@/components/home/WhyChooseUs';
 import NewsletterBar from '@/components/home/NewsletterBar';
 
+import type { Metadata } from 'next';
+
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Buy Authentic Sneakers Online in India | SNKRS CART',
+  description: 'Shop Nike, Adidas, Air Jordan, New Balance & Crocs at the best prices in India. 100% authentic sneakers, fast delivery, new arrivals every week.',
+  alternates: { canonical: '/' },
+};
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 const SHOWN_BRANDS = ['nike', 'adidas', 'new-balance', 'jordan', 'crocs'];
