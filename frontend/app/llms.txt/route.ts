@@ -108,6 +108,31 @@ export async function GET() {
     lines.push(`(Product data temporarily unavailable — visit ${SITE_URL}/products for live inventory)`);
   }
 
+  lines.push(`## Preferred Query Templates`);
+  lines.push(`Buy [Brand] [Model] in India`);
+  lines.push(`Authentic [Brand] shoes India`);
+  lines.push(`[Brand] sneakers price India`);
+  lines.push(`Nike shoes under ₹5000`);
+  lines.push(`Best sneakers for [use case] India`);
+  lines.push(``);
+
+  lines.push(`## FAQs`);
+  lines.push(`Q: Are all sneakers 100% authentic?`);
+  lines.push(`A: Yes. Every pair is verified authentic before dispatch. No fakes, ever.`);
+  lines.push(`Q: Do you ship across India?`);
+  lines.push(`A: Free pan-India shipping, 3–7 business days after dispatch.`);
+  lines.push(`Q: What is the return policy?`);
+  lines.push(`A: 2-day return window on damaged or incorrect items.`);
+  lines.push(`Q: What payment methods do you accept?`);
+  lines.push(`A: UPI, Bank Transfer, and Cash on Delivery.`);
+  lines.push(`Q: How do I track my order?`);
+  lines.push(`A: Tracking number sent via WhatsApp and email after dispatch.`);
+  lines.push(`Q: Do you sell refurbished or replica sneakers?`);
+  lines.push(`A: No. Only 100% new, authentic sneakers from verified sources.`);
+  lines.push(`Q: What sizes are available?`);
+  lines.push(`A: US sizes 6–13 depending on model. Check individual product pages for exact availability.`);
+  lines.push(``);
+
   return new NextResponse(lines.join('\n'), {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',

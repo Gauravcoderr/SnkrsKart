@@ -177,9 +177,20 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
     nike: 'Nike', jordan: 'Jordan', adidas: 'Adidas',
     'new-balance': 'New Balance', 'new balance': 'New Balance', crocs: 'Crocs',
   };
+  const BRAND_SAME_AS: Record<string, string[]> = {
+    'Nike':        ['https://en.wikipedia.org/wiki/Nike,_Inc.', 'https://www.nike.com'],
+    'Jordan':      ['https://en.wikipedia.org/wiki/Air_Jordan', 'https://www.nike.com/jordan'],
+    'Adidas':      ['https://en.wikipedia.org/wiki/Adidas', 'https://www.adidas.com'],
+    'New Balance': ['https://en.wikipedia.org/wiki/New_Balance', 'https://www.newbalance.com'],
+    'Crocs':       ['https://en.wikipedia.org/wiki/Crocs', 'https://www.crocs.com'],
+  };
   const mentionedBrands = Array.from(
     new Set(safeTags.map((t) => KNOWN_BRANDS[t.toLowerCase()]).filter(Boolean))
-  ).map((brandName) => ({ '@type': 'Brand', name: brandName }));
+  ).map((brandName) => ({
+    '@type': 'Brand',
+    name: brandName,
+    sameAs: BRAND_SAME_AS[brandName] ?? [],
+  }));
 
   const articleJsonLd = {
     '@context': 'https://schema.org',
@@ -212,6 +223,11 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
     speakable: {
       '@type': 'SpeakableSpecification',
       cssSelector: ['h1', '.blog-excerpt', 'h2', 'h3'],
+    },
+    isPartOf: {
+      '@type': 'Blog',
+      '@id': `${SITE_URL}/blogs`,
+      name: 'SNKRS CART Blog',
     },
     // About: links this post to specific brand entities — signals expert authorship to Flash.co & ChatGPT
     ...(mentionedBrands.length > 0 ? { about: mentionedBrands } : {}),

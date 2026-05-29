@@ -1,0 +1,171 @@
+openapi: 3.1.0
+info:
+  title: SNKRS CART Live Inventory API
+  description: Fetches live sneaker products, brands, and blog posts from SNKRS CART
+  version: 1.0.0
+servers:
+  - url: https://snkrskart.onrender.com/api/v1
+
+paths:
+  /products:
+    get:
+      operationId: getProducts
+      summary: Get all sneaker products with optional filters
+      parameters:
+        - name: search
+          in: query
+          description: Search by name or keyword
+          schema:
+            type: string
+        - name: brand
+          in: query
+          description: Filter by brand (Nike, Jordan, Adidas, New Balance, Crocs)
+          schema:
+            type: string
+        - name: gender
+          in: query
+          description: Filter by gender (men, women, kids, unisex)
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Number of products to return (default 20, max 500)
+          schema:
+            type: integer
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        brand:
+                          type: string
+                        price:
+                          type: number
+                        originalPrice:
+                          type: number
+                        discount:
+                          type: number
+                        colorway:
+                          type: string
+                        gender:
+                          type: string
+                        availableSizes:
+                          type: array
+                          items:
+                            type: number
+                        soldOut:
+                          type: boolean
+                        rating:
+                          type: number
+                        reviewCount:
+                          type: number
+                        slug:
+                          type: string
+                        images:
+                          type: array
+                          items:
+                            type: string
+                        trending:
+                          type: boolean
+                        newArrival:
+                          type: boolean
+                        featured:
+                          type: boolean
+
+  /products/{slug}:
+    get:
+      operationId: getProductBySlug
+      summary: Get full details of a single product
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: Product slug (e.g. air-jordan-3-retro-black-cement-2024-mens)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Full product details
+
+  /products/featured:
+    get:
+      operationId: getFeaturedProducts
+      summary: Get featured/highlighted products
+      responses:
+        "200":
+          description: Featured products list
+
+  /products/new-arrivals:
+    get:
+      operationId: getNewArrivals
+      summary: Get latest new arrival sneakers
+      responses:
+        "200":
+          description: New arrivals list
+
+  /products/trending:
+    get:
+      operationId: getTrendingProducts
+      summary: Get currently trending sneakers
+      responses:
+        "200":
+          description: Trending products list
+
+  /brands:
+    get:
+      operationId: getBrands
+      summary: Get all available brands
+      responses:
+        "200":
+          description: Brands list
+
+  /blogs:
+    get:
+      operationId: getBlogs
+      summary: Get all blog posts
+      responses:
+        "200":
+          description: Blog posts list
+
+  /faqs:
+    get:
+      operationId: getFaqs
+      summary: Get frequently asked questions about SNKRS CART
+      description: Returns common customer questions about ordering, shipping, returns, authenticity, sizing, and payment
+      responses:
+        "200":
+          description: FAQ list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  faqs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        question:
+                          type: string
+                          description: Customer question
+                        answer:
+                          type: string
+                          description: Direct answer from SNKRS CART
+                        category:
+                          type: string
+                          description: "FAQ category (e.g. shipping, returns, sizing, authenticity)"

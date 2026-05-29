@@ -114,6 +114,13 @@ const orgLd = {
   description: 'India\'s premium sneaker store — 100% authentic Nike, Jordan, Adidas, New Balance & Crocs.',
   sameAs: [
     'https://www.instagram.com/snkrs_cart',
+    'https://twitter.com/snkrs_cart',
+    'https://www.facebook.com/snkrscart',
+  ],
+  foundingDate: '2020',
+  knowsAbout: [
+    'Nike Sneakers', 'Air Jordan', 'Adidas', 'New Balance', 'Crocs',
+    'Authentic Sneakers India', 'Sneaker Authentication', 'Sneaker Resale India',
   ],
   contactPoint: {
     '@type': 'ContactPoint',

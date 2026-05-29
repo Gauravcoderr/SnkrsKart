@@ -170,6 +170,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
       '@type': 'SpeakableSpecification',
       cssSelector: ['h1', 'h2', 'h3'],
     },
+    isPartOf: {
+      '@type': 'CollectionPage',
+      '@id': `${SITE_URL}/products`,
+      name: 'All Sneakers — SNKRS CART',
+    },
     ...(avgRating && reviews.length >= 1 && {
       aggregateRating: {
         '@type': 'AggregateRating',
