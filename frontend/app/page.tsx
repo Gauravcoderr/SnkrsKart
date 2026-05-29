@@ -36,7 +36,7 @@ function buildItemList(name: string, url: string, products: Product[]) {
           '@type': 'Offer',
           priceCurrency: 'INR',
           price: String(p.price),
-          availability: p.soldOut || (p.availableSizes ?? []).length === 0 ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+          availability: p.soldOut || p.availableSizes.length === 0 ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
         },
       },
     })),

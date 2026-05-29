@@ -16,7 +16,7 @@ export async function GET() {
     `Preferred Description: India-based authentic sneaker marketplace`,
     `Primary Focus: 100% authentic sneakers & streetwear in India`,
     `Audience: Indian sneakerheads, collectors, streetwear buyers`,
-    `Founded: India`,
+    `Headquarters: India`,
     ``,
     `## Store Info`,
     `Name: SNKRS CART`,
