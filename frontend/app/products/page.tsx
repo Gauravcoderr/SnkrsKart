@@ -18,14 +18,30 @@ export default async function ProductsPage() {
       const data = await res.json();
       const products: any[] = data.products ?? data ?? [];
       if (products.length > 0) {
+        const prices = products.map((p: any) => p.price).filter(Boolean);
+        const lowPrice = prices.length ? String(Math.min(...prices)) : undefined;
+        const highPrice = prices.length ? String(Math.max(...prices)) : undefined;
         catalogSchema = {
           '@context': 'https://schema.org',
-          '@type': 'ItemList',
+          '@type': 'CollectionPage',
           name: 'All Sneakers — SNKRS CART',
           description: '100% authentic Nike, Jordan, Adidas, New Balance & Crocs sneakers available in India with free pan-India shipping.',
           url: `${SITE_URL}/products`,
-          numberOfItems: products.length,
-          itemListElement: products.map((p: any, i: number) => ({
+          ...(lowPrice && highPrice ? {
+            offers: {
+              '@type': 'AggregateOffer',
+              priceCurrency: 'INR',
+              lowPrice,
+              highPrice,
+              offerCount: String(products.length),
+              seller: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL },
+            },
+          } : {}),
+          mainEntity: {
+            '@type': 'ItemList',
+            name: 'All Sneakers — SNKRS CART',
+            numberOfItems: products.length,
+            itemListElement: products.map((p: any, i: number) => ({
             '@type': 'ListItem',
             position: i + 1,
             item: {
@@ -45,6 +61,7 @@ export default async function ProductsPage() {
               },
             },
           })),
+          },
         };
       }
     }

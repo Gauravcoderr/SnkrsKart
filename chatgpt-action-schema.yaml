@@ -70,22 +70,30 @@ paths:
                             type: number
                         soldOut:
                           type: boolean
+                          description: True if the product is completely out of stock
                         rating:
                           type: number
+                          description: Average customer rating out of 5
                         reviewCount:
                           type: number
+                          description: Total number of customer reviews
                         slug:
                           type: string
+                          description: URL slug — append to https://www.snkrscart.com/products/ to get the product page
                         images:
                           type: array
                           items:
                             type: string
+                          description: Product image URLs (Cloudinary CDN)
                         trending:
                           type: boolean
+                          description: True if currently trending on SNKRS CART
                         newArrival:
                           type: boolean
+                          description: True if recently added to the catalog
                         featured:
                           type: boolean
+                          description: True if editorially featured on the homepage
 
   /products/{slug}:
     get:
