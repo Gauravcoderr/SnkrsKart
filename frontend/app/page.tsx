@@ -13,7 +13,35 @@ import NewsletterBar from '@/components/home/NewsletterBar';
 
 export const dynamic = 'force-dynamic';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 const SHOWN_BRANDS = ['nike', 'adidas', 'new-balance', 'jordan', 'crocs'];
+
+function buildItemList(name: string, url: string, products: Product[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name,
+    url,
+    numberOfItems: products.length,
+    itemListElement: products.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Product',
+        name: `${p.brand} ${p.name}`,
+        brand: { '@type': 'Brand', name: p.brand },
+        url: `${SITE_URL}/products/${p.slug}`,
+        image: p.images?.[0] ?? '',
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: 'INR',
+          price: String(p.price),
+          availability: p.soldOut ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+        },
+      },
+    })),
+  };
+}
 
 export default async function HomePage() {
   const [trendingResult, newArrivalsResult, brandsResult, bannersResult, reviewsResult, comingSoonResult] = await Promise.allSettled([
@@ -33,8 +61,21 @@ export default async function HomePage() {
   const reviews = reviewsResult.status === 'fulfilled' ? reviewsResult.value : [] as Review[];
   const comingSoon = comingSoonResult.status === 'fulfilled' ? comingSoonResult.value : [] as Product[];
 
+  const trendingSchema = trending.length > 0
+    ? buildItemList('Trending Sneakers at SNKRS CART', `${SITE_URL}/products`, trending)
+    : null;
+  const newArrivalsSchema = newArrivals.length > 0
+    ? buildItemList('New Arrival Sneakers at SNKRS CART', `${SITE_URL}/products`, newArrivals)
+    : null;
+
   return (
     <>
+      {trendingSchema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(trendingSchema) }} />
+      )}
+      {newArrivalsSchema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(newArrivalsSchema) }} />
+      )}
       <MarqueeStrip />
       <HeroBanner slides={banners} />
       <NewArrivals products={newArrivals} />
