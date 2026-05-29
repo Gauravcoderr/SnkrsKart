@@ -9,8 +9,9 @@ const CLOUD_NAME = 'dadulg5bs';
 
 function normalizeBannerImage(url: string): string {
   if (!url.includes(`res.cloudinary.com/${CLOUD_NAME}/image/upload/`)) return url;
-  // Aggressive trim (50% tolerance) + f_auto so Cloudinary picks WebP with transparency
-  return url.replace('/image/upload/', '/image/upload/e_trim:50,f_auto/');
+  // e_trim:80 = aggressive edge trim; f_webp = explicitly force WebP so transparency is preserved
+  // (loader adds f_auto in step 1 which may not see transparency until AFTER trim — f_webp in step 2 overrides)
+  return url.replace('/image/upload/', '/image/upload/e_trim:80,f_webp/');
 }
 
 export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
