@@ -9,10 +9,10 @@ const CLOUD_NAME = 'dadulg5bs';
 
 function normalizeBannerImage(url: string): string {
   if (!url.includes(`res.cloudinary.com/${CLOUD_NAME}/image/upload/`)) return url;
-  // Trim white background, output auto-format (PNG/WebP preserves transparency), auto quality
+  // Trim uniform background (auto-detect corner color) with 20% tolerance, output WebP/PNG for transparency
   return url.replace(
     '/image/upload/',
-    '/image/upload/e_trim:color_white:tolerance_25,f_auto,q_auto/'
+    '/image/upload/e_trim:20/'
   );
 }
 

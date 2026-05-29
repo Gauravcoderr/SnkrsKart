@@ -73,8 +73,8 @@ export default function WhyChooseUs() {
               {/* Decorative number */}
               <span
                 aria-hidden="true"
-                className="absolute bottom-2 right-3 font-black text-zinc-100 select-none pointer-events-none leading-none"
-                style={{ fontSize: '4rem', lineHeight: 1 }}
+                className="absolute bottom-0 right-1 font-black select-none pointer-events-none leading-none text-zinc-900"
+                style={{ fontSize: '7rem', lineHeight: 1, opacity: 0.04 }}
               >
                 {reason.num}
               </span>
