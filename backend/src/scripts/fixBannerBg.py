@@ -3,13 +3,13 @@
 Remove white studio backgrounds from banner images via flood-fill,
 re-upload to Cloudinary as transparent PNG, update MongoDB.
 """
-import io, json, uuid, http.client, urllib.request
+import io, json, uuid, http.client, urllib.request, os
 from PIL import Image
 from pymongo import MongoClient
 
 CLOUD_NAME    = 'dadulg5bs'
 UPLOAD_PRESET = 'Snkrs cart'
-MONGODB_URI   = 'mongodb+srv://gauravrauthan12112_db_user:VtgkwfAXbx48ulr6@cluster0.yuux00c.mongodb.net/snkrs-cart?retryWrites=true&w=majority'
+MONGODB_URI   = os.environ['MONGODB_URI']
 
 # ── background removal ──────────────────────────────────────────────────────
 
