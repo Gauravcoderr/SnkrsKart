@@ -7,6 +7,9 @@ const REASONS = [
     ),
     heading: '100% Authentic',
     sub: 'Every pair verified by our team before dispatch. Zero fakes, guaranteed.',
+    num: '01',
+    iconBg: 'bg-emerald-50',
+    iconColor: 'text-emerald-600',
   },
   {
     icon: (
@@ -16,6 +19,9 @@ const REASONS = [
     ),
     heading: 'Best Prices in India',
     sub: 'Direct from trusted sellers. No inflated MRP, no middleman markup.',
+    num: '02',
+    iconBg: 'bg-amber-50',
+    iconColor: 'text-amber-600',
   },
   {
     icon: (
@@ -25,6 +31,9 @@ const REASONS = [
     ),
     heading: 'Ships in 24 Hours',
     sub: 'Order today, wear it tomorrow. Pan-India tracked delivery on every order.',
+    num: '03',
+    iconBg: 'bg-blue-50',
+    iconColor: 'text-blue-600',
   },
   {
     icon: (
@@ -34,6 +43,9 @@ const REASONS = [
     ),
     heading: 'UPI Payments',
     sub: 'Pay instantly via UPI — Google Pay, PhonePe, Paytm and more. Fast & secure.',
+    num: '04',
+    iconBg: 'bg-violet-50',
+    iconColor: 'text-violet-600',
   },
 ];
 
@@ -47,16 +59,28 @@ export default function WhyChooseUs() {
             Why you&apos;ll always
           </p>
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-900">
-            Choose <span className="text-zinc-900 underline decoration-zinc-300 underline-offset-4">SNKRS CART</span>
+            Choose <span className="underline decoration-zinc-300 underline-offset-4">SNKRS CART</span>
           </h2>
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-zinc-200 border border-zinc-200">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {REASONS.map((reason) => (
-            <div key={reason.heading} className="flex flex-col items-center text-center px-6 py-10 gap-5 bg-white hover:bg-zinc-50 transition-colors duration-200">
+            <div
+              key={reason.heading}
+              className="relative overflow-hidden flex flex-col items-center text-center px-6 py-10 gap-5 bg-white rounded-2xl border border-zinc-100 shadow-sm hover:shadow-md transition-shadow duration-200"
+            >
+              {/* Decorative number */}
+              <span
+                aria-hidden="true"
+                className="absolute bottom-2 right-3 font-black text-zinc-100 select-none pointer-events-none leading-none"
+                style={{ fontSize: '4rem', lineHeight: 1 }}
+              >
+                {reason.num}
+              </span>
+
               {/* Icon circle */}
-              <div className="w-16 h-16 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 shrink-0">
+              <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${reason.iconBg} ${reason.iconColor}`}>
                 {reason.icon}
               </div>
 

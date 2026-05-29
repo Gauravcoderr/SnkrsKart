@@ -73,6 +73,7 @@ export interface BannerSlide {
   imgBg: string;
   order: number;
   active: boolean;
+  price?: number;
 }
 
 export interface Review {
