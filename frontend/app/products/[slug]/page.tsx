@@ -166,6 +166,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
         itemCondition: 'https://schema.org/DamagedCondition',
       },
     },
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: ['h1', 'h2', 'h3'],
+    },
     ...(avgRating && reviews.length >= 1 && {
       aggregateRating: {
         '@type': 'AggregateRating',
