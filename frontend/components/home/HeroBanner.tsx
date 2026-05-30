@@ -121,12 +121,23 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
                   type="button"
                   onClick={() => goTo(i)}
                   aria-label={`Slide ${i + 1}`}
-                  className="h-[3px] rounded-full transition-all duration-500"
+                  className="h-[3px] rounded-full overflow-hidden transition-all duration-500"
                   style={{
                     width: i === active ? 36 : 14,
-                    background: i === active ? s.accent : 'rgba(255,255,255,0.2)',
+                    background: 'rgba(255,255,255,0.2)',
                   }}
-                />
+                >
+                  {i === active && (
+                    <div
+                      key={progressKey}
+                      className="h-full rounded-full"
+                      style={{
+                        background: s.accent,
+                        animation: `banner-progress ${SLIDE_MS}ms linear forwards`,
+                      }}
+                    />
+                  )}
+                </button>
               ))}
             </div>
             <span className="text-[10px] font-mono text-white/30 tracking-widest">
