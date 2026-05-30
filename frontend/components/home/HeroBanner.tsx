@@ -6,11 +6,10 @@ import Link from 'next/link';
 import { BannerSlide } from '@/types';
 
 const CLOUD_NAME = 'dadulg5bs';
+const FLAT_BG = '#09090b';
 
 function normalizeBannerImage(url: string): string {
   if (!url.includes(`res.cloudinary.com/${CLOUD_NAME}/image/upload/`)) return url;
-  // e_trim:80 = aggressive edge trim; f_webp = explicitly force WebP so transparency is preserved
-  // (loader adds f_auto in step 1 which may not see transparency until AFTER trim — f_webp in step 2 overrides)
   return url.replace('/image/upload/', '/image/upload/e_trim:80,f_webp/');
 }
 
@@ -44,7 +43,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
   return (
     <section
       className="w-full overflow-hidden"
-      style={{ background: s.bg, transition: 'background 0.5s ease' }}
+      style={{ background: FLAT_BG }}
     >
       <div className="flex flex-col-reverse md:flex-row" style={{ minHeight: 'min(90vh, 700px)' }}>
 
@@ -82,6 +81,14 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
               <p className="text-xs text-white/50 tracking-[0.25em] uppercase">{s.sub}</p>
             </div>
 
+            {/* Price */}
+            {s.price && (
+              <div className="flex items-baseline gap-2">
+                <span className="text-[10px] font-bold tracking-widest uppercase text-white/40">From</span>
+                <span className="text-2xl font-black text-white tracking-tight">₹{s.price.toLocaleString('en-IN')}</span>
+              </div>
+            )}
+
             {/* CTAs */}
             <div className="flex flex-wrap items-center gap-3">
               <Link
@@ -97,7 +104,11 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </Link>
-              <Link href="/products" className="text-[11px] font-bold tracking-[0.2em] uppercase text-white/60 hover:text-white transition-colors">
+              <Link
+                href="/products"
+                className="inline-flex items-center gap-2 px-6 py-3.5 text-[11px] font-bold tracking-[0.2em] uppercase rounded-full border transition-colors hover:bg-white/10"
+                style={{ borderColor: 'rgba(255,255,255,0.3)', color: 'rgba(255,255,255,0.7)' }}
+              >
                 View All
               </Link>
             </div>
@@ -126,15 +137,15 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
           </div>
         </div>
 
-        {/* ── Right: product image — NO separate background, inherits section bg ── */}
+        {/* ── Right: shoe image ── */}
         <div className="relative md:w-[48%] overflow-hidden isolate" style={{ minHeight: 320 }}>
 
-          {/* Accent radial glow — shoe feels lit from behind */}
+          {/* Accent glow — shoe lit from behind, softer than before */}
           <div
             aria-hidden="true"
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: `radial-gradient(ellipse 85% 85% at 60% 50%, ${s.accent}28 0%, transparent 70%)`,
+              background: `radial-gradient(ellipse 70% 70% at 60% 60%, ${s.accent}18 0%, transparent 70%)`,
               transition: 'background 0.5s ease',
             }}
           />
@@ -150,27 +161,18 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
                 alt={slide.brand}
                 fill
                 priority={i === 0}
-                className="object-contain drop-shadow-2xl"
+                className="object-contain object-bottom drop-shadow-2xl"
                 sizes="(max-width: 768px) 100vw, 48vw"
               />
             </div>
           ))}
 
-          {/* Mobile: fade image into text panel below */}
+          {/* Mobile: fade shoe into text panel */}
           <div
             aria-hidden="true"
             className="absolute bottom-0 left-0 right-0 h-1/3 pointer-events-none z-10 md:hidden"
-            style={{ background: `linear-gradient(to top, ${s.bg}, transparent)`, transition: 'background 0.5s ease' }}
+            style={{ background: `linear-gradient(to top, ${FLAT_BG}, transparent)` }}
           />
-
-          {/* Price badge */}
-          {s.price && (
-            <div className="absolute bottom-6 right-6 z-20">
-              <div className="bg-black/70 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-bold tracking-wide">
-                ₹{s.price.toLocaleString('en-IN')}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </section>
