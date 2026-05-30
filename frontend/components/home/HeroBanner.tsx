@@ -67,16 +67,30 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
             </div>
 
             {/* Headline + sub */}
-            <div className="flex flex-col gap-3">
-              <h1
-                className="font-black uppercase leading-[0.88] tracking-tighter text-white break-words"
-                style={{ fontSize: 'clamp(2.4rem, 7vw, 6.5rem)' }}
-              >
-                {s.headline.map((line, i) => (
-                  <span key={i} className="block">{line}</span>
-                ))}
-              </h1>
-              <p className="text-xs text-white/50 tracking-[0.25em] uppercase">{s.sub}</p>
+            <div className="flex flex-col gap-1">
+              {/* First line — small label */}
+              {s.headline[0] && (
+                <p className="text-xs sm:text-sm font-bold tracking-[0.25em] uppercase text-white/50">
+                  {s.headline[0]}
+                </p>
+              )}
+              {/* Second line — massive accent hero word */}
+              {s.headline[1] && (
+                <h1
+                  className="font-black uppercase leading-[0.85] tracking-tighter break-words"
+                  style={{ fontSize: 'clamp(3rem, 9vw, 8rem)', color: s.accent }}
+                >
+                  {s.headline[1]}
+                </h1>
+              )}
+              {/* Remaining lines if any */}
+              {s.headline.slice(2).map((line, i) => (
+                <span key={i} className="font-black uppercase leading-[0.88] tracking-tighter text-white break-words"
+                  style={{ fontSize: 'clamp(2rem, 5vw, 5rem)' }}>
+                  {line}
+                </span>
+              ))}
+              <p className="text-xs text-white/40 tracking-[0.25em] uppercase mt-2">{s.sub}</p>
             </div>
 
             {/* Price */}
