@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     title: 'SNKRS CART | Buy Authentic Sneakers, Streetwear & Accessories in India.',
     description: 'Shop 100% authentic sneakers, streetwear, bags & accessories in India. Trusted reselling platform with secure packaging and fast delivery.',
     url: SITE_URL,
-    siteName: 'SNKRS CART',
+    siteName: 'Snkrs Cart',
     locale: 'en_IN',
     type: 'website',
     images: [
@@ -95,7 +95,7 @@ export const metadata: Metadata = {
 const orgLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  name: 'SNKRS CART',
+  name: 'Snkrs Cart',
   url: SITE_URL,
   logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
   description: 'India\'s premium sneaker store — 100% authentic Nike, Jordan, Adidas, New Balance & Crocs.',
