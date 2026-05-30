@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 
-const SUPABASE_BUCKETS = ['SNKRS CART Product Images', 'SNKRS CART', 'SNKRS CARTs'];
+const SUPABASE_BUCKETS = ['Snkrs Cart Product Images', 'Snkrs Cart', 'Snkrs Carts'];
 
 async function trySupabase(file: File, path: string): Promise<string | null> {
   for (const bucket of SUPABASE_BUCKETS) {
