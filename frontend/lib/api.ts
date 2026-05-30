@@ -72,7 +72,7 @@ export async function fetchComingSoonProducts(): Promise<Product[]> {
 }
 
 export async function fetchBanners(): Promise<BannerSlide[]> {
-  const res = await fetch(`${BASE_URL}/banners`, { next: { revalidate: 300 } });
+  const res = await fetch(`${BASE_URL}/banners`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch banners');
   return res.json();
 }
