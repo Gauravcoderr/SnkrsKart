@@ -32,20 +32,30 @@ const PANELS = [
   },
 ] as const;
 
+// Both panels cover inset-0 — clip-path creates the seam.
+// Diagonal: top boundary at 57%, bottom at 43% (14% shift = ~7.5° angle).
+// Hover shifts boundary ±7%, keeping the same angle.
+function getClips(hovered: 'men' | 'women' | null) {
+  if (hovered === 'men')   return { men: 'polygon(0 0, 64% 0, 50% 100%, 0 100%)', women: 'polygon(64% 0, 100% 0, 100% 100%, 50% 100%)' };
+  if (hovered === 'women') return { men: 'polygon(0 0, 50% 0, 36% 100%, 0 100%)', women: 'polygon(50% 0, 100% 0, 100% 100%, 36% 100%)' };
+  return { men: 'polygon(0 0, 57% 0, 43% 100%, 0 100%)', women: 'polygon(57% 0, 100% 0, 100% 100%, 43% 100%)' };
+}
+
 export default function GenderSplit() {
   const [hovered, setHovered] = useState<'men' | 'women' | null>(null);
+  const clips = getClips(hovered);
 
   return (
     <section className="w-full overflow-hidden">
 
-      {/* ── Desktop: two equal columns side-by-side with divider ── */}
-      <div className="relative hidden md:flex flex-row h-[480px]">
+      {/* ── Desktop: absolute panels, clip-path diagonal, no gap ── */}
+      <div className="relative hidden md:block h-[540px]">
 
         <div className="absolute top-5 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
           <span className="text-[9px] font-black tracking-[0.5em] uppercase text-white/30">SNKRS CART</span>
         </div>
 
-        {PANELS.map((panel, idx) => {
+        {PANELS.map((panel) => {
           const isHovered = hovered === panel.id;
           return (
             <Link
@@ -53,7 +63,11 @@ export default function GenderSplit() {
               href={panel.href}
               onMouseEnter={() => setHovered(panel.id)}
               onMouseLeave={() => setHovered(null)}
-              className="relative flex-1 overflow-hidden cursor-pointer"
+              className="absolute inset-0 overflow-hidden cursor-pointer"
+              style={{
+                clipPath: clips[panel.id],
+                transition: 'clip-path 0.55s cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
               aria-label={`Shop for ${panel.heading}`}
             >
               <div className="absolute inset-0" style={{ background: panel.bgGrad }} />
@@ -64,11 +78,6 @@ export default function GenderSplit() {
                   backgroundImage: 'linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)',
                   backgroundSize: '40px 40px',
                 }} />
-
-              {/* Vertical divider — right edge of Men panel only */}
-              {idx === 0 && (
-                <div className="absolute top-0 right-0 w-px h-full bg-white/10 z-10" />
-              )}
 
               {/* Decorative letter */}
               <div className={`absolute inset-0 flex items-center ${panel.align === 'right' ? 'justify-end pr-6' : 'justify-start pl-6'} pointer-events-none overflow-hidden`}>
@@ -92,8 +101,8 @@ export default function GenderSplit() {
                 style={{ background: `linear-gradient(90deg, transparent, ${panel.accent}, transparent)` }}
               />
 
-              {/* Content */}
-              <div className={`absolute bottom-10 flex flex-col ${panel.align === 'left' ? 'left-10 sm:left-14 right-6' : 'right-10 sm:right-14 left-6'}`}>
+              {/* Content — pinned to each half so clip-path never hides it */}
+              <div className={`absolute bottom-10 flex flex-col ${panel.align === 'left' ? 'left-10 sm:left-14 right-[48%]' : 'right-10 sm:right-14 left-[52%]'}`}>
                 <p
                   className={`text-[10px] font-bold tracking-[0.35em] uppercase mb-1 ${panel.accentClass}`}
                   style={{ transform: isHovered ? 'translateY(0)' : 'translateY(4px)', opacity: isHovered ? 1 : 0.7, transition: 'all 0.4s' }}
@@ -148,6 +157,18 @@ export default function GenderSplit() {
             </Link>
           );
         })}
+
+        {/* Center badge */}
+        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+          <div
+            className="flex items-center justify-center w-14 h-14 rounded-full border border-white/10 bg-black/60 backdrop-blur-md transition-all duration-500"
+            style={{ transform: hovered ? 'scale(0.85)' : 'scale(1)' }}
+          >
+            <svg className="w-5 h-5 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+        </div>
       </div>
 
       {/* ── Mobile: stacked full-width blocks, no clip ── */}
