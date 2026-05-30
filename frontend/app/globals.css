@@ -123,4 +123,9 @@ body { top: 0 !important; }
   .animate-hero-text-in {
     animation: heroTextIn 0.45s ease-out both;
   }
+
+  @keyframes banner-progress {
+    from { width: 0%; }
+    to   { width: 100%; }
+  }
 }
