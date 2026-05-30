@@ -26,8 +26,8 @@ const SITE_URL = 'https://www.snkrscart.com';
 const websiteLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: 'Snkrs Cart',
-  alternateName: 'Snkrs Cart',
+  name: 'SNKRS CART',
+  alternateName: 'SNKRS CART',
   url: SITE_URL,
   description: 'Buy 100% authentic Nike, Adidas, Jordan, New Balance & Crocs sneakers online in India.',
   potentialAction: {
