@@ -18,10 +18,24 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Buy Authentic Sneakers Online in India | SNKRS CART',
   description: 'Shop Nike, Adidas, Air Jordan, New Balance & Crocs at the best prices in India. 100% authentic sneakers, fast delivery, new arrivals every week.',
-  alternates: { canonical: '/' },
+  alternates: { canonical: 'https://www.snkrscart.com' },
 };
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
+const SITE_URL = 'https://www.snkrscart.com';
+
+const websiteLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'SNKRS CART',
+  alternateName: 'SNKRS CART',
+  url: SITE_URL,
+  description: 'Buy 100% authentic Nike, Adidas, Jordan, New Balance & Crocs sneakers online in India.',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/products?search={search_term_string}` },
+    'query-input': 'required name=search_term_string',
+  },
+};
 const SHOWN_BRANDS = ['nike', 'adidas', 'new-balance', 'jordan', 'crocs'];
 
 function buildItemList(name: string, url: string, products: Product[]) {
@@ -78,6 +92,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }} />
       {trendingSchema && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(trendingSchema) }} />
       )}

@@ -23,7 +23,7 @@ const bebas = Bebas_Neue({
   display: 'swap',
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
+const SITE_URL = 'https://www.snkrscart.com';
 const OG_IMAGE = `${SITE_URL}/logo.png`;
 
 export const metadata: Metadata = {
@@ -91,19 +91,6 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'SNKRS CART',
-  alternateName: 'SNKRS CART',
-  url: SITE_URL,
-  description: 'Buy 100% authentic Nike, Adidas, Jordan, New Balance & Crocs sneakers online in India.',
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/products?search={search_term_string}` },
-    'query-input': 'required name=search_term_string',
-  },
-};
 
 const orgLd = {
   '@context': 'https://schema.org',
@@ -182,10 +169,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-title" content="SNKRS CART" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <meta name="theme-color" content="#09090b" />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }}
