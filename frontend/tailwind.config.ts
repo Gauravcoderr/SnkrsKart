@@ -75,6 +75,10 @@ const config: Config = {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
+        "banner-progress": {
+          "0%": { width: "0%" },
+          "100%": { width: "100%" },
+        },
       },
     },
   },

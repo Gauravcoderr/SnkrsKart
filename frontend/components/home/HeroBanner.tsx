@@ -7,10 +7,13 @@ import { BannerSlide } from '@/types';
 
 const FLAT_BG = '#09090b';
 
+const SLIDE_MS = 5000;
+
 export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
   const [active, setActive] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
   const [textKey, setTextKey] = useState(0);
+  const [progressKey, setProgressKey] = useState(0);
 
   const goTo = useCallback(
     (idx: number) => {
@@ -18,6 +21,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
       setTransitioning(true);
       setActive(idx);
       setTextKey((k) => k + 1);
+      setProgressKey((k) => k + 1);
       setTimeout(() => setTransitioning(false), 500);
     },
     [active, transitioning]
@@ -25,7 +29,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
 
   useEffect(() => {
     if (!slides.length) return;
-    const t = setInterval(() => goTo((active + 1) % slides.length), 5000);
+    const t = setInterval(() => goTo((active + 1) % slides.length), SLIDE_MS);
     return () => clearInterval(t);
   }, [active, goTo, slides.length]);
 
@@ -168,6 +172,18 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
             style={{ background: `linear-gradient(to top, ${FLAT_BG}, transparent)` }}
           />
         </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className="h-[3px] w-full bg-white/10 overflow-hidden">
+        <div
+          key={progressKey}
+          className="h-full"
+          style={{
+            background: s.accent,
+            animation: `banner-progress ${SLIDE_MS}ms linear forwards`,
+          }}
+        />
       </div>
     </section>
   );
