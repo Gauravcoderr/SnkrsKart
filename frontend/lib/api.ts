@@ -79,7 +79,7 @@ export async function fetchBanners(): Promise<BannerSlide[]> {
 
 export async function fetchBrands(): Promise<Brand[]> {
   const res = await fetch(`${BASE_URL}/brands`, {
-    next: { revalidate: 3600 },
+    cache: 'no-store',
   });
   if (!res.ok) throw new Error('Failed to fetch brands');
   return res.json();
