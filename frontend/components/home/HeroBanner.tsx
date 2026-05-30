@@ -5,13 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { BannerSlide } from '@/types';
 
-const CLOUD_NAME = 'dadulg5bs';
 const FLAT_BG = '#09090b';
-
-function normalizeBannerImage(url: string): string {
-  if (!url.includes(`res.cloudinary.com/${CLOUD_NAME}/image/upload/`)) return url;
-  return url.replace('/image/upload/', '/image/upload/e_trim:80,f_webp/');
-}
 
 export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
   const [active, setActive] = useState(0);
@@ -157,11 +151,11 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
               style={{ opacity: i === active ? 1 : 0 }}
             >
               <Image
-                src={normalizeBannerImage(slide.image)}
+                src={slide.image}
                 alt={slide.brand}
                 fill
                 priority={i === 0}
-                className="object-contain object-bottom drop-shadow-2xl"
+                className="object-cover object-center drop-shadow-2xl"
                 sizes="(max-width: 768px) 100vw, 48vw"
               />
             </div>
