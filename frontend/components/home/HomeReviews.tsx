@@ -87,16 +87,16 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
     <section className="py-16 px-4 sm:px-6 lg:px-8 bg-zinc-50">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-end justify-between mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
           <div>
             <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-400 mb-1">Verified Buyers</p>
-            <h2 className="text-2xl font-black tracking-[0.1em] uppercase text-zinc-900">What Customers Say</h2>
+            <h2 className="text-xl sm:text-2xl font-black tracking-[0.1em] uppercase text-zinc-900">What Customers Say</h2>
           </div>
           {!showForm && !submitted && (
             <button
               type="button"
               onClick={() => setShowForm(true)}
-              className="text-xs font-bold tracking-widest uppercase border border-zinc-900 px-4 py-2 text-zinc-900 hover:bg-zinc-900 hover:text-white transition-colors"
+              className="self-start sm:self-auto text-xs font-bold tracking-widest uppercase border border-zinc-900 px-4 py-2 text-zinc-900 hover:bg-zinc-900 hover:text-white transition-colors"
             >
               Write a Review
             </button>
@@ -223,14 +223,14 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <p className="text-sm font-bold text-zinc-900">{review.name}</p>
+                    <p className="text-xs sm:text-sm font-bold text-zinc-900">{review.name}</p>
                     <StarRating value={review.rating} size="sm" />
                   </div>
                   <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-400 border border-zinc-100 px-2 py-0.5">
                     {review.rating === 5 ? 'Excellent' : review.rating === 4 ? 'Great' : review.rating === 3 ? 'Good' : review.rating === 2 ? 'Fair' : 'Poor'}
                   </span>
                 </div>
-                <p className="text-sm text-zinc-600 leading-relaxed line-clamp-3 mb-3">"{review.comment}"</p>
+                <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed line-clamp-3 mb-3">"{review.comment}"</p>
                 <p className="text-[10px] font-semibold tracking-wider uppercase text-zinc-400 group-hover:text-zinc-700 transition-colors">
                   {review.productName}
                 </p>

@@ -131,7 +131,7 @@ export default function ProductsClient() {
               <div className="flex items-center justify-center gap-2 mt-12">
                 <button
                   type="button"
-                  onClick={() => setPage(page - 1)}
+                  onClick={() => { setPage(page - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                   disabled={page === 1}
                   className="px-4 py-2 text-sm font-semibold border border-zinc-200 text-zinc-700 hover:border-zinc-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
@@ -141,7 +141,7 @@ export default function ProductsClient() {
                   <button
                     key={p}
                     type="button"
-                    onClick={() => setPage(p)}
+                    onClick={() => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                     className={`w-10 h-10 text-sm font-semibold border transition-colors ${
                       p === page
                         ? 'bg-zinc-900 text-white border-zinc-900'
@@ -153,7 +153,7 @@ export default function ProductsClient() {
                 ))}
                 <button
                   type="button"
-                  onClick={() => setPage(page + 1)}
+                  onClick={() => { setPage(page + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                   disabled={page === totalPages}
                   className="px-4 py-2 text-sm font-semibold border border-zinc-200 text-zinc-700 hover:border-zinc-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
