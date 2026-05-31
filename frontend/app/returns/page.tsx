@@ -1,67 +1,101 @@
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
+const returnPolicySchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MerchantReturnPolicy',
+  name: 'SNKRS CART Return & Refund Policy',
+  url: `${SITE_URL}/returns`,
+  returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+  merchantReturnDays: 2,
+  returnMethod: 'https://schema.org/ReturnByMail',
+  returnFees: 'https://schema.org/FreeReturn',
+  refundType: 'https://schema.org/FullRefund',
+  applicableCountry: 'IN',
+};
+
 export const metadata = {
-  title: { absolute: 'Returns & Exchanges | SNKRS CART' },
-  description: 'SNKRS CART returns policy — damaged items eligible for return within 48 hours of delivery. Free return shipping. Contact infosnkrscart@gmail.com for support.',
+  title: { absolute: 'Return & Refund Policy | SNKRS CART' },
+  description: 'SNKRS CART return policy — damaged or incorrect items eligible for replacement or full refund within 48 hours of delivery. Contact us at infosnkrscart@gmail.com.',
   alternates: { canonical: `${SITE_URL}/returns` },
   openGraph: {
-    title: 'Returns & Exchanges | SNKRS CART',
-    description: 'Damaged items can be returned within 48 hours. Free return shipping.',
+    title: 'Return & Refund Policy | SNKRS CART',
+    description: 'Damaged or incorrect items eligible for replacement or full refund within 48 hours of delivery.',
     url: `${SITE_URL}/returns`,
     siteName: 'SNKRS CART',
     type: 'website',
   },
-  twitter: { card: 'summary', title: 'Returns & Exchanges | SNKRS CART', description: 'Returns accepted for damaged items within 48 hours of delivery.' },
 };
 
 export default function Returns() {
   return (
-    <main className="max-w-3xl mx-auto px-4 py-16">
-      <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Help</p>
-      <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-3">Returns & Exchanges</h1>
-      <p className="text-sm text-zinc-500 mb-10">At SNKRS CART, we stand behind every product we sell.</p>
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(returnPolicySchema) }} />
+      <main className="max-w-3xl mx-auto px-4 py-16">
+        <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Help</p>
+        <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-3">Return & Refund Policy</h1>
+        <p className="text-sm text-zinc-500 mb-10">Last updated: May 2026 · Applies to all orders on snkrscart.com</p>
 
-      <div className="bg-zinc-900 text-white p-6 mb-10">
-        <h2 className="text-sm font-bold uppercase tracking-widest mb-2">Our Promise to You</h2>
-        <p className="text-sm text-zinc-300 leading-relaxed">
-          Every sneaker you receive from SNKRS CART is 100% authentic and personally verified by us before dispatch. We show you the exact pair — real photos, real product — so you know exactly what you're getting.
-        </p>
-      </div>
-
-      <div className="space-y-8 text-sm text-zinc-600 leading-relaxed">
-        <section>
-          <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">No Return Policy</h2>
-          <p>
-            Because all products are verified authentic and you are shown the actual pair before purchase is finalised, we do not accept returns or exchanges. All sales are final once confirmed.
+        <div className="bg-zinc-900 text-white p-6 mb-10">
+          <h2 className="text-sm font-bold uppercase tracking-widest mb-2">100% Authentic — Our Promise</h2>
+          <p className="text-sm text-zinc-300 leading-relaxed">
+            Every sneaker at SNKRS CART is personally verified for authenticity before dispatch. We photograph the exact pair you will receive and share it with you before confirming your order.
           </p>
-        </section>
+        </div>
 
-        <section>
-          <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Wrong or Defective Item</h2>
-          <p>
-            In the rare event that you receive an item different from what was confirmed, or if the product arrives damaged, we will resolve it immediately — either by replacement or full refund. Please contact us within <strong className="text-zinc-900">48 hours</strong> of delivery with photos of the issue.
-          </p>
-        </section>
+        <div className="space-y-8 text-sm text-zinc-600 leading-relaxed">
 
-        <section>
-          <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Before You Purchase</h2>
-          <ul className="list-disc list-inside space-y-2">
-            <li>We share real photos of the actual pair with you before finalising</li>
-            <li>Confirm your size carefully — size exchanges are not possible</li>
-            <li>Ask us any questions before completing the purchase</li>
-            <li>Once payment is made and order is dispatched, it cannot be cancelled</li>
-          </ul>
-        </section>
+          <section>
+            <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Eligibility for Returns & Refunds</h2>
+            <p className="mb-3">We accept return requests in the following situations:</p>
+            <ul className="list-disc list-inside space-y-2">
+              <li><strong className="text-zinc-900">Wrong item received</strong> — item differs from what was confirmed before purchase</li>
+              <li><strong className="text-zinc-900">Item arrived damaged</strong> — visible damage caused during shipping</li>
+              <li><strong className="text-zinc-900">Authenticity concern</strong> — if you have any doubt about authenticity (all items are verified, but we will resolve any concern)</li>
+            </ul>
+            <p className="mt-3">Return requests must be raised within <strong className="text-zinc-900">48 hours of delivery</strong> with clear photos of the issue.</p>
+          </section>
 
-        <section>
-          <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Contact Us</h2>
-          <p>Have a concern? Reach out before purchasing and we'll answer everything.</p>
-          <div className="mt-3 space-y-1">
-            <a href="mailto:infosnkrscart@gmail.com" className="block text-zinc-900 font-semibold underline">infosnkrscart@gmail.com</a>
-            <a href="tel:+919410903791" className="block text-zinc-900 font-semibold underline">+91 94109 03791 (WhatsApp / Call)</a>
-          </div>
-        </section>
-      </div>
-    </main>
+          <section>
+            <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Non-Eligible Returns</h2>
+            <p className="mb-2">The following are not eligible for return:</p>
+            <ul className="list-disc list-inside space-y-2">
+              <li>Change of mind after purchase</li>
+              <li>Incorrect size selected by the customer (please confirm your size before purchasing)</li>
+              <li>Items that have been worn, used, or had their tags removed</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Refund Process</h2>
+            <p>Once your return request is approved:</p>
+            <ol className="list-decimal list-inside space-y-2 mt-2">
+              <li>We will arrange free return pickup from your address</li>
+              <li>Once the item is received and inspected, a full refund will be processed</li>
+              <li>Refunds are credited within <strong className="text-zinc-900">5–7 business days</strong> via the original payment method</li>
+            </ol>
+          </section>
+
+          <section>
+            <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Before You Purchase</h2>
+            <ul className="list-disc list-inside space-y-2">
+              <li>We share real photos of the actual pair before finalising your order</li>
+              <li>Confirm your size carefully using our <a href="/size-guide" className="underline text-zinc-900">size guide</a></li>
+              <li>Ask us any questions — we are available on WhatsApp and email</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Contact Us</h2>
+            <p className="mb-3">To raise a return request or for any query, contact us within 48 hours of delivery:</p>
+            <div className="space-y-2">
+              <a href="mailto:infosnkrscart@gmail.com" className="block text-zinc-900 font-semibold underline">infosnkrscart@gmail.com</a>
+              <a href="tel:+919410903791" className="block text-zinc-900 font-semibold underline">+91 94109 03791 (WhatsApp / Call)</a>
+              <p className="text-xs text-zinc-500 mt-1">Available Mon–Sat, 10am–7pm IST</p>
+            </div>
+          </section>
+
+        </div>
+      </main>
+    </>
   );
 }
