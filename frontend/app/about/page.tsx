@@ -1,6 +1,27 @@
+import { Metadata } from 'next';
 import Link from 'next/link';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+
+interface SiteContent {
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  htmlContent?: string;
+}
+
+async function getPageContent(): Promise<SiteContent | null> {
+  try {
+    const res = await fetch(`${API}/site-content/about`, { next: { revalidate: 300 } });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
 
 const organizationSchema = {
   '@context': 'https://schema.org',
@@ -49,22 +70,39 @@ const organizationSchema = {
   ],
 };
 
-export const metadata = {
-  title: { absolute: "About SNKRS CART | India's Authentic Sneaker Store" },
-  description: 'Founded in Pauri Garhwal, Uttarakhand in 2020 by sneakerheads who refused to settle for fakes. SNKRS CART delivers 100% authentic Nike, Jordan, Adidas & more across India.',
-  keywords: ['about SNKRS CART', 'authentic sneakers India', 'sneaker store India', 'Nike Jordan Adidas India'],
-  alternates: { canonical: `${SITE_URL}/about` },
-  openGraph: {
-    title: 'About SNKRS CART | India\'s Authentic Sneaker Store',
-    description: 'Founded in Pauri Garhwal, Uttarakhand. 100% authentic Nike, Jordan, Adidas & more. No fakes, no compromise.',
-    url: `${SITE_URL}/about`,
-    siteName: 'SNKRS CART',
-    type: 'website',
-  },
-  twitter: { card: 'summary', title: 'About SNKRS CART', description: 'Founded in Pauri Garhwal, Uttarakhand. 100% authentic sneakers across India.' },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getPageContent();
+  const title = content?.metaTitle || "About SNKRS CART | India's Authentic Sneaker Store";
+  const description = content?.metaDescription ||
+    'Founded in Pauri Garhwal, Uttarakhand in 2020 by sneakerheads who refused to settle for fakes. SNKRS CART delivers 100% authentic Nike, Jordan, Adidas & more across India.';
+  const ogTitle = content?.ogTitle || title;
+  const ogDescription = content?.ogDescription || description;
+  return {
+    title: { absolute: title },
+    description,
+    keywords: content?.metaKeywords
+      ? content.metaKeywords.split(',').map((k) => k.trim())
+      : ['about SNKRS CART', 'authentic sneakers India', 'sneaker store India', 'Nike Jordan Adidas India'],
+    alternates: { canonical: `${SITE_URL}/about` },
+    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/about`, siteName: 'SNKRS CART', type: 'website' },
+    twitter: { card: 'summary', title: ogTitle, description: ogDescription },
+  };
+}
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const content = await getPageContent();
+
+  if (content?.htmlContent) {
+    return (
+      <main className="max-w-4xl mx-auto px-4 py-16">
+        <div
+          className="prose prose-zinc max-w-none"
+          dangerouslySetInnerHTML={{ __html: content.htmlContent }}
+        />
+      </main>
+    );
+  }
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />

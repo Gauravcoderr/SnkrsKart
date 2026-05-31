@@ -21,6 +21,7 @@ import chatLeadRoutes from './routes/chatLeads';
 import loyaltyRoutes from './routes/loyalty';
 import sneakerProfileRoutes from './routes/sneakerProfiles';
 import dropRoutes from './routes/drops';
+import siteContentRoutes from './routes/siteContent';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -87,6 +88,7 @@ app.use('/api/v1/chat', chatLeadRoutes);
 app.use('/api/v1/loyalty', loyaltyRoutes);
 app.use('/api/v1/sneaker-profiles', sneakerProfileRoutes);
 app.use('/api/v1/drops', dropRoutes);
+app.use('/api/v1/site-content', siteContentRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 

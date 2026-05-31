@@ -1,16 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { faqs } from './faqs-data';
+import { faqs as staticFaqs } from './faqs-data';
 
-export default function FAQsAccordion() {
+interface FaqItem { q: string; a: string; }
+
+export default function FAQsAccordion({ items }: { items?: FaqItem[] }) {
   const [open, setOpen] = useState<number | null>(null);
+  const faqs = items && items.length > 0 ? items : staticFaqs;
 
   return (
     <div className="divide-y divide-zinc-100 border-t border-zinc-100">
       {faqs.map((faq, i) => (
         <div key={i}>
           <button
+            type="button"
             onClick={() => setOpen(open === i ? null : i)}
             className="w-full flex items-center justify-between py-4 text-left gap-4"
           >

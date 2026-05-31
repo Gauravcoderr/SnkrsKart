@@ -15,6 +15,7 @@ import { User } from '../models/User';
 import ChatLead from '../models/ChatLead';
 import { SneakerProfile } from '../models/SneakerProfile';
 import { Drop } from '../models/Drop';
+import { SiteContent } from '../models/SiteContent';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET as string;
@@ -501,6 +502,68 @@ router.delete('/drops/:id', adminAuth, async (req: Request, res: Response): Prom
     res.json({ message: 'Deleted' });
   } catch {
     res.status(500).json({ error: 'Failed to delete' });
+  }
+});
+
+// ─── Site Content ─────────────────────────────────────────────────────────
+
+const PAGE_DEFS = [
+  { pageKey: 'home',     label: 'Homepage' },
+  { pageKey: 'faq',      label: 'FAQs' },
+  { pageKey: 'privacy',  label: 'Privacy Policy' },
+  { pageKey: 'about',    label: 'About Us' },
+  { pageKey: 'terms',    label: 'Terms & Conditions' },
+  { pageKey: 'products', label: 'Products' },
+  { pageKey: 'brands',   label: 'Brands' },
+  { pageKey: 'blogs',    label: 'Blogs' },
+  { pageKey: 'drops',    label: 'Drop Calendar' },
+  { pageKey: 'sneakers', label: 'Sneaker Guide' },
+];
+
+const EMPTY_CONTENT = {
+  metaTitle: '', metaDescription: '', metaKeywords: '',
+  ogTitle: '', ogDescription: '', htmlContent: '', faqItems: [],
+};
+
+router.get('/site-content', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const existing = await SiteContent.find().lean();
+    const map = new Map(existing.map((d) => [d.pageKey, d]));
+    const result = PAGE_DEFS.map((def) => ({
+      ...EMPTY_CONTENT,
+      ...(map.get(def.pageKey) || {}),
+      pageKey: def.pageKey,
+      label: def.label,
+    }));
+    res.json(result);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch site content' });
+  }
+});
+
+router.get('/site-content/:pageKey', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const def = PAGE_DEFS.find((d) => d.pageKey === req.params.pageKey);
+    if (!def) { res.status(404).json({ error: 'Unknown page key' }); return; }
+    const content = await SiteContent.findOne({ pageKey: req.params.pageKey }).lean();
+    res.json(content || { ...EMPTY_CONTENT, pageKey: def.pageKey, label: def.label });
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch content' });
+  }
+});
+
+router.put('/site-content/:pageKey', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const def = PAGE_DEFS.find((d) => d.pageKey === req.params.pageKey);
+    if (!def) { res.status(404).json({ error: 'Unknown page key' }); return; }
+    const content = await SiteContent.findOneAndUpdate(
+      { pageKey: req.params.pageKey },
+      { $set: { ...req.body, pageKey: req.params.pageKey, label: def.label } },
+      { new: true, upsert: true, runValidators: true }
+    );
+    res.json(content);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to update content' });
   }
 });
 

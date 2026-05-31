@@ -1,25 +1,59 @@
+import { Metadata } from 'next';
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
-export const metadata = {
-  title: { absolute: 'Terms of Service | SNKRS CART' },
-  description: 'Terms of Service for SNKRS CART — India\'s authentic sneaker store. Read about our inquiry-based purchase process, return policy, and product authenticity guarantee.',
-  alternates: { canonical: `${SITE_URL}/terms` },
-  robots: { index: true, follow: true },
-  openGraph: {
-    title: 'Terms of Service | SNKRS CART',
-    description: 'Inquiry-based purchase model, 100% authentic products, and transparent policies at SNKRS CART.',
-    url: `${SITE_URL}/terms`,
-    siteName: 'SNKRS CART',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary',
-    title: 'Terms of Service | SNKRS CART',
-    description: 'Inquiry-based purchase model, 100% authentic products, and transparent policies at SNKRS CART.',
-  },
-};
+interface SiteContent {
+  metaTitle?: string;
+  metaDescription?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  htmlContent?: string;
+}
 
-export default function TermsOfService() {
+async function getPageContent(): Promise<SiteContent | null> {
+  try {
+    const res = await fetch(`${API}/site-content/terms`, { next: { revalidate: 300 } });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getPageContent();
+  const title = content?.metaTitle || 'Terms of Service | SNKRS CART';
+  const description = content?.metaDescription ||
+    "Terms of Service for SNKRS CART — India's authentic sneaker store. Read about our inquiry-based purchase process, return policy, and product authenticity guarantee.";
+  const ogTitle = content?.ogTitle || title;
+  const ogDescription = content?.ogDescription || description;
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical: `${SITE_URL}/terms` },
+    robots: { index: true, follow: true },
+    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/terms`, siteName: 'SNKRS CART', type: 'website' },
+    twitter: { card: 'summary', title: ogTitle, description: ogDescription },
+  };
+}
+
+export default async function TermsOfService() {
+  const content = await getPageContent();
+
+  if (content?.htmlContent) {
+    return (
+      <main className="max-w-3xl mx-auto px-4 py-16">
+        <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Legal</p>
+        <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-8">Terms of Service</h1>
+        <div
+          className="prose prose-zinc prose-sm max-w-none"
+          dangerouslySetInnerHTML={{ __html: content.htmlContent }}
+        />
+      </main>
+    );
+  }
+
   return (
     <main className="max-w-3xl mx-auto px-4 py-16">
       <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Legal</p>
