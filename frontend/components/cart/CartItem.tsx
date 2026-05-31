@@ -44,7 +44,7 @@ export default function CartItem({ item, compact = false }: CartItemProps) {
               </p>
             </Link>
             <p className="text-xs text-zinc-400 mt-0.5">{product.colorway}</p>
-            <p className="text-xs text-zinc-500 mt-0.5">Size: UK {size}</p>
+            <p className="text-xs text-zinc-500 mt-0.5">Size: {typeof size === 'number' ? `UK ${size}` : size}</p>
           </div>
           <p className="text-sm font-bold text-zinc-900 shrink-0">
             {formatPrice(product.price * quantity)}

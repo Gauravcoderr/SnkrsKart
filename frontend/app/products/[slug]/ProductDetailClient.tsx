@@ -20,7 +20,7 @@ interface ProductDetailClientProps {
 export default function ProductDetailClient({ product }: ProductDetailClientProps) {
   const { toggle, isWishlisted } = useWishlist();
   const wishlisted = isWishlisted(product.slug);
-  const [selectedSize, setSelectedSize] = useState<number | null>(null);
+  const [selectedSize, setSelectedSize] = useState<number | string | null>(null);
   const [showSizeError, setShowSizeError] = useState(false);
   const [currentPrice, setCurrentPrice] = useState(product.price);
   const [showModal, setShowModal] = useState(false);
@@ -50,7 +50,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
   const hasVariants = (product.variants?.length ?? 0) > 0;
 
-  const handleSizeSelect = (size: number) => {
+  const handleSizeSelect = (size: number | string) => {
     setSelectedSize(size);
     if (hasVariants) {
       const variant = product.variants!.find((v) => v.size === size);
@@ -152,8 +152,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           {/* Size selector */}
           <div ref={sizeSectionRef}>
             <SizeSelector
+              productType={product.productType}
               sizes={product.sizes}
               availableSizes={product.availableSizes}
+              stringSizes={product.stringSizes}
+              availableStringSizes={product.availableStringSizes}
               selectedSize={selectedSize}
               onSizeSelect={handleSizeSelect}
               showError={showSizeError}
@@ -199,12 +202,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </div>
         ))}
       </div>
-      {/* Size guide modal */}
-      <SizeGuideModal
-        open={showSizeGuide}
-        onClose={() => setShowSizeGuide(false)}
-        gender={product.gender}
-      />
+      {/* Size guide modal — shoes only */}
+      {(!product.productType || product.productType === 'shoes') && (
+        <SizeGuideModal
+          open={showSizeGuide}
+          onClose={() => setShowSizeGuide(false)}
+          gender={product.gender}
+        />
+      )}
       {/* Purchase modal */}
       {showModal && (
         <PurchaseModal

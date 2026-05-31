@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IVariant {
-  size: number;
+  size: number | string;
   price: number;
   originalPrice: number | null;
   maxQty: number;
@@ -21,6 +21,9 @@ export interface IProduct extends Document {
   hoverImage: string;
   sizes: number[];
   availableSizes: number[];
+  stringSizes: string[];
+  availableStringSizes: string[];
+  productType: 'shoes' | 'clothing' | 'accessories';
   colors: string[];
   tags: string[];
   variants: IVariant[];
@@ -50,11 +53,14 @@ const ProductSchema = new Schema<IProduct>(
     discount:      { type: Number, default: null },
     images:        [{ type: String }],
     hoverImage:    { type: String, required: true },
-    sizes:         [{ type: Number }],
-    availableSizes:[{ type: Number }],
+    sizes:                [{ type: Number }],
+    availableSizes:       [{ type: Number }],
+    stringSizes:          [{ type: String }],
+    availableStringSizes: [{ type: String }],
+    productType:          { type: String, enum: ['shoes', 'clothing', 'accessories'], default: 'shoes', index: true },
     colors:        [{ type: String }],
     tags:          [{ type: String }],
-    variants:      [{ size: Number, price: Number, originalPrice: { type: Number, default: null }, maxQty: { type: Number, default: 1 } }],
+    variants:      [{ size: { type: Schema.Types.Mixed }, price: Number, originalPrice: { type: Number, default: null }, maxQty: { type: Number, default: 1 } }],
     faqs:          [{ question: { type: String, default: '' }, answer: { type: String, default: '' } }],
     featured:      { type: Boolean, default: false, index: true },
     trending:      { type: Boolean, default: false, index: true },
@@ -80,6 +86,8 @@ const ProductSchema = new Schema<IProduct>(
     },
   }
 );
+
+ProductSchema.index({ productType: 1, comingSoon: -1, soldOut: 1, reviewCount: -1 });
 
 // Text search index for name, brand, colorway, tags
 ProductSchema.index({ name: 'text', brand: 'text', colorway: 'text', tags: 'text' });

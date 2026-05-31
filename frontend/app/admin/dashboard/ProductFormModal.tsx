@@ -4,6 +4,7 @@ import { useState, FormEvent, useEffect, useRef } from 'react';
 import { Product } from '@/types';
 import { compressImage } from '@/lib/compressImage';
 import { uploadImage } from '@/lib/uploadImage';
+import { SHOE_SIZES, CLOTHING_SIZES, ACCESSORY_SIZES, CATEGORIES_BY_TYPE } from '@/lib/constants';
 
 interface Props {
   product: Product | null;
@@ -12,14 +13,13 @@ interface Props {
 }
 
 const GENDERS = ['men', 'women', 'unisex', 'kids'] as const;
-const CATEGORIES = ['lifestyle', 'basketball', 'running', 'skateboarding', 'casual', 'training'] as const;
-
-function parseSizes(str: string): number[] {
-  return str.split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n) && n > 0);
-}
+type ProductType = 'shoes' | 'clothing' | 'accessories';
 
 export default function ProductFormModal({ product, onSave, onClose }: Props) {
   const isEdit = !!product;
+  const [productType, setProductType] = useState<ProductType>(product?.productType ?? 'shoes');
+
+  const categoriesForType = CATEGORIES_BY_TYPE[productType];
 
   const [form, setForm] = useState({
     name: product?.name || '',
@@ -28,10 +28,8 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     colorway: product?.colorway || '',
     gender: product?.gender || 'unisex',
     description: product?.description || '',
-    category: product?.category || 'lifestyle',
+    category: product?.category || categoriesForType[0],
     sku: product?.sku || '',
-    sizes: product?.sizes?.join(', ') || '',
-    availableSizes: product?.availableSizes?.join(', ') || '',
     colors: product?.colors?.join(', ') || '',
     tags: product?.tags?.join(', ') || '',
     imageList: product?.images?.length ? [...product.images] : [''],
@@ -46,67 +44,116 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
       : [] as Array<{ question: string; answer: string }>,
   });
 
+  // ── Size selection state (chip-based) ────────────────────────────────────
+  // Shoes: Set<number>
+  const [selectedSizes, setSelectedSizes] = useState<Set<number>>(() => new Set(product?.sizes ?? []));
+  const [availableNumericSizes, setAvailableNumericSizes] = useState<Set<number>>(() => new Set(product?.availableSizes ?? []));
+  // Clothing/Accessories: Set<string>
+  const [selectedStringSizes, setSelectedStringSizes] = useState<Set<string>>(() => new Set(product?.stringSizes ?? []));
+  const [availableStringSizes, setAvailableStringSizes] = useState<Set<string>>(() => new Set(product?.availableStringSizes ?? []));
+
+  // When productType changes, reset category to first of new type
+  function handleProductTypeChange(type: ProductType) {
+    setProductType(type);
+    set('category', CATEGORIES_BY_TYPE[type][0]);
+  }
+
+  function toggleNumericSize(size: number) {
+    setSelectedSizes((prev) => {
+      const next = new Set(prev);
+      if (next.has(size)) {
+        next.delete(size);
+        setAvailableNumericSizes((a) => { const na = new Set(a); na.delete(size); return na; });
+      } else {
+        next.add(size);
+      }
+      return next;
+    });
+  }
+
+  function toggleNumericAvailable(size: number) {
+    if (!selectedSizes.has(size)) return;
+    setAvailableNumericSizes((prev) => {
+      const next = new Set(prev);
+      next.has(size) ? next.delete(size) : next.add(size);
+      return next;
+    });
+  }
+
+  function toggleStringSize(size: string) {
+    setSelectedStringSizes((prev) => {
+      const next = new Set(prev);
+      if (next.has(size)) {
+        next.delete(size);
+        setAvailableStringSizes((a) => { const na = new Set(a); na.delete(size); return na; });
+      } else {
+        next.add(size);
+      }
+      return next;
+    });
+  }
+
+  function toggleStringAvailable(size: string) {
+    if (!selectedStringSizes.has(size)) return;
+    setAvailableStringSizes((prev) => {
+      const next = new Set(prev);
+      next.has(size) ? next.delete(size) : next.add(size);
+      return next;
+    });
+  }
+
   // ── Pricing state ────────────────────────────────────────────────────────
-  const [samePriceForAll, setSamePriceForAll] = useState(
-    !product?.variants?.length
-  );
-  const [uniformPrice, setUniformPrice] = useState(
-    String(product?.price || '')
-  );
-  const [uniformOriginal, setUniformOriginal] = useState(
-    String(product?.originalPrice || '')
-  );
-  const [uniformMaxQty, setUniformMaxQty] = useState(
-    String(product?.variants?.[0]?.maxQty ?? 1)
-  );
-  // per-size prices keyed by size number
-  const [variantPrices, setVariantPrices] = useState<Record<number, { price: string; originalPrice: string; maxQty: string }>>(() => {
-    const map: Record<number, { price: string; originalPrice: string; maxQty: string }> = {};
+  const [samePriceForAll, setSamePriceForAll] = useState(!product?.variants?.length);
+  const [uniformPrice, setUniformPrice] = useState(String(product?.price || ''));
+  const [uniformOriginal, setUniformOriginal] = useState(String(product?.originalPrice || ''));
+  const [uniformMaxQty, setUniformMaxQty] = useState(String(product?.variants?.[0]?.maxQty ?? 1));
+
+  // per-size prices keyed by size (number or string)
+  const [variantPrices, setVariantPrices] = useState<Record<string, { price: string; originalPrice: string; maxQty: string }>>(() => {
+    const map: Record<string, { price: string; originalPrice: string; maxQty: string }> = {};
     if (product?.variants?.length) {
       for (const v of product.variants) {
-        map[v.size] = { price: String(v.price), originalPrice: String(v.originalPrice ?? ''), maxQty: String(v.maxQty ?? 1) };
+        map[String(v.size)] = { price: String(v.price), originalPrice: String(v.originalPrice ?? ''), maxQty: String(v.maxQty ?? 1) };
       }
     }
     return map;
   });
 
-  // When sizes field changes, keep variantPrices in sync (preserve existing, add new)
-  const parsedSizes = parseSizes(form.sizes);
+  // Keep variantPrices in sync with selected sizes
+  const activeSizeKeys = productType === 'shoes'
+    ? Array.from(selectedSizes).map(String)
+    : Array.from(selectedStringSizes);
 
   useEffect(() => {
     setVariantPrices((prev) => {
-      const next: Record<number, { price: string; originalPrice: string; maxQty: string }> = {};
-      for (const size of parsedSizes) {
-        next[size] = prev[size] ?? { price: uniformPrice, originalPrice: uniformOriginal, maxQty: uniformMaxQty };
+      const next: Record<string, { price: string; originalPrice: string; maxQty: string }> = {};
+      for (const key of activeSizeKeys) {
+        next[key] = prev[key] ?? { price: uniformPrice, originalPrice: uniformOriginal, maxQty: uniformMaxQty };
       }
       return next;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.sizes]);
+  }, [selectedSizes, selectedStringSizes, productType]);
 
-  // When "same price" is toggled on, pre-fill all sizes with uniform values
   function handleSamePriceToggle(checked: boolean) {
     setSamePriceForAll(checked);
     if (checked) {
       setVariantPrices((prev) => {
         const next = { ...prev };
-        for (const size of parsedSizes) {
-          next[size] = { price: uniformPrice, originalPrice: uniformOriginal, maxQty: uniformMaxQty };
+        for (const key of activeSizeKeys) {
+          next[key] = { price: uniformPrice, originalPrice: uniformOriginal, maxQty: uniformMaxQty };
         }
         return next;
       });
     }
   }
 
-  // When uniform price changes, push to all variants
   function handleUniformPriceChange(price: string) {
     setUniformPrice(price);
     if (samePriceForAll) {
       setVariantPrices((prev) => {
         const next = { ...prev };
-        for (const size of parsedSizes) {
-          next[size] = { ...next[size], price };
-        }
+        for (const key of activeSizeKeys) next[key] = { ...next[key], price };
         return next;
       });
     }
@@ -117,9 +164,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     if (samePriceForAll) {
       setVariantPrices((prev) => {
         const next = { ...prev };
-        for (const size of parsedSizes) {
-          next[size] = { ...next[size], originalPrice: orig };
-        }
+        for (const key of activeSizeKeys) next[key] = { ...next[key], originalPrice: orig };
         return next;
       });
     }
@@ -130,19 +175,14 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     if (samePriceForAll) {
       setVariantPrices((prev) => {
         const next = { ...prev };
-        for (const size of parsedSizes) {
-          next[size] = { ...next[size], maxQty: qty };
-        }
+        for (const key of activeSizeKeys) next[key] = { ...next[key], maxQty: qty };
         return next;
       });
     }
   }
 
-  function setVariantField(size: number, field: 'price' | 'originalPrice' | 'maxQty', value: string) {
-    setVariantPrices((prev) => ({
-      ...prev,
-      [size]: { ...prev[size], [field]: value },
-    }));
+  function setVariantField(key: string, field: 'price' | 'originalPrice' | 'maxQty', value: string) {
+    setVariantPrices((prev) => ({ ...prev, [key]: { ...prev[key], [field]: value } }));
   }
 
   // ── Form helpers ─────────────────────────────────────────────────────────
@@ -161,7 +201,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : '';
       const res = await fetch('/api/remove-bg', { method: 'POST', body: file, headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) return file; // fall back silently
+      if (!res.ok) return file;
       const blob = await res.blob();
       return new File([blob], file.name.replace(/\.[^.]+$/, '.png'), { type: 'image/png' });
     } catch {
@@ -217,29 +257,29 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     setSaving(true);
 
     try {
-      const sizes = parsedSizes;
+      const isShoes = productType === 'shoes';
+      const numericSizes = Array.from(selectedSizes).sort((a, b) => a - b);
+      const strSizes = Array.from(selectedStringSizes);
+      const strAvailable = Array.from(availableStringSizes);
 
-      // Build variants array
-      const variants = sizes.map((size) => {
-        const entry = variantPrices[size] ?? { price: uniformPrice, originalPrice: uniformOriginal, maxQty: uniformMaxQty };
+      // Build variants
+      const variantKeys = isShoes ? numericSizes.map(String) : strSizes;
+      const variants = variantKeys.map((key) => {
+        const entry = variantPrices[key] ?? { price: uniformPrice, originalPrice: uniformOriginal, maxQty: uniformMaxQty };
         const price = Number(entry.price);
         const originalPrice = entry.originalPrice ? Number(entry.originalPrice) : null;
         const maxQty = Math.max(1, Number(entry.maxQty) || 1);
+        const size = isShoes ? Number(key) : key;
         return { size, price, originalPrice, maxQty };
       });
 
-      // Base price = min of variant prices (or uniform)
-      const basePrice = variants.length
-        ? Math.min(...variants.map((v) => v.price))
-        : Number(uniformPrice);
-
+      const basePrice = variants.length ? Math.min(...variants.map((v) => v.price)) : Number(uniformPrice);
       const baseOriginal = variants.length
         ? (() => {
             const origs = variants.map((v) => v.originalPrice).filter((v): v is number => v !== null);
             return origs.length ? Math.min(...origs) : null;
           })()
         : (uniformOriginal ? Number(uniformOriginal) : null);
-
       const discount = baseOriginal && baseOriginal > basePrice
         ? Math.round(((baseOriginal - basePrice) / baseOriginal) * 100)
         : null;
@@ -256,8 +296,11 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
         description: form.description.trim(),
         category: form.category.trim(),
         sku: form.sku.trim(),
-        sizes,
-        availableSizes: form.availableSizes.split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n)),
+        productType,
+        sizes: isShoes ? numericSizes : [],
+        availableSizes: isShoes ? Array.from(availableNumericSizes).sort((a, b) => a - b) : [],
+        stringSizes: isShoes ? [] : strSizes,
+        availableStringSizes: isShoes ? [] : strAvailable,
         colors: form.colors.split(',').map((c) => c.trim().toLowerCase()).filter(Boolean),
         tags: form.tags.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean),
         images: form.imageList.map((u) => u.trim()).filter(Boolean),
@@ -281,6 +324,10 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     }
   }
 
+  const sizeOptionsForType: string[] = productType === 'clothing'
+    ? [...CLOTHING_SIZES]
+    : [...ACCESSORY_SIZES];
+
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pt-8 pb-8">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -290,7 +337,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
           <h2 className="text-lg font-semibold text-white">
             {isEdit ? 'Edit Product' : 'Add Product'}
           </h2>
-          <button onClick={onClose} className="text-zinc-400 hover:text-white text-xl leading-none">&times;</button>
+          <button type="button" onClick={onClose} className="text-zinc-400 hover:text-white text-xl leading-none">&times;</button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
@@ -299,6 +346,27 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
               {error}
             </div>
           )}
+
+          {/* Product Type selector */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-400 mb-2">Product Type *</label>
+            <div className="grid grid-cols-3 gap-2">
+              {(['shoes', 'clothing', 'accessories'] as ProductType[]).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => handleProductTypeChange(type)}
+                  className={`py-2.5 text-sm font-semibold rounded-lg border transition-all ${
+                    productType === type
+                      ? 'bg-white text-zinc-900 border-white'
+                      : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-500 hover:text-zinc-200'
+                  }`}
+                >
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Name + Brand */}
           <div className="grid grid-cols-2 gap-4">
@@ -322,7 +390,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
                 onChange={(e) => set('category', e.target.value)}
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/20"
               >
-                {CATEGORIES.map((c) => (
+                {categoriesForType.map((c) => (
                   <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
                 ))}
               </select>
@@ -357,11 +425,102 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
             />
           </div>
 
-          {/* Sizes + Available Sizes */}
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Sizes (comma-separated)" value={form.sizes} onChange={(v) => set('sizes', v)} placeholder="6, 7, 8, 9, 10" />
-            <Field label="Available Sizes" value={form.availableSizes} onChange={(v) => set('availableSizes', v)} placeholder="6, 7, 8" />
+          {/* ── Size chips ───────────────────────────────────────────────── */}
+          <div className="border border-zinc-700 rounded-lg p-4 space-y-3">
+            <div>
+              <p className="text-sm font-semibold text-white mb-2">
+                {productType === 'shoes' ? 'Sizes (UK)' : 'Sizes'}
+                <span className="ml-2 text-xs font-normal text-zinc-400">click to select · bottom row = in-stock</span>
+              </p>
+
+              {productType === 'shoes' ? (
+                <div className="space-y-2">
+                  {/* All sizes row */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {SHOE_SIZES.map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => toggleNumericSize(size)}
+                        className={`px-2.5 py-1.5 text-xs font-semibold border rounded transition-all ${
+                          selectedSizes.has(size)
+                            ? 'bg-white text-zinc-900 border-white'
+                            : 'bg-zinc-800 text-zinc-400 border-zinc-600 hover:border-zinc-400'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Available row */}
+                  {selectedSizes.size > 0 && (
+                    <div>
+                      <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1.5">In Stock (Available)</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {Array.from(selectedSizes).sort((a, b) => a - b).map((size) => (
+                          <button
+                            key={size}
+                            type="button"
+                            onClick={() => toggleNumericAvailable(size)}
+                            className={`px-2.5 py-1.5 text-xs font-semibold border rounded transition-all ${
+                              availableNumericSizes.has(size)
+                                ? 'bg-emerald-500 text-white border-emerald-500'
+                                : 'bg-zinc-800 text-zinc-500 border-zinc-600 hover:border-zinc-400'
+                            }`}
+                          >
+                            {size}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {/* All sizes row */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {sizeOptionsForType.map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => toggleStringSize(size)}
+                        className={`px-3 py-1.5 text-xs font-semibold border rounded transition-all ${
+                          selectedStringSizes.has(size)
+                            ? 'bg-white text-zinc-900 border-white'
+                            : 'bg-zinc-800 text-zinc-400 border-zinc-600 hover:border-zinc-400'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Available row */}
+                  {selectedStringSizes.size > 0 && (
+                    <div>
+                      <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1.5">In Stock (Available)</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {Array.from(selectedStringSizes).map((size) => (
+                          <button
+                            key={size}
+                            type="button"
+                            onClick={() => toggleStringAvailable(size)}
+                            className={`px-3 py-1.5 text-xs font-semibold border rounded transition-all ${
+                              availableStringSizes.has(size)
+                                ? 'bg-emerald-500 text-white border-emerald-500'
+                                : 'bg-zinc-800 text-zinc-500 border-zinc-600 hover:border-zinc-400'
+                            }`}
+                          >
+                            {size}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
+          {/* ───────────────────────────────────────────────────────────────── */}
 
           {/* ── Pricing per size ─────────────────────────────────────────── */}
           <div className="border border-zinc-700 rounded-lg p-4 space-y-4">
@@ -379,7 +538,6 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
             </div>
 
             {samePriceForAll ? (
-              /* Uniform price inputs */
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-zinc-400 mb-1.5">Price (₹) *</label>
@@ -415,42 +573,42 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
                 </div>
               </div>
             ) : (
-              /* Per-size pricing grid */
               <div className="space-y-2">
-                {parsedSizes.length === 0 ? (
-                  <p className="text-xs text-zinc-500 italic">Enter sizes above to set per-size prices.</p>
+                {activeSizeKeys.length === 0 ? (
+                  <p className="text-xs text-zinc-500 italic">Select sizes above to set per-size prices.</p>
                 ) : (
                   <>
-                    {/* Header row */}
-                    <div className="grid grid-cols-[70px_1fr_1fr_80px] gap-3 text-xs font-medium text-zinc-500 pb-1 border-b border-zinc-800">
-                      <span>UK Size</span>
+                    <div className="grid grid-cols-[80px_1fr_1fr_80px] gap-3 text-xs font-medium text-zinc-500 pb-1 border-b border-zinc-800">
+                      <span>{productType === 'shoes' ? 'UK Size' : 'Size'}</span>
                       <span>Price (₹) *</span>
                       <span>Original (₹)</span>
                       <span>Max Qty</span>
                     </div>
-                    {parsedSizes.map((size) => (
-                      <div key={size} className="grid grid-cols-[70px_1fr_1fr_80px] gap-3 items-center">
-                        <span className="text-sm font-semibold text-zinc-300">UK {size}</span>
+                    {activeSizeKeys.map((key) => (
+                      <div key={key} className="grid grid-cols-[80px_1fr_1fr_80px] gap-3 items-center">
+                        <span className="text-sm font-semibold text-zinc-300">
+                          {productType === 'shoes' ? `UK ${key}` : key}
+                        </span>
                         <input
                           type="number"
-                          value={variantPrices[size]?.price ?? ''}
-                          onChange={(e) => setVariantField(size, 'price', e.target.value)}
+                          value={variantPrices[key]?.price ?? ''}
+                          onChange={(e) => setVariantField(key, 'price', e.target.value)}
                           placeholder="Price"
                           required
                           className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
                         />
                         <input
                           type="number"
-                          value={variantPrices[size]?.originalPrice ?? ''}
-                          onChange={(e) => setVariantField(size, 'originalPrice', e.target.value)}
+                          value={variantPrices[key]?.originalPrice ?? ''}
+                          onChange={(e) => setVariantField(key, 'originalPrice', e.target.value)}
                           placeholder="Optional"
                           className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
                         />
                         <input
                           type="number"
                           min={1}
-                          value={variantPrices[size]?.maxQty ?? '1'}
-                          onChange={(e) => setVariantField(size, 'maxQty', e.target.value)}
+                          value={variantPrices[key]?.maxQty ?? '1'}
+                          onChange={(e) => setVariantField(key, 'maxQty', e.target.value)}
                           placeholder="1"
                           className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
                         />
@@ -501,7 +659,6 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
                       placeholder={`Image URL ${i + 1} or upload →`}
                       className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 font-mono"
                     />
-                    {/* Hidden file input */}
                     <input
                       type="file"
                       accept="image/*"
@@ -711,8 +868,6 @@ function Field({
 
 function ImagePreview({ url, label }: { url: string; label: string }) {
   const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading');
-
-  // Reset when URL changes
   useEffect(() => { setStatus('loading'); }, [url]);
 
   return (

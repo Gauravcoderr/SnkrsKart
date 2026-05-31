@@ -8,8 +8,8 @@ import { useCart } from '@/context/CartContext';
 
 interface StickyCartBarProps {
   product: Product;
-  selectedSize: number | null;
-  onSizeSelect: (size: number) => void;
+  selectedSize: number | string | null;
+  onSizeSelect: (size: number | string) => void;
   onRequireSize: () => void;
   /** Ref to the main Add to Bag button — bar appears when it scrolls out of view */
   triggerRef: RefObject<HTMLElement>;
@@ -42,7 +42,13 @@ export default function StickyCartBar({
   // Cart drawer overlaps the sticky bar only on mobile (slides up from bottom)
   if (isDrawerOpen && window.innerWidth < 768) return null;
 
-  const quickSizes = (product.availableSizes ?? []).slice(0, 6);
+  const isStringMode = product.productType !== 'shoes' && (product.stringSizes?.length ?? 0) > 0;
+  const quickSizes = isStringMode
+    ? (product.availableStringSizes ?? product.stringSizes ?? []).slice(0, 6)
+    : (product.availableSizes ?? []).slice(0, 6);
+  const totalSizes = isStringMode
+    ? (product.availableStringSizes ?? product.stringSizes ?? []).length
+    : product.availableSizes.length;
 
   const handleAdd = async () => {
     if (!selectedSize) {
@@ -81,7 +87,7 @@ export default function StickyCartBar({
 
         {/* Size pills */}
         <div className="flex items-center gap-1.5 flex-1 overflow-x-auto scrollbar-hide">
-          <span className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 shrink-0 hidden sm:block">Size (UK)</span>
+          <span className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 shrink-0 hidden sm:block">{isStringMode ? 'Size' : 'Size (UK)'}</span>
           {quickSizes.map((size) => (
             <button
               key={size}
@@ -96,8 +102,8 @@ export default function StickyCartBar({
               {size}
             </button>
           ))}
-          {product.availableSizes.length > 6 && (
-            <span className="text-xs text-zinc-400 shrink-0 pl-1">+{product.availableSizes.length - 6} more</span>
+          {totalSizes > 6 && (
+            <span className="text-xs text-zinc-400 shrink-0 pl-1">+{totalSizes - 6} more</span>
           )}
         </div>
 
@@ -114,7 +120,7 @@ export default function StickyCartBar({
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
           ) : (
-            <>Add to Bag{selectedSize ? ` — UK ${selectedSize}` : ''}</>
+            <>Add to Bag{selectedSize ? ` — ${typeof selectedSize === 'number' ? `UK ${selectedSize}` : selectedSize}` : ''}</>
           )}
         </button>
       </div>

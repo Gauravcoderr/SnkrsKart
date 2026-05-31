@@ -12,9 +12,12 @@ export interface Product {
   hoverImage: string;
   sizes: number[];
   availableSizes: number[];
+  stringSizes?: string[];
+  availableStringSizes?: string[];
+  productType?: 'shoes' | 'clothing' | 'accessories';
   colors: string[];
   tags: string[];
-  variants?: Array<{ size: number; price: number; originalPrice: number | null; maxQty: number }>;
+  variants?: Array<{ size: number | string; price: number; originalPrice: number | null; maxQty: number }>;
   faqs?: Array<{ question: string; answer: string }>;
   featured: boolean;
   trending: boolean;
@@ -42,7 +45,7 @@ export interface Brand {
 
 export interface CartItem {
   product: Product;
-  size: number;
+  size: number | string;
   quantity: number;
 }
 
@@ -51,6 +54,8 @@ export type SortOption = 'newest' | 'popular' | 'price_asc' | 'price_desc';
 export interface FilterState {
   brands: string[];
   sizes: number[];
+  stringSizes: string[];
+  productTypes: string[];
   colors: string[];
   gender: string[];
   minPrice: number;

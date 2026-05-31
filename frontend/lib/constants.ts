@@ -61,6 +61,14 @@ export const BRANDS = [
 
 // ─── Product filter options ───────────────────────────────────────────────────
 export const SHOE_SIZES = [5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12];
+export const CLOTHING_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'] as const;
+export const ACCESSORY_SIZES = ['One Size', 'S/M', 'M/L'] as const;
+export const PRODUCT_TYPES = ['shoes', 'clothing', 'accessories'] as const;
+export const CATEGORIES_BY_TYPE = {
+  shoes: ['lifestyle', 'basketball', 'running', 'skateboarding', 'casual', 'training'],
+  clothing: ['t-shirts', 'hoodies', 'jackets', 'pants', 'shorts'],
+  accessories: ['caps', 'bags', 'socks', 'keychains', 'other'],
+} as const;
 export const GENDERS = ['men', 'women', 'unisex'] as const;
 
 export const SORT_OPTIONS = [

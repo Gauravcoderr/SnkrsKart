@@ -535,7 +535,7 @@ export default function CheckoutPage() {
                       <Link href={`/products/${item.product.slug}`} className="text-sm font-semibold text-zinc-900 truncate hover:text-zinc-500 transition-colors block">
                         {item.product.name}
                       </Link>
-                      <p className="text-xs text-zinc-500">UK {item.size} · Qty {item.quantity}</p>
+                      <p className="text-xs text-zinc-500">{typeof item.size === 'number' ? `UK ${item.size}` : item.size} · Qty {item.quantity}</p>
                     </div>
                     <p className="text-sm font-bold text-zinc-900 shrink-0">{formatPrice(item.product.price * item.quantity)}</p>
                   </div>
@@ -738,7 +738,7 @@ export default function CheckoutPage() {
                     <Link href={`/products/${item.product.slug}`} className="text-xs font-semibold text-zinc-900 truncate hover:text-zinc-500 transition-colors block">
                       {item.product.name}
                     </Link>
-                    <p className="text-[10px] text-zinc-400 mt-0.5">UK {item.size} · Qty {item.quantity}</p>
+                    <p className="text-[10px] text-zinc-400 mt-0.5">{typeof item.size === 'number' ? `UK ${item.size}` : item.size} · Qty {item.quantity}</p>
                   </div>
                   <p className="text-xs font-bold text-zinc-900 shrink-0">{formatPrice(item.product.price * item.quantity)}</p>
                 </div>

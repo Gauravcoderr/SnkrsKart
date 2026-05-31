@@ -8,7 +8,7 @@ type ButtonState = 'idle' | 'adding' | 'added';
 
 interface AddToCartButtonProps {
   product: Product;
-  selectedSize: number | null;
+  selectedSize: number | string | null;
   onRequireSize: () => void;
 }
 

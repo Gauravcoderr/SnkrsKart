@@ -5,7 +5,7 @@ import { restockNotify } from '@/lib/api';
 
 interface RestockNotifyProps {
   productSlug: string;
-  selectedSize?: number | null;
+  selectedSize?: number | string | null;
 }
 
 type State = 'idle' | 'open' | 'loading' | 'success' | 'error';
@@ -35,7 +35,7 @@ export default function RestockNotify({ productSlug, selectedSize }: RestockNoti
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
         </svg>
         <p className="text-xs font-semibold text-emerald-700">
-          You&apos;re on the list! We&apos;ll email you when this{selectedSize ? ` (UK ${selectedSize})` : ''} is back.
+          You&apos;re on the list! We&apos;ll email you when this{selectedSize ? ` (${typeof selectedSize === 'number' ? `UK ${selectedSize}` : selectedSize})` : ''} is back.
         </p>
       </div>
     );
@@ -51,7 +51,7 @@ export default function RestockNotify({ productSlug, selectedSize }: RestockNoti
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
-        Notify Me When Back in Stock{selectedSize ? ` — UK ${selectedSize}` : ''}
+        Notify Me When Back in Stock{selectedSize ? ` — ${typeof selectedSize === 'number' ? `UK ${selectedSize}` : selectedSize}` : ''}
       </button>
     );
   }
@@ -60,7 +60,7 @@ export default function RestockNotify({ productSlug, selectedSize }: RestockNoti
     <form onSubmit={handleSubmit} className="border-2 border-zinc-200 p-4 space-y-3">
       <div>
         <p className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-1">
-          Restock Alert{selectedSize ? ` — UK ${selectedSize}` : ''}
+          Restock Alert{selectedSize ? ` — ${typeof selectedSize === 'number' ? `UK ${selectedSize}` : selectedSize}` : ''}
         </p>
         <p className="text-xs text-zinc-500">
           Enter your email and we&apos;ll notify you the moment it&apos;s available.

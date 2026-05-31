@@ -9,6 +9,8 @@ import { fetchProductsClient } from '@/lib/api';
 const DEFAULT_FILTERS: FilterState = {
   brands: [],
   sizes: [],
+  stringSizes: [],
+  productTypes: [],
   colors: [],
   gender: [],
   minPrice: 0,
@@ -29,6 +31,8 @@ function parseSearchParams(params: URLSearchParams): Partial<FilterState> {
   if (brand) out.brands = brand.split(',').map((b) => slugToDisplayName(b.trim())).filter(Boolean);
   const gender = params.get('gender');
   if (gender) out.gender = gender.split(',').map((g) => g.trim().toLowerCase()).filter(Boolean);
+  const productType = params.get('productType');
+  if (productType) out.productTypes = productType.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean);
   const search = params.get('search');
   if (search) out.search = search;
   const sort = params.get('sort') as SortOption | null;
@@ -79,6 +83,16 @@ export function useProductFilters() {
     setPage(1);
   }, []);
 
+  const handleRemoveStringSize = useCallback((size: string) => {
+    setFilters((prev) => ({ ...prev, stringSizes: prev.stringSizes.filter((s) => s !== size) }));
+    setPage(1);
+  }, []);
+
+  const handleRemoveProductType = useCallback((type: string) => {
+    setFilters((prev) => ({ ...prev, productTypes: prev.productTypes.filter((t) => t !== type) }));
+    setPage(1);
+  }, []);
+
   const handleRemoveGender = useCallback((gender: string) => {
     setFilters((prev) => ({ ...prev, gender: prev.gender.filter((g) => g !== gender) }));
     setPage(1);
@@ -102,6 +116,8 @@ export function useProductFilters() {
     handleFilterChange,
     handleRemoveBrand,
     handleRemoveSize,
+    handleRemoveStringSize,
+    handleRemoveProductType,
     handleRemoveGender,
     handleClearAll,
   };

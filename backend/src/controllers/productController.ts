@@ -13,8 +13,22 @@ function buildFilter(query: Record<string, string>): MongoFilter {
   }
 
   if (query.size) {
-    const sizes = query.size.split(',').map(Number);
-    filter.availableSizes = { $in: sizes };
+    const tokens = query.size.split(',').map((s) => s.trim()).filter(Boolean);
+    const numericSizes = tokens.map(Number).filter((n) => !isNaN(n));
+    const stringSizes = tokens.filter((s) => isNaN(Number(s)));
+    const sizeConditions: object[] = [];
+    if (numericSizes.length) sizeConditions.push({ availableSizes: { $in: numericSizes } });
+    if (stringSizes.length) sizeConditions.push({ availableStringSizes: { $in: stringSizes } });
+    if (sizeConditions.length === 1) {
+      Object.assign(filter, sizeConditions[0]);
+    } else if (sizeConditions.length > 1) {
+      filter.$or = [...((filter.$or as object[] | undefined) ?? []), ...sizeConditions];
+    }
+  }
+
+  if (query.productType) {
+    const types = query.productType.split(',').map((t) => t.trim().toLowerCase());
+    filter.productType = { $in: types };
   }
 
   if (query.color) {
@@ -61,7 +75,8 @@ function buildSort(sort: string): Record<string, 1 | -1> {
 // Fields needed for product cards — variants used in ProductCard for price/hover, sizes for display
 const CARD_FIELDS =
   'slug name brand colorway gender price originalPrice discount images hoverImage ' +
-  'availableSizes sizes colors variants featured trending newArrival soldOut comingSoon rating reviewCount category';
+  'availableSizes sizes stringSizes availableStringSizes productType colors variants ' +
+  'featured trending newArrival soldOut comingSoon rating reviewCount category';
 
 export const getAllProducts = async (req: Request, res: Response): Promise<void> => {
   try {

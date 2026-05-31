@@ -10,9 +10,9 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: 'ADD_ITEM'; product: Product; size: number; quantity?: number }
-  | { type: 'REMOVE_ITEM'; productId: string; size: number }
-  | { type: 'UPDATE_QUANTITY'; productId: string; size: number; quantity: number }
+  | { type: 'ADD_ITEM'; product: Product; size: number | string; quantity?: number }
+  | { type: 'REMOVE_ITEM'; productId: string; size: number | string }
+  | { type: 'UPDATE_QUANTITY'; productId: string; size: number | string; quantity: number }
   | { type: 'CLEAR_CART' }
   | { type: 'OPEN_DRAWER' }
   | { type: 'CLOSE_DRAWER' }
@@ -99,9 +99,9 @@ interface CartContextValue {
   isDrawerOpen: boolean;
   itemCount: number;
   subtotal: number;
-  addItem: (product: Product, size: number, quantity?: number) => void;
-  removeItem: (productId: string, size: number) => void;
-  updateQuantity: (productId: string, size: number, quantity: number) => void;
+  addItem: (product: Product, size: number | string, quantity?: number) => void;
+  removeItem: (productId: string, size: number | string) => void;
+  updateQuantity: (productId: string, size: number | string, quantity: number) => void;
   clearCart: () => void;
   openDrawer: () => void;
   closeDrawer: () => void;

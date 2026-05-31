@@ -35,6 +35,8 @@ export default function ProductsClient() {
     handleFilterChange,
     handleRemoveBrand,
     handleRemoveSize,
+    handleRemoveStringSize,
+    handleRemoveProductType,
     handleRemoveGender,
     handleClearAll,
   } = useProductFilters();
@@ -118,6 +120,8 @@ export default function ProductsClient() {
                 filters={filters}
                 onRemoveBrand={handleRemoveBrand}
                 onRemoveSize={handleRemoveSize}
+                onRemoveStringSize={handleRemoveStringSize}
+                onRemoveProductType={handleRemoveProductType}
                 onRemoveGender={handleRemoveGender}
                 onClearAll={handleClearAll}
               />

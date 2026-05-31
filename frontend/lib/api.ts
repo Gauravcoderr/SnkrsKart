@@ -6,7 +6,10 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v
 function buildQueryString(filters: Partial<FilterState> & { page?: number; limit?: number }): string {
   const params = new URLSearchParams();
   if (filters.brands?.length) params.set('brand', filters.brands.join(','));
-  if (filters.sizes?.length) params.set('size', filters.sizes.join(','));
+  // Merge numeric and string sizes into one param — backend routes them appropriately
+  const allSizes = [...(filters.sizes ?? []), ...(filters.stringSizes ?? [])];
+  if (allSizes.length) params.set('size', allSizes.join(','));
+  if (filters.productTypes?.length) params.set('productType', filters.productTypes.join(','));
   if (filters.colors?.length) params.set('color', filters.colors.join(','));
   if (filters.gender?.length) params.set('gender', filters.gender.join(','));
   if (filters.minPrice) params.set('minPrice', String(filters.minPrice));
@@ -128,7 +131,7 @@ export async function validateCoinRedemption(
   return res.json();
 }
 
-export async function restockNotify(email: string, productSlug: string, size?: number | null): Promise<void> {
+export async function restockNotify(email: string, productSlug: string, size?: number | string | null): Promise<void> {
   const res = await fetch(`${BASE_URL}/restock`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

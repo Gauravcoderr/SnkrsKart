@@ -7,7 +7,7 @@ import { formatPrice } from '@/lib/utils';
 
 interface PurchaseModalProps {
   product: Product;
-  selectedSize: number | null;
+  selectedSize: number | string | null;
   currentPrice: number;
   onClose: () => void;
 }
@@ -15,6 +15,7 @@ interface PurchaseModalProps {
 type Step = 'form' | 'success';
 
 export default function PurchaseModal({ product, selectedSize, currentPrice, onClose }: PurchaseModalProps) {
+  const sizeLabel = selectedSize === null ? 'Size not selected' : typeof selectedSize === 'number' ? `Size UK ${selectedSize}` : `Size ${selectedSize}`;
   const [step, setStep] = useState<Step>('form');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -97,9 +98,7 @@ export default function PurchaseModal({ product, selectedSize, currentPrice, onC
             <>
               {/* Product summary */}
               <div className="px-6 py-3 bg-zinc-50 border-b border-zinc-100 flex items-center justify-between text-sm">
-                <span className="text-zinc-500">
-                  {selectedSize ? `Size UK ${selectedSize}` : 'Size not selected'}
-                </span>
+                <span className="text-zinc-500">{sizeLabel}</span>
                 <span className="font-bold text-zinc-900">{formatPrice(currentPrice)}</span>
               </div>
 
