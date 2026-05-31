@@ -1,40 +1,58 @@
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
+import { Metadata } from 'next';
 
-export const metadata = {
-  title: { absolute: 'Shipping Info | Free Pan-India Delivery | SNKRS CART' },
-  description: 'SNKRS CART ships all orders free across India in 3–7 business days. Faster delivery in Uttarakhand. Track your order anytime.',
-  alternates: { canonical: `${SITE_URL}/shipping` },
-  openGraph: {
-    title: 'Shipping Info | SNKRS CART',
-    description: 'Free pan-India shipping on all sneaker orders. 3–7 business days delivery.',
-    url: `${SITE_URL}/shipping`,
-    siteName: 'SNKRS CART',
-    type: 'website',
-  },
-  twitter: { card: 'summary', title: 'Shipping Info | SNKRS CART', description: 'Free pan-India shipping on all orders.' },
-};
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+
+interface SiteContent {
+  metaTitle?: string; metaDescription?: string;
+  ogTitle?: string; ogDescription?: string; htmlContent?: string;
+}
+
+async function getPageContent(): Promise<SiteContent | null> {
+  try {
+    const res = await fetch(`${API}/site-content/shipping`, { next: { revalidate: 300 } });
+    if (!res.ok) return null;
+    return res.json();
+  } catch { return null; }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getPageContent();
+  const title = content?.metaTitle || 'Shipping Info | Free Pan-India Delivery | SNKRS CART';
+  const description = content?.metaDescription || 'SNKRS CART ships all orders free across India in 3–7 business days. Faster delivery in Uttarakhand. Track your order anytime.';
+  const ogTitle = content?.ogTitle || 'Shipping Info | SNKRS CART';
+  const ogDescription = content?.ogDescription || 'Free pan-India shipping on all sneaker orders. 3–7 business days delivery.';
+  return {
+    title: { absolute: title }, description,
+    alternates: { canonical: `${SITE_URL}/shipping` },
+    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/shipping`, siteName: 'SNKRS CART', type: 'website' },
+    twitter: { card: 'summary', title: ogTitle, description: ogDescription },
+  };
+}
 
 const shippingInfo = [
-  {
-    region: 'Within India',
-    time: '3–7 Business Days',
-    cost: 'Free on all orders',
-    note: 'Pan-India delivery via trusted courier partners',
-  },
-  {
-    region: 'Uttarakhand (Local)',
-    time: '1–3 Business Days',
-    cost: 'Free',
-    note: 'Faster delivery to Pauri Garhwal and nearby areas',
-  },
+  { region: 'Within India', time: '3–7 Business Days', cost: 'Free on all orders', note: 'Pan-India delivery via trusted courier partners' },
+  { region: 'Uttarakhand (Local)', time: '1–3 Business Days', cost: 'Free', note: 'Faster delivery to Pauri Garhwal and nearby areas' },
 ];
 
-export default function ShippingInfo() {
+export default async function ShippingInfo() {
+  const content = await getPageContent();
+
+  if (content?.htmlContent) {
+    return (
+      <main className="max-w-3xl mx-auto px-4 py-16">
+        <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Help</p>
+        <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-3">Shipping Info</h1>
+        <div className="prose prose-zinc prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: content.htmlContent }} />
+      </main>
+    );
+  }
+
   return (
     <main className="max-w-3xl mx-auto px-4 py-16">
       <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Help</p>
       <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-3">Shipping Info</h1>
-      <p className="text-sm text-zinc-500 mb-10">We ship all orders across India with free delivery. Here's what to expect.</p>
+      <p className="text-sm text-zinc-500 mb-10">We ship all orders across India with free delivery. Here&apos;s what to expect.</p>
 
       <div className="space-y-4 mb-10">
         {shippingInfo.map((s) => (
@@ -63,7 +81,6 @@ export default function ShippingInfo() {
             <li>You receive a tracking number once shipped</li>
           </ol>
         </section>
-
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Important Notes</h2>
           <ul className="list-disc list-inside space-y-1.5">
@@ -73,7 +90,6 @@ export default function ShippingInfo() {
             <li>Signature may be required upon delivery</li>
           </ul>
         </section>
-
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Questions?</h2>
           <p>Contact us at <a href="mailto:infosnkrscart@gmail.com" className="text-zinc-900 underline">infosnkrscart@gmail.com</a> or WhatsApp us at <a href="tel:+919410903791" className="text-zinc-900 underline">+91 94109 03791</a>.</p>

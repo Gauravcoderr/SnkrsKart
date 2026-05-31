@@ -1,4 +1,33 @@
+import { Metadata } from 'next';
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+
+interface SiteContent {
+  metaTitle?: string; metaDescription?: string;
+  ogTitle?: string; ogDescription?: string; htmlContent?: string;
+}
+
+async function getPageContent(): Promise<SiteContent | null> {
+  try {
+    const res = await fetch(`${API}/site-content/returns`, { next: { revalidate: 300 } });
+    if (!res.ok) return null;
+    return res.json();
+  } catch { return null; }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getPageContent();
+  const title = content?.metaTitle || 'Return & Refund Policy | SNKRS CART';
+  const description = content?.metaDescription || 'SNKRS CART return policy — damaged or incorrect items eligible for replacement or full refund within 48 hours of delivery.';
+  const ogTitle = content?.ogTitle || title;
+  const ogDescription = content?.ogDescription || description;
+  return {
+    title: { absolute: title }, description,
+    alternates: { canonical: `${SITE_URL}/returns` },
+    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/returns`, siteName: 'SNKRS CART', type: 'website' },
+  };
+}
 
 const returnPolicySchema = {
   '@context': 'https://schema.org',
@@ -13,20 +42,23 @@ const returnPolicySchema = {
   applicableCountry: 'IN',
 };
 
-export const metadata = {
-  title: { absolute: 'Return & Refund Policy | SNKRS CART' },
-  description: 'SNKRS CART return policy — damaged or incorrect items eligible for replacement or full refund within 48 hours of delivery. Contact us at infosnkrscart@gmail.com.',
-  alternates: { canonical: `${SITE_URL}/returns` },
-  openGraph: {
-    title: 'Return & Refund Policy | SNKRS CART',
-    description: 'Damaged or incorrect items eligible for replacement or full refund within 48 hours of delivery.',
-    url: `${SITE_URL}/returns`,
-    siteName: 'SNKRS CART',
-    type: 'website',
-  },
-};
 
-export default function Returns() {
+export default async function Returns() {
+  const content = await getPageContent();
+
+  if (content?.htmlContent) {
+    return (
+      <>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(returnPolicySchema) }} />
+        <main className="max-w-3xl mx-auto px-4 py-16">
+          <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Help</p>
+          <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-3">Return &amp; Refund Policy</h1>
+          <div className="prose prose-zinc prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: content.htmlContent }} />
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(returnPolicySchema) }} />

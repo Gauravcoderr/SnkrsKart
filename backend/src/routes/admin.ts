@@ -517,7 +517,10 @@ const PAGE_DEFS = [
   { pageKey: 'brands',   label: 'Brands' },
   { pageKey: 'blogs',    label: 'Blogs' },
   { pageKey: 'drops',    label: 'Drop Calendar' },
-  { pageKey: 'sneakers', label: 'Sneaker Guide' },
+  { pageKey: 'sneakers',    label: 'Sneaker Guide' },
+  { pageKey: 'shipping',    label: 'Shipping Info' },
+  { pageKey: 'returns',     label: 'Returns & Refunds' },
+  { pageKey: 'track-order', label: 'Track Order' },
 ];
 
 const EMPTY_CONTENT = {
