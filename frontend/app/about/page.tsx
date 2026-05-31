@@ -92,17 +92,6 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AboutPage() {
   const content = await getPageContent();
 
-  if (content?.htmlContent) {
-    return (
-      <main className="max-w-4xl mx-auto px-4 py-16">
-        <div
-          className="prose prose-zinc max-w-none"
-          dangerouslySetInnerHTML={{ __html: content.htmlContent }}
-        />
-      </main>
-    );
-  }
-
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
