@@ -9,7 +9,9 @@
     "import-excel": "ts-node-dev --transpile-only scripts/import-excel.ts",
     "generate-template": "ts-node-dev --transpile-only scripts/generate-template.ts",
     "seed-blogs": "ts-node-dev --transpile-only scripts/seed-blogs.ts",
-    "seed-jordan4-lakers": "ts-node-dev --transpile-only src/scripts/seedJordan4Lakers.ts"
+    "seed-jordan4-lakers": "ts-node-dev --transpile-only src/scripts/seedJordan4Lakers.ts",
+    "seed-site-content": "ts-node-dev --transpile-only scripts/seedSiteContent.ts",
+    "migrate-terms-privacy": "ts-node-dev --transpile-only scripts/migrateTermsPrivacy.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

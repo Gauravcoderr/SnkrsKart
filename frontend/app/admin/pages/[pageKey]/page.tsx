@@ -19,7 +19,7 @@ interface SiteContent {
   faqItems: FaqItem[];
 }
 
-const CONTENT_PAGES = new Set(['faq', 'privacy', 'about', 'terms']);
+const CONTENT_PAGES = new Set(['faq', 'privacy', 'about', 'terms', 'shipping', 'returns']);
 const FAQ_PAGE = 'faq';
 
 const EMPTY: SiteContent = {

@@ -13,7 +13,7 @@ interface PageEntry {
   updatedAt?: string;
 }
 
-const CONTENT_PAGES = new Set(['faq', 'privacy', 'about', 'terms']);
+const CONTENT_PAGES = new Set(['faq', 'privacy', 'about', 'terms', 'shipping', 'returns']);
 
 export default function AdminPagesListPage() {
   const [pages, setPages] = useState<PageEntry[]>([]);
