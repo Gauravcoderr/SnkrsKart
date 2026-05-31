@@ -69,17 +69,17 @@ export default async function TermsOfService() {
 
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Purchase Process</h2>
-          <p>SNKRS CART operates on an inquiry-based model. Submitting an inquiry does not constitute a confirmed purchase. Our team will contact you within 24 hours to confirm availability, pricing, and complete the transaction.</p>
+          <p>SNKRS CART is a fully operational online store. You can browse products, add items to your cart, and complete your purchase through our secure checkout. Orders are confirmed immediately upon successful payment. We dispatch all orders within 1–2 business days and send tracking details once shipped.</p>
         </section>
 
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Product Authenticity</h2>
-          <p>All products sold by SNKRS CART are 100% authentic. We source our inventory from authorised retailers and verified distributors. Every sneaker is inspected before dispatch.</p>
+          <p>All products sold by SNKRS CART are 100% authentic. We source our inventory from authorised retailers and verified distributors. Every sneaker is personally inspected before dispatch. If you have any authenticity concern after receiving your order, contact us immediately and we will resolve it.</p>
         </section>
 
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Pricing</h2>
-          <p>Prices displayed on the website are indicative and may vary based on size availability and market conditions. The final price will be confirmed by our team before completing your purchase.</p>
+          <p>All prices displayed on snkrscart.com are in Indian Rupees (INR) and are fixed as shown at the time of purchase. Prices include all applicable taxes. We reserve the right to update prices at any time, but the price at checkout is the price you pay.</p>
         </section>
 
         <section>
@@ -97,7 +97,7 @@ export default async function TermsOfService() {
           <p>Questions about these Terms? Reach us at <a href="mailto:infosnkrscart@gmail.com" className="text-zinc-900 underline">infosnkrscart@gmail.com</a>.</p>
         </section>
 
-        <p className="text-xs text-zinc-400 pt-4 border-t border-zinc-100">Last updated: March 2025</p>
+        <p className="text-xs text-zinc-400 pt-4 border-t border-zinc-100">Last updated: May 2026</p>
       </div>
     </main>
   );

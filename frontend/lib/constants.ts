@@ -97,7 +97,7 @@ export const FOOTER_HELP_LINKS = [
 
 export const FOOTER_ABOUT_LINKS = [
   { label: 'Our Story', href: '/about' },
-  { label: 'Contact Us', href: '/about' },
+  { label: 'Contact Us', href: '/contact' },
   { label: 'Become a Seller', href: '/sell' },
   { label: 'SNKRS Blog', href: '/blogs' },
 ];

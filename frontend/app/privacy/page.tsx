@@ -64,15 +64,16 @@ export default async function PrivacyPolicy() {
       <div className="space-y-8 text-sm text-zinc-600 leading-relaxed">
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Information We Collect</h2>
-          <p>When you submit a purchase inquiry on SNKRS CART, we collect your name, email address, phone number, and delivery address. We use this information solely to process your inquiry and contact you regarding your order.</p>
+          <p>When you create an account, place an order, or interact with SNKRS CART, we may collect your name, email address, phone number, delivery address, and payment details. We also collect browsing data (pages visited, items viewed) to improve your experience. We use this information solely to process your orders and provide customer support.</p>
         </section>
 
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">How We Use Your Information</h2>
           <ul className="list-disc list-inside space-y-1.5">
-            <li>To respond to purchase inquiries and complete transactions</li>
-            <li>To send order confirmation and follow-up communication</li>
-            <li>To improve our products and services</li>
+            <li>To process orders, payments, and arrange delivery</li>
+            <li>To send order confirmation, shipping updates, and support communication</li>
+            <li>To maintain your account and order history</li>
+            <li>To improve our website, products, and services</li>
             <li>We do not sell, trade, or rent your personal information to third parties</li>
           </ul>
         </section>
@@ -92,7 +93,7 @@ export default async function PrivacyPolicy() {
           <p>If you have any questions about this Privacy Policy, please contact us at <a href="mailto:infosnkrscart@gmail.com" className="text-zinc-900 underline">infosnkrscart@gmail.com</a> or call <a href="tel:+919410903791" className="text-zinc-900 underline">+91 94109 03791</a>.</p>
         </section>
 
-        <p className="text-xs text-zinc-400 pt-4 border-t border-zinc-100">Last updated: March 2025</p>
+        <p className="text-xs text-zinc-400 pt-4 border-t border-zinc-100">Last updated: May 2026</p>
       </div>
     </main>
   );

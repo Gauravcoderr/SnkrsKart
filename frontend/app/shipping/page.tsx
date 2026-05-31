@@ -75,10 +75,10 @@ export default async function ShippingInfo() {
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">How Shipping Works</h2>
           <ol className="list-decimal list-inside space-y-2">
-            <li>Submit a purchase inquiry on the product page</li>
-            <li>Our team confirms your order within 24 hours via call/WhatsApp</li>
-            <li>Payment is collected and the order is dispatched</li>
-            <li>You receive a tracking number once shipped</li>
+            <li>Add your item to cart and complete checkout on snkrscart.com</li>
+            <li>Your order is confirmed immediately upon successful payment</li>
+            <li>We dispatch within 1–2 business days in secure tamper-proof packaging</li>
+            <li>You receive a tracking number via email/WhatsApp once shipped</li>
           </ol>
         </section>
         <section>
