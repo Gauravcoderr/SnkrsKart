@@ -120,13 +120,19 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="border-t border-zinc-800 py-6 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-zinc-500">
-            © {new Date().getFullYear()} SNKRS CART. All rights reserved.
-          </p>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-1 text-center md:text-left">
+            <p className="text-xs text-zinc-500">
+              © {new Date().getFullYear()} SNKRS CART. All rights reserved. Operated by Ashutosh Lingwal (Sole Proprietor), Pauri Garhwal, Uttarakhand, India.
+            </p>
+            <p className="text-[10px] text-zinc-600">
+              SNKRS CART is an independent reseller. Not affiliated with Nike, Inc., Jordan Brand, Adidas AG, New Balance Athletics, or Crocs, Inc.
+            </p>
+          </div>
+          <div className="flex items-center gap-4 flex-wrap justify-center">
             <Link href="/privacy" className="text-xs text-zinc-500 hover:text-zinc-300">Privacy Policy</Link>
             <Link href="/terms" className="text-xs text-zinc-500 hover:text-zinc-300">Terms of Service</Link>
             <Link href="/returns" className="text-xs text-zinc-500 hover:text-zinc-300">Returns</Link>
+            <Link href="/shipping" className="text-xs text-zinc-500 hover:text-zinc-300">Shipping</Link>
             <Link href="/sitemap.xml" className="text-xs text-zinc-500 hover:text-zinc-300">Sitemap</Link>
           </div>
         </div>

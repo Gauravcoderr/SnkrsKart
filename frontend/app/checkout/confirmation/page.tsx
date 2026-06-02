@@ -40,6 +40,28 @@ function PaidState({ orderNumber }: { orderNumber: string }) {
           </li>
         </ul>
       </div>
+
+      {/* Review CTA */}
+      <div className="border border-zinc-200 rounded-xl p-5 mb-6 text-center">
+        <p className="text-xs font-bold tracking-widest uppercase text-zinc-500 mb-2">Happy with your order?</p>
+        <p className="text-sm text-zinc-600 mb-4">Once your sneakers arrive, share your experience — it helps others shop with confidence.</p>
+        <div className="flex flex-col sm:flex-row gap-2 justify-center">
+          <a
+            href="https://www.instagram.com/snkrs_cart/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-zinc-200 text-xs font-semibold text-zinc-700 hover:border-zinc-900 hover:text-zinc-900 transition-colors"
+          >
+            Tag us on Instagram @snkrs_cart
+          </a>
+          <a
+            href="mailto:infosnkrscart@gmail.com?subject=My SNKRS CART Review&body=Hi! Here is my review of my recent order:"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-zinc-200 text-xs font-semibold text-zinc-700 hover:border-zinc-900 hover:text-zinc-900 transition-colors"
+          >
+            Email us your feedback
+          </a>
+        </div>
+      </div>
     </>
   );
 }

@@ -193,8 +193,10 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
       {/* Trust badges */}
       <div className="grid grid-cols-2 gap-3 pt-2">
         {[
-          { icon: '✓', text: '100% Authentic' },
+          { icon: '✓', text: 'Verified Authentic' },
           { icon: '🔒', text: 'Secure Checkout' },
+          { icon: '↩', text: 'Free Returns' },
+          { icon: '🚚', text: 'Free Shipping' },
         ].map((badge) => (
           <div key={badge.text} className="flex flex-col items-center text-center gap-1 p-3 border border-zinc-100">
             <span className="text-base">{badge.icon}</span>

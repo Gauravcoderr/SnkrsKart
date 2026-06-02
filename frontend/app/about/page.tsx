@@ -29,7 +29,7 @@ const organizationSchema = {
   name: 'SNKRS CART',
   url: SITE_URL,
   logo: `${SITE_URL}/logo.png`,
-  description: 'India\'s authentic sneaker store. 100% genuine Nike, Jordan, Adidas, New Balance & Crocs — pan-India shipping.',
+  description: 'Independent sneaker reseller based in Pauri Garhwal, India. We source and verify genuine Nike, Jordan, Adidas, New Balance & Crocs — not an official brand retailer.',
   foundingDate: '2020',
   founder: {
     '@type': 'Person',
@@ -181,6 +181,41 @@ export default async function AboutPage() {
         </div>
       </section>
 
+      {/* Business Model */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-800">
+        <div className="max-w-4xl mx-auto">
+          <p className="text-[10px] font-bold tracking-[0.35em] uppercase text-zinc-500 mb-6">How we operate</p>
+          <h2 className="text-3xl font-black uppercase tracking-tight mb-10">Our Business Model</h2>
+          <div className="grid md:grid-cols-2 gap-10 text-sm text-zinc-400 leading-relaxed">
+            <div className="space-y-4">
+              <p>
+                <strong className="text-white">SNKRS CART is an independent reseller</strong> — we are not an official retailer or authorised dealer of Nike, Jordan, Adidas, New Balance, or Crocs. We are not affiliated with, endorsed by, or partnered with any of these brands.
+              </p>
+              <p>
+                We source genuine, brand-new sneakers through authorised importers, licensed distributors, and verified secondary-market suppliers. Every pair is physically inspected by us before it is listed or dispatched.
+              </p>
+              <p>
+                We operate as a sole proprietorship based in Pauri Garhwal, Uttarakhand. We sell directly to customers across India — no middlemen, no auction model.
+              </p>
+            </div>
+            <div className="space-y-6">
+              <div className="border border-zinc-700 p-5">
+                <h3 className="text-xs font-black uppercase tracking-widest text-white mb-3">How We Verify Authenticity</h3>
+                <ul className="space-y-2 text-xs text-zinc-400">
+                  <li className="flex gap-2"><span className="text-zinc-600 shrink-0">01</span> Source only from authorised importers and licensed distributors</li>
+                  <li className="flex gap-2"><span className="text-zinc-600 shrink-0">02</span> Physical inspection of stitching, box labels, insole print, and sole patterns</li>
+                  <li className="flex gap-2"><span className="text-zinc-600 shrink-0">03</span> Photograph the exact pair before confirming any order</li>
+                  <li className="flex gap-2"><span className="text-zinc-600 shrink-0">04</span> Full refund if any authenticity concern — no questions asked</li>
+                </ul>
+              </div>
+              <p className="text-xs text-zinc-600">
+                We do not sell replicas, fakes, or unauthorised products. All items are new, unused, and come with original packaging.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Contact */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
@@ -245,6 +280,14 @@ export default async function AboutPage() {
               <div>
                 <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Operated By</dt>
                 <dd className="text-zinc-300">Ashutosh Lingwal (Sole Proprietor)</dd>
+              </div>
+              <div>
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Business Type</dt>
+                <dd className="text-zinc-300">Independent Sneaker Reseller — not an official brand retailer</dd>
+              </div>
+              <div>
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">GST Registration</dt>
+                <dd className="text-zinc-300">Not GST registered — sole proprietorship below statutory threshold</dd>
               </div>
               <div className="sm:col-span-2">
                 <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Registered Address</dt>
