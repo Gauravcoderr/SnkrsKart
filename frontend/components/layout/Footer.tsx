@@ -122,7 +122,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
           <div className="flex flex-col gap-1 text-center md:text-left">
             <p className="text-xs text-zinc-500">
-              © {new Date().getFullYear()} SNKRS CART. All rights reserved. Operated by Ashutosh Lingwal (Sole Proprietor), Pauri Garhwal, Uttarakhand, India.
+              © {new Date().getFullYear()} SNKRS CART. All rights reserved.
             </p>
             <p className="text-[10px] text-zinc-600">
               SNKRS CART is an independent reseller. Not affiliated with Nike, Inc., Jordan Brand, Adidas AG, New Balance Athletics, or Crocs, Inc.
