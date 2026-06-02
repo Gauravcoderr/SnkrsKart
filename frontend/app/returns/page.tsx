@@ -62,6 +62,12 @@ export default async function Returns() {
         <div className="space-y-8 text-sm text-zinc-600 leading-relaxed">
 
           <section>
+            <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Return Window</h2>
+            <p className="mb-2">Return requests must be raised within <strong className="text-zinc-900">48 hours of delivery</strong>. After 48 hours, we are unable to accept return requests.</p>
+            <p className="text-xs text-zinc-500">To raise a request: WhatsApp or email us with your order details and clear photos of the issue within 48 hours of receiving the item.</p>
+          </section>
+
+          <section>
             <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Eligibility for Returns & Refunds</h2>
             <p className="mb-3">We accept return requests in the following situations:</p>
             <ul className="list-disc list-inside space-y-2">
@@ -69,7 +75,7 @@ export default async function Returns() {
               <li><strong className="text-zinc-900">Item arrived damaged</strong> — visible damage caused during shipping</li>
               <li><strong className="text-zinc-900">Authenticity concern</strong> — if you have any doubt about authenticity (all items are verified, but we will resolve any concern)</li>
             </ul>
-            <p className="mt-3">Return requests must be raised within <strong className="text-zinc-900">48 hours of delivery</strong> with clear photos of the issue.</p>
+            <p className="mt-3 text-xs text-zinc-500">Item must be unused, unworn, and in original condition with all tags and packaging intact to be eligible for return.</p>
           </section>
 
           <section>
@@ -79,6 +85,7 @@ export default async function Returns() {
               <li>Change of mind after purchase</li>
               <li>Incorrect size selected by the customer (please confirm your size before purchasing)</li>
               <li>Items that have been worn, used, or had their tags removed</li>
+              <li>Requests raised after 48 hours of delivery</li>
             </ul>
           </section>
 
@@ -86,10 +93,11 @@ export default async function Returns() {
             <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Refund Process</h2>
             <p>Once your return request is approved:</p>
             <ol className="list-decimal list-inside space-y-2 mt-2">
-              <li>We will arrange free return pickup from your address</li>
-              <li>Once the item is received and inspected, a full refund will be processed</li>
-              <li>Refunds are credited within <strong className="text-zinc-900">5–7 business days</strong> via the original payment method</li>
+              <li>We arrange <strong className="text-zinc-900">free return pickup</strong> from your delivery address — no return shipping cost to you</li>
+              <li>Item is inspected within 2 business days of receipt</li>
+              <li>Full refund processed within <strong className="text-zinc-900">5–7 business days</strong> via the original payment method</li>
             </ol>
+            <p className="mt-3 text-xs text-zinc-500">Return address: Circuit House, Pauri Garhwal – 246001, Uttarakhand, India</p>
           </section>
 
           <section>

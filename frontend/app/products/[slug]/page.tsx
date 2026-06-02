@@ -122,7 +122,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
       priceCurrency: 'INR',
       price: String(product.price),
       ...(product.originalPrice ? { highPrice: String(product.originalPrice), lowPrice: String(product.price) } : {}),
-      availability: product.soldOut || product.availableSizes.length === 0
+      availability: product.soldOut ||
+        (product.productType !== 'shoes'
+          ? (product.availableStringSizes?.length ?? 0) === 0
+          : product.availableSizes.length === 0)
         ? 'https://schema.org/OutOfStock'
         : 'https://schema.org/InStock',
       url: productUrl,

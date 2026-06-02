@@ -3,8 +3,12 @@ import { NextResponse } from 'next/server';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
-// Google product taxonomy ID for Athletic Shoes
-const GOOGLE_CATEGORY = 'Apparel & Accessories > Shoes > Athletic Shoes';
+// Google product taxonomy IDs
+const CATEGORY_MAP: Record<string, string> = {
+  shoes: 'Apparel & Accessories > Shoes > Athletic Shoes',
+  clothing: 'Apparel & Accessories > Clothing',
+  accessories: 'Apparel & Accessories',
+};
 
 interface Product {
   id: string;
@@ -17,12 +21,14 @@ interface Product {
   originalPrice?: number | null;
   images: string[];
   availableSizes: number[];
+  availableStringSizes?: string[];
   soldOut: boolean;
   comingSoon: boolean;
   releaseDate?: string;
   description?: string;
   category?: string;
   sku?: string;
+  productType?: string;
 }
 
 function escapeXml(str: string): string {
@@ -42,22 +48,33 @@ function genderAttr(gender: string): string {
 
 function availability(p: Product): string {
   if (p.comingSoon) return 'preorder';
-  if (p.soldOut || p.availableSizes.length === 0) return 'out of stock';
+  const hasStock = p.productType !== 'shoes'
+    ? (p.availableStringSizes?.length ?? 0) > 0
+    : p.availableSizes.length > 0;
+  if (p.soldOut || !hasStock) return 'out of stock';
   return 'in stock';
+}
+
+function googleCategory(p: Product): string {
+  const type = p.productType ?? 'shoes';
+  return CATEGORY_MAP[type] ?? CATEGORY_MAP.shoes;
 }
 
 function productEntry(p: Product): string {
   const url = `${SITE_URL}/products/${p.slug}`;
   const image = p.images?.[0] || '';
-  const price = `${p.price.toFixed(2)} INR`;
-  const salePrice = p.originalPrice && p.originalPrice > p.price
-    ? `${p.price.toFixed(2)} INR`
-    : null;
-  const listPrice = p.originalPrice && p.originalPrice > p.price
-    ? `${p.originalPrice.toFixed(2)} INR`
-    : null;
+
+  // g:price = actual selling price (what customer pays)
+  // g:sale_price only for time-limited promos — not used for permanent markdowns
+  const sellingPrice = `${p.price.toFixed(2)} INR`;
+
   const title = escapeXml(`${p.brand} ${p.name}${p.colorway ? ` - ${p.colorway}` : ''}`);
-  const desc = escapeXml(p.description || `${p.brand} ${p.name} sneakers available in India. Shop now at SNKRS CART.`);
+  const desc = escapeXml(
+    p.description ||
+    `${p.brand} ${p.name} — 100% authentic, available in India. Shop now at SNKRS CART.`
+  );
+
+  const av = availability(p);
 
   return `
   <item>
@@ -66,21 +83,23 @@ function productEntry(p: Product): string {
     <description>${desc}</description>
     <link>${escapeXml(url)}</link>
     <g:image_link>${escapeXml(image)}</g:image_link>
-    <g:availability>${availability(p)}</g:availability>
-    <g:price>${listPrice || price}</g:price>
-    ${salePrice ? `<g:sale_price>${salePrice}</g:sale_price>` : ''}
+    <g:availability>${av}</g:availability>
+    ${av === 'preorder' && p.releaseDate ? `<g:availability_date>${escapeXml(p.releaseDate)}</g:availability_date>` : ''}
+    <g:price>${sellingPrice}</g:price>
     <g:brand>${escapeXml(p.brand)}</g:brand>
     <g:condition>new</g:condition>
-    <g:google_product_category>${escapeXml(GOOGLE_CATEGORY)}</g:google_product_category>
+    <g:google_product_category>${escapeXml(googleCategory(p))}</g:google_product_category>
     <g:gender>${escapeXml(genderAttr(p.gender))}</g:gender>
     <g:item_group_id>${escapeXml(p.slug)}</g:item_group_id>
     ${p.colorway ? `<g:color>${escapeXml(p.colorway)}</g:color>` : ''}
     ${p.sku ? `<g:mpn>${escapeXml(p.sku)}</g:mpn>` : ''}
-    ${p.sku ? `<g:identifier_exists>yes</g:identifier_exists>` : `<g:identifier_exists>no</g:identifier_exists>`}
+    <g:identifier_exists>${p.sku ? 'yes' : 'no'}</g:identifier_exists>
     <g:shipping>
       <g:country>IN</g:country>
+      <g:service>Standard</g:service>
       <g:price>0 INR</g:price>
     </g:shipping>
+    <g:shipping_label>Free Shipping</g:shipping_label>
   </item>`.trim();
 }
 
@@ -102,9 +121,9 @@ export async function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
   <channel>
-    <title>SNKRS CART — Sneakers India</title>
+    <title>SNKRS CART — Sneakers &amp; Streetwear India</title>
     <link>${SITE_URL}</link>
-    <description>Premium sneakers — Nike, Jordan, Adidas, New Balance, Crocs — delivered across India.</description>
+    <description>Premium authentic sneakers, clothing &amp; accessories — Nike, Jordan, Adidas, New Balance, Crocs — delivered across India.</description>
     ${products.map(productEntry).join('\n    ')}
   </channel>
 </rss>`;

@@ -101,7 +101,8 @@ export default function ContactPage() {
           <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-3">Business Details</p>
           <p><span className="font-semibold text-zinc-900">Business Name:</span> SNKRS CART</p>
           <p><span className="font-semibold text-zinc-900">Operated By:</span> Ashutosh Lingwal (Sole Proprietor)</p>
-          <p><span className="font-semibold text-zinc-900">GST / PAN:</span> Available on request</p>
+          <p><span className="font-semibold text-zinc-900">Registration:</span> Sole Proprietorship — operating below GST threshold (not GST registered)</p>
+          <p><span className="font-semibold text-zinc-900">Return Address:</span> Circuit House, Pauri Garhwal – 246001, Uttarakhand, India</p>
         </div>
 
         <div className="mt-8 text-sm text-zinc-500 space-y-1">

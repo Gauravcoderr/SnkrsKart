@@ -31,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const shippingInfo = [
-  { region: 'Within India', time: '3–7 Business Days', cost: 'Free on all orders', note: 'Pan-India delivery via trusted courier partners' },
+  { region: 'Pan-India (All States)', time: '3–7 Business Days', cost: 'Free on all orders', note: 'Delivery via Delhivery, DTDC, and other trusted courier partners' },
   { region: 'Uttarakhand (Local)', time: '1–3 Business Days', cost: 'Free', note: 'Faster delivery to Pauri Garhwal and nearby areas' },
 ];
 
@@ -84,10 +84,12 @@ export default async function ShippingInfo() {
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Important Notes</h2>
           <ul className="list-disc list-inside space-y-1.5">
+            <li>We currently ship <strong>within India only</strong> — no international shipping</li>
             <li>All orders are shipped in secure, tamper-proof packaging</li>
-            <li>Delivery times are estimates and may vary during peak seasons</li>
+            <li>Delivery times are estimates and may vary during peak seasons or remote areas</li>
             <li>We are not responsible for delays caused by courier partners or natural events</li>
             <li>Signature may be required upon delivery</li>
+            <li>Shipping cost is always <strong>₹0</strong> — no hidden charges at checkout</li>
           </ul>
         </section>
         <section>

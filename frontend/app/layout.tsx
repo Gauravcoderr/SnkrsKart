@@ -119,7 +119,7 @@ const orgLd = {
   },
   address: {
     '@type': 'PostalAddress',
-    streetAddress: 'Pauri Garhwal',
+    streetAddress: 'Circuit House, Pauri Garhwal',
     addressLocality: 'Pauri Garhwal',
     addressRegion: 'Uttarakhand',
     postalCode: '246001',
@@ -139,7 +139,7 @@ const localBusinessLd = {
   email: 'infosnkrscart@gmail.com',
   address: {
     '@type': 'PostalAddress',
-    streetAddress: 'Pauri Garhwal',
+    streetAddress: 'Circuit House, Pauri Garhwal',
     addressLocality: 'Pauri Garhwal',
     addressRegion: 'Uttarakhand',
     postalCode: '246001',
