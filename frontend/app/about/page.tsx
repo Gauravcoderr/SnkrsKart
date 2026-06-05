@@ -37,7 +37,7 @@ const organizationSchema = {
   },
   address: {
     '@type': 'PostalAddress',
-    streetAddress: 'Circuit House',
+    streetAddress: 'House No. 4, Lingwal Bhawan, Circuit House Road',
     addressLocality: 'Pauri Garhwal',
     addressRegion: 'Uttarakhand',
     postalCode: '246001',
@@ -192,7 +192,7 @@ export default async function AboutPage() {
                 <strong className="text-white">SNKRS CART is an independent reseller</strong> — we are not an official retailer or authorised dealer of Nike, Jordan, Adidas, New Balance, or Crocs. We are not affiliated with, endorsed by, or partnered with any of these brands.
               </p>
               <p>
-                We source genuine, brand-new sneakers through authorised importers, licensed distributors, and verified secondary-market suppliers. Every pair is physically inspected by us before it is listed or dispatched.
+                We source genuine, brand-new sneakers through authorised importers and licensed distributors. Every pair is physically inspected by us before it is listed or dispatched.
               </p>
               <p>
                 We operate as a sole proprietorship based in Pauri Garhwal, Uttarakhand. We sell directly to customers across India — no middlemen, no auction model.
@@ -286,12 +286,12 @@ export default async function AboutPage() {
                 <dd className="text-zinc-300">Independent Sneaker Reseller — not an official brand retailer</dd>
               </div>
               <div>
-                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">GST Registration</dt>
-                <dd className="text-zinc-300">Not GST registered — sole proprietorship below statutory threshold</dd>
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Business Type</dt>
+                <dd className="text-zinc-300">Sole Proprietorship — registered business entity</dd>
               </div>
               <div className="sm:col-span-2">
                 <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Registered Address</dt>
-                <dd className="text-zinc-300">Circuit House, Pauri Garhwal – 246001, Uttarakhand, India</dd>
+                <dd className="text-zinc-300">House No. 4, Lingwal Bhawan, Circuit House Road, Pauri Garhwal – 246001, Uttarakhand, India</dd>
               </div>
               <div>
                 <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Email</dt>

@@ -97,7 +97,7 @@ export default async function Returns() {
               <li>Item is inspected within 2 business days of receipt</li>
               <li>Full refund processed within <strong className="text-zinc-900">5–7 business days</strong> via the original payment method</li>
             </ol>
-            <p className="mt-3 text-xs text-zinc-500">Return address: Circuit House, Pauri Garhwal – 246001, Uttarakhand, India</p>
+            <p className="mt-3 text-xs text-zinc-500">Return address: House No. 4, Lingwal Bhawan, Circuit House Road, Pauri Garhwal – 246001, Uttarakhand, India</p>
           </section>
 
           <section>
