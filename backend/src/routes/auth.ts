@@ -74,7 +74,7 @@ router.post('/send-otp', async (req: Request, res: Response): Promise<void> => {
         },
         $setOnInsert: { email: cleanEmail, name: '', phone: '' },
       },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     // Send OTP email
@@ -234,7 +234,7 @@ router.post('/google', async (req: Request, res: Response): Promise<void> => {
     const user = await User.findOneAndUpdate(
       { email: cleanEmail },
       { $set: { googleId }, $setOnInsert: { name: name ?? '', phone: '' } },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     const { accessToken, refreshToken } = generateTokens(user!._id.toString(), cleanEmail);
@@ -299,7 +299,7 @@ router.put('/me', customerAuth, async (req: AuthRequest, res: Response): Promise
     if (name !== undefined) updates.name = name.trim();
     if (phone !== undefined) updates.phone = phone.trim();
 
-    const user = await User.findByIdAndUpdate(req.user!.id, { $set: updates }, { new: true })
+    const user = await User.findByIdAndUpdate(req.user!.id, { $set: updates }, { returnDocument: 'after' })
       .select('-otp -otpExpiry -otpAttempts -lastOtpSent -refreshToken -__v').lean();
     if (!user) { res.status(404).json({ error: 'User not found' }); return; }
     res.json({ ...user, id: user._id.toString() });

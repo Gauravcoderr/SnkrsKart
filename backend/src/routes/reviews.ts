@@ -82,7 +82,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       productName,
       name: name.trim(),
       email: String(email).trim().toLowerCase(),
-      location: location ? String(location).trim() : null,
+      location: location ? String(location).trim() : undefined,
       rating,
       comment: comment.trim(),
       photos: cleanPhotos,

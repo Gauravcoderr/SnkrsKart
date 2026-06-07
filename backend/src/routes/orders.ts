@@ -351,7 +351,7 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
           $inc: { coins: -coinsRedeemed },
           $push: { history: { type: 'redeem', amount: coinsRedeemed, reason: 'Order redemption', orderId: 'pending', createdAt: new Date() } },
         },
-        { upsert: false, new: true },
+        { upsert: false, returnDocument: 'after' },
       );
 
       if (!updated) {

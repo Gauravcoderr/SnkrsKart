@@ -95,7 +95,7 @@ router.post('/products', adminAuth, async (req: Request, res: Response): Promise
 // Update product
 router.put('/products/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true, runValidators: true });
+    const product = await Product.findByIdAndUpdate(req.params.id, { $set: req.body }, { returnDocument: 'after', runValidators: true });
     if (!product) {
       res.status(404).json({ error: 'Product not found' });
       return;
@@ -144,7 +144,7 @@ router.post('/banners', adminAuth, async (req: Request, res: Response): Promise<
 
 router.put('/banners/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const banner = await Banner.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true, runValidators: true });
+    const banner = await Banner.findByIdAndUpdate(req.params.id, { $set: req.body }, { returnDocument: 'after', runValidators: true });
     if (!banner) { res.status(404).json({ error: 'Not found' }); return; }
     res.json(banner);
   } catch (err: any) {
@@ -200,7 +200,7 @@ router.put('/reviews/:id', adminAuth, async (req: Request, res: Response): Promi
     const review = await Review.findByIdAndUpdate(
       req.params.id,
       { $set: { name, rating, comment } },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
     if (!review) { res.status(404).json({ error: 'Not found' }); return; }
     if (review.productSlug !== 'general') {
@@ -290,7 +290,7 @@ router.put('/blogs/:id', adminAuth, async (req: Request, res: Response): Promise
     if (req.body.content !== undefined) {
       req.body.wordCount = (req.body.content || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length;
     }
-    const blog = await Blog.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true, runValidators: true });
+    const blog = await Blog.findByIdAndUpdate(req.params.id, { $set: req.body }, { returnDocument: 'after', runValidators: true });
     if (!blog) { res.status(404).json({ error: 'Not found' }); return; }
     res.json(blog);
   } catch (err: any) {
@@ -343,7 +343,7 @@ router.put('/orders/:id', adminAuth, async (req: Request, res: Response): Promis
     if (trackingNumber !== undefined) update.trackingNumber = trackingNumber;
     if (deliveryService !== undefined) update.deliveryService = deliveryService;
     if (notes !== undefined) update.notes = notes;
-    const order = await Order.findByIdAndUpdate(req.params.id, { $set: update }, { new: true, runValidators: true });
+    const order = await Order.findByIdAndUpdate(req.params.id, { $set: update }, { returnDocument: 'after', runValidators: true });
     if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
     res.json(order);
   } catch (err: any) {
@@ -445,7 +445,7 @@ router.post('/sneaker-profiles', adminAuth, async (req: Request, res: Response):
 
 router.put('/sneaker-profiles/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const profile = await SneakerProfile.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const profile = await SneakerProfile.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' });
     if (!profile) { res.status(404).json({ error: 'Not found' }); return; }
     res.json(profile);
   } catch {
@@ -488,7 +488,7 @@ router.post('/drops', adminAuth, async (req: Request, res: Response): Promise<vo
 
 router.put('/drops/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const drop = await Drop.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const drop = await Drop.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' });
     if (!drop) { res.status(404).json({ error: 'Not found' }); return; }
     res.json(drop);
   } catch {
@@ -562,7 +562,7 @@ router.put('/site-content/:pageKey', adminAuth, async (req: Request, res: Respon
     const content = await SiteContent.findOneAndUpdate(
       { pageKey: req.params.pageKey },
       { $set: { ...req.body, pageKey: req.params.pageKey, label: def.label } },
-      { new: true, upsert: true, runValidators: true }
+      { returnDocument: 'after', upsert: true, runValidators: true }
     );
     res.json(content);
   } catch (err: any) {

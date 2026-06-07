@@ -32,7 +32,7 @@ router.post('/', async (req: Request, res: Response) => {
           size: size != null ? Number(size) : null,
         },
       },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     res.status(201).json({ success: true });
