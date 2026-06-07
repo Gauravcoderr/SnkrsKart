@@ -4,82 +4,127 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-const SITE = 'https://snkrs-kart.vercel.app';
+const SITE = 'https://snkrscart.com';
+const LOGO_URL = `${SITE}/logo.jpg`;
 
 interface Product { id: string; name: string; slug: string; brand?: string; colorway?: string; images?: string[]; price?: number; createdAt?: string; }
 interface Blog { _id: string; title: string; slug: string; coverImage?: string; excerpt?: string; published: boolean; createdAt?: string; }
 
 function buildBlastHtml(products: Product[], blogs: Blog[]): string {
-  const ORANGE = '#FF4500';
-  const BG = '#0A0A0A';
-  const CARD = '#111111';
-
   const productCards = products.map(p => {
     const img = p.images?.[0];
-    const imgHtml = img
-      ? `<a href="${SITE}/products/${p.slug}" style="display:block;text-decoration:none;"><img src="${img}" alt="${p.name}" width="520" style="width:100%;max-height:260px;object-fit:cover;display:block;border-radius:6px;" /></a>`
+    const meta = [p.brand, p.colorway].filter(Boolean).join(' · ');
+    const imgRow = img
+      ? `<tr><td style="line-height:0;font-size:0;"><a href="${SITE}/products/${p.slug}" style="display:block;text-decoration:none;"><img src="${img}" alt="${p.name}" width="536" style="width:100%;max-height:260px;object-fit:cover;display:block;border:none;" /></a></td></tr>`
       : '';
-    return `<tr><td style="padding:0 0 20px;">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#1a1a1a;border-radius:8px;overflow:hidden;">
-        ${imgHtml ? `<tr><td>${imgHtml}</td></tr>` : ''}
-        <tr><td style="padding:20px;">
-          <div style="display:inline-block;background:${ORANGE};padding:3px 10px;border-radius:2px;margin-bottom:10px;">
-            <span style="font-family:Impact,Arial,sans-serif;font-size:9px;font-weight:700;color:#fff;letter-spacing:2.5px;">NEW DROP</span>
-          </div>
-          <h2 style="margin:0 0 4px;font-family:Impact,Arial,sans-serif;font-size:26px;color:#fff;letter-spacing:0.5px;">${p.name}</h2>
-          ${p.brand ? `<p style="margin:0 0 12px;font-family:Arial,sans-serif;font-size:12px;color:#666;">${p.brand}${p.colorway ? ` · ${p.colorway}` : ''}</p>` : ''}
-          ${p.price ? `<p style="margin:0 0 16px;font-family:Arial,sans-serif;font-size:22px;font-weight:700;color:#fff;">₹${p.price.toLocaleString('en-IN')}</p>` : ''}
-          <a href="${SITE}/products/${p.slug}" style="display:inline-block;padding:12px 28px;background:${ORANGE};color:#fff;text-decoration:none;font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-radius:2px;">Shop Now →</a>
-        </td></tr>
-      </table>
-    </td></tr>`;
+    return `
+      <tr>
+        <td style="background:#FFFFFF;border:1px solid #E4E4E7;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            ${imgRow}
+            <tr><td style="padding:24px 28px 8px;">
+              <p style="margin:0 0 8px;font-family:Inter,Arial,sans-serif;font-size:9px;font-weight:700;color:#A1A1AA;letter-spacing:3px;text-transform:uppercase;">Just Dropped</p>
+              <h2 style="margin:0 0 6px;font-family:Inter,Arial,sans-serif;font-size:22px;font-weight:700;color:#18181B;line-height:1.2;">${p.name}</h2>
+              ${meta ? `<p style="margin:0;font-family:Inter,Arial,sans-serif;font-size:12px;color:#71717A;">${meta}</p>` : ''}
+            </td></tr>
+            ${p.price ? `<tr><td style="padding:4px 28px 0;"><span style="font-family:Inter,Arial,sans-serif;font-size:24px;font-weight:700;color:#18181B;">&#8377;${p.price.toLocaleString('en-IN')}</span></td></tr>` : ''}
+            <tr><td style="padding:20px 28px 24px;">
+              <a href="${SITE}/products/${p.slug}" style="display:block;text-align:center;padding:13px 28px;background:#18181B;color:#FFFFFF;text-decoration:none;font-family:Inter,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Shop Now &rarr;</a>
+            </td></tr>
+          </table>
+        </td>
+      </tr>
+      <tr><td height="12" style="font-size:0;line-height:0;">&nbsp;</td></tr>`;
   }).join('');
 
   const blogCards = blogs.map(b => {
-    const imgHtml = b.coverImage
-      ? `<a href="${SITE}/blogs/${b.slug}" style="display:block;text-decoration:none;"><img src="${b.coverImage}" alt="${b.title}" width="520" style="width:100%;max-height:220px;object-fit:cover;display:block;border-radius:6px;" /></a>`
+    const excerpt = b.excerpt ? b.excerpt.slice(0, 130) + (b.excerpt.length > 130 ? '…' : '') : '';
+    const imgRow = b.coverImage
+      ? `<tr><td style="line-height:0;font-size:0;"><a href="${SITE}/blogs/${b.slug}" style="display:block;text-decoration:none;"><img src="${b.coverImage}" alt="${b.title}" width="536" style="width:100%;max-height:220px;object-fit:cover;display:block;border:none;" /></a></td></tr>`
       : '';
-    const excerpt = b.excerpt ? b.excerpt.slice(0, 150) + (b.excerpt.length > 150 ? '…' : '') : '';
-    return `<tr><td style="padding:0 0 20px;">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#1a1a1a;border-radius:8px;overflow:hidden;">
-        ${imgHtml ? `<tr><td>${imgHtml}</td></tr>` : ''}
-        <tr><td style="padding:20px;">
-          <div style="display:inline-block;border:1px solid ${ORANGE};padding:3px 10px;border-radius:2px;margin-bottom:10px;">
-            <span style="font-family:Arial,sans-serif;font-size:9px;font-weight:700;color:${ORANGE};letter-spacing:2.5px;">NEW POST</span>
-          </div>
-          <h2 style="margin:0 0 8px;font-family:Impact,Arial,sans-serif;font-size:24px;color:#fff;letter-spacing:0.3px;">${b.title}</h2>
-          ${excerpt ? `<p style="margin:0 0 14px;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:#888;">${excerpt}</p>` : ''}
-          <a href="${SITE}/blogs/${b.slug}" style="display:inline-block;padding:12px 28px;background:#fff;color:#0a0a0a;text-decoration:none;font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-radius:2px;">Read the Story →</a>
-        </td></tr>
-      </table>
-    </td></tr>`;
+    return `
+      <tr>
+        <td style="background:#FFFFFF;border:1px solid #E4E4E7;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            ${imgRow}
+            <tr><td style="padding:24px 28px 8px;">
+              <p style="margin:0 0 8px;font-family:Inter,Arial,sans-serif;font-size:9px;font-weight:700;color:#A1A1AA;letter-spacing:3px;text-transform:uppercase;">New on the Blog</p>
+              <h2 style="margin:0 0 8px;font-family:Inter,Arial,sans-serif;font-size:20px;font-weight:700;color:#18181B;line-height:1.25;">${b.title}</h2>
+              ${excerpt ? `<p style="margin:0;font-family:Inter,Arial,sans-serif;font-size:13px;line-height:1.65;color:#52525B;">${excerpt}</p>` : ''}
+            </td></tr>
+            <tr><td style="padding:16px 28px 24px;">
+              <a href="${SITE}/blogs/${b.slug}" style="display:block;text-align:center;padding:13px 28px;background:#18181B;color:#FFFFFF;text-decoration:none;font-family:Inter,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Read the Story &rarr;</a>
+            </td></tr>
+          </table>
+        </td>
+      </tr>
+      <tr><td height="12" style="font-size:0;line-height:0;">&nbsp;</td></tr>`;
   }).join('');
 
-  const hasProducts = productCards.length > 0;
-  const hasBlogs = blogCards.length > 0;
+  const hasProducts = products.length > 0;
+  const hasBlogs = blogs.length > 0;
 
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:${BG};">
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BG};">
-  <tr><td align="center" style="padding:24px 12px;">
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>SNKRS CART</title>
+  <style>body{margin:0;padding:0;background:#ECECED;-webkit-font-smoothing:antialiased;}</style>
+</head>
+<body style="margin:0;padding:0;background:#ECECED;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ECECED;">
+  <tr><td align="center" style="padding:32px 12px;">
     <table width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;">
-      <tr><td height="4" style="background:${ORANGE};font-size:0;line-height:0;">&nbsp;</td></tr>
-      <tr><td style="background:${BG};padding:20px 40px;text-align:center;">
-        <a href="${SITE}" style="text-decoration:none;"><span style="font-family:Impact,Arial,sans-serif;font-size:24px;color:#fff;letter-spacing:5px;">SNKRS CART</span></a>
+
+      <!-- HEADER -->
+      <tr><td style="background:#FFFFFF;padding:18px 32px;text-align:left;border-bottom:1px solid #E4E4E7;">
+        <a href="${SITE}" style="text-decoration:none;display:inline-block;vertical-align:middle;">
+          <img src="${LOGO_URL}" alt="SNKRS CART" height="52" style="height:52px;display:inline-block;vertical-align:middle;border:none;" />
+        </a>
+        <a href="${SITE}" style="text-decoration:none;display:inline-block;vertical-align:middle;margin-left:10px;">
+          <span style="font-family:Inter,Arial,sans-serif;font-size:16px;font-weight:800;color:#18181B;letter-spacing:-0.4px;vertical-align:middle;">SNKRS CART</span>
+        </a>
       </td></tr>
-      <tr><td style="background:${CARD};padding:32px 40px;">
-        ${hasProducts ? `<p style="margin:0 0 16px;font-family:Arial,sans-serif;font-size:11px;font-weight:700;color:#555;letter-spacing:2px;text-transform:uppercase;">New Arrivals</p>
-        <table width="100%" cellpadding="0" cellspacing="0" border="0">${productCards}</table>` : ''}
-        ${hasBlogs ? `<p style="margin:${hasProducts ? '16px' : '0'} 0 16px;font-family:Arial,sans-serif;font-size:11px;font-weight:700;color:#555;letter-spacing:2px;text-transform:uppercase;">From the Blog</p>
-        <table width="100%" cellpadding="0" cellspacing="0" border="0">${blogCards}</table>` : ''}
+
+      <!-- INTRO BAND -->
+      <tr><td style="background:#F4F4F5;padding:22px 32px 14px;">
+        <p style="margin:0 0 4px;font-family:Inter,Arial,sans-serif;font-size:9px;font-weight:700;color:#A1A1AA;letter-spacing:3px;text-transform:uppercase;">What's New</p>
+        <h1 style="margin:0;font-family:Inter,Arial,sans-serif;font-size:22px;font-weight:700;color:#18181B;line-height:1.2;">Fresh from SNKRS CART</h1>
       </td></tr>
-      <tr><td style="background:${BG};padding:20px 40px;text-align:center;border-top:1px solid #1e1e1e;">
-        <p style="margin:0 0 4px;font-family:Arial,sans-serif;font-size:11px;color:#444;letter-spacing:1px;">SNKRS CART — Sneakers. Culture. Community.</p>
-        <p style="margin:0;font-family:Arial,sans-serif;font-size:11px;color:#333;">To stop receiving emails, reply STOP.</p>
+
+      <!-- CARDS -->
+      <tr><td style="background:#F4F4F5;padding:12px 32px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+          ${hasProducts ? `<tr><td style="padding:0 0 8px;"><p style="margin:0;font-family:Inter,Arial,sans-serif;font-size:9px;font-weight:700;color:#A1A1AA;letter-spacing:3px;text-transform:uppercase;">New Arrivals</p></td></tr>${productCards}` : ''}
+          ${hasBlogs ? `<tr><td style="padding:${hasProducts ? '8px' : '0'} 0 8px;"><p style="margin:0;font-family:Inter,Arial,sans-serif;font-size:9px;font-weight:700;color:#A1A1AA;letter-spacing:3px;text-transform:uppercase;">From the Blog</p></td></tr>${blogCards}` : ''}
+        </table>
       </td></tr>
+
+      <!-- FOOTER -->
+      <tr><td style="background:#0F0F0F;padding:28px 32px 24px;text-align:center;">
+        <a href="https://www.instagram.com/snkrs_cart/" style="display:inline-block;margin:0 6px;text-decoration:none;vertical-align:top;">
+          <img src="https://res.cloudinary.com/dadulg5bs/image/upload/w_22,h_22,c_fit,f_png/email-icons/instagram-white.png" width="22" height="22" alt="Instagram" style="display:block;border:none;opacity:0.7;" />
+        </a>
+        <a href="https://wa.me/919410903791" style="display:inline-block;margin:0 6px;text-decoration:none;vertical-align:top;">
+          <img src="https://res.cloudinary.com/dadulg5bs/image/upload/w_22,h_22,c_fit,f_png/email-icons/whatsapp-white.png" width="22" height="22" alt="WhatsApp" style="display:block;border:none;opacity:0.7;" />
+        </a>
+        <div style="height:1px;background:rgba(255,255,255,0.08);margin:18px 0 14px;"></div>
+        <p style="margin:0 0 6px;font-family:Inter,Arial,sans-serif;font-size:10px;font-weight:800;color:rgba(255,255,255,0.2);letter-spacing:2px;text-transform:uppercase;">SNKRS CART</p>
+        <p style="margin:0 0 4px;font-family:Inter,Arial,sans-serif;font-size:11px;color:rgba(255,255,255,0.3);">
+          <a href="https://wa.me/919410903791" style="color:rgba(255,255,255,0.3);text-decoration:none;">+91 94109 03791</a>
+          &nbsp;&middot;&nbsp;
+          <a href="mailto:infosnkrscart@gmail.com" style="color:rgba(255,255,255,0.3);text-decoration:none;">infosnkrscart@gmail.com</a>
+          &nbsp;&middot;&nbsp;
+          <a href="${SITE}" style="color:rgba(255,255,255,0.3);text-decoration:none;">snkrscart.com</a>
+        </p>
+        <p style="margin:8px 0 0;font-family:Inter,Arial,sans-serif;font-size:10px;color:rgba(255,255,255,0.15);">You received this because you shopped, reviewed, or subscribed. Reply STOP to unsubscribe.</p>
+      </td></tr>
+
     </table>
   </td></tr>
-</table></body></html>`;
+</table>
+</body></html>`;
 }
 
 export default function EmailBlastPage() {
