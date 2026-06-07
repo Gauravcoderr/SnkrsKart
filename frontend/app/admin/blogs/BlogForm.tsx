@@ -36,6 +36,7 @@ export default function BlogForm({ blogId }: BlogFormProps) {
     metaKeywords: '',
     published: false,
   });
+  const [emailOpts, setEmailOpts] = useState({ triggerEmail: true, emailSubject: '', emailHtml: '' });
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(isEdit);
   const [error, setError] = useState('');
@@ -97,11 +98,16 @@ export default function BlogForm({ blogId }: BlogFormProps) {
     setError('');
     setLoading(true);
     const token = localStorage.getItem('admin_token');
-    const payload = {
+    const payload: Record<string, any> = {
       ...form,
       tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
       metaKeywords: form.metaKeywords || form.tags,
     };
+    if (!isEdit) {
+      payload.triggerEmail = emailOpts.triggerEmail;
+      if (emailOpts.emailSubject.trim()) payload.emailSubject = emailOpts.emailSubject.trim();
+      if (emailOpts.emailHtml.trim()) payload.emailHtml = emailOpts.emailHtml.trim();
+    }
     try {
       const url = isEdit ? `${API}/admin/blogs/${blogId}` : `${API}/admin/blogs`;
       const method = isEdit ? 'PUT' : 'POST';
@@ -308,6 +314,48 @@ export default function BlogForm({ blogId }: BlogFormProps) {
           </div>
         </div>
       </div>
+
+      {/* Email Notification — new posts only */}
+      {!isEdit && (
+        <div className="border border-zinc-700 rounded-xl p-4 space-y-3 bg-zinc-900/40">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-zinc-200">Email Notification</p>
+              <p className="text-[11px] text-zinc-500 mt-0.5">Blast to subscribers, reviewers &amp; customers — only fires if post is published</p>
+            </div>
+            <div
+              className={`relative w-10 h-5 rounded-full cursor-pointer transition-colors shrink-0 ${emailOpts.triggerEmail ? 'bg-emerald-500' : 'bg-zinc-700'}`}
+              onClick={() => setEmailOpts(p => ({ ...p, triggerEmail: !p.triggerEmail }))}
+            >
+              <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${emailOpts.triggerEmail ? 'translate-x-5' : ''}`} />
+            </div>
+          </div>
+          {emailOpts.triggerEmail && (
+            <>
+              <div>
+                <label className="block text-xs text-zinc-500 mb-1">Subject</label>
+                <input
+                  type="text"
+                  value={emailOpts.emailSubject}
+                  onChange={(e) => setEmailOpts(p => ({ ...p, emailSubject: e.target.value }))}
+                  placeholder={form.title ? `New on the Blog: ${form.title}` : 'Auto-generated from title'}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-zinc-500 mb-1">Custom HTML Body <span className="text-zinc-600 font-normal">(leave blank to use auto template)</span></label>
+                <textarea
+                  value={emailOpts.emailHtml}
+                  onChange={(e) => setEmailOpts(p => ({ ...p, emailHtml: e.target.value }))}
+                  placeholder={'<h1>Your custom email HTML...</h1>'}
+                  rows={4}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-xs font-mono text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 resize-y"
+                />
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {error && <p className="text-sm text-red-400 font-medium">{error}</p>}
 

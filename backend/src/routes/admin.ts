@@ -16,6 +16,7 @@ import ChatLead from '../models/ChatLead';
 import { SneakerProfile } from '../models/SneakerProfile';
 import { Drop } from '../models/Drop';
 import { SiteContent } from '../models/SiteContent';
+import { sendProductLaunchBlast, sendBlogPublishBlast, sendCustomBlast } from '../lib/marketingEmails';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET as string;
@@ -84,8 +85,15 @@ router.post('/products', adminAuth, async (req: Request, res: Response): Promise
       return;
     }
 
-    const product = await Product.create(data);
+    const { triggerEmail = true, emailSubject, emailHtml, ...productData } = data;
+    const product = await Product.create(productData);
     await syncBrandCounts();
+    if (triggerEmail !== false) {
+      const subject = emailSubject || `Just Dropped: ${product.name}`;
+      const html = emailHtml || undefined;
+      sendProductLaunchBlast({ name: product.name, slug: product.slug, brand: product.brand, colorway: product.colorway, images: product.images, price: product.price }, subject, html)
+        .catch((err: Error) => console.error('[email] product blast failed:', err));
+    }
     res.status(201).json(product);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to create product' });
@@ -278,7 +286,14 @@ router.post('/blogs', adminAuth, async (req: Request, res: Response): Promise<vo
     if (!data.slug) data.slug = toSlug(data.title);
     const existing = await Blog.findOne({ slug: data.slug }).lean();
     if (existing) { res.status(409).json({ error: 'Slug already exists' }); return; }
-    const blog = await Blog.create(data);
+    const { triggerEmail = true, emailSubject, emailHtml, ...blogData } = data;
+    const blog = await Blog.create(blogData);
+    if (blog.published && triggerEmail !== false) {
+      const subject = emailSubject || `New on the Blog: ${blog.title}`;
+      const html = emailHtml || undefined;
+      sendBlogPublishBlast({ title: blog.title, slug: blog.slug, coverImage: blog.coverImage, excerpt: blog.excerpt }, subject, html)
+        .catch((err: Error) => console.error('[email] blog blast failed:', err));
+    }
     res.status(201).json(blog);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to create blog' });
@@ -290,8 +305,14 @@ router.put('/blogs/:id', adminAuth, async (req: Request, res: Response): Promise
     if (req.body.content !== undefined) {
       req.body.wordCount = (req.body.content || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length;
     }
+    const before = await Blog.findById(req.params.id).lean();
     const blog = await Blog.findByIdAndUpdate(req.params.id, { $set: req.body }, { returnDocument: 'after', runValidators: true });
     if (!blog) { res.status(404).json({ error: 'Not found' }); return; }
+    // fire email when draft is published for the first time
+    if (req.body.published === true && before && !before.published) {
+      sendBlogPublishBlast({ title: blog.title, slug: blog.slug, coverImage: blog.coverImage, excerpt: blog.excerpt })
+        .catch((err: Error) => console.error('[email] blog publish blast failed:', err));
+    }
     res.json(blog);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to update blog' });
@@ -567,6 +588,19 @@ router.put('/site-content/:pageKey', adminAuth, async (req: Request, res: Respon
     res.json(content);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to update content' });
+  }
+});
+
+// ─── Email Blast ───────────────────────────────────────────────────────────
+
+router.post('/email-blast', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { subject, html } = req.body;
+    if (!subject || !html) { res.status(400).json({ error: 'subject and html are required' }); return; }
+    sendCustomBlast(subject, html).catch((err: Error) => console.error('[email] custom blast failed:', err));
+    res.json({ message: 'Blast queued' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to send blast' });
   }
 });
 

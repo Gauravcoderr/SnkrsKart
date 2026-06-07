@@ -19,6 +19,8 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
   const isEdit = !!product;
   const [productType, setProductType] = useState<ProductType>(product?.productType ?? 'shoes');
 
+  const [emailOpts, setEmailOpts] = useState({ triggerEmail: true, emailSubject: '', emailHtml: '' });
+
   const categoriesForType = CATEGORIES_BY_TYPE[productType];
 
   const [form, setForm] = useState({
@@ -316,6 +318,11 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
           .filter((f) => f.question && f.answer),
       };
 
+      if (!isEdit) {
+        (payload as Record<string, any>).triggerEmail = emailOpts.triggerEmail;
+        if (emailOpts.emailSubject.trim()) (payload as Record<string, any>).emailSubject = emailOpts.emailSubject.trim();
+        if (emailOpts.emailHtml.trim()) (payload as Record<string, any>).emailHtml = emailOpts.emailHtml.trim();
+      }
       await onSave(payload);
     } catch (err: any) {
       setError(err.message);
@@ -823,6 +830,48 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
             <Checkbox label="Sold Out" checked={form.soldOut} onChange={(v) => set('soldOut', v)} />
             <Checkbox label="Coming Soon" checked={form.comingSoon} onChange={(v) => set('comingSoon', v)} />
           </div>
+
+          {/* Email Notification */}
+          {!isEdit && (
+            <div className="border border-zinc-700 rounded-xl p-4 space-y-3 bg-zinc-900/40">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-zinc-200">Email Notification</p>
+                  <p className="text-[11px] text-zinc-500 mt-0.5">Blast to all subscribers, reviewers &amp; past customers</p>
+                </div>
+                <div
+                  className={`relative w-10 h-5 rounded-full cursor-pointer transition-colors shrink-0 ${emailOpts.triggerEmail ? 'bg-emerald-500' : 'bg-zinc-700'}`}
+                  onClick={() => setEmailOpts(p => ({ ...p, triggerEmail: !p.triggerEmail }))}
+                >
+                  <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${emailOpts.triggerEmail ? 'translate-x-5' : ''}`} />
+                </div>
+              </div>
+              {emailOpts.triggerEmail && (
+                <>
+                  <div>
+                    <label className="block text-xs text-zinc-500 mb-1">Subject</label>
+                    <input
+                      type="text"
+                      value={emailOpts.emailSubject}
+                      onChange={(e) => setEmailOpts(p => ({ ...p, emailSubject: e.target.value }))}
+                      placeholder={form.name ? `Just Dropped: ${form.name}` : 'Auto-generated from product name'}
+                      className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-zinc-500 mb-1">Custom HTML Body <span className="text-zinc-600 font-normal">(leave blank to use auto template)</span></label>
+                    <textarea
+                      value={emailOpts.emailHtml}
+                      onChange={(e) => setEmailOpts(p => ({ ...p, emailHtml: e.target.value }))}
+                      placeholder={'<h1>Your custom email HTML...</h1>'}
+                      rows={4}
+                      className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-white text-xs font-mono placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 resize-y"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Submit */}
           <div className="flex justify-end gap-3 pt-2">
