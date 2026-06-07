@@ -86,6 +86,8 @@ export interface Review {
   productSlug: string;
   productName: string;
   name: string;
+  email?: string;
+  location?: string;
   rating: number;
   comment: string;
   photos?: string[];

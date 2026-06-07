@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Review, FitSummary } from '@/types';
 import StarRating from './StarRating';
 import FitIndicator from '@/components/product-detail/FitIndicator';
+import { INDIA_STATES } from '@/lib/constants';
 
 interface ProductReviewsProps {
   productSlug: string;
@@ -16,6 +17,7 @@ interface ProductReviewsProps {
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const CLOUDINARY_CLOUD = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dadulg5bs';
 const CLOUDINARY_PRESET = 'reviews_upload';
+
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -54,6 +56,8 @@ export default function ProductReviews({ productSlug, productName, initialReview
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [location, setLocation] = useState('');
   const [comment, setComment] = useState('');
   const [fitRating, setFitRating] = useState<'small' | 'true' | 'large' | null>(null);
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
@@ -90,6 +94,8 @@ export default function ProductReviews({ productSlug, productName, initialReview
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (rating === 0) { setError('Please select a star rating.'); return; }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim() || !emailRegex.test(email.trim())) { setError('Please enter a valid email address.'); return; }
     setError('');
     setLoading(true);
     try {
@@ -106,7 +112,8 @@ export default function ProductReviews({ productSlug, productName, initialReview
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           productSlug, productName,
-          name: name.trim(), rating, comment: comment.trim(),
+          name: name.trim(), email: email.trim(), location: location || null,
+          rating, comment: comment.trim(),
           photos: uploadedUrls,
           fitRating,
         }),
@@ -120,7 +127,7 @@ export default function ProductReviews({ productSlug, productName, initialReview
       const newCount = updatedReviews.length;
       const newRating = Math.round((updatedReviews.reduce((s, r) => s + r.rating, 0) / newCount) * 10) / 10;
       window.dispatchEvent(new CustomEvent('snkrs:review-added', { detail: { newRating, newCount } }));
-      setName(''); setComment(''); setRating(0); setFitRating(null);
+      setName(''); setEmail(''); setLocation(''); setComment(''); setRating(0); setFitRating(null);
       setPhotoFiles([]); setPhotoPreviews([]);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
@@ -224,6 +231,22 @@ export default function ProductReviews({ productSlug, productName, initialReview
                 </div>
 
                 <div>
+                  <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-1">Email Address *</label>
+                  <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. rahul@example.com" className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors" />
+                  <p className="text-[10px] text-zinc-400 mt-1">Not shown publicly</p>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-1">State <span className="text-zinc-400 normal-case font-normal">(optional)</span></label>
+                  <select value={location} onChange={(e) => setLocation(e.target.value)} title="Select your state" className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors bg-white appearance-none">
+                    <option value="">Select your state</option>
+                    {INDIA_STATES.map((state) => (
+                      <option key={state} value={state}>{state}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-1">Your Review *</label>
                   <textarea required value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Share your experience with this shoe..." rows={4} className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors resize-none" />
                 </div>
@@ -291,7 +314,7 @@ export default function ProductReviews({ productSlug, productName, initialReview
               <div key={review.id} className="p-4 border border-zinc-100 bg-white">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <p className="text-sm font-bold text-zinc-900">{review.name}</p>
+                    <p className="text-sm font-bold text-zinc-900">{review.name}{review.location && <span className="ml-1.5 text-xs font-normal text-zinc-400">· {review.location}</span>}</p>
                     <div className="flex items-center gap-2">
                       <StarRating value={review.rating} size="sm" />
                       {review.fitRating && (

@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { Review } from '@/types';
 import Link from 'next/link';
 import StarRating from '@/components/reviews/StarRating';
+import { INDIA_STATES } from '@/lib/constants';
 
-const FALLBACK_REVIEWS = [
+const FALLBACK_REVIEWS: Review[] = [
   {
     id: 'f1',
     name: 'Aryan M.',
@@ -13,6 +14,7 @@ const FALLBACK_REVIEWS = [
     comment: 'Absolutely love my Jordan 1s. Shipped fast, packaging was clean, and the kicks are 100% legit. Will definitely order again.',
     productName: 'Air Jordan 1 Retro High OG',
     productSlug: 'products',
+    createdAt: '2025-01-01T00:00:00.000Z',
   },
   {
     id: 'f2',
@@ -21,6 +23,7 @@ const FALLBACK_REVIEWS = [
     comment: 'Got the New Balance 9060 and honestly blown away by the comfort. The team was super helpful with size queries too.',
     productName: 'New Balance 9060',
     productSlug: 'products',
+    createdAt: '2025-01-01T00:00:00.000Z',
   },
   {
     id: 'f3',
@@ -29,6 +32,7 @@ const FALLBACK_REVIEWS = [
     comment: 'Snagged a pair of Dunks at retail. Site was smooth, checkout was fast, delivered in 2 days. This is my go-to spot now.',
     productName: 'Nike Dunk Low Retro',
     productSlug: 'products',
+    createdAt: '2025-01-01T00:00:00.000Z',
   },
 ];
 
@@ -46,6 +50,8 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [location, setLocation] = useState('');
   const [productName, setProductName] = useState('');
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
@@ -57,6 +63,8 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (rating === 0) { setError('Please select a star rating.'); return; }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim() || !emailRegex.test(email.trim())) { setError('Please enter a valid email address.'); return; }
     setError('');
     setLoading(true);
     try {
@@ -67,6 +75,8 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
           productSlug: 'general',
           productName: productName.trim() || 'General Review',
           name: name.trim(),
+          email: email.trim(),
+          location: location || null,
           rating,
           comment: comment.trim(),
         }),
@@ -75,7 +85,7 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
       const newReview: Review = await res.json();
       setLiveReviews([newReview, ...liveReviews]);
       setSubmitted(true);
-      setName(''); setProductName(''); setComment(''); setRating(0);
+      setName(''); setEmail(''); setLocation(''); setProductName(''); setComment(''); setRating(0);
     } catch {
       setError('Something went wrong. Please try again.');
     } finally {
@@ -163,6 +173,34 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
                 </div>
 
                 <div>
+                  <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-1">Email Address *</label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. rahul@example.com"
+                    className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors"
+                  />
+                  <p className="text-[10px] text-zinc-400 mt-1">Not shown publicly</p>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-1">State <span className="normal-case font-normal">(optional)</span></label>
+                  <select
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    title="Select your state"
+                    className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors bg-white appearance-none"
+                  >
+                    <option value="">Select your state</option>
+                    {INDIA_STATES.map((state) => (
+                      <option key={state} value={state}>{state}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-1">What did you buy? <span className="normal-case font-normal">(optional)</span></label>
                   <input
                     type="text"
@@ -223,7 +261,7 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <p className="text-xs sm:text-sm font-bold text-zinc-900">{review.name}</p>
+                    <p className="text-xs sm:text-sm font-bold text-zinc-900">{review.name}{review.location && <span className="ml-1.5 text-xs font-normal text-zinc-400">· {review.location}</span>}</p>
                     <StarRating value={review.rating} size="sm" />
                   </div>
                   <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-400 border border-zinc-100 px-2 py-0.5">

@@ -4,6 +4,8 @@ export interface IReview extends Document {
   productSlug: string;
   productName: string;
   name: string;
+  email: string;
+  location?: string;
   rating: number;
   comment: string;
   photos: string[];
@@ -16,6 +18,8 @@ const ReviewSchema = new Schema<IReview>(
     productSlug: { type: String, required: true, index: true },
     productName: { type: String, required: true },
     name:        { type: String, required: true },
+    email:       { type: String, required: true },
+    location:    { type: String, default: null },
     rating:      { type: Number, required: true, min: 1, max: 5 },
     comment:     { type: String, required: true },
     photos:      { type: [String], default: [] },

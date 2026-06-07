@@ -40,10 +40,15 @@ router.get('/recent', async (_req: Request, res: Response): Promise<void> => {
 // POST /api/v1/reviews
 router.post('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { productSlug, productName, name, rating, comment, photos, fitRating } = req.body;
+    const { productSlug, productName, name, email, location, rating, comment, photos, fitRating } = req.body;
 
-    if (!productSlug || !productName || !name || !rating || !comment) {
+    if (!productSlug || !productName || !name || !email || !rating || !comment) {
       res.status(400).json({ error: 'All fields are required' });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(String(email).trim())) {
+      res.status(400).json({ error: 'Invalid email address' });
       return;
     }
     if (rating < 1 || rating > 5) {
@@ -76,6 +81,8 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       productSlug,
       productName,
       name: name.trim(),
+      email: String(email).trim().toLowerCase(),
+      location: location ? String(location).trim() : null,
       rating,
       comment: comment.trim(),
       photos: cleanPhotos,
