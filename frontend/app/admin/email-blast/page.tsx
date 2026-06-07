@@ -117,9 +117,15 @@ export default function EmailBlastPage() {
 
   function toggleProduct(id: string) {
     setSelectedProducts(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+    setSubject('');
+    setHtml('');
+    setPreview(false);
   }
   function toggleBlog(id: string) {
     setSelectedBlogs(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+    setSubject('');
+    setHtml('');
+    setPreview(false);
   }
 
   function generate() {
@@ -133,7 +139,7 @@ export default function EmailBlastPage() {
       : selProds.length > 1 ? `New Drops at SNKRS CART`
       : selBlgs.length === 1 ? `New on the Blog: ${selBlgs[0].title}`
       : `New Posts from SNKRS CART`;
-    if (!subject.trim()) setSubject(autoSubject);
+    setSubject(autoSubject);
     setHtml(buildBlastHtml(selProds, selBlgs));
     setPreview(false);
   }
@@ -186,7 +192,7 @@ export default function EmailBlastPage() {
             <p className="text-xs font-bold tracking-widest uppercase text-zinc-400">Products</p>
             <button
               type="button"
-              onClick={() => setSelectedProducts(prev => prev.size === products.length ? new Set() : new Set(products.map(p => p.id)))}
+              onClick={() => { setSelectedProducts(prev => prev.size === products.length ? new Set() : new Set(products.map(p => p.id))); setSubject(''); setHtml(''); setPreview(false); }}
               className="text-xs text-zinc-500 hover:text-white transition"
             >
               {selectedProducts.size === products.length ? 'Deselect all' : 'Select all'}
@@ -221,7 +227,7 @@ export default function EmailBlastPage() {
             <p className="text-xs font-bold tracking-widest uppercase text-zinc-400">Blogs</p>
             <button
               type="button"
-              onClick={() => setSelectedBlogs(prev => prev.size === blogs.length ? new Set() : new Set(blogs.map(b => b._id)))}
+              onClick={() => { setSelectedBlogs(prev => prev.size === blogs.length ? new Set() : new Set(blogs.map(b => b._id))); setSubject(''); setHtml(''); setPreview(false); }}
               className="text-xs text-zinc-500 hover:text-white transition"
             >
               {selectedBlogs.size === blogs.length ? 'Deselect all' : 'Select all'}
