@@ -87,7 +87,7 @@ export default function SizeSelector({
                   onClick={() => available && onSizeSelect(size)}
                   disabled={!available}
                   className={`
-                    relative flex flex-col items-center justify-center gap-0.5 border transition-all duration-150
+                    relative overflow-hidden flex flex-col items-center justify-center gap-0.5 border transition-all duration-150
                     ${hasVariants ? 'py-2.5 px-2' : 'h-11'}
                     ${selected
                       ? 'bg-zinc-900 text-white border-zinc-900'
@@ -123,7 +123,7 @@ export default function SizeSelector({
                   onClick={() => available && onSizeSelect(size)}
                   disabled={!available}
                   className={`
-                    relative flex flex-col items-center justify-center gap-0.5 border transition-all duration-150
+                    relative overflow-hidden flex flex-col items-center justify-center gap-0.5 border transition-all duration-150
                     ${hasVariants ? 'py-2.5 px-2' : 'h-11'}
                     ${selected
                       ? 'bg-zinc-900 text-white border-zinc-900'
