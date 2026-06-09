@@ -98,6 +98,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
   // Map gender → schema.org audience age group
   const ageGroup = product.gender === 'kids' ? 'kids' : 'adult';
 
+  const schemaCategory =
+    product.productType === 'clothing' ? 'Clothing'
+    : product.productType === 'accessories' ? 'Accessories'
+    : 'Sneakers';
+
   const productSchema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -106,7 +111,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     description: product.description,
     image: product.images,
     sku: product.sku,
-    category: 'Sneakers',
+    category: schemaCategory,
     itemCondition: 'https://schema.org/NewCondition',
     datePublished: product.createdAt,
     color: product.colorway || (product.colors?.[0] ?? ''),
@@ -176,7 +181,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     isPartOf: {
       '@type': 'CollectionPage',
       '@id': `${SITE_URL}/products`,
-      name: 'All Sneakers — SNKRS CART',
+      name: 'All Products — SNKRS CART',
     },
     ...(avgRating && reviews.length >= 1 && {
       aggregateRating: {
@@ -209,12 +214,20 @@ export default async function ProductDetailPage({ params }: PageProps) {
     })),
   } : null;
 
+  const categoryLabel =
+    product.productType === 'clothing' ? 'Clothing'
+    : product.productType === 'accessories' ? 'Accessories'
+    : product.productType === 'shoes' ? 'Shoes'
+    : 'All Products';
+  const categoryHref =
+    product.productType ? `/products?productType=${product.productType}` : '/products';
+
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
-      { '@type': 'ListItem', position: 2, name: 'All Shoes', item: `${SITE_URL}/products` },
+      { '@type': 'ListItem', position: 2, name: categoryLabel, item: `${SITE_URL}${categoryHref}` },
       { '@type': 'ListItem', position: 3, name: product.brand, item: `${SITE_URL}/brands/${product.brand.toLowerCase().replace(/\s+/g, '-')}` },
       { '@type': 'ListItem', position: 4, name: product.name, item: productUrl },
     ],
@@ -241,7 +254,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
       <nav className="flex items-center gap-1.5 text-[10px] sm:text-xs text-zinc-400 mb-6 sm:mb-8 font-medium tracking-wide flex-wrap">
         <Link href="/" className="hover:text-zinc-900 transition-colors shrink-0">Home</Link>
         <span>/</span>
-        <Link href="/products" className="hover:text-zinc-900 transition-colors shrink-0">All Shoes</Link>
+        <Link href={categoryHref} className="hover:text-zinc-900 transition-colors shrink-0">{categoryLabel}</Link>
         <span>/</span>
         <Link href={`/brands/${product.brand.toLowerCase().replace(/\s+/g, '-')}`} className="hover:text-zinc-900 transition-colors shrink-0">{product.brand}</Link>
         <span>/</span>
@@ -288,7 +301,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
       <div className="mt-12 pt-10 border-t border-zinc-100 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
         {/* Left — full description */}
         <div>
-          <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-4">About This Shoe</h3>
+          <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-4">About This Product</h3>
           <div
             className="text-sm text-zinc-600 leading-relaxed prose prose-sm prose-zinc max-w-none"
             dangerouslySetInnerHTML={{ __html: product.description }}
@@ -312,7 +325,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
             <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-3">Specifications</h3>
             <dl className="space-y-2">
               {[
-                ['Type', product.category || 'Sneakers'],
+                ['Type', product.category || schemaCategory],
                 ['Brand', product.brand],
                 ['Gender', product.gender === 'men' ? "Men's" : product.gender === 'women' ? "Women's" : product.gender === 'kids' ? "Kids'" : 'Unisex'],
                 ['Colorway', product.colorway],

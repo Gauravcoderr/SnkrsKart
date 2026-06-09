@@ -318,7 +318,7 @@ export default function Header() {
                     ref={inputRef}
                     value={query}
                     onChange={(e) => handleQueryChange(e.target.value)}
-                    placeholder="Search Sneakers"
+                    placeholder="Search Products"
                     className="flex-1 text-base outline-none bg-transparent placeholder-zinc-400"
                   />
                   <button

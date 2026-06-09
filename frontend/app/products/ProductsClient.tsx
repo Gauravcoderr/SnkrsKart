@@ -65,7 +65,7 @@ export default function ProductsClient() {
           </p>
           <div className="flex items-center gap-3">
             <h1 className="text-3xl font-bold tracking-[0.1em] uppercase text-zinc-900">
-              {filters.search ? `Search: "${filters.search}"` : 'All Shoes'}
+              {filters.search ? `Search: "${filters.search}"` : 'All Products'}
             </h1>
             {filters.search && (
               <button

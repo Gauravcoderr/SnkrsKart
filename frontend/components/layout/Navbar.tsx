@@ -51,7 +51,7 @@ export default function Navbar() {
                   : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900'
               }`}
             >
-              All Shoes
+              All Products
             </Link>
 
             <div className="w-px h-4 bg-zinc-200 mx-2" />
@@ -83,7 +83,7 @@ export default function Navbar() {
                   ref={inputRef}
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  placeholder="Search sneakers..."
+                  placeholder="Search products..."
                   className="w-48 sm:w-64 text-sm border border-zinc-200 rounded-none px-3 py-1.5 outline-none focus:border-zinc-900 bg-white"
                   onBlur={() => { if (!searchValue) setSearchOpen(false); }}
                 />

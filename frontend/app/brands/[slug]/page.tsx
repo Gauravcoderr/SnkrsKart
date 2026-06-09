@@ -100,7 +100,7 @@ export default async function BrandPage({ params, searchParams }: Props) {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
-      { '@type': 'ListItem', position: 2, name: 'Sneakers', item: `${SITE_URL}/products` },
+      { '@type': 'ListItem', position: 2, name: 'All Products', item: `${SITE_URL}/products` },
       { '@type': 'ListItem', position: 3, name: brand.name, item: brandUrl },
     ],
   };
@@ -214,7 +214,7 @@ export default async function BrandPage({ params, searchParams }: Props) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2 text-xs text-zinc-400">
           <Link href="/" className="hover:text-zinc-700 transition-colors">Home</Link>
           <span>/</span>
-          <Link href="/products" className="hover:text-zinc-700 transition-colors">Sneakers</Link>
+          <Link href="/products" className="hover:text-zinc-700 transition-colors">All Products</Link>
           <span>/</span>
           <span className="text-zinc-900 font-medium">{brand.name}</span>
         </div>

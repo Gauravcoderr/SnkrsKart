@@ -433,7 +433,7 @@ export default function ChatBot() {
                       const href = brands.length === 1
                         ? `/brands/${brands[0].toLowerCase().replace(/\s+/g, '-')}`
                         : '/products';
-                      const label = brands.length === 1 ? `See all ${brands[0]} →` : 'Browse all shoes →';
+                      const label = brands.length === 1 ? `See all ${brands[0]} →` : 'Browse all products →';
                       return (
                         <>
                           <div className="mt-2 grid grid-cols-2 gap-2">
