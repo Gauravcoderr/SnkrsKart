@@ -1,3 +1,4 @@
+import { permanentRedirect } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Blog } from '@/types';
@@ -21,7 +22,11 @@ export const metadata = {
   twitter: { card: 'summary_large_image', title: 'Sneaker Blog | SNKRS CART', description: 'Latest sneaker content from SNKRS CART.' },
 };
 
-export default async function BlogsPage() {
+export default async function BlogsPage({ searchParams }: { searchParams?: { tag?: string } }) {
+  if (searchParams?.tag) {
+    permanentRedirect(`/blogs/tag/${encodeURIComponent(searchParams.tag)}`);
+  }
+
   const { blogs: firstPage, total, pages } = await fetchPaginated<Blog>(
     `${API}/blogs?page=1&limit=${PAGE_SIZE}`,
     { cache: 'no-store' },
