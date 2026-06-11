@@ -458,7 +458,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
               {safeTags.map((tag) => (
                 <Link
                   key={tag}
-                  href={`/blogs?tag=${encodeURIComponent(tag)}`}
+                  href={`/blogs/tag/${encodeURIComponent(tag)}`}
                   className={`text-xs font-bold tracking-wide px-3 py-1.5 rounded-full border transition-all ${accent.border} ${accent.tagText} hover:${accent.tagBg} hover:scale-105`}
                 >
                   #{tag}
