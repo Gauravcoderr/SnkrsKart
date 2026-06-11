@@ -36,7 +36,7 @@ export default function NewsletterBar() {
   }
 
   return (
-    <section className="bg-zinc-950 py-12 px-4">
+    <section className="bg-zinc-900 border-t border-white/5 py-12 px-4">
       <div className="max-w-2xl mx-auto text-center">
         <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-2">Stay in the Loop</p>
         <h2 className="text-2xl font-black tracking-tight text-white mb-2">Get drop alerts before anyone else.</h2>

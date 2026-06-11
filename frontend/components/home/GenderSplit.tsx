@@ -43,7 +43,7 @@ export default function GenderSplit() {
   const clips = getClips(hovered);
 
   return (
-    <section className="w-full overflow-hidden">
+    <section className="w-full overflow-hidden border-b border-white/5">
 
       {/* ── Desktop: diagonal clip-path ── */}
       <div className="relative hidden md:block h-[420px]" style={{ background: '#09090b' }}>
