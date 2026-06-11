@@ -485,10 +485,16 @@ router.delete('/sneaker-profiles/:id', adminAuth, async (req: Request, res: Resp
 
 // ─── Drops CRUD ────────────────────────────────────────────────────────────
 
-router.get('/drops', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+router.get('/drops', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const drops = await Drop.find().sort({ releaseDate: 1 }).lean();
-    res.json(drops);
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const skip = (page - 1) * limit;
+    const [drops, total] = await Promise.all([
+      Drop.find().sort({ releaseDate: 1 }).skip(skip).limit(limit).lean(),
+      Drop.countDocuments(),
+    ]);
+    res.json({ drops, total, page, totalPages: Math.max(1, Math.ceil(total / limit)) });
   } catch {
     res.status(500).json({ error: 'Failed to fetch drops' });
   }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Paginator from '../_components/Paginator';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
@@ -42,6 +43,10 @@ async function uploadImage(file: File): Promise<string> {
 export default function AdminDropsPage() {
   const router = useRouter();
   const [drops, setDrops] = useState<Drop[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -50,22 +55,25 @@ export default function AdminDropsPage() {
   const [saving, setSaving] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
 
-  const fetchDrops = useCallback(async () => {
+  const fetchDrops = useCallback(async (p = page, limit = pageSize) => {
     const token = localStorage.getItem('admin_token');
     if (!token) { router.push('/admin/login'); return; }
     try {
-      const res = await fetch(`${API}/admin/drops`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API}/admin/drops?page=${p}&limit=${limit}`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.status === 401) { localStorage.removeItem('admin_token'); router.push('/admin/login'); return; }
       if (!res.ok) { setError(`Server error: ${res.status}`); return; }
-      setDrops(await res.json());
+      const data = await res.json();
+      setDrops(data.drops);
+      setTotal(data.total);
+      setTotalPages(data.totalPages);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to connect');
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [router, page, pageSize]);
 
-  useEffect(() => { fetchDrops(); }, [fetchDrops]);
+  useEffect(() => { fetchDrops(page, pageSize); }, [page, pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function setF(k: string, v: unknown) { setForm((p) => ({ ...p, [k]: v })); }
 
@@ -109,7 +117,7 @@ export default function AdminDropsPage() {
       });
       if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error || 'Save failed'); return; }
       setShowForm(false);
-      fetchDrops();
+      fetchDrops(page, pageSize);
     } catch { setError('Save failed'); }
     finally { setSaving(false); }
   }
@@ -118,7 +126,7 @@ export default function AdminDropsPage() {
     if (!confirm(`Delete "${name}"?`)) return;
     const token = localStorage.getItem('admin_token');
     await fetch(`${API}/admin/drops/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-    setDrops((prev) => prev.filter((d) => d._id !== id));
+    fetchDrops(page, pageSize);
   }
 
   async function handleToggle(d: Drop) {
@@ -144,7 +152,7 @@ export default function AdminDropsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-zinc-100">Drop Calendar</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">{upcoming.length} upcoming · {past.length} past · powers /drops/* pages</p>
+          <p className="text-xs text-zinc-500 mt-0.5">{total} total drops · {upcoming.length} upcoming this page · powers /drops/* pages</p>
         </div>
         <button type="button" onClick={openCreate} className="bg-zinc-100 text-zinc-900 px-4 py-2 text-xs font-bold tracking-widest uppercase hover:bg-white transition-colors">
           + Add Drop
@@ -169,7 +177,7 @@ export default function AdminDropsPage() {
               </tr>
             </thead>
             <tbody>
-              {[...upcoming, ...past].map((d) => (
+              {drops.map((d) => (
                 <tr key={d._id} className={`border-b border-zinc-800 transition-colors ${new Date(d.releaseDate) < now ? 'opacity-50' : 'hover:bg-zinc-800/40'}`}>
                   <td className="py-3 pr-4">
                     <p className="font-semibold text-zinc-100">{d.name}</p>
@@ -204,6 +212,15 @@ export default function AdminDropsPage() {
           </table>
         </div>
       )}
+
+      <Paginator
+        page={page}
+        totalPages={totalPages}
+        onPage={(p) => setPage(p)}
+        pageSize={pageSize}
+        onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+        totalItems={total}
+      />
 
       {/* Form modal */}
       {showForm && (
