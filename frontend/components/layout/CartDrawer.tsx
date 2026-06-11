@@ -103,7 +103,7 @@ export default function CartDrawer() {
                       <div className="min-w-0">
                         <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400">{item.product.brand}</p>
                         <p className="text-sm font-semibold text-zinc-900 truncate">{item.product.name}</p>
-                        <p className="text-xs text-zinc-400 mt-0.5">UK {item.size} · {item.product.colorway}</p>
+                        <p className="text-xs text-zinc-400 mt-0.5">{typeof item.size === 'number' ? `UK ${item.size}` : item.size} · {item.product.colorway}</p>
                       </div>
                       <p className="text-sm font-bold text-zinc-900 shrink-0">{formatPrice(item.product.price * item.quantity)}</p>
                     </div>
@@ -113,7 +113,16 @@ export default function CartDrawer() {
                         <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
                         <button onClick={() => updateQuantity(item.product.id, item.size, item.quantity + 1)} disabled={item.quantity >= 5} className="w-8 h-8 flex items-center justify-center text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors disabled:opacity-30 text-lg">+</button>
                       </div>
-                      <button onClick={() => removeItem(item.product.id, item.size)} className="text-xs text-zinc-400 hover:text-red-500 transition-colors underline">Remove</button>
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.product.id, item.size)}
+                        aria-label="Remove item"
+                        className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 </li>

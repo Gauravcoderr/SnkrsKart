@@ -134,7 +134,7 @@ export default function InquiriesPage() {
                   <div className="text-xs text-zinc-500">{inq.productBrand}</div>
                 </td>
                 <td className="px-4 py-3 text-zinc-300">
-                  {inq.selectedSize ? `UK ${inq.selectedSize}` : <span className="text-zinc-600">—</span>}
+                  {inq.selectedSize ? (typeof inq.selectedSize === 'number' ? `UK ${inq.selectedSize}` : String(inq.selectedSize)) : <span className="text-zinc-600">—</span>}
                 </td>
                 <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">
                   ₹{inq.price.toLocaleString('en-IN')}

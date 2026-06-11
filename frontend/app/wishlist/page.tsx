@@ -117,10 +117,12 @@ export default function WishlistPage() {
                 <div className="mt-3 w-full py-2 border border-zinc-200 text-xs font-bold tracking-widest uppercase text-center text-zinc-400 cursor-default">
                   Dropping Soon
                 </div>
-              ) : !product.soldOut && product.availableSizes.length > 0 ? (
+              ) : !product.soldOut && (product.availableSizes.length > 0 || (product.availableStringSizes ?? []).length > 0) ? (
                 <button
                   onClick={() => {
-                    addItem(product, product.availableSizes[0], 1);
+                    const isStringProduct = product.productType !== 'shoes' && (product.availableStringSizes ?? []).length > 0;
+                    const firstSize = isStringProduct ? (product.availableStringSizes ?? [])[0] : product.availableSizes[0];
+                    addItem(product, firstSize, 1);
                     openDrawer();
                   }}
                   className="mt-3 w-full py-2 border border-zinc-900 text-xs font-bold tracking-widest uppercase text-zinc-900 hover:bg-zinc-900 hover:text-white transition-colors"

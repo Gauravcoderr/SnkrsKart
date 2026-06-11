@@ -105,7 +105,7 @@ export default function InquiryDetailPage() {
           <Field label="Brand">{inquiry.productBrand}</Field>
           <Field label="Product">{inquiry.productName}</Field>
           <Field label="Size">
-            {inquiry.selectedSize ? `UK ${inquiry.selectedSize}` : <span className="text-zinc-600">Not specified</span>}
+            {inquiry.selectedSize ? (typeof inquiry.selectedSize === 'number' ? `UK ${inquiry.selectedSize}` : String(inquiry.selectedSize)) : <span className="text-zinc-600">Not specified</span>}
           </Field>
           <Field label="Price">
             <span className="text-white font-semibold">₹{inquiry.price.toLocaleString('en-IN')}</span>

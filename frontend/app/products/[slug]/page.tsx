@@ -329,7 +329,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 ['Brand', product.brand],
                 ['Gender', product.gender === 'men' ? "Men's" : product.gender === 'women' ? "Women's" : product.gender === 'kids' ? "Kids'" : 'Unisex'],
                 ['Colorway', product.colorway],
-                ['Available Sizes', product.availableSizes.length > 0 ? product.availableSizes.join(', ') : 'See options above'],
+                ['Available Sizes', (() => { const isStr = product.productType !== 'shoes' && (product.availableStringSizes?.length ?? 0) > 0; const s = isStr ? product.availableStringSizes : product.availableSizes; return (s?.length ?? 0) > 0 ? s!.join(', ') : 'See options above'; })()],
               ].map(([label, value]) => (
                 <div key={label} className="flex gap-4 text-sm py-2 border-b border-zinc-100 last:border-0">
                   <dt className="w-36 shrink-0 font-semibold text-zinc-900">{label}</dt>
