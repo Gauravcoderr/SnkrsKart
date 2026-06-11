@@ -10,10 +10,10 @@ const PANELS = [
     heading: 'MEN',
     sub: 'Nike · Jordan · Adidas · New Balance',
     href: '/products?gender=men',
-    bgGrad: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 45%, #0ea5e9 100%)',
-    glow: 'radial-gradient(ellipse 60% 70% at 80% 50%, rgba(14,165,233,0.35) 0%, transparent 70%)',
-    accent: '#7dd3fc',
-    accentClass: 'text-sky-300',
+    bgGrad: 'linear-gradient(135deg, #0f0f11 0%, #111113 100%)',
+    glow: 'radial-gradient(ellipse 65% 70% at 75% 55%, rgba(56,189,248,0.12) 0%, transparent 70%)',
+    accent: '#38bdf8',
+    accentClass: 'text-sky-400',
     align: 'left',
     decorLetter: 'M',
   },
@@ -21,12 +21,12 @@ const PANELS = [
     id: 'women' as const,
     eyebrow: 'Shop for',
     heading: 'WOMEN',
-    sub: 'New Balance · Vans · Puma · Asics',
+    sub: 'Nike · Jordan · Adidas · Crocs',
     href: '/products?gender=women',
-    bgGrad: 'linear-gradient(225deg, #9d174d 0%, #ec4899 50%, #f97316 100%)',
-    glow: 'radial-gradient(ellipse 60% 70% at 20% 50%, rgba(249,115,22,0.35) 0%, transparent 70%)',
-    accent: '#fda4af',
-    accentClass: 'text-rose-300',
+    bgGrad: 'linear-gradient(225deg, #0f0f11 0%, #111113 100%)',
+    glow: 'radial-gradient(ellipse 65% 70% at 25% 55%, rgba(251,113,133,0.12) 0%, transparent 70%)',
+    accent: '#fb7185',
+    accentClass: 'text-rose-400',
     align: 'right',
     decorLetter: 'W',
   },
@@ -46,7 +46,17 @@ export default function GenderSplit() {
     <section className="w-full overflow-hidden">
 
       {/* ── Desktop: diagonal clip-path ── */}
-      <div className="relative hidden md:block h-[540px]">
+      <div className="relative hidden md:block h-[540px]" style={{ background: '#09090b' }}>
+
+        {/* diagonal separator line visible on dark bg */}
+        <div aria-hidden="true" className="absolute inset-0 z-10 pointer-events-none overflow-hidden">
+          <div style={{
+            position: 'absolute', top: 0, bottom: 0,
+            left: '43%', width: '1px',
+            background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.08) 70%, transparent)',
+            transform: 'skewX(-8deg) translateX(100px)',
+          }} />
+        </div>
 
         <div className="absolute top-5 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
           <span className="text-[9px] font-black tracking-[0.5em] uppercase text-white/30">SNKRS CART</span>
