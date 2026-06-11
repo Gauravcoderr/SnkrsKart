@@ -46,7 +46,7 @@ export default function GenderSplit() {
     <section className="w-full overflow-hidden">
 
       {/* ── Desktop: diagonal clip-path ── */}
-      <div className="relative hidden md:block h-[540px]" style={{ background: '#09090b' }}>
+      <div className="relative hidden md:block h-[420px]" style={{ background: '#09090b' }}>
 
         {/* diagonal separator line visible on dark bg */}
         <div aria-hidden="true" className="absolute inset-0 z-10 pointer-events-none overflow-hidden">
@@ -167,7 +167,7 @@ export default function GenderSplit() {
       <div className="md:hidden flex flex-col">
         {PANELS.map((panel) => (
           <Link key={panel.id} href={panel.href}
-            className="relative overflow-hidden h-64 block"
+            className="relative overflow-hidden h-52 block"
             aria-label={`Shop for ${panel.heading}`}>
             <div className="absolute inset-0" style={{ background: panel.bgGrad }} />
             <div className="absolute inset-0" style={{ background: panel.glow, opacity: 0.5 }} />
