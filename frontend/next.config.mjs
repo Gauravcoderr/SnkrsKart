@@ -15,6 +15,12 @@ const nextConfig = {
         destination: 'https://www.snkrscart.com/:path*',
         permanent: true,
       },
+      {
+        source: '/blogs',
+        has: [{ type: 'query', key: 'tag', value: '(?<tag>.+)' }],
+        destination: '/blogs/tag/:tag',
+        permanent: true,
+      },
     ];
   },
   async rewrites() {
