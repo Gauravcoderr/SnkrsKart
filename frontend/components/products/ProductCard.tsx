@@ -17,7 +17,7 @@ interface ProductCardProps {
 export default function ProductCard({ product, priority = false }: ProductCardProps) {
   const { addItem, openDrawer } = useCart();
   const { toggle, isWishlisted } = useWishlist();
-  const [hoveredSize, setHoveredSize] = useState<number | null>(null);
+  const [hoveredSize, setHoveredSize] = useState<number | string | null>(null);
   const wishlisted = isWishlisted(product.slug);
 
   const hasVariants = (product.variants?.length ?? 0) > 0;
@@ -29,10 +29,10 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const displayPrice = activeVariant ? activeVariant.price : product.price;
   const displayOriginalPrice = activeVariant ? activeVariant.originalPrice : product.originalPrice;
 
-  // Pick 4 most popular available sizes for quick-add
-  const quickSizes = (product.availableSizes ?? []).slice(0, 4);
+  const isStringMode = product.productType !== 'shoes' && (product.availableStringSizes ?? []).length > 0;
+  const quickSizes = isStringMode ? (product.availableStringSizes ?? []) : (product.availableSizes ?? []);
 
-  const handleQuickAdd = (e: React.MouseEvent, size: number) => {
+  const handleQuickAdd = (e: React.MouseEvent, size: number | string) => {
     e.preventDefault();
     e.stopPropagation();
     const variant = hasVariants ? product.variants!.find((v) => v.size === size) : null;
