@@ -46,6 +46,16 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// GET /api/v1/blogs/count — total published blog count (sitemap use)
+router.get('/count', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const count = await Blog.countDocuments({ published: true });
+    res.json({ count });
+  } catch {
+    res.status(500).json({ error: 'Failed to count blogs' });
+  }
+});
+
 // GET /api/v1/blogs/:slug — single blog by slug
 router.get('/:slug', async (req: Request, res: Response): Promise<void> => {
   try {

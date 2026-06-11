@@ -16,6 +16,32 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
   }
 });
 
+// GET /api/v1/sneaker-profiles/count — total published count (sitemap use)
+router.get('/count', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const count = await SneakerProfile.countDocuments({ published: true });
+    res.json({ count });
+  } catch {
+    res.status(500).json({ error: 'Failed to count sneaker profiles' });
+  }
+});
+
+// GET /api/v1/sneaker-profiles/slugs?page=N&limit=500 — paginated slugs (sitemap use)
+router.get('/slugs', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const page  = Math.max(1, parseInt(req.query.page  as string || '1'));
+    const limit = Math.min(500, parseInt(req.query.limit as string || '500'));
+    const skip  = (page - 1) * limit;
+    const [profiles, total] = await Promise.all([
+      SneakerProfile.find({ published: true }).sort({ name: 1 }).skip(skip).limit(limit).select('slug').lean(),
+      SneakerProfile.countDocuments({ published: true }),
+    ]);
+    res.json({ slugs: profiles.map((p) => p.slug), total, page, limit, pages: Math.ceil(total / limit) });
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch sneaker profile slugs' });
+  }
+});
+
 // GET /api/v1/sneaker-profiles/:slug — single published profile
 router.get('/:slug', async (req: Request, res: Response): Promise<void> => {
   try {

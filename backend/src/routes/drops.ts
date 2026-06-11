@@ -18,6 +18,32 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
   }
 });
 
+// GET /api/v1/drops/count — total published drop count (sitemap use, all-time)
+router.get('/count', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const count = await Drop.countDocuments({ published: true });
+    res.json({ count });
+  } catch {
+    res.status(500).json({ error: 'Failed to count drops' });
+  }
+});
+
+// GET /api/v1/drops/slugs?page=N&limit=500 — all published drops paginated (sitemap use)
+router.get('/slugs', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const page  = Math.max(1, parseInt(req.query.page  as string || '1'));
+    const limit = Math.min(500, parseInt(req.query.limit as string || '500'));
+    const skip  = (page - 1) * limit;
+    const [drops, total] = await Promise.all([
+      Drop.find({ published: true }).sort({ releaseDate: -1 }).skip(skip).limit(limit).select('slug').lean(),
+      Drop.countDocuments({ published: true }),
+    ]);
+    res.json({ slugs: drops.map((d) => d.slug), total, page, limit, pages: Math.ceil(total / limit) });
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch drop slugs' });
+  }
+});
+
 // GET /api/v1/drops/:slug — single drop
 router.get('/:slug', async (req: Request, res: Response): Promise<void> => {
   try {
