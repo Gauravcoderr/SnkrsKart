@@ -46,8 +46,8 @@ const blogs = [
 
 <p><strong>Grey market imports</strong> — There are sellers on Instagram who'll quote you ₹14,000–₹15,000 for "imported" pairs. Some are legit; many are not. If the price is below ₹16,000 for a current-season Black Cat, be very cautious. Authentication markers on the AJ4 include the lace lock shape, the stitching tension on the nubuck panels, and the midsole stamp quality.</p>
 
-<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1780079607/blog-images/where-to-buy-air-jordan-4-black-cat-india-inline-1.jpg"
-     alt="Nike Jordan sneaker on clean background — authentic Jordan product shot"
+<img src="https://res.cloudinary.com/dadulg5bs/image/upload/blog-images/where-to-buy-air-jordan-4-black-cat-india-inline-1-fix.jpg"
+     alt="Air Jordan 4 Black Cat on basketball court — authentic Jordan 4 India"
      style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
 
 <h2>Air Jordan 4 Black Cat Price in India 2025 — Resale Reality Check</h2>
@@ -85,8 +85,8 @@ const blogs = [
 
 <p>In 2024, Jordan Brand dropped the Retro Black Cement (style code CT8532-060), and it sold out almost everywhere within hours. The 2026 resale market for this silhouette remains robust, and Indian demand shows no signs of cooling.</p>
 
-<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1780080687/blog-images/air-jordan-3-black-cement-price-india-2026-cover-fix.jpg"
-     alt="Dark Air Jordan sneaker held on basketball court — Jordan 3 Black Cement style"
+<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1780081461/blog-images/air-jordan-3-black-cement-price-india-2026-cover-v2.jpg"
+     alt="Air Jordan 3 Black Cement on display — AJ3 elephant print mudguard India"
      style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
 
 <h2>Air Jordan 3 Black Cement Price in India — What You Should Expect to Pay</h2>
@@ -111,8 +111,8 @@ const blogs = [
 
 <p>The Jumpman on the tongue should be crisp and centered. Blurry logos or off-center placement = fake. Always check against the <a href="https://www.nike.com/launch/t/air-jordan-3-retro-black-cement" target="_blank" rel="noopener">official Nike launch page</a> for reference images.</p>
 
-<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1780080595/blog-images/air-jordan-3-black-cement-price-india-2026-inline-1.jpg"
-     alt="Air Jordan 1 Low sneakers on basketball court — Jordan silhouette detail shot"
+<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1780081461/blog-images/air-jordan-3-black-cement-price-india-2026-cover-v2.jpg"
+     alt="Air Jordan 3 Black Cement authentic pair — Jordan 3 Black Cement India 2026"
      style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
 
 <h2>2024 vs Previous AJ3 Black Cement Restocks — Which Should You Buy?</h2>
@@ -136,7 +136,7 @@ const blogs = [
     title: 'Where to Buy Authentic Nike Dunks in India (Not Fakes)',
     slug: 'where-to-buy-authentic-nike-dunks-india',
     excerpt: 'Nike Dunks dominate Indian sneaker culture right now — but the fake market is just as aggressive. Here\'s how to buy authenticated Nike Dunk Lows in India, what to pay, and which platforms are actually trustworthy.',
-    coverImage: 'https://res.cloudinary.com/dadulg5bs/image/upload/v1780079613/blog-images/where-to-buy-authentic-nike-dunks-india-cover.jpg',
+    coverImage: 'https://res.cloudinary.com/dadulg5bs/image/upload/blog-images/where-to-buy-authentic-nike-dunks-india-cover-fix.jpg',
     author: 'SNKRS CART',
     tags: ['nike', 'dunk-low', 'authentic-india', 'buy-india', 'fake-check'],
     metaTitle: 'Where to Buy Authentic Nike Dunks in India (Not Fakes) | SNKRS CART',
@@ -148,8 +148,8 @@ const blogs = [
 
 <p>The Nike Dunk Low has been Nike's most consistent volume seller since the Dunk renaissance of 2021. Over 200 colourways across two years, accessible retail prices, and a silhouette that genuinely works in Indian streetwear contexts. The problem: high demand + accessible retail price = enormous fake market.</p>
 
-<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1780079613/blog-images/where-to-buy-authentic-nike-dunks-india-cover.jpg"
-     alt="Nike low-top sneaker black and white — classic Nike silhouette next to Shoe Dog book"
+<img src="https://res.cloudinary.com/dadulg5bs/image/upload/blog-images/where-to-buy-authentic-nike-dunks-india-cover-fix.jpg"
+     alt="Nike low-top sneaker black and white — Nike sneaker India authentic buy guide"
      style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
 
 <h2>The Fake Dunk Problem in India — How Bad Is It?</h2>
@@ -172,8 +172,8 @@ const blogs = [
 
 <p><strong>Mainstreet Marketplace</strong> — Particularly strong on colourway variety. Prices are fair for the Indian market. Watch their Instagram for drops.</p>
 
-<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1780079614/blog-images/where-to-buy-authentic-nike-dunks-india-inline-1.jpg"
-     alt="Nike Air Force 1 Shadow pastel colours — Nike low-top sneaker detail"
+<img src="https://res.cloudinary.com/dadulg5bs/image/upload/blog-images/where-to-buy-authentic-nike-dunks-india-inline-1-fix.jpg"
+     alt="Nike low-top sneaker black and white — authentic Nike Dunk Low India"
      style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
 
 <h2>Nike Dunk Price Guide for India — What to Actually Pay</h2>
@@ -372,7 +372,7 @@ const blogs = [
     title: 'Nike Dunk Low Stranger Things Phantom: Should You Buy It India 2026?',
     slug: 'nike-dunk-low-stranger-things-india-buy',
     excerpt: 'The Nike Dunk Low x Stranger Things Phantom colourway is one of the more interesting crossover collabs Nike has done in years. Dark, deliberate, and genuinely hard to find in India. Here\'s the full story, India pricing, and whether to pull the trigger.',
-    coverImage: 'https://res.cloudinary.com/dadulg5bs/image/upload/v1780079613/blog-images/where-to-buy-authentic-nike-dunks-india-cover.jpg',
+    coverImage: 'https://res.cloudinary.com/dadulg5bs/image/upload/blog-images/nike-dunk-low-stranger-things-india-buy-cover-fix.jpg',
     author: 'SNKRS CART',
     tags: ['nike', 'dunk-low', 'stranger-things', 'collab-india', 'buy-india'],
     metaTitle: 'Nike Dunk Low Stranger Things Phantom India — Buy Guide | SNKRS CART',
@@ -384,8 +384,8 @@ const blogs = [
 
 <p>For Indian buyers, the challenge with any Netflix-adjacent Nike collab is the supply chain. These drops are designed for the US and select global markets. India gets crumbs — if it gets anything at all through official channels. Understanding where to find the Stranger Things Phantom in India requires understanding how the secondary market actually works here.</p>
 
-<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1780079613/blog-images/where-to-buy-authentic-nike-dunks-india-cover.jpg"
-     alt="Nike low top sneaker black white — Nike Dunk Low silhouette classic colourway"
+<img src="https://res.cloudinary.com/dadulg5bs/image/upload/blog-images/nike-dunk-low-stranger-things-india-buy-cover-fix.jpg"
+     alt="Nike low-top sneaker black — Nike Dunk Low Stranger Things Phantom India"
      style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
 
 <h2>What Makes the Stranger Things Dunk Different</h2>
@@ -406,8 +406,8 @@ const blogs = [
 
 <p><strong>Secondary market caution</strong> — Instagram sellers quoting ₹7,000–₹8,000 for "authentic" Stranger Things Dunks are almost certainly selling replicas. The authentic pair, landed in India from any legitimate source, cannot be priced below ₹10,500 without someone losing money in the supply chain.</p>
 
-<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1780079624/blog-images/nike-dunk-low-stranger-things-india-buy-inline-1.jpg"
-     alt="Nike low top sneaker volt colour — Nike trainer profile view"
+<img src="https://res.cloudinary.com/dadulg5bs/image/upload/blog-images/nike-dunk-low-stranger-things-india-buy-inline-1-fix.jpg"
+     alt="Nike low-top sneaker black on shelf — Nike Dunk Stranger Things Phantom detail"
      style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
 
 <h2>Sizing and Fit Notes for Indian Buyers</h2>
