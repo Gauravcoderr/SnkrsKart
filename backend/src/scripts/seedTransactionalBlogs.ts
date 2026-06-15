@@ -524,8 +524,8 @@ const blogs = [
 
 <p>Post Malone x Crocs: Reliably fun, reliably accessible, lower resale premium than Bad Bunny. Good entry point if you're new to Crocs collab culture and don't want to pay the full Bad Bunny premium.</p>
 
-<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1780079629/blog-images/crocs-collab-sneakers-india-buy-2026-inline-1.jpg"
-     alt="Red black Air Jordan 1 sneakers on court — colourful sneaker style India"
+<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1781412374/blog-images/crocs-collab-sneakers-india-buy-2026-inline-1-fix.jpg"
+     alt="Crocs collaboration clogs displayed — Crocs collab India 2026"
      style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
 
 <h2>Where to Buy Crocs Collabs in India — The Honest Map</h2>

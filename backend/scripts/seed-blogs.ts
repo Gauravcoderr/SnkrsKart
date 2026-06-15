@@ -178,7 +178,7 @@ const blogs: BlogPost[] = [
 <h2>Crocs in India Today</h2>
 <p>Walk into any Indian mall and you will find a Crocs store. At ₹3,000-8,000 for most styles, they are accessible. The Jibbitz charm customisation makes every pair personal. And honestly, once you slip a pair on after a long day, you understand the hype. Comfort is king, yaar.</p>
 `,
-  coverImage: 'https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=800&q=80',
+  coverImage: 'https://res.cloudinary.com/dadulg5bs/image/upload/v1781412605/blog-images/rise-of-crocs-ugly-to-iconic-cover-fix.jpg',
   author: 'SNKRS CART',
   tags: ['crocs', 'history', 'brand-spotlight', 'trends'],
   metaTitle: 'Rise of Crocs — From Ugly Shoe to ₹25,000 Crore Brand',
