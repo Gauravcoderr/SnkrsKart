@@ -12,7 +12,7 @@ const blogs = [
     title: 'V.A.A. Air Jordan 1 "Alaska" — Virgil Abloh\'s Archive Drops Its First Sneaker',
     slug: 'vaa-air-jordan-1-alaska-virgil-abloh-archive',
     excerpt: 'The Virgil Abloh Archive, led by his widow Shannon Abloh, has released its debut sneaker — the V.A.A. Air Jordan 1 "Alaska." Here\'s everything you need to know.',
-    coverImage: 'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=1200&q=80',
+    coverImage: 'https://res.cloudinary.com/dadulg5bs/image/upload/v1781505523/blog-images/vaa-air-jordan-1-alaska-virgil-abloh-archive-cover-fix.jpg',
     author: 'SNKRS CART',
     tags: ['Jordan', 'Nike', 'Collaboration', 'Virgil Abloh', 'New Release'],
     metaTitle: 'V.A.A. Air Jordan 1 "Alaska" — Virgil Abloh Archive First Sneaker Drop | SNKRS CART',
