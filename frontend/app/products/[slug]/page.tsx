@@ -256,7 +256,16 @@ export default async function ProductDetailPage({ params }: PageProps) {
         <span>/</span>
         <Link href={categoryHref} className="hover:text-zinc-900 transition-colors shrink-0">{categoryLabel}</Link>
         <span>/</span>
-        <Link href={`/brands/${product.brand.toLowerCase().replace(/\s+/g, '-')}`} className="hover:text-zinc-900 transition-colors shrink-0">{product.brand}</Link>
+        <Link
+          href={
+            product.productType === 'shoes'
+              ? `/brands/${product.brand.toLowerCase().replace(/\s+/g, '-')}`
+              : `/products?productType=${product.productType ?? 'clothing'}&brand=${product.brand.toLowerCase().replace(/\s+/g, '-')}`
+          }
+          className="hover:text-zinc-900 transition-colors shrink-0"
+        >
+          {product.brand}
+        </Link>
         <span>/</span>
         <span className="text-zinc-600 truncate max-w-[140px] sm:max-w-none">{product.name}</span>
       </nav>
