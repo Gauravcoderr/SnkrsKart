@@ -92,6 +92,11 @@ function productEntry(p: Product): string {
     <g:gender>${escapeXml(genderAttr(p.gender))}</g:gender>
     <g:item_group_id>${escapeXml(p.slug)}</g:item_group_id>
     ${p.colorway ? `<g:color>${escapeXml(p.colorway)}</g:color>` : ''}
+    ${p.productType === 'shoes' && p.availableSizes.length > 0
+      ? p.availableSizes.map((s) => `<g:size>${s}</g:size>`).join('\n    ')
+      : p.productType !== 'shoes' && (p.availableStringSizes?.length ?? 0) > 0
+        ? p.availableStringSizes!.map((s) => `<g:size>${escapeXml(s)}</g:size>`).join('\n    ')
+        : ''}
     ${p.sku ? `<g:mpn>${escapeXml(p.sku)}</g:mpn>` : ''}
     <g:identifier_exists>${p.sku ? 'yes' : 'no'}</g:identifier_exists>
     <g:shipping>
