@@ -16,6 +16,7 @@ import ChatLead from '../models/ChatLead';
 import { SneakerProfile } from '../models/SneakerProfile';
 import { Drop } from '../models/Drop';
 import { SiteContent } from '../models/SiteContent';
+import { Coupon } from '../models/Coupon';
 import { sendProductLaunchBlast, sendBlogPublishBlast, sendCustomBlast } from '../lib/marketingEmails';
 
 const router = Router();
@@ -594,6 +595,78 @@ router.put('/site-content/:pageKey', adminAuth, async (req: Request, res: Respon
     res.json(content);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to update content' });
+  }
+});
+
+// ─── Coupons ───────────────────────────────────────────────────────────────
+
+router.get('/coupons', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const coupons = await Coupon.find().sort({ createdAt: -1 }).lean();
+    res.json({ coupons });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to fetch coupons' });
+  }
+});
+
+router.post('/coupons', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { code, discountType, discountValue, minOrderValue, maxDiscountAmount, appliesTo, active, expiresAt } = req.body;
+    if (!code || !discountType || discountValue == null) {
+      res.status(400).json({ error: 'code, discountType, and discountValue are required' });
+      return;
+    }
+    const coupon = await Coupon.create({
+      code: String(code).trim().toUpperCase(),
+      discountType,
+      discountValue: Number(discountValue),
+      minOrderValue: minOrderValue != null ? Number(minOrderValue) : 0,
+      maxDiscountAmount: maxDiscountAmount != null && maxDiscountAmount !== '' ? Number(maxDiscountAmount) : null,
+      appliesTo: appliesTo || 'all',
+      active: active !== false,
+      expiresAt: expiresAt || null,
+    });
+    res.status(201).json({ coupon });
+  } catch (err: any) {
+    if (err.code === 11000) {
+      res.status(400).json({ error: 'A coupon with this code already exists' });
+      return;
+    }
+    res.status(500).json({ error: err.message || 'Failed to create coupon' });
+  }
+});
+
+router.put('/coupons/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Explicitly exclude usedBy to prevent admin from wiping usage history
+    const { usedBy: _usedBy, ...updates } = req.body;
+    if (updates.code) updates.code = String(updates.code).trim().toUpperCase();
+    if (updates.discountValue != null) updates.discountValue = Number(updates.discountValue);
+    if (updates.minOrderValue != null) updates.minOrderValue = Number(updates.minOrderValue);
+    if (updates.maxDiscountAmount != null && updates.maxDiscountAmount !== '') {
+      updates.maxDiscountAmount = Number(updates.maxDiscountAmount);
+    } else if (updates.maxDiscountAmount === '' || updates.maxDiscountAmount === null) {
+      updates.maxDiscountAmount = null;
+    }
+    const coupon = await Coupon.findByIdAndUpdate(req.params.id, { $set: updates }, { new: true });
+    if (!coupon) { res.status(404).json({ error: 'Coupon not found' }); return; }
+    res.json({ coupon });
+  } catch (err: any) {
+    if (err.code === 11000) {
+      res.status(400).json({ error: 'A coupon with this code already exists' });
+      return;
+    }
+    res.status(500).json({ error: err.message || 'Failed to update coupon' });
+  }
+});
+
+router.delete('/coupons/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const coupon = await Coupon.findByIdAndDelete(req.params.id);
+    if (!coupon) { res.status(404).json({ error: 'Coupon not found' }); return; }
+    res.json({ message: 'Coupon deleted' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to delete coupon' });
   }
 });
 

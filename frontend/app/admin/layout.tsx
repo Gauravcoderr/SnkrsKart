@@ -29,6 +29,7 @@ const NAV = [
   { href: '/admin/blogs',             label: 'Blogs',           Icon: BlogsIcon },
   { href: '/admin/sneaker-profiles',  label: 'Sneaker Profiles', Icon: ProductsIcon },
   { href: '/admin/drops',             label: 'Drops',            Icon: StarIcon },
+  { href: '/admin/coupons',           label: 'Coupons',          Icon: BannersIcon },
   { href: '/admin/chat-leads',        label: 'Chat Leads',       Icon: ChatLeadsIcon },
   { href: '/admin/email-blast',       label: 'Email Blast',      Icon: BlogsIcon },
   { href: '/admin/pages',             label: 'Pages & SEO',      Icon: PagesIcon },

@@ -6,6 +6,7 @@ import { User } from '../models/User';
 import { Product } from '../models/Product';
 import { sendMail } from '../lib/mailer';
 import { Loyalty, COINS_PER_100, COINS_TO_RUPEE, MAX_REDEEM_PCT, MIN_REDEEM } from '../models/Loyalty';
+import { Coupon } from '../models/Coupon';
 import { Cashfree, CFEnvironment } from 'cashfree-pg';
 import Razorpay from 'razorpay';
 
@@ -286,7 +287,7 @@ async function initRazorpayPayment(
 // POST /api/v1/orders — place a new order (optionally authenticated)
 router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { name, email, phone, addressLine, city, state, pincode, items, subtotal, shipping, total, coinsRedeemed: rawCoinsRedeemed } = req.body;
+    const { name, email, phone, addressLine, city, state, pincode, items, subtotal, shipping, total, coinsRedeemed: rawCoinsRedeemed, couponCode: rawCouponCode } = req.body;
 
     if (!name || !email || !phone || !addressLine || !city || !state || !pincode) {
       res.status(400).json({ error: 'All contact and address fields are required' });
@@ -334,6 +335,57 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       return;
     }
 
+    // Coupon validation (server-side, logged-in users only)
+    let couponDiscount = 0;
+    let appliedCouponCode = '';
+
+    const trimmedCouponCode = String(rawCouponCode || '').trim().toUpperCase();
+    if (trimmedCouponCode && req.user) {
+      const coupon = await Coupon.findOne({ code: trimmedCouponCode, active: true });
+
+      if (!coupon) {
+        res.status(400).json({ error: 'Invalid or inactive coupon code' });
+        return;
+      }
+      if (coupon.expiresAt && coupon.expiresAt < new Date()) {
+        res.status(400).json({ error: 'This coupon has expired' });
+        return;
+      }
+      const alreadyUsed = coupon.usedBy.some((id) => String(id) === String(req.user!.id));
+      if (alreadyUsed) {
+        res.status(400).json({ error: 'You have already used this coupon' });
+        return;
+      }
+
+      let eligibleSubtotal = 0;
+      for (const item of items as any[]) {
+        const product = productMap.get(String(item.productId));
+        if (!product) continue;
+        if (coupon.appliesTo === 'all' || (product as any).productType === coupon.appliesTo) {
+          const variant = product.variants?.find((v) => Number(v.size) === Number(item.size));
+          const authPrice = variant?.price ?? product.price;
+          eligibleSubtotal += authPrice * item.qty;
+        }
+      }
+
+      if (eligibleSubtotal < coupon.minOrderValue) {
+        const scope = coupon.appliesTo !== 'all' ? ` on ${coupon.appliesTo}` : '';
+        res.status(400).json({ error: `Minimum order value of ₹${coupon.minOrderValue}${scope} required for this coupon` });
+        return;
+      }
+
+      if (coupon.discountType === 'percentage') {
+        const raw = Math.floor(eligibleSubtotal * coupon.discountValue / 100);
+        couponDiscount = coupon.maxDiscountAmount !== null
+          ? Math.min(raw, coupon.maxDiscountAmount)
+          : raw;
+      } else {
+        couponDiscount = Math.min(coupon.discountValue, eligibleSubtotal);
+      }
+
+      appliedCouponCode = coupon.code;
+    }
+
     // Atomic coin redemption — deduct only if user has sufficient balance
     let coinsRedeemed = 0;
     let coinDiscount = 0;
@@ -360,7 +412,7 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       }
     }
 
-    const finalTotal = Math.max(0, serverTotal - coinDiscount);
+    const finalTotal = Math.max(0, serverTotal - couponDiscount - coinDiscount);
     const coinsEarned = Math.floor(finalTotal / 100) * COINS_PER_100;
 
     const enrichedItems = (items as any[]).map((item) => ({
@@ -373,8 +425,18 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       orderNumber, name, email, phone, addressLine, city, state, pincode,
       items: enrichedItems, subtotal, shipping, total: finalTotal, status: 'pending',
       coinsEarned, coinsRedeemed,
+      couponCode: appliedCouponCode,
+      couponDiscount,
       ...(req.user ? { userId: req.user.id } : {}),
     });
+
+    // Mark coupon as used by this user
+    if (appliedCouponCode && req.user) {
+      Coupon.updateOne(
+        { code: appliedCouponCode },
+        { $addToSet: { usedBy: req.user.id } },
+      ).catch(() => {});
+    }
 
     // Patch the loyalty history orderId now that we have the real order._id
     if (req.user && coinsRedeemed > 0) {
@@ -405,7 +467,7 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
     const paymentMode = (process.env.PAYMENT_MODE || 'manual') as 'cashfree' | 'razorpay' | 'manual';
 
-    const baseResponse = { success: true, orderId: order._id, orderNumber, coinsEarned, coinsRedeemed, finalTotal };
+    const baseResponse = { success: true, orderId: order._id, orderNumber, coinsEarned, coinsRedeemed, couponCode: appliedCouponCode, couponDiscount, finalTotal };
 
     // Delegate to per-gateway handler
     const gatewayResult = await (

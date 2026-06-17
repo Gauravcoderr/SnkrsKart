@@ -178,3 +178,18 @@ export interface ProductsResponse {
   limit: number;
   totalPages: number;
 }
+
+export interface Coupon {
+  _id: string;
+  code: string;
+  discountType: 'percentage' | 'flat';
+  discountValue: number;
+  minOrderValue: number;
+  maxDiscountAmount: number | null;
+  appliesTo: 'all' | 'shoes' | 'clothing' | 'accessories';
+  active: boolean;
+  expiresAt: string | null;
+  usedBy: string[];
+  createdAt: string;
+  updatedAt: string;
+}

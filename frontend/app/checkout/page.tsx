@@ -118,7 +118,47 @@ export default function CheckoutPage() {
     ? Math.min(loyaltyData.coins, Math.floor(total * 0.2))
     : 0;
   const coinDiscount = useCoins && maxRedeemableCoins >= 100 ? maxRedeemableCoins : 0;
-  const finalTotal = total - coinDiscount;
+
+  // Coupon code
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number; message: string } | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
+
+  const couponDiscount = appliedCoupon?.discountAmount ?? 0;
+  const finalTotal = total - coinDiscount - couponDiscount;
+
+  async function applyCoupon() {
+    if (!couponInput.trim()) return;
+    setCouponLoading(true);
+    setCouponError('');
+    try {
+      const res = await fetchWithAuth(`${BASE_URL}/coupons/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponInput.trim(),
+          items: items.map((item) => ({
+            productId: item.product.id,
+            qty: item.quantity,
+            price: item.product.price,
+            productType: item.product.productType ?? 'shoes',
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.valid) {
+        setCouponError(data.error || 'Invalid coupon code');
+        setAppliedCoupon(null);
+        return;
+      }
+      setAppliedCoupon({ code: data.code, discountAmount: data.discountAmount, message: data.message });
+    } catch {
+      setCouponError('Could not apply coupon. Try again.');
+    } finally {
+      setCouponLoading(false);
+    }
+  }
 
   function setC(k: string, v: string) { setContact((p) => ({ ...p, [k]: v })); }
   function setA(k: string, v: string) { setAddress((p) => ({ ...p, [k]: v })); }
@@ -236,6 +276,7 @@ export default function CheckoutPage() {
         shipping,
         total,
         coinsRedeemed: coinDiscount > 0 ? coinDiscount : 0,
+        couponCode: appliedCoupon?.code ?? '',
       };
 
       const res = await fetchWithAuth(`${BASE_URL}/orders`, {
@@ -542,6 +583,49 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
+              {/* Coupon Code (logged-in users only) */}
+              {isLoggedIn && (
+                <div className="border border-zinc-200 rounded-lg p-4">
+                  <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-3">Have a Coupon?</p>
+                  {appliedCoupon ? (
+                    <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
+                      <div>
+                        <p className="text-xs font-bold text-emerald-700 font-mono tracking-widest">{appliedCoupon.code}</p>
+                        <p className="text-[10px] text-emerald-600 mt-0.5">{appliedCoupon.message}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setAppliedCoupon(null); setCouponInput(''); }}
+                        className="text-xs text-zinc-400 hover:text-zinc-700 underline ml-4 shrink-0"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponInput}
+                        onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(''); }}
+                        placeholder="Enter coupon code"
+                        className="flex-1 border border-zinc-200 px-3 py-2.5 text-sm font-mono tracking-widest text-zinc-900 uppercase focus:outline-none focus:border-zinc-900 transition-colors"
+                        disabled={couponLoading}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); } }}
+                      />
+                      <button
+                        type="button"
+                        onClick={applyCoupon}
+                        disabled={couponLoading || !couponInput.trim()}
+                        className="px-4 py-2.5 bg-zinc-900 text-white text-xs font-bold tracking-widest uppercase hover:bg-zinc-700 disabled:bg-zinc-300 disabled:text-zinc-500 transition-colors"
+                      >
+                        {couponLoading ? 'Applying...' : 'Apply'}
+                      </button>
+                    </div>
+                  )}
+                  {couponError && <p className="text-xs text-red-500 mt-2">{couponError}</p>}
+                </div>
+              )}
+
               {/* Kart Coins redemption */}
               {isLoggedIn && loyaltyData && loyaltyData.coins >= 100 && maxRedeemableCoins >= 100 && (
                 <div className={`border-2 rounded-lg p-4 transition-colors ${useCoins ? 'border-amber-400 bg-amber-50' : 'border-zinc-200'}`}>
@@ -757,6 +841,12 @@ export default function CheckoutPage() {
               </div>
               {shipping === 0 && (
                 <p className="text-[10px] text-emerald-600 text-right">You saved {formatPrice(SHIPPING_COST)} on shipping</p>
+              )}
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-sm text-emerald-600">
+                  <span className="font-medium">Coupon ({appliedCoupon?.code})</span>
+                  <span className="font-semibold">−{formatPrice(couponDiscount)}</span>
+                </div>
               )}
               {coinDiscount > 0 && (
                 <div className="flex justify-between text-sm text-amber-600">
