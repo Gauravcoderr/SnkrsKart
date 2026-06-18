@@ -293,7 +293,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
               {safeTags.slice(0, 4).map((tag) => (
                 <Link
                   key={tag}
-                  href={`/blogs/tag/${encodeURIComponent(tag.toLowerCase())}`}
+                  href={`/blogs/tag/${encodeURIComponent(tag.toLowerCase().replace(/\s+/g, '-'))}`}
                   className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${accent.tagBg} ${accent.tagText} hover:opacity-75 transition-opacity`}
                 >
                   {tag}
@@ -458,7 +458,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
               {safeTags.map((tag) => (
                 <Link
                   key={tag}
-                  href={`/blogs/tag/${encodeURIComponent(tag)}`}
+                  href={`/blogs/tag/${encodeURIComponent(tag.toLowerCase().replace(/\s+/g, '-'))}`}
                   className={`text-xs font-bold tracking-wide px-3 py-1.5 rounded-full border transition-all ${accent.border} ${accent.tagText} hover:${accent.tagBg} hover:scale-105`}
                 >
                   #{tag}

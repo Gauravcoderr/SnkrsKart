@@ -100,7 +100,7 @@ export default function BlogsGrid({ initialBlogs, initialPage, totalPages, total
                   {blog.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       {blog.tags.slice(0, 2).map((t) => (
-                        <Link key={t} href={`/blogs/tag/${encodeURIComponent(t.toLowerCase())}`} className={`relative z-20 pointer-events-auto text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${a.tagBg} ${a.tagText} hover:opacity-75 transition-opacity`}>{t}</Link>
+                        <Link key={t} href={`/blogs/tag/${encodeURIComponent(t.toLowerCase().replace(/\s+/g, '-'))}`} className={`relative z-20 pointer-events-auto text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${a.tagBg} ${a.tagText} hover:opacity-75 transition-opacity`}>{t}</Link>
                       ))}
                     </div>
                   )}

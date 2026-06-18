@@ -48,8 +48,12 @@ async function fetchByTag(tag: string): Promise<Blog[]> {
   }
 }
 
+function normalizeTag(raw: string) {
+  return decodeURIComponent(raw).toLowerCase().replace(/\s+/g, '-');
+}
+
 export async function generateMetadata({ params }: { params: { tag: string } }) {
-  const tag = decodeURIComponent(params.tag);
+  const tag = normalizeTag(params.tag);
   const label = tag.replace(/-/g, ' ');
   const title = `${label.charAt(0).toUpperCase() + label.slice(1)} Sneaker Blog | SNKRS CART`;
   const description = `Browse all SNKRS CART blog posts tagged "${label}" — release guides, news, and style tips.`;
@@ -64,7 +68,7 @@ export async function generateMetadata({ params }: { params: { tag: string } }) 
 }
 
 export default async function TagPage({ params }: { params: { tag: string } }) {
-  const tag = decodeURIComponent(params.tag);
+  const tag = normalizeTag(params.tag);
   const blogs = await fetchByTag(tag);
 
   if (blogs.length === 0) notFound();

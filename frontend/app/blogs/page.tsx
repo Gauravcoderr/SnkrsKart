@@ -111,7 +111,7 @@ export default async function BlogsPage({ searchParams }: { searchParams?: { tag
                     <div className="relative p-8 lg:p-10 xl:p-12 flex flex-col justify-center pointer-events-none">
                       <div className="flex flex-wrap gap-2 mb-4">
                         {hero.tags.slice(0, 3).map((t) => (
-                          <Link key={t} href={`/blogs/tag/${encodeURIComponent(t.toLowerCase())}`} className={`relative z-20 pointer-events-auto text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${a.tagBg} ${a.tagText} hover:opacity-75 transition-opacity`}>{t}</Link>
+                          <Link key={t} href={`/blogs/tag/${encodeURIComponent(t.toLowerCase().replace(/\s+/g, '-'))}`} className={`relative z-20 pointer-events-auto text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${a.tagBg} ${a.tagText} hover:opacity-75 transition-opacity`}>{t}</Link>
                         ))}
                       </div>
                       <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-950 leading-[1.15] mb-3">

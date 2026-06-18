@@ -12,7 +12,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     const { tag, limit, search, page } = req.query;
     const query: Record<string, unknown> = { published: true };
-    if (tag) query.tags = tag;
+    if (tag) query.tags = { $regex: new RegExp(`^${(tag as string).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') };
     if (search) {
       // AND-of-OR: every word must appear in title, excerpt, or tags
       const words = (search as string).trim().split(/\s+/).filter((w) => w.length > 1);
