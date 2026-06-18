@@ -20,11 +20,11 @@ const navLinks = [
 ];
 
 const BRANDS = [
-  { name: 'Nike', slug: 'Nike', accent: '#111', desc: 'Just Do It' },
-  { name: 'Jordan', slug: 'Jordan', accent: '#C8102E', desc: 'Jumpman Legacy' },
-  { name: 'Adidas', slug: 'Adidas', accent: '#000', desc: 'Impossible Is Nothing' },
-  { name: 'New Balance', slug: 'New Balance', accent: '#CF4520', desc: 'Fearlessly Independent' },
-  { name: 'Crocs', slug: 'Crocs', accent: '#179A3A', desc: 'Come As You Are' },
+  { name: 'Nike', slug: 'nike', accent: '#111', desc: 'Just Do It' },
+  { name: 'Jordan', slug: 'jordan', accent: '#C8102E', desc: 'Jumpman Legacy' },
+  { name: 'Adidas', slug: 'adidas', accent: '#000', desc: 'Impossible Is Nothing' },
+  { name: 'New Balance', slug: 'new-balance', accent: '#CF4520', desc: 'Fearlessly Independent' },
+  { name: 'Crocs', slug: 'crocs', accent: '#179A3A', desc: 'Come As You Are' },
 ];
 
 const POPULAR_SEARCHES = [
