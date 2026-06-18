@@ -41,13 +41,13 @@ export default function DropBanner() {
             <div className="flex flex-wrap gap-4">
               <Link
                 href="/products/adidas-samba-og-white-black"
-                className="inline-flex items-center gap-2 bg-white text-zinc-900 px-8 py-3.5 text-sm font-bold tracking-widest uppercase hover:bg-zinc-100 transition-colors"
+                className="inline-flex items-center gap-2 bg-white text-zinc-900 px-5 py-2.5 sm:px-8 sm:py-3.5 text-xs sm:text-sm font-bold tracking-widest uppercase hover:bg-zinc-100 transition-colors"
               >
                 Shop Now
               </Link>
               <Link
                 href="/brands/adidas"
-                className="inline-flex items-center gap-2 border border-zinc-700 text-zinc-400 px-8 py-3.5 text-sm font-bold tracking-widest uppercase hover:border-zinc-500 hover:text-white transition-colors"
+                className="inline-flex items-center gap-2 border border-zinc-700 text-zinc-400 px-5 py-2.5 sm:px-8 sm:py-3.5 text-xs sm:text-sm font-bold tracking-widest uppercase hover:border-zinc-500 hover:text-white transition-colors"
               >
                 All Adidas
               </Link>

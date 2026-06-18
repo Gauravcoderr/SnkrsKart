@@ -105,7 +105,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
             <div className="flex flex-wrap items-center gap-3">
               <Link
                 href={s.href}
-                className="inline-flex items-center gap-2 px-6 py-3.5 text-[11px] font-bold tracking-[0.2em] uppercase rounded-full transition-opacity hover:opacity-80 shadow-lg"
+                className="inline-flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3.5 text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase rounded-full transition-opacity hover:opacity-80 shadow-lg"
                 style={{
                   background: s.accent,
                   color: ['#ffffff', '#FFD700'].includes(s.accent) ? '#000' : '#fff',
@@ -118,7 +118,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
               </Link>
               <Link
                 href="/products"
-                className="inline-flex items-center gap-2 px-6 py-3.5 text-[11px] font-bold tracking-[0.2em] uppercase rounded-full border transition-colors hover:bg-white/10"
+                className="inline-flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3.5 text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase rounded-full border transition-colors hover:bg-white/10"
                 style={{ borderColor: 'rgba(255,255,255,0.3)', color: 'rgba(255,255,255,0.7)' }}
               >
                 View All
