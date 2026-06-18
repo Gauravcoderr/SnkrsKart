@@ -8,6 +8,8 @@ const blogs = [
   // willy-chavarria-adidas-copa-mundial-india-2026, asics-gel-lyte-iii-remastered-shigeyuki-mitsui-2026, new-balance-992-made-in-usa-shadow-grey-india-2026 — seeded 2026-06-08
   // air-jordan-3-bin-23-pinot-noir-june-2026, jjjjound-new-balance-1890-india-2026, sneaker-resale-crash-buyers-guide-2026 — seeded 2026-06-11
   // converse-shai-001-steel-india-2026, salomon-xt-6-gorpcore-india-2026, adidas-hyperboost-euphoria-new-boost-2026 — seeded 2026-06-15
+  // vaa-air-jordan-1-alaska-virgil-abloh-archive — seeded 2026-06-18
+  // a-ma-maniere-nike-pegasus-premium-2026, nike-air-max-goadome-low-sp-2026, onitsuka-tiger-ot-group-spin-off-2026 — seeded 2026-06-18
   {
     title: 'V.A.A. Air Jordan 1 "Alaska" — Virgil Abloh\'s Archive Drops Its First Sneaker',
     slug: 'vaa-air-jordan-1-alaska-virgil-abloh-archive',
