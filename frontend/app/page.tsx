@@ -54,6 +54,16 @@ function buildItemList(name: string, url: string, products: Product[]) {
         brand: { '@type': 'Brand', name: p.brand },
         url: `${SITE_URL}/products/${p.slug}`,
         image: p.images?.[0] ?? '',
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: 'INR',
+          price: String(p.price),
+          availability: p.soldOut || (p.availableSizes?.length ?? 0) === 0
+            ? 'https://schema.org/OutOfStock'
+            : 'https://schema.org/InStock',
+          url: `${SITE_URL}/products/${p.slug}`,
+          seller: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL },
+        },
       },
     })),
   };
