@@ -13,7 +13,7 @@ import NewsletterBar from '@/components/home/NewsletterBar';
 
 import type { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'Buy Authentic Sneakers Online in India | SNKRS CART',
