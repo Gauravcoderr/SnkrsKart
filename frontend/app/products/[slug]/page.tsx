@@ -29,8 +29,6 @@ async function fetchBlogsByBrand(brand: string): Promise<BlogSnippet[]> {
   } catch { return []; }
 }
 
-export const dynamic = 'force-dynamic';
-
 interface PageProps {
   params: { slug: string };
 }
@@ -59,7 +57,7 @@ export async function generateMetadata({ params }: PageProps) {
         description,
         url,
         siteName: 'SNKRS CART',
-        type: 'website',
+        type: 'product',
         ...(ogImage ? { images: [{ url: ogImage, width: 1200, height: 630, alt: title }] } : {}),
       },
       twitter: {
@@ -70,7 +68,11 @@ export async function generateMetadata({ params }: PageProps) {
       },
     };
   } catch {
-    return { title: 'Product Not Found' };
+    return {
+      title: 'Sneakers | SNKRS CART',
+      description: 'Buy 100% authentic sneakers in India — Nike, Jordan, Adidas, New Balance. Pan-India shipping.',
+      alternates: { canonical: `${SITE_URL}/products` },
+    };
   }
 }
 

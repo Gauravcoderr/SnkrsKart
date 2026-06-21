@@ -36,7 +36,7 @@ export async function fetchProducts(
 
 export async function fetchProductBySlug(slug: string): Promise<Product> {
   const res = await fetch(`${BASE_URL}/products/${slug}`, {
-    cache: 'no-store',
+    next: { revalidate: 300 },
   });
   if (!res.ok) throw new Error('Product not found');
   return res.json();
