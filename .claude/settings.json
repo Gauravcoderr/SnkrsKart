@@ -42,7 +42,14 @@
       "Bash(curl -o /dev/null -s -w \"%{http_code}\" \"https://sneakerbardetroit.com/wp-content/uploads/2026/05/puma-stewie-5-312745-01-release-date.webp\")",
       "Bash(curl -o /dev/null -s -w \"%{http_code}\" \"https://sneakerbardetroit.com/wp-content/uploads/2026/05/puma-stewie-5-312745-01-1.jpg\")",
       "Bash(curl -o /dev/null -s -w \"%{http_code}\" \"https://sneakerbardetroit.com/wp-content/uploads/2026/05/puma-stewie-5-312745-01-2.jpg\")",
-      "WebFetch(domain:www.highsnobiety.com)"
+      "WebFetch(domain:www.highsnobiety.com)",
+      "WebFetch(domain:www.newbalance.com)",
+      "WebFetch(domain:sneakerfreaker.com)",
+      "WebFetch(domain:www.adidas.com)",
+      "WebFetch(domain:www.sneakerfreaker.com)",
+      "WebFetch(domain:www.klekt.com)",
+      "WebFetch(domain:kicks66.com)",
+      "WebFetch(domain:www.nbshoemaster.com)"
     ],
     "additionalDirectories": [
       "/Users/gauravrauthan/shoe-auth"
