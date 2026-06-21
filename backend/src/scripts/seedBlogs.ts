@@ -23,6 +23,7 @@ const blogs = [
     published: true,
     content: `<p>Placeholder — seeded separately.</p>`.trim(),
   },
+  // virat-kohli-one8-sneaker-india-2026, bape-adidas-adizero-evo-sl-2026, jaide-air-jordan-11-low-first-collab-2026 — seeded 2026-06-21
 ];
 
 async function seed() {
