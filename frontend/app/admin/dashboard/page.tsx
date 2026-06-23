@@ -107,6 +107,16 @@ export default function AdminDashboard() {
       throw new Error(err.error || 'Failed to save');
     }
 
+    const saved = await res.json();
+    const slug = saved.slug ?? (data as any).slug;
+    if (slug) {
+      fetch('/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ slug }),
+      }).catch(() => null);
+    }
+
     setFormOpen(false);
     setEditProduct(null);
     fetchProducts();
