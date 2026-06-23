@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: PageProps) {
         description,
         url,
         siteName: 'SNKRS CART',
-        type: 'product',
+        type: 'website',
         ...(ogImage ? { images: [{ url: ogImage, width: 1200, height: 630, alt: title }] } : {}),
       },
       twitter: {
