@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { fetchSneakerProfiles, fetchSneakerProfileBySlug, fetchProducts } from '@/lib/api';
+import { cloudinaryOgImage } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils';
 import ProductCard from '@/components/products/ProductCard';
 import RestockNotify from '@/components/product-detail/RestockNotify';
@@ -25,7 +26,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         url,
         siteName: 'SNKRS CART',
         type: 'website',
-        images: profile.image ? [{ url: profile.image, alt: profile.name }] : [],
+        ...(profile.image ? { images: [{ url: cloudinaryOgImage(profile.image), width: 1200, height: 630, alt: profile.name }] } : {}),
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${profile.name} | SNKRS CART`,
+        description: `Buy authentic ${profile.name} in India.`,
+        ...(profile.image ? { images: [cloudinaryOgImage(profile.image)] } : {}),
       },
     };
   } catch {

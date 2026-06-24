@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { fetchDrops, fetchDropBySlug } from '@/lib/api';
+import { cloudinaryOgImage } from '@/lib/utils';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
@@ -23,7 +24,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         url,
         siteName: 'SNKRS CART',
         type: 'website',
-        images: drop.image ? [{ url: drop.image, alt: drop.name }] : [],
+        ...(drop.image ? { images: [{ url: cloudinaryOgImage(drop.image), width: 1200, height: 630, alt: drop.name }] } : {}),
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${drop.name} | Release ${releaseDate}`,
+        description: `${drop.brand} drop releasing ${releaseDate}${drop.retailPrice ? ` — ₹${drop.retailPrice.toLocaleString('en-IN')}` : ''}.`,
+        ...(drop.image ? { images: [cloudinaryOgImage(drop.image)] } : {}),
       },
     };
   } catch {
