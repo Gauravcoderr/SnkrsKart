@@ -32,12 +32,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
   const handleShare = async () => {
     const url = `${SITE_URL}/products/${product.slug}`;
-    const title = `${product.brand} ${product.name}`;
-    const text = `Check out the ${title} — ${formatPrice(currentPrice)} 🔥\n100% Authentic | Shop on SNKRS CART`;
+    const title = `${product.brand} ${product.name} — ${formatPrice(currentPrice)} | SNKRS CART`;
 
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
-        await navigator.share({ title, text, url });
+        await navigator.share({ title, url });
       } catch {
         // user cancelled — do nothing
       }
