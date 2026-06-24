@@ -24,38 +24,5 @@ const blogs = [
     content: `<p>Placeholder — seeded separately.</p>`.trim(),
   },
   // virat-kohli-one8-sneaker-india-2026, bape-adidas-adizero-evo-sl-2026, jaide-air-jordan-11-low-first-collab-2026 — seeded 2026-06-21
+  // one8-global-premiere-virat-kohli-delhi-2026, one8-vs-hrx-celebrity-sportswear-india-2026, virat-kohli-one8-agilitas-equity-story-2026, puma-india-post-kohli-next-gen-ambassadors-2026 — seeded 2026-06-25
 ];
-
-async function seed() {
-  await connectDB();
-  console.log('Connected to DB');
-
-  for (const blog of blogs) {
-    try {
-      const res = await fetch(blog.coverImage, { method: 'HEAD' });
-      if (!res.ok) console.warn(`⚠️  Image may not load for "${blog.slug}": ${blog.coverImage} (${res.status})`);
-    } catch {
-      console.warn(`⚠️  Could not reach image for "${blog.slug}": ${blog.coverImage}`);
-    }
-  }
-
-  let added = 0;
-  for (const blog of blogs) {
-    const exists = await Blog.findOne({ slug: blog.slug });
-    if (exists) {
-      console.log(`⏭  Skipping "${blog.title}" — already exists`);
-      continue;
-    }
-    await Blog.create(blog);
-    console.log(`✅ Added: "${blog.title}"`);
-    added++;
-  }
-
-  console.log(`\nDone — ${added} blog(s) added.`);
-  process.exit(0);
-}
-
-seed().catch((err) => {
-  console.error('Seed failed:', err);
-  process.exit(1);
-});
