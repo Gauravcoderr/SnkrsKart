@@ -131,6 +131,7 @@ const websiteLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'SNKRS CART',
+  alternateName: 'snkrscart',
   url: SITE_URL,
   potentialAction: {
     '@type': 'SearchAction',
@@ -140,6 +141,23 @@ const websiteLd = {
     },
     'query-input': 'required name=search_term_string',
   },
+};
+
+const siteNavLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'SNKRS CART Navigation',
+  itemListElement: [
+    { '@type': 'SiteNavigationElement', position: 1, name: 'Shop Sneakers',    url: `${SITE_URL}/products` },
+    { '@type': 'SiteNavigationElement', position: 2, name: 'Nike',             url: `${SITE_URL}/brands/nike` },
+    { '@type': 'SiteNavigationElement', position: 3, name: 'Jordan',           url: `${SITE_URL}/brands/jordan` },
+    { '@type': 'SiteNavigationElement', position: 4, name: 'Adidas',           url: `${SITE_URL}/brands/adidas` },
+    { '@type': 'SiteNavigationElement', position: 5, name: 'Sneaker Guide',    url: `${SITE_URL}/sneakers` },
+    { '@type': 'SiteNavigationElement', position: 6, name: 'Drop Calendar',    url: `${SITE_URL}/drops` },
+    { '@type': 'SiteNavigationElement', position: 7, name: 'Blog',             url: `${SITE_URL}/blogs` },
+    { '@type': 'SiteNavigationElement', position: 8, name: 'Size Guide',       url: `${SITE_URL}/size-guide` },
+    { '@type': 'SiteNavigationElement', position: 9, name: 'FAQs',             url: `${SITE_URL}/faqs` },
+  ],
 };
 
 const localBusinessLd = {
@@ -195,6 +213,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteNavLd) }}
         />
         <script
           dangerouslySetInnerHTML={{
