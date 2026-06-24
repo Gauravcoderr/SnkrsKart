@@ -39,18 +39,18 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com'
 export async function generateMetadata({ params }: PageProps) {
   try {
     const product = await fetchProductBySlug(params.slug);
-    const title = `${product.brand} ${product.name} — ₹${product.price.toLocaleString('en-IN')} | Buy in India`;
     const origPrice = product.originalPrice ?? 0;
     const hasDiscount = origPrice > product.price;
     const discountNote = hasDiscount
       ? `${Math.round(((origPrice - product.price) / origPrice) * 100)}% off`
       : 'best price guaranteed';
+    const title = `${product.brand} ${product.name} | Buy in India | SNKRS CART`;
     const description = `Buy ${product.brand} ${product.name} for ₹${product.price.toLocaleString('en-IN')} (${discountNote}). 100% authentic ${product.brand} shoes in India — pan-India shipping. | SNKRS CART`;
     const url = `${SITE_URL}/products/${params.slug}`;
     const ogImage = cloudinaryOgImage(product.images?.[0] || '');
 
     return {
-      title,
+      title: { absolute: title },
       description,
       alternates: { canonical: url },
       openGraph: {
@@ -72,7 +72,7 @@ export async function generateMetadata({ params }: PageProps) {
     return {
       title: 'Sneakers | SNKRS CART',
       description: 'Buy 100% authentic sneakers in India — Nike, Jordan, Adidas, New Balance. Pan-India shipping.',
-      alternates: { canonical: `${SITE_URL}/products` },
+      alternates: { canonical: `${SITE_URL}/products/${params.slug}` },
     };
   }
 }
