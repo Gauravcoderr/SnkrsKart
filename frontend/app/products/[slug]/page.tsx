@@ -1,4 +1,5 @@
 import { fetchProductBySlug, fetchTrendingProducts, fetchProductReviews } from '@/lib/api';
+import { cloudinaryOgImage } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import ImageGallery from '@/components/product-detail/ImageGallery';
 import ProductDetailClient from './ProductDetailClient';
@@ -46,7 +47,7 @@ export async function generateMetadata({ params }: PageProps) {
       : 'best price guaranteed';
     const description = `Buy ${product.brand} ${product.name} for ₹${product.price.toLocaleString('en-IN')} (${discountNote}). 100% authentic ${product.brand} shoes in India — pan-India shipping. | SNKRS CART`;
     const url = `${SITE_URL}/products/${params.slug}`;
-    const ogImage = product.images?.[0] || '';
+    const ogImage = cloudinaryOgImage(product.images?.[0] || '');
 
     return {
       title,

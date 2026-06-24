@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { cloudinaryOgImage } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import type { Blog, Product } from '@/types';
 // Simple server-safe sanitizer — strips <script> tags, inline event handlers,
@@ -144,11 +145,11 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       title, description, url, siteName: 'SNKRS CART', type: 'article',
       publishedTime: blog.createdAt, modifiedTime: blog.updatedAt,
       authors: [blog.author], tags: blog.tags,
-      ...(blog.coverImage ? { images: [{ url: blog.coverImage, width: 1200, height: 630, alt: blog.title }] } : {}),
+      ...(blog.coverImage ? { images: [{ url: cloudinaryOgImage(blog.coverImage), width: 1200, height: 630, alt: blog.title }] } : {}),
     },
     twitter: {
       card: 'summary_large_image', title, description,
-      ...(blog.coverImage ? { images: [blog.coverImage] } : {}),
+      ...(blog.coverImage ? { images: [cloudinaryOgImage(blog.coverImage)] } : {}),
     },
   };
 }
