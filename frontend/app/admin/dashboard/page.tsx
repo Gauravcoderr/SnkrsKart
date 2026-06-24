@@ -108,7 +108,7 @@ export default function AdminDashboard() {
     }
 
     const saved = await res.json();
-    const slug = saved.slug ?? (data as any).slug;
+    const slug = saved.slug ?? data.slug;
     if (slug) {
       fetch('/api/revalidate', {
         method: 'POST',

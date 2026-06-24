@@ -142,22 +142,17 @@ const websiteLd = {
   },
 };
 
-const siteNavLd = {
-  '@context': 'https://schema.org',
-  '@type': 'ItemList',
-  name: 'SNKRS CART Navigation',
-  itemListElement: [
-    { '@type': 'SiteNavigationElement', position: 1, name: 'Shop Sneakers',    url: `${SITE_URL}/products` },
-    { '@type': 'SiteNavigationElement', position: 2, name: 'Nike',             url: `${SITE_URL}/brands/nike` },
-    { '@type': 'SiteNavigationElement', position: 3, name: 'Jordan',           url: `${SITE_URL}/brands/jordan` },
-    { '@type': 'SiteNavigationElement', position: 4, name: 'Adidas',           url: `${SITE_URL}/brands/adidas` },
-    { '@type': 'SiteNavigationElement', position: 5, name: 'Sneaker Guide',    url: `${SITE_URL}/sneakers` },
-    { '@type': 'SiteNavigationElement', position: 6, name: 'Drop Calendar',    url: `${SITE_URL}/drops` },
-    { '@type': 'SiteNavigationElement', position: 7, name: 'Blog',             url: `${SITE_URL}/blogs` },
-    { '@type': 'SiteNavigationElement', position: 8, name: 'Size Guide',       url: `${SITE_URL}/size-guide` },
-    { '@type': 'SiteNavigationElement', position: 9, name: 'FAQs',             url: `${SITE_URL}/faqs` },
-  ],
-};
+const siteNavLd = [
+  { '@context': 'https://schema.org', '@type': 'SiteNavigationElement', name: 'Shop Sneakers', url: `${SITE_URL}/products` },
+  { '@context': 'https://schema.org', '@type': 'SiteNavigationElement', name: 'Nike',          url: `${SITE_URL}/brands/nike` },
+  { '@context': 'https://schema.org', '@type': 'SiteNavigationElement', name: 'Jordan',        url: `${SITE_URL}/brands/jordan` },
+  { '@context': 'https://schema.org', '@type': 'SiteNavigationElement', name: 'Adidas',        url: `${SITE_URL}/brands/adidas` },
+  { '@context': 'https://schema.org', '@type': 'SiteNavigationElement', name: 'Sneaker Guide', url: `${SITE_URL}/sneakers` },
+  { '@context': 'https://schema.org', '@type': 'SiteNavigationElement', name: 'Drop Calendar', url: `${SITE_URL}/drops` },
+  { '@context': 'https://schema.org', '@type': 'SiteNavigationElement', name: 'Blog',          url: `${SITE_URL}/blogs` },
+  { '@context': 'https://schema.org', '@type': 'SiteNavigationElement', name: 'Size Guide',    url: `${SITE_URL}/size-guide` },
+  { '@context': 'https://schema.org', '@type': 'SiteNavigationElement', name: 'FAQs',          url: `${SITE_URL}/faqs` },
+];
 
 const localBusinessLd = {
   '@context': 'https://schema.org',
