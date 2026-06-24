@@ -212,12 +212,24 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
       name: blog.author,
       url: SITE_URL,
       image: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
+      // sameAs enables Google AI entity graph traversal to verify author identity
+      sameAs: [
+        'https://www.instagram.com/snkrs_cart',
+        'https://twitter.com/snkrs_cart',
+        'https://www.facebook.com/snkrscart',
+      ],
     },
     publisher: {
       '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
       name: 'SNKRS CART',
       url: SITE_URL,
       logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
+      sameAs: [
+        'https://www.instagram.com/snkrs_cart',
+        'https://twitter.com/snkrs_cart',
+        'https://www.facebook.com/snkrscart',
+      ],
     },
     ...(blog.coverImage ? { image: { '@type': 'ImageObject', url: blog.coverImage, width: 1200, height: 630 } } : {}),
     // Speakable: tells Google Assistant / voice AI which CSS selectors hold the key content

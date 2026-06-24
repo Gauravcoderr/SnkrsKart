@@ -18,8 +18,9 @@ export const metadata = {
     title: 'Sneaker Blog | SNKRS CART',
     description: 'Latest sneaker news, release guides, and style tips from SNKRS CART.',
     url: `${SITE_URL}/blogs`, siteName: 'SNKRS CART', type: 'website',
+    images: [{ url: `${SITE_URL}/og-blog.jpg`, width: 1200, height: 630, alt: 'SNKRS CART Sneaker Blog' }],
   },
-  twitter: { card: 'summary_large_image', title: 'Sneaker Blog | SNKRS CART', description: 'Latest sneaker content from SNKRS CART.' },
+  twitter: { card: 'summary_large_image', title: 'Sneaker Blog | SNKRS CART', description: 'Latest sneaker content from SNKRS CART.', images: [`${SITE_URL}/og-blog.jpg`] },
 };
 
 export default async function BlogsPage({ searchParams }: { searchParams?: { tag?: string } }) {
@@ -42,9 +43,11 @@ export default async function BlogsPage({ searchParams }: { searchParams?: { tag
     publisher: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL, logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` } },
     blogPost: firstPage.map((b: Blog) => ({
       '@type': 'BlogPosting', headline: b.title,
-      url: `${SITE_URL}/blogs/${b.slug}`, datePublished: b.createdAt,
+      url: `${SITE_URL}/blogs/${b.slug}`,
+      datePublished: b.createdAt,
+      dateModified: b.updatedAt || b.createdAt,
       author: { '@type': 'Person', name: b.author, url: SITE_URL, image: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` } },
-      ...(b.coverImage ? { image: b.coverImage } : {}),
+      ...(b.coverImage ? { image: { '@type': 'ImageObject', url: b.coverImage, width: 1200, height: 630 } } : {}),
     })),
   };
 
