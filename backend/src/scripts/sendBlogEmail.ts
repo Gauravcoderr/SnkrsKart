@@ -8,10 +8,9 @@ import { Blog } from '../models/Blog';
 async function main() {
   await mongoose.connect(process.env.MONGODB_URI as string);
   const slugs = [
-    'one8-global-premiere-virat-kohli-delhi-2026',
-    'one8-vs-hrx-celebrity-sportswear-india-2026',
-    'virat-kohli-one8-agilitas-equity-story-2026',
-    'puma-india-post-kohli-next-gen-ambassadors-2026',
+    'ronaldo-cr7-mercurial-gold-six-world-cups-2026',
+    'messi-f50-el-ultimo-tango-farewell-boot-2026',
+    'skechers-reebok-world-cup-2026-underdogs',
   ];
   const blogs = await Blog.find({ slug: { $in: slugs }, published: true }).lean();
   if (!blogs.length) { console.log('No published blogs found'); process.exit(0); }
