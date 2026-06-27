@@ -71,7 +71,23 @@ function parseShopifyProducts(json: { products?: VNVShopifyProduct[] }, seen: Se
   return out;
 }
 
-// ── Primary: ScrapingAnt residential proxy (no JS needed for Shopify JSON) ────
+// browser=true renders JSON URLs in Chrome's viewer → <pre>{...}</pre> HTML.
+// Try raw parse first (in case ScrapingAnt returns raw body), then extract from <pre>.
+function extractShopifyJson(content: string): { products?: VNVShopifyProduct[] } {
+  const trimmed = content.trim();
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    return JSON.parse(trimmed) as { products?: VNVShopifyProduct[] };
+  }
+  // Chrome JSON viewer wraps in <pre>
+  const m = trimmed.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+  if (m) return JSON.parse(m[1]) as { products?: VNVShopifyProduct[] };
+  // Last resort: grab largest {...} block from the body text
+  const m2 = trimmed.match(/(\{[\s\S]+\})/);
+  if (m2) return JSON.parse(m2[1]) as { products?: VNVShopifyProduct[] };
+  throw new Error('Could not extract Shopify JSON from ScrapingAnt response');
+}
+
+// ── Primary: ScrapingAnt residential proxy (browser=true bypasses Cloudflare) ──
 async function scrapeViaApi(seen: Set<string>): Promise<ScrapedItem[]> {
   const results: ScrapedItem[] = [];
   const collections = ['nike', 'jordan', 'air-jordan', 'new-arrivals'];
@@ -80,7 +96,7 @@ async function scrapeViaApi(seen: Set<string>): Promise<ScrapedItem[]> {
     try {
       const jsonUrl = `${BASE}/collections/${col}/products.json?limit=24&sort_by=created-descending`;
       const body = await scrapingAntFetch(jsonUrl, true); // browser=true → bypass Cloudflare on VNV
-      const data = JSON.parse(body) as { products?: VNVShopifyProduct[] };
+      const data = extractShopifyJson(body);
       const items = parseShopifyProducts(data, seen);
       results.push(...items);
       console.log(`[vnv] ${col} via ScrapingAnt: ${items.length} items`);
