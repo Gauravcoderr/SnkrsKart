@@ -7,7 +7,7 @@ const WA_LINK =
 
 export default function WhatsAppFloat() {
   return (
-    <div className="fixed bottom-24 right-5 z-40">
+    <div className="fixed bottom-[4.75rem] right-4 sm:right-6 z-40">
       {/* Pulse ring behind the button */}
       <span
         className="absolute inset-0 rounded-full pointer-events-none"
@@ -35,7 +35,7 @@ export default function WhatsAppFloat() {
         </span>
 
         {/* Icon — always visible */}
-        <div className="w-11 h-11 flex items-center justify-center shrink-0">
+        <div className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center shrink-0">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="22"
