@@ -136,6 +136,18 @@ export default function ProductsTable({ items, loading, status, onEdit, onPublis
                       ))}
                     </div>
                   )}
+                  {(() => {
+                    if (!item.sourceListedAt) return null;
+                    const ms = Date.now() - new Date(item.sourceListedAt).getTime();
+                    const days = ms / 86_400_000;
+                    if (days < 0) return (
+                      <span className="inline-block mt-1 text-[9px] font-bold px-1.5 py-0.5 rounded border bg-blue-900/40 text-blue-300 border-blue-700">UPCOMING</span>
+                    );
+                    if (days <= 7) return (
+                      <span className="inline-block mt-1 text-[9px] font-bold px-1.5 py-0.5 rounded border bg-emerald-900/40 text-emerald-300 border-emerald-700">NEW</span>
+                    );
+                    return null;
+                  })()}
                 </td>
                 <td className="py-3 pr-3 text-zinc-300 text-xs">{item.brand}</td>
                 <td className="py-3 pr-3">

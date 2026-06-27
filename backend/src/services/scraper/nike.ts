@@ -38,6 +38,8 @@ interface NikeBrowseProduct {
   availableSkus?: NikeBrowseSku[];
   skus?: NikeBrowseSku[];
   inStock?: boolean;
+  startSellDate?: string;
+  publishedDate?: string;
 }
 
 interface NikeBrowseResponse {
@@ -60,6 +62,7 @@ const THREAD_URL =
   '&sort=effectiveStartSellDateDesc';
 
 interface NikeThread {
+  startSellDate?: string;
   publishedContent?: {
     properties?: {
       title?: string;
@@ -68,6 +71,7 @@ interface NikeThread {
       productCard?: {
         properties?: { squarishURL?: string; portraitURL?: string };
       };
+      publish?: { startDate?: string };
     };
   };
 }
@@ -158,6 +162,7 @@ async function scrapeBrowse(seen: Set<string>): Promise<ScrapedItem[]> {
         // Try availableSkus first, then all skus
         const sizes = parseSizes(p.availableSkus?.length ? p.availableSkus : p.skus);
 
+        const listedRaw = p.startSellDate ?? p.publishedDate;
         results.push({
           sourceUrl: productUrl,
           sourceSite: 'nike',
@@ -170,6 +175,7 @@ async function scrapeBrowse(seen: Set<string>): Promise<ScrapedItem[]> {
           colorway: p.colorDescription,
           tags: ['nike', brand.toLowerCase(), 'new-arrival'],
           gender: inferGender(subtitle),
+          sourceListedAt: listedRaw ? new Date(listedRaw) : undefined,
         });
       }
     } catch (err) {
@@ -223,6 +229,7 @@ async function scrapeThreadFeed(seen: Set<string>): Promise<ScrapedItem[]> {
         const images = [imgPortrait, imgSquare].filter(Boolean);
         if (images.length === 0) continue;
 
+        const threadDateRaw = thread.startSellDate ?? props.publish?.startDate;
         results.push({
           sourceUrl: productUrl,
           sourceSite: 'nike',
@@ -232,6 +239,7 @@ async function scrapeThreadFeed(seen: Set<string>): Promise<ScrapedItem[]> {
           sizes: [],
           tags: ['nike', brand.toLowerCase(), 'new-arrival'],
           gender: inferGender(subtitle),
+          sourceListedAt: threadDateRaw ? new Date(threadDateRaw) : undefined,
         });
       }
     } catch (err) {
