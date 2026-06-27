@@ -18,8 +18,10 @@ export interface ScrapedProduct {
   description?: string;
   gender: Gender;
   tags: string[];
+  flags: string[];
   status: Status;
   scrapedAt: string;
+  sourceListedAt?: string;
 }
 
 export const SITE_COLORS: Record<SourceSite, string> = {
@@ -34,5 +36,16 @@ export const SITE_COLORS: Record<SourceSite, string> = {
 };
 
 export const STATUS_TABS: Status[] = ['draft', 'published'];
+
+export const ALL_FLAGS = ['bestseller', 'trending', 'limited', 'hyped', 'popular'] as const;
+export type ProductFlag = typeof ALL_FLAGS[number];
+
+export const FLAG_STYLES: Record<ProductFlag, string> = {
+  bestseller: 'bg-amber-900/40 text-amber-300 border-amber-700',
+  trending:   'bg-sky-900/40 text-sky-300 border-sky-700',
+  limited:    'bg-purple-900/40 text-purple-300 border-purple-700',
+  hyped:      'bg-red-900/40 text-red-300 border-red-700',
+  popular:    'bg-emerald-900/40 text-emerald-300 border-emerald-700',
+};
 
 export const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';

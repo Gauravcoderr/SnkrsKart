@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { adminAuth, AdminRequest } from '../middleware/adminAuth';
 import { Product } from '../models/Product';
 import { ScrapedProduct } from '../models/ScrapedProduct';
+import { RejectedUrl } from '../models/RejectedUrl';
 import { uploadToCloudinary } from '../services/scraper/utils';
 import { runRenderScraper, ScraperRunResult } from '../services/scraper/index';
 import { Brand } from '../models/Brand';
@@ -715,6 +716,8 @@ router.get('/scraped-products', adminAuth, async (req: Request, res: Response): 
       if (priceMax) priceFilter.$lte = parseFloat(priceMax);
       filter.price = priceFilter;
     }
+    const { flags } = req.query as Record<string, string>;
+    if (flags) filter.flags = { $in: flags.split(',').map((f) => f.trim()).filter(Boolean) };
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const [items, total] = await Promise.all([
       ScrapedProduct.find(filter).sort({ scrapedAt: -1 }).skip(skip).limit(parseInt(limit)).lean(),
@@ -741,10 +744,35 @@ router.put('/scraped-products/:id', adminAuth, async (req: Request, res: Respons
   }
 });
 
+router.post('/scraped-products/bulk-delete', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { ids } = req.body as { ids: string[] };
+    if (!Array.isArray(ids) || ids.length === 0) { res.status(400).json({ error: 'ids array required' }); return; }
+    const items = await ScrapedProduct.find({ _id: { $in: ids } }).lean();
+    await ScrapedProduct.deleteMany({ _id: { $in: ids } });
+    const blacklistOps = items.map((item) => ({
+      updateOne: {
+        filter: { sourceUrl: item.sourceUrl },
+        update: { $set: { sourceUrl: item.sourceUrl, sku: item.sku, rejectedAt: new Date() } },
+        upsert: true,
+      },
+    }));
+    if (blacklistOps.length) await RejectedUrl.bulkWrite(blacklistOps);
+    res.json({ deleted: ids.length });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to bulk delete' });
+  }
+});
+
 router.delete('/scraped-products/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const item = await ScrapedProduct.findByIdAndDelete(req.params.id);
     if (!item) { res.status(404).json({ error: 'Not found' }); return; }
+    await RejectedUrl.updateOne(
+      { sourceUrl: item.sourceUrl },
+      { $set: { sourceUrl: item.sourceUrl, sku: item.sku, rejectedAt: new Date() } },
+      { upsert: true }
+    );
     res.json({ message: 'Deleted' });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to delete' });

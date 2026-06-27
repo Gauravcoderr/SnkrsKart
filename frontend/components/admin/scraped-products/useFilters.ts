@@ -10,6 +10,7 @@ export interface Filters {
   filterDateTo: string;
   filterPriceMin: string;
   filterPriceMax: string;
+  filterFlag: string;
 }
 
 export interface FilterHandlers {
@@ -20,6 +21,7 @@ export interface FilterHandlers {
   onDateToChange: (v: string) => void;
   onPriceMinChange: (v: string) => void;
   onPriceMaxChange: (v: string) => void;
+  onFlagChange: (v: string) => void;
   onClear: () => void;
 }
 
@@ -31,15 +33,16 @@ export function useFilters(onReset: () => void) {
   const [filterDateTo, setFilterDateTo] = useState('');
   const [filterPriceMin, setFilterPriceMin] = useState('');
   const [filterPriceMax, setFilterPriceMax] = useState('');
+  const [filterFlag, setFilterFlag] = useState('');
 
   useEffect(() => {
     onReset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax]);
+  }, [filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax, filterFlag]);
 
   const filters = useMemo<Filters>(
-    () => ({ filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax }),
-    [filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax]
+    () => ({ filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax, filterFlag }),
+    [filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax, filterFlag]
   );
 
   const handlers: FilterHandlers = {
@@ -50,6 +53,7 @@ export function useFilters(onReset: () => void) {
     onDateToChange: setFilterDateTo,
     onPriceMinChange: setFilterPriceMin,
     onPriceMaxChange: setFilterPriceMax,
+    onFlagChange: setFilterFlag,
     onClear: () => {
       setFilterSearch('');
       setFilterSite('');
@@ -58,6 +62,7 @@ export function useFilters(onReset: () => void) {
       setFilterDateTo('');
       setFilterPriceMin('');
       setFilterPriceMax('');
+      setFilterFlag('');
     },
   };
 

@@ -14,6 +14,8 @@ export interface IScrapedProduct extends Document {
   description?: string;
   gender: 'men' | 'women' | 'unisex' | 'kids';
   tags: string[];
+  flags: string[];
+  sourceListedAt?: Date;
   status: 'draft' | 'published' | 'rejected';
   publishedProductId?: mongoose.Types.ObjectId;
   scrapedAt: Date;
@@ -38,6 +40,8 @@ const scrapedProductSchema = new Schema<IScrapedProduct>(
     description: { type: String },
     gender: { type: String, enum: ['men', 'women', 'unisex', 'kids'], default: 'unisex' },
     tags: [{ type: String }],
+    flags: [{ type: String }],
+    sourceListedAt: { type: Date },
     status: {
       type: String,
       enum: ['draft', 'published', 'rejected'],

@@ -17,6 +17,7 @@ interface ShopifyProduct {
   variants: ShopifyVariant[];
   images: { src: string }[];
   tags: string[];
+  created_at?: string;
 }
 
 interface ShopifyResponse {
@@ -46,6 +47,19 @@ function inferGender(tags: string[]): ScrapedItem['gender'] {
   if (/\bkids\b|\bjunior\b|\bchildren\b/.test(s)) return 'kids';
   if (/\bmen\b|\bmens\b/.test(s)) return 'men';
   return 'unisex';
+}
+
+const FLAG_PATTERNS: { flag: string; re: RegExp }[] = [
+  { flag: 'bestseller', re: /best.?sell|top.?sell|most.?sold/i },
+  { flag: 'trending',   re: /trend/i },
+  { flag: 'limited',    re: /limited|ltd.?ed|exclusive|collab/i },
+  { flag: 'hyped',      re: /hype|heat|grail|must.?have/i },
+  { flag: 'popular',    re: /popular|fan.?fav|top.?pick|staff.?pick/i },
+];
+
+function extractFlags(tags: string[], title: string): string[] {
+  const haystack = [...tags, title].join(' ').toLowerCase();
+  return FLAG_PATTERNS.filter((p) => p.re.test(haystack)).map((p) => p.flag);
 }
 
 async function fetchJson(
@@ -85,7 +99,9 @@ async function fetchJson(
       sizes: parseSizes(p.variants),
       description: cheerio.load(p.body_html).text().trim().slice(0, 500),
       tags: p.tags ?? [],
+      flags: extractFlags(p.tags ?? [], p.title),
       gender: inferGender(p.tags ?? []),
+      sourceListedAt: p.created_at ? new Date(p.created_at) : undefined,
     });
   }
   return results;

@@ -1,22 +1,40 @@
 'use client';
 
 import { Filters, FilterHandlers } from './useFilters';
-import { SourceSite } from './types';
+import { SourceSite, ALL_FLAGS, FLAG_STYLES, ProductFlag } from './types';
 
 const ALL_SITES: SourceSite[] = ['myntra', 'footlocker', 'vegnonveg', 'limitededt', 'superkicks', 'nike', 'crepdogcrew', 'soleseriouss'];
 
-type Props = Pick<Filters, 'filterSite' | 'filterBrand' | 'filterDateFrom' | 'filterDateTo' | 'filterPriceMin' | 'filterPriceMax'> &
-  Pick<FilterHandlers, 'onSiteChange' | 'onBrandChange' | 'onDateFromChange' | 'onDateToChange' | 'onPriceMinChange' | 'onPriceMaxChange' | 'onClear'>;
+type Props = Pick<Filters, 'filterSite' | 'filterBrand' | 'filterDateFrom' | 'filterDateTo' | 'filterPriceMin' | 'filterPriceMax' | 'filterFlag'> &
+  Pick<FilterHandlers, 'onSiteChange' | 'onBrandChange' | 'onDateFromChange' | 'onDateToChange' | 'onPriceMinChange' | 'onPriceMaxChange' | 'onFlagChange' | 'onClear'>;
 
 export default function FiltersPanel({
-  filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax,
-  onSiteChange, onBrandChange, onDateFromChange, onDateToChange, onPriceMinChange, onPriceMaxChange,
+  filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax, filterFlag,
+  onSiteChange, onBrandChange, onDateFromChange, onDateToChange, onPriceMinChange, onPriceMaxChange, onFlagChange,
   onClear,
 }: Props) {
-  const hasActiveFilters = filterSite || filterBrand || filterDateFrom || filterDateTo || filterPriceMin || filterPriceMax;
+  const hasActiveFilters = filterSite || filterBrand || filterDateFrom || filterDateTo || filterPriceMin || filterPriceMax || filterFlag;
 
   return (
     <div className="space-y-5">
+      {/* Flags */}
+      <div>
+        <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-3">Signal</p>
+        <div className="flex flex-wrap gap-1.5">
+          {ALL_FLAGS.map((flag) => (
+            <button key={flag} type="button"
+              onClick={() => onFlagChange(filterFlag === flag ? '' : flag)}
+              className={`px-2.5 py-1 text-[11px] font-semibold rounded border transition-all capitalize ${
+                filterFlag === flag
+                  ? FLAG_STYLES[flag as ProductFlag]
+                  : 'bg-zinc-800/60 text-zinc-500 border-zinc-700 hover:border-zinc-500 hover:text-zinc-300'
+              }`}>
+              {flag}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Site */}
       <div>
         <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-3">Source Site</p>

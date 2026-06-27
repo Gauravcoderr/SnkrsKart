@@ -40,10 +40,10 @@ export default function ScrapedProductsPage() {
   const [toast, setToast] = useState('');
 
   const { filters, handlers } = useFilters(() => setPage(1));
-  const { filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax } = filters;
-  const { onSearchChange, onSiteChange, onBrandChange, onDateFromChange, onDateToChange, onPriceMinChange, onPriceMaxChange, onClear } = handlers;
+  const { filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax, filterFlag } = filters;
+  const { onSearchChange, onSiteChange, onBrandChange, onDateFromChange, onDateToChange, onPriceMinChange, onPriceMaxChange, onFlagChange, onClear } = handlers;
 
-  const activeFilterCount = [filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax].filter(Boolean).length;
+  const activeFilterCount = [filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax, filterFlag].filter(Boolean).length;
 
   const getToken = useCallback(() => {
     const t = localStorage.getItem('admin_token');
@@ -68,6 +68,7 @@ export default function ScrapedProductsPage() {
       if (filterDateTo) params.set('dateTo', filterDateTo);
       if (filterPriceMin) params.set('priceMin', filterPriceMin);
       if (filterPriceMax) params.set('priceMax', filterPriceMax);
+      if (filterFlag) params.set('flags', filterFlag);
       const res = await fetch(`${API}/admin/scraped-products?${params}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       setItems(data.items ?? []);
@@ -77,7 +78,7 @@ export default function ScrapedProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [getToken, status, page, limit, filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax]);
+  }, [getToken, status, page, limit, filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax, filterFlag]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
   useEffect(() => { setPage(1); }, [status]);
@@ -105,6 +106,17 @@ export default function ScrapedProductsPage() {
     const id = setInterval(pollStatus, 30_000);
     return () => clearInterval(id);
   }, [scraperCooldownUntil, fetchItems]);
+
+  async function handleBulkDelete(ids: string[]) {
+    const token = getToken();
+    await fetch(`${API}/admin/scraped-products/bulk-delete`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    });
+    showToast(`Deleted ${ids.length} product${ids.length !== 1 ? 's' : ''}`);
+    fetchItems();
+  }
 
   async function handleReject(id: string) {
     await fetch(`${API}/admin/scraped-products/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${getToken()}` } });
@@ -178,7 +190,7 @@ export default function ScrapedProductsPage() {
         ))}
       </div>
 
-      <ProductsTable items={items} loading={loading} status={status} onEdit={setEditItem} onPublish={setPublishItem} onReject={handleReject} />
+      <ProductsTable items={items} loading={loading} status={status} onEdit={setEditItem} onPublish={setPublishItem} onReject={handleReject} onBulkDelete={handleBulkDelete} />
 
       {total > 0 && <Paginator page={page} totalPages={Math.ceil(total / limit)} onPage={setPage} pageSize={limit} onPageSizeChange={(s) => { setLimit(s); setPage(1); }} totalItems={total} />}
 
@@ -194,12 +206,14 @@ export default function ScrapedProductsPage() {
           filterDateTo={filterDateTo}
           filterPriceMin={filterPriceMin}
           filterPriceMax={filterPriceMax}
+          filterFlag={filterFlag}
           onSiteChange={onSiteChange}
           onBrandChange={onBrandChange}
           onDateFromChange={onDateFromChange}
           onDateToChange={onDateToChange}
           onPriceMinChange={onPriceMinChange}
           onPriceMaxChange={onPriceMaxChange}
+          onFlagChange={onFlagChange}
           onClear={() => { onClear(); setFilterDrawerOpen(false); }}
         />
       </AdminFilterDrawer>

@@ -92,6 +92,8 @@ export interface ScrapedItem {
   description?: string;
   gender?: 'men' | 'women' | 'unisex' | 'kids';
   tags?: string[];
+  flags?: string[];
+  sourceListedAt?: Date;
 }
 
 export async function uploadToCloudinary(sourceImageUrl: string): Promise<string> {
