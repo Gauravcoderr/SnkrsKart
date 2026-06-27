@@ -65,13 +65,12 @@ const AuthContext = createContext<AuthState>({
 
 async function fetchMe(): Promise<UserProfile | null> {
   const token = getStoredToken();
-  const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+  if (!token) return null;
 
-  const res = await fetch(`${API}/auth/me`, { credentials: 'include', headers });
+  const res = await fetch(`${API}/auth/me`, { credentials: 'include', headers: { Authorization: `Bearer ${token}` } });
   if (res.ok) return res.json();
 
   if (res.status === 401) {
-    // Try token refresh
     const refreshRes = await fetch(`${API}/auth/refresh`, { method: 'POST', credentials: 'include' });
     if (refreshRes.ok) {
       const refreshData = await refreshRes.json();
