@@ -54,6 +54,18 @@ export function scrapingAntFetch(url: string, js = true): Promise<string> {
         res.on('end', () => {
           const raw = Buffer.concat(chunks).toString('utf8');
           if (process.env.ANT_DEBUG) console.log(`[ant] status=${res.statusCode} body[0:200]=${raw.slice(0, 200)}`);
+          if (res.statusCode !== 200) {
+            reject(new Error(`ScrapingAnt ${res.statusCode}: ${raw.slice(0, 200)}`));
+            return;
+          }
+          // ScrapingAnt wraps the target response in {"content":"..."} — unwrap it
+          try {
+            const parsed = JSON.parse(raw) as { content?: string };
+            if (typeof parsed.content === 'string') {
+              resolve(parsed.content);
+              return;
+            }
+          } catch { /* not a wrapper object, return raw */ }
           resolve(raw);
         });
       }

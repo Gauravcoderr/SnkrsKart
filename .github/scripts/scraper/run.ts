@@ -48,27 +48,21 @@ async function main(): Promise<void> {
   });
 
   try {
-    const [myntraResult, footlockerResult, vegNonVegResult] = await Promise.allSettled([
-      scrapeMyntra(browser),
-      scrapeFootlocker(browser),
-      scrapeVegNonVeg(browser),
-    ]);
+    // Sequential — ScrapingAnt free tier allows only 1 concurrent request
+    const safeScrape = async (name: string, fn: () => Promise<ScrapedItem[]>): Promise<ScrapedItem[]> => {
+      try {
+        return await fn();
+      } catch (err) {
+        console.error(`[run] ${name} failed:`, err);
+        return [];
+      }
+    };
 
-    const allItems: ScrapedItem[] = [
-      ...(myntraResult.status === 'fulfilled' ? myntraResult.value : []),
-      ...(footlockerResult.status === 'fulfilled' ? footlockerResult.value : []),
-      ...(vegNonVegResult.status === 'fulfilled' ? vegNonVegResult.value : []),
-    ];
+    const myntraItems = await safeScrape('Myntra', () => scrapeMyntra(browser));
+    const footlockerItems = await safeScrape('Footlocker', () => scrapeFootlocker(browser));
+    const vegNonVegItems = await safeScrape('VegNonVeg', () => scrapeVegNonVeg(browser));
 
-    if (myntraResult.status === 'rejected') {
-      console.error('[run] Myntra failed:', myntraResult.reason);
-    }
-    if (footlockerResult.status === 'rejected') {
-      console.error('[run] Footlocker failed:', footlockerResult.reason);
-    }
-    if (vegNonVegResult.status === 'rejected') {
-      console.error('[run] VegNonVeg failed:', vegNonVegResult.reason);
-    }
+    const allItems: ScrapedItem[] = [...myntraItems, ...footlockerItems, ...vegNonVegItems];
 
     console.log(`[run] Total items scraped: ${allItems.length}`);
     await ingest(allItems);

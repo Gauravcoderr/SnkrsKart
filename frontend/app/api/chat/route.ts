@@ -472,28 +472,38 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Fallback 2: NVIDIA NIM — OpenAI-compatible, free tier
+    // Fallback 2: NVIDIA NIM — cycle through free models until one responds
     if (!rawText && process.env.NVIDIA_API_KEY) {
-      try {
-        const res = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.NVIDIA_API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: 'meta/llama-4-maverick-17b-128e-instruct',
-            messages: [
-              { role: 'system', content: systemWithContext },
-              ...historyMessages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
-            ],
-            max_tokens: 512,
-          }),
-        });
-        const data = await res.json();
-        rawText = data.choices?.[0]?.message?.content ?? '';
-      } catch (nvidiaErr: any) {
-        console.warn('NVIDIA NIM failed:', nvidiaErr?.message);
+      const NVIDIA_MODELS = [
+        'meta/llama-4-maverick-17b-128e-instruct',
+        'nvidia/llama-3.1-nemotron-70b-instruct',
+        'meta/llama-3.1-405b-instruct',
+        'mistralai/mistral-large-2-instruct',
+        'google/gemma-2-27b-it',
+      ];
+      for (const model of NVIDIA_MODELS) {
+        if (rawText) break;
+        try {
+          const res = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.NVIDIA_API_KEY}`,
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: 'system', content: systemWithContext },
+                ...historyMessages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+              ],
+              max_tokens: 512,
+            }),
+          });
+          const data = await res.json();
+          rawText = data.choices?.[0]?.message?.content ?? '';
+        } catch (nvidiaErr: any) {
+          console.warn(`NVIDIA NIM [${model}] failed:`, nvidiaErr?.message);
+        }
       }
     }
 

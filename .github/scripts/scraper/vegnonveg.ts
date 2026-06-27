@@ -79,7 +79,7 @@ async function scrapeViaApi(seen: Set<string>): Promise<ScrapedItem[]> {
   for (const col of collections) {
     try {
       const jsonUrl = `${BASE}/collections/${col}/products.json?limit=24&sort_by=created-descending`;
-      const body = await scrapingAntFetch(jsonUrl, false); // browser=false → 1 credit
+      const body = await scrapingAntFetch(jsonUrl, true); // browser=true → bypass Cloudflare on VNV
       const data = JSON.parse(body) as { products?: VNVShopifyProduct[] };
       const items = parseShopifyProducts(data, seen);
       results.push(...items);

@@ -12,36 +12,26 @@ function detectBrand(title: string): 'Nike' | 'Jordan' | null {
 
 function inferGender(g: string): ScrapedItem['gender'] {
   const s = g.toLowerCase();
-  if (s.includes('women') || s.includes('female')) return 'women';
-  if (s.includes('kid') || s.includes('child')) return 'kids';
+  if (s.includes('women') || s.includes('female') || s.includes('girl')) return 'women';
+  if (s.includes('kid') || s.includes('child') || s.includes('boy')) return 'kids';
   if (s.includes('men') || s.includes('male')) return 'men';
   return 'unisex';
-}
-
-// Myntra sizes field can be string[] or {label, available}[] or {sizeValue}[] etc.
-function normalizeSizes(raw: unknown): string[] {
-  if (!Array.isArray(raw) || raw.length === 0) return [];
-  if (typeof raw[0] === 'string') return raw as string[];
-  if (typeof raw[0] === 'number') return (raw as number[]).map(String);
-  // Object shapes: {label}, {sizeValue}, {skuSize}
-  return (raw as Record<string, unknown>[])
-    .map((s) => String(s.label ?? s.sizeValue ?? s.skuSize ?? s.size ?? '').trim())
-    .filter(Boolean);
 }
 
 interface MyntraProduct {
   productId?: number;
   productName?: string;
+  product?: string;
   brand?: string;
-  price?: { discounted?: number; mrp?: number };
-  images?: { src?: string }[];
-  sizes?: unknown;
-  sizesWithLabel?: unknown;
-  productSize?: unknown;
+  mrp?: number;
+  price?: number;
+  searchImage?: string;
+  images?: { view?: string; src?: string }[];
+  sizes?: string;
+  inventoryInfo?: { label?: string; available?: boolean }[];
   gender?: string;
   landingPageUrl?: string;
-  listDate?: number;
-  listingDate?: string | number;
+  catalogDate?: number;
 }
 
 function buildProductUrl(p: MyntraProduct): string {
@@ -49,18 +39,48 @@ function buildProductUrl(p: MyntraProduct): string {
   return `https://www.myntra.com/${p.productId ?? ''}`;
 }
 
-function extractProducts(data: unknown): MyntraProduct[] {
-  if (Array.isArray(data)) return data as MyntraProduct[];
-  const d = data as Record<string, unknown>;
-  // Paths observed in Myntra's embedded state and API responses
-  return (
-    (d?.searchData as Record<string, unknown>)?.results as MyntraProduct[] ??
-    ((d?.searchData as Record<string, unknown>)?.results as Record<string, unknown>)?.searchResult as MyntraProduct[] ??
-    (((d?.searchData as Record<string, unknown>)?.results as Record<string, unknown>)?.searchResult as Record<string, unknown>)?.results as MyntraProduct[] ??
-    (d?.results as MyntraProduct[]) ??
-    ((d?.data as Record<string, unknown>)?.results as MyntraProduct[]) ??
-    []
-  );
+function extractSizes(p: MyntraProduct): string[] {
+  if (typeof p.sizes === 'string' && p.sizes) {
+    return p.sizes.split(',').map((s) => s.trim()).filter(Boolean);
+  }
+  if (Array.isArray(p.inventoryInfo)) {
+    return p.inventoryInfo
+      .filter((i) => i.available !== false)
+      .map((i) => i.label ?? '')
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function mapProducts(products: MyntraProduct[], seen: Set<string>): ScrapedItem[] {
+  const out: ScrapedItem[] = [];
+  for (const p of products) {
+    const name = p.productName ?? p.product ?? '';
+    if (!name) continue;
+    const brand = detectBrand(name);
+    if (!brand) continue;
+    const pageUrl = buildProductUrl(p);
+    if (!pageUrl || seen.has(pageUrl)) continue;
+    seen.add(pageUrl);
+    const price = p.price ?? p.mrp;
+    if (!price || price <= 0) continue;
+    const imgs = (p.images ?? []).map((i) => i.src ?? '').filter(Boolean);
+    if (imgs.length === 0 && p.searchImage) imgs.push(p.searchImage);
+    out.push({
+      sourceUrl: pageUrl,
+      sourceSite: 'myntra',
+      name,
+      brand,
+      price,
+      originalPrice: p.mrp && p.mrp > price ? p.mrp : undefined,
+      images: imgs,
+      sizes: extractSizes(p),
+      gender: inferGender(p.gender ?? ''),
+      tags: ['myntra', brand.toLowerCase()],
+      sourceListedAt: p.catalogDate ? new Date(p.catalogDate) : undefined,
+    });
+  }
+  return out;
 }
 
 export async function scrapeMyntra(browser: Browser): Promise<ScrapedItem[]> {
@@ -68,14 +88,12 @@ export async function scrapeMyntra(browser: Browser): Promise<ScrapedItem[]> {
   const seen = new Set<string>();
 
   const queries = [
-    { url: 'https://www.myntra.com/shoes?rawQuery=nike+limited+edition&sort=new', label: 'nike-limited' },
+    { url: 'https://www.myntra.com/shoes?rawQuery=nike+shoes&sort=new', label: 'nike' },
     { url: 'https://www.myntra.com/shoes?rawQuery=jordan+shoes&sort=new', label: 'jordan' },
   ];
 
   for (const { url, label } of queries) {
     const page = await browser.newPage();
-    let intercepted: MyntraProduct[] = [];
-
     try {
       await page.setUserAgent(sessionUA());
       await page.setExtraHTTPHeaders({
@@ -86,202 +104,67 @@ export async function scrapeMyntra(browser: Browser): Promise<ScrapedItem[]> {
         'Upgrade-Insecure-Requests': '1',
       });
 
-      // Intercept Myntra's internal catalog/search API calls — these include sizes
+      // Intercept Myntra's search API — current pattern observed in network traffic
+      const intercepted: MyntraProduct[] = [];
       page.on('response', async (response) => {
-        const respUrl = response.url();
+        const rUrl = response.url();
         if (
-          respUrl.includes('myntra.com') &&
-          (respUrl.includes('/api/v2/catalog') ||
-            respUrl.includes('/gateway/v2/product') ||
-            respUrl.includes('search?') ||
-            respUrl.includes('list?')) &&
+          rUrl.includes('myntra.com') &&
+          (rUrl.includes('/gateway/v2/product/list') ||
+            rUrl.includes('/search/search') ||
+            rUrl.includes('/api/v2/catalog') ||
+            rUrl.includes('/v2/search') ||
+            (rUrl.includes('search') && rUrl.includes('json'))) &&
           response.headers()['content-type']?.includes('json')
         ) {
           try {
-            const json = await response.json() as unknown;
-            const products = extractProducts(json);
+            const json = (await response.json()) as Record<string, unknown>;
+            const products: MyntraProduct[] =
+              ((json.searchData as Record<string, unknown>)?.results as Record<string, unknown>)?.products as MyntraProduct[] ??
+              (json.products as MyntraProduct[]) ??
+              [];
             if (products.length > 0) {
-              intercepted = intercepted.concat(products.slice(0, 30));
-              console.log(`[myntra] ${label}: intercepted ${products.length} products from ${respUrl}`);
+              intercepted.push(...products.slice(0, 50));
+              console.log(`[myntra] ${label}: intercepted ${products.length} products from ${rUrl}`);
             }
           } catch {
-            // non-JSON or parse fail, skip
+            // non-JSON or parse fail
           }
         }
       });
 
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-      await jitter(4000, 7000);
+      await jitter(3000, 5000);
 
       const title = await page.title();
       if (title.toLowerCase().includes('access denied') || title.toLowerCase().includes('robot')) {
-        console.warn(`[myntra] ${label}: bot detection triggered (title: ${title})`);
+        console.warn(`[myntra] ${label}: bot detection (title: ${title})`);
         continue;
       }
 
-      // Process intercepted API responses first (best data quality, includes sizes)
-      if (intercepted.length > 0) {
-        for (const p of intercepted.slice(0, 24)) {
-          const fullTitle = `${p.brand ?? ''} ${p.productName ?? ''}`.trim();
-          const brand = detectBrand(fullTitle);
-          if (!brand) continue;
+      // Primary: read window.__myx embedded SSR state (fastest, no extra requests)
+      const ssrProducts = await page.evaluate(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const myx = (window as any).__myx;
+        return (myx?.searchData?.results?.products ?? []) as unknown[];
+      }) as MyntraProduct[];
 
-          const pageUrl = buildProductUrl(p);
-          if (seen.has(pageUrl)) continue;
-          seen.add(pageUrl);
-
-          const price = p.price?.discounted;
-          if (!price || price <= 0) continue;
-
-          const sizes = normalizeSizes(p.sizes ?? p.sizesWithLabel ?? p.productSize);
-
-          const myntraDateRaw = p.listDate ?? p.listingDate;
-          const myntraListedAt = myntraDateRaw
-            ? new Date(typeof myntraDateRaw === 'number' && myntraDateRaw > 1e10 ? myntraDateRaw : myntraDateRaw)
-            : undefined;
-          results.push({
-            sourceUrl: pageUrl,
-            sourceSite: 'myntra',
-            name: fullTitle,
-            brand,
-            price,
-            originalPrice: p.price?.mrp && p.price.mrp > price ? p.price.mrp : undefined,
-            images: (p.images ?? []).map((i) => i.src ?? '').filter(Boolean),
-            sizes,
-            gender: inferGender(p.gender ?? ''),
-            tags: ['myntra', brand.toLowerCase()],
-            sourceListedAt: myntraListedAt,
-          });
-        }
-        console.log(`[myntra] ${label}: ${results.length} items via intercepted API`);
+      if (ssrProducts.length > 0) {
+        const items = mapProducts(ssrProducts, seen);
+        results.push(...items);
+        console.log(`[myntra] ${label}: ${items.length} items via window.__myx`);
+      } else if (intercepted.length > 0) {
+        const items = mapProducts(intercepted, seen);
+        results.push(...items);
+        console.log(`[myntra] ${label}: ${items.length} items via intercepted API`);
+      } else {
+        console.warn(`[myntra] ${label}: 0 items — window.__myx empty and no API intercept`);
       }
-
-      // Try embedded JSON state if interception got nothing
-      if (results.length === 0) {
-        const raw = await page.evaluate(() => {
-          const scripts = Array.from(document.querySelectorAll('script:not([src])'));
-          for (const s of scripts) {
-            const text = s.textContent ?? '';
-            if (text.includes('"productId"') && text.includes('"brand"')) {
-              // Pattern 1: window.__myx
-              const m1 = text.match(/window\.__myx\s*=\s*(\{[\s\S]*?\});\s*window/);
-              if (m1) return m1[1];
-              // Pattern 2: raw array
-              const m2 = text.match(/\[{"productId"[\s\S]*?\}]/);
-              if (m2) return m2[0];
-              // Pattern 3: any large JSON containing productId
-              const m3 = text.match(/(\{[\s\S]{500,}\})/);
-              if (m3) return m3[1];
-            }
-          }
-          // Pattern 4: __INITIAL_STATE__
-          const initScript = Array.from(document.querySelectorAll('script')).find(
-            (s) => s.textContent?.includes('__INITIAL_STATE__')
-          );
-          if (initScript) {
-            const m = initScript.textContent?.match(/window\.__INITIAL_STATE__\s*=\s*(\{[\s\S]*?\});\s*(?:window|\/\/)/);
-            if (m) return m[1];
-          }
-          return null;
-        });
-
-        if (raw) {
-          try {
-            const data = JSON.parse(raw) as unknown;
-            const products = extractProducts(data);
-
-            for (const p of products.slice(0, 20)) {
-              const fullTitle = `${p.brand ?? ''} ${p.productName ?? ''}`.trim();
-              const brand = detectBrand(fullTitle);
-              if (!brand) continue;
-
-              const pageUrl = buildProductUrl(p);
-              if (seen.has(pageUrl)) continue;
-              seen.add(pageUrl);
-
-              const price = p.price?.discounted;
-              if (!price || price <= 0) continue;
-
-              const sizes = normalizeSizes(p.sizes ?? p.sizesWithLabel ?? p.productSize);
-
-              const mnDateRaw2 = p.listDate ?? p.listingDate;
-              results.push({
-                sourceUrl: pageUrl,
-                sourceSite: 'myntra',
-                name: fullTitle,
-                brand,
-                price,
-                originalPrice: p.price?.mrp && p.price.mrp > price ? p.price.mrp : undefined,
-                images: (p.images ?? []).map((i) => i.src ?? '').filter(Boolean),
-                sizes,
-                gender: inferGender(p.gender ?? ''),
-                tags: ['myntra', brand.toLowerCase()],
-                sourceListedAt: mnDateRaw2 ? new Date(mnDateRaw2) : undefined,
-              });
-            }
-            console.log(`[myntra] ${label}: ${results.length} items via embedded JSON`);
-          } catch (e) {
-            console.warn(`[myntra] ${label}: JSON parse failed:`, (e as Error).message);
-          }
-        }
-      }
-
-      // DOM fallback — listing pages don't expose per-product sizes, but capture what we can
-      if (results.length === 0) {
-        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2));
-        await jitter(1500, 2500);
-
-        const domItems = await page.evaluate(() => {
-          const cards = Array.from(document.querySelectorAll('.product-base, [class*="product-base"]'));
-          return cards.slice(0, 20).map((card) => {
-            // Some cards expose sizes as data attributes or child chips
-            const sizeEls = Array.from(card.querySelectorAll('[class*="size"] span, [class*="sizeChip"], [data-size]'));
-            const sizes = sizeEls
-              .map((el) => el.textContent?.trim() ?? (el as HTMLElement).dataset?.size ?? '')
-              .filter((s) => s && /^\d/.test(s));
-            return {
-              brand: card.querySelector('.product-brand')?.textContent?.trim() ?? '',
-              name: card.querySelector('.product-product')?.textContent?.trim() ?? '',
-              href: (card.querySelector('a') as HTMLAnchorElement | null)?.href ?? '',
-              imgSrc: (card.querySelector('img.img-responsive') as HTMLImageElement | null)?.src ?? '',
-              price: card.querySelector('.product-discountedPrice')?.textContent?.replace(/[^\d]/g, '') ?? '',
-              mrp: card.querySelector('.product-strike')?.textContent?.replace(/[^\d]/g, '') ?? '',
-              sizes,
-            };
-          });
-        });
-
-        for (const item of domItems) {
-          const fullTitle = `${item.brand} ${item.name}`.trim();
-          const brand = detectBrand(fullTitle);
-          if (!brand || !item.href) continue;
-          if (seen.has(item.href)) continue;
-          seen.add(item.href);
-
-          const price = item.price ? parseInt(item.price) : undefined;
-          if (!price || price <= 0) continue;
-
-          results.push({
-            sourceUrl: item.href,
-            sourceSite: 'myntra',
-            name: fullTitle,
-            brand,
-            price,
-            originalPrice: item.mrp && parseInt(item.mrp) > price ? parseInt(item.mrp) : undefined,
-            images: item.imgSrc ? [item.imgSrc] : [],
-            sizes: item.sizes,
-            gender: 'unisex',
-            tags: ['myntra', brand.toLowerCase()],
-          });
-        }
-        console.log(`[myntra] ${label}: ${results.length} items via DOM`);
-      }
-
-      await jitter(3000, 6000);
     } catch (err) {
       console.error(`[myntra] ${label} failed:`, (err as Error).message);
     } finally {
       await page.close();
+      await jitter(3000, 5000);
     }
   }
 
