@@ -40,6 +40,8 @@ interface MyntraProduct {
   productSize?: unknown;
   gender?: string;
   landingPageUrl?: string;
+  listDate?: number;
+  listingDate?: string | number;
 }
 
 function buildProductUrl(p: MyntraProduct): string {
@@ -133,6 +135,10 @@ export async function scrapeMyntra(browser: Browser): Promise<ScrapedItem[]> {
 
           const sizes = normalizeSizes(p.sizes ?? p.sizesWithLabel ?? p.productSize);
 
+          const myntraDateRaw = p.listDate ?? p.listingDate;
+          const myntraListedAt = myntraDateRaw
+            ? new Date(typeof myntraDateRaw === 'number' && myntraDateRaw > 1e10 ? myntraDateRaw : myntraDateRaw)
+            : undefined;
           results.push({
             sourceUrl: pageUrl,
             sourceSite: 'myntra',
@@ -144,6 +150,7 @@ export async function scrapeMyntra(browser: Browser): Promise<ScrapedItem[]> {
             sizes,
             gender: inferGender(p.gender ?? ''),
             tags: ['myntra', brand.toLowerCase()],
+            sourceListedAt: myntraListedAt,
           });
         }
         console.log(`[myntra] ${label}: ${results.length} items via intercepted API`);
@@ -197,6 +204,7 @@ export async function scrapeMyntra(browser: Browser): Promise<ScrapedItem[]> {
 
               const sizes = normalizeSizes(p.sizes ?? p.sizesWithLabel ?? p.productSize);
 
+              const mnDateRaw2 = p.listDate ?? p.listingDate;
               results.push({
                 sourceUrl: pageUrl,
                 sourceSite: 'myntra',
@@ -208,6 +216,7 @@ export async function scrapeMyntra(browser: Browser): Promise<ScrapedItem[]> {
                 sizes,
                 gender: inferGender(p.gender ?? ''),
                 tags: ['myntra', brand.toLowerCase()],
+                sourceListedAt: mnDateRaw2 ? new Date(mnDateRaw2) : undefined,
               });
             }
             console.log(`[myntra] ${label}: ${results.length} items via embedded JSON`);

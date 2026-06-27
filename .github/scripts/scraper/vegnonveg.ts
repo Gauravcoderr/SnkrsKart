@@ -19,6 +19,8 @@ interface VNVShopifyProduct {
   images?: { src?: string }[];
   tags?: string[];
   body_html?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 function inferGender(tags: string[]): ScrapedItem['gender'] {
@@ -79,6 +81,7 @@ export async function scrapeVegNonVeg(browser: Browser): Promise<ScrapedItem[]> 
             if (seen.has(sourceUrl)) continue;
             seen.add(sourceUrl);
 
+            const vnvListed = p.created_at ?? p.updated_at;
             results.push({
               sourceUrl,
               sourceSite: 'vegnonveg',
@@ -90,6 +93,7 @@ export async function scrapeVegNonVeg(browser: Browser): Promise<ScrapedItem[]> 
               sizes,
               tags: p.tags ?? [],
               gender: inferGender(p.tags ?? []),
+              sourceListedAt: vnvListed ? new Date(vnvListed) : undefined,
             });
           }
           console.log(`[vnv] ${col} via JSON: ${results.length} items`);

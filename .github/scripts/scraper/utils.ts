@@ -38,4 +38,5 @@ export interface ScrapedItem {
   description?: string;
   gender?: 'men' | 'women' | 'unisex' | 'kids';
   tags?: string[];
+  sourceListedAt?: Date;
 }

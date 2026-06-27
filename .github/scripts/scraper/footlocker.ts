@@ -15,11 +15,13 @@ function detectBrand(title: string): 'Nike' | 'Jordan' | null {
 interface JsonLdProduct {
   '@type'?: string;
   name?: string;
-  offers?: { price?: string | number; priceCurrency?: string };
+  offers?: { price?: string | number; priceCurrency?: string; availabilityStarts?: string };
   image?: string | string[];
   url?: string;
   description?: string;
   sku?: string;
+  datePublished?: string;
+  dateModified?: string;
 }
 
 export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]> {
@@ -80,6 +82,7 @@ export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]>
         const imgs = Array.isArray(p.image) ? p.image : p.image ? [p.image] : [];
         const price = p.offers?.price ? Math.round(parseFloat(String(p.offers.price))) : undefined;
 
+        const flDateRaw = p.datePublished ?? p.dateModified ?? p.offers?.availabilityStarts;
         results.push({
           sourceUrl,
           sourceSite: 'footlocker',
@@ -92,6 +95,7 @@ export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]>
           description: p.description?.slice(0, 500),
           tags: ['footlocker', brand.toLowerCase()],
           gender: 'unisex',
+          sourceListedAt: flDateRaw ? new Date(flDateRaw) : undefined,
         });
       }
 
