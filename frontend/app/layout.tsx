@@ -8,6 +8,7 @@ import QueryProvider from '@/components/layout/QueryProvider';
 import LayoutShell from '@/components/layout/LayoutShell';
 import AuthModal from '@/components/auth/AuthModal';
 import EmailCaptureModal from '@/components/layout/EmailCaptureModal';
+import WhatsAppFloat from '@/components/layout/WhatsAppFloat';
 import GoogleAuthProvider from '@/components/auth/GoogleAuthProvider';
 import { Analytics } from '@vercel/analytics/next';
 
@@ -243,6 +244,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <LayoutShell>{children}</LayoutShell>
                   <AuthModal />
                   <EmailCaptureModal />
+                  <WhatsAppFloat />
                 </WishlistProvider>
               </CartProvider>
             </AuthProvider>

@@ -8,6 +8,7 @@ import BrandGrid from '@/components/home/BrandGrid';
 import HomeReviews from '@/components/home/HomeReviews';
 import ComingSoon from '@/components/home/ComingSoon';
 import WhyChooseUs from '@/components/home/WhyChooseUs';
+import WhatsAppCTA from '@/components/home/WhatsAppCTA';
 import NewsletterBar from '@/components/home/NewsletterBar';
 
 import type { Metadata } from 'next';
@@ -110,6 +111,7 @@ export default async function HomePage() {
       <TrendingNow products={trending} />
       <WhyChooseUs />
       <ComingSoon products={comingSoon} />
+      <WhatsAppCTA />
       <NewsletterBar />
     </>
   );
