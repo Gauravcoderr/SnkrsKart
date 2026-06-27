@@ -25,7 +25,7 @@ export default function WhatsAppFloat() {
       >
         {/* Label — expands on hover */}
         <span
-          className="whitespace-nowrap text-white text-sm font-bold leading-none
+          className="overflow-hidden whitespace-nowrap text-white text-sm font-bold leading-none
                      max-w-0 pl-0 pr-0
                      group-hover:max-w-[9rem] group-hover:pl-5 group-hover:pr-2
                      transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
