@@ -844,31 +844,48 @@ router.post('/scraped-products/:id/publish', adminAuth, async (req: Request, res
       slug = `${baseSlug}-${suffix++}`;
     }
 
-    const discount =
-      scraped.originalPrice && scraped.originalPrice > (scraped.price ?? 0)
-        ? Math.round(((scraped.originalPrice - (scraped.price ?? 0)) / scraped.originalPrice) * 100)
-        : 0;
+    // Accept size/pricing overrides from the frontend config step
+    const {
+      productType = 'shoes',
+      sizes: reqSizes,
+      availableSizes: reqAvailableSizes,
+      stringSizes: reqStringSizes,
+      availableStringSizes: reqAvailableStringSizes,
+      variants: reqVariants,
+      price: reqPrice,
+      originalPrice: reqOriginalPrice,
+    } = req.body;
+
+    const fallbackNumericSizes = scraped.sizes.map(s => parseFloat(s.replace(/[^0-9.]/g, ''))).filter(n => !isNaN(n));
+    const isShoes = productType === 'shoes';
+
+    const finalPrice = reqPrice ?? scraped.price ?? 0;
+    const finalOriginalPrice = reqOriginalPrice ?? scraped.originalPrice ?? finalPrice;
+    const discount = finalOriginalPrice > finalPrice
+      ? Math.round(((finalOriginalPrice - finalPrice) / finalOriginalPrice) * 100)
+      : 0;
 
     const productPayload = {
       name: scraped.name,
       brand: scraped.brand,
       slug,
       colorway: scraped.colorway || 'N/A',
-      price: scraped.price ?? 0,
-      originalPrice: scraped.originalPrice ?? scraped.price ?? 0,
+      price: finalPrice,
+      originalPrice: finalOriginalPrice,
       discount,
       images: cloudinaryImages,
       hoverImage: cloudinaryImages[1] ?? cloudinaryImages[0] ?? '',
-      sizes: [] as number[],
-      availableSizes: [] as number[],
-      stringSizes: scraped.sizes,
-      availableStringSizes: scraped.sizes,
+      productType,
+      sizes: reqSizes ?? (isShoes ? fallbackNumericSizes : []),
+      availableSizes: reqAvailableSizes ?? (isShoes ? fallbackNumericSizes : []),
+      stringSizes: reqStringSizes ?? (isShoes ? [] : scraped.sizes),
+      availableStringSizes: reqAvailableStringSizes ?? (isShoes ? [] : scraped.sizes),
+      variants: reqVariants ?? [],
       gender: scraped.gender ?? 'unisex',
       tags: scraped.tags ?? [],
       sku: scraped.sku ?? slug,
       description: scraped.description ?? scraped.name,
       category: 'lifestyle',
-      productType: 'shoes' as const,
       newArrival: true,
       triggerEmail: false,
     };

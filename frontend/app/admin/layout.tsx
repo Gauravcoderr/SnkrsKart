@@ -113,7 +113,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           {/* Nav */}
-          <nav className={`flex-1 py-3 space-y-0.5 ${collapsed ? 'px-2' : 'px-3'}`}>
+          <nav className={`flex-1 py-3 space-y-0.5 overflow-y-auto ${collapsed ? 'px-2' : 'px-3'}`}>
             {NAV.map(({ href, label, Icon }) => {
               const active = pathname.startsWith(href);
               const linkClass = `flex items-center rounded-lg text-sm font-medium transition-colors ${
