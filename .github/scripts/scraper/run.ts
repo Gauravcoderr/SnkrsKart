@@ -41,6 +41,9 @@ async function main(): Promise<void> {
       '--disable-dev-shm-usage',
       '--disable-gpu',
       '--window-size=1366,768',
+      '--ignore-certificate-errors',
+      '--ignore-certificate-errors-spki-list',
+      '--disable-web-security',
     ],
   });
 

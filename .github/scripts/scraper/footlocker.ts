@@ -1,6 +1,8 @@
 import { Browser } from 'puppeteer';
 import { jitter, randomUA, ScrapedItem } from './utils';
 
+const BASE = 'https://www.footlocker.co.in';
+
 const JORDAN_RE = /\bjordan\b|\bair jordan\b/i;
 const NIKE_RE = /\bnike\b/i;
 
@@ -25,8 +27,8 @@ export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]>
   const seen = new Set<string>();
 
   const urls = [
-    { url: 'https://www.footlocker.in/en/category/shoes/nike.html', label: 'nike' },
-    { url: 'https://www.footlocker.in/en/category/shoes/jordan.html', label: 'jordan' },
+    { url: `${BASE}/en/category/shoes/nike.html`, label: 'nike' },
+    { url: `${BASE}/en/category/shoes/jordan.html`, label: 'jordan' },
   ];
 
   for (const { url, label } of urls) {
@@ -35,15 +37,23 @@ export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]>
       await page.setUserAgent(randomUA());
       await page.setExtraHTTPHeaders({
         'Accept-Language': 'en-IN,en;q=0.9',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Referer': 'https://www.footlocker.in',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Referer': BASE,
         'DNT': '1',
+        'Upgrade-Insecure-Requests': '1',
       });
 
-      await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-      await jitter(2000, 4000);
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 35000 });
+      await jitter(2500, 5000);
 
-      // Try JSON-LD first (most structured)
+      // Check if we got blocked (Akamai challenge)
+      const bodyText = await page.evaluate(() => document.body?.innerText?.slice(0, 200) ?? '');
+      if (bodyText.toLowerCase().includes('access denied') || bodyText.toLowerCase().includes('challenge')) {
+        console.warn(`[footlocker] ${label}: access denied / challenge page`);
+        continue;
+      }
+
+      // JSON-LD extraction
       const jsonLdItems = await page.evaluate(() => {
         const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
         const products: unknown[] = [];
@@ -59,11 +69,11 @@ export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]>
         return products;
       }) as JsonLdProduct[];
 
-      for (const p of jsonLdItems.slice(0, 15)) {
+      for (const p of jsonLdItems.slice(0, 20)) {
         const name = p.name ?? '';
         const brand = detectBrand(name);
         if (!brand || !p.url) continue;
-        const sourceUrl = p.url.startsWith('http') ? p.url : `https://www.footlocker.in${p.url}`;
+        const sourceUrl = p.url.startsWith('http') ? p.url : `${BASE}${p.url}`;
         if (seen.has(sourceUrl)) continue;
         seen.add(sourceUrl);
 
@@ -85,30 +95,48 @@ export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]>
         });
       }
 
-      // DOM fallback
+      // DOM fallback if JSON-LD gave nothing
       if (results.length === 0) {
-        const domItems = await page.evaluate(() => {
-          const cards = Array.from(document.querySelectorAll('[data-product-id], .ProductCard, .product-tile'));
-          return cards.slice(0, 15).map((card) => ({
-            title: card.querySelector('[class*="name"], [class*="title"], h3')?.textContent?.trim() ?? '',
-            href: (card.querySelector('a') as HTMLAnchorElement)?.href ?? '',
-            imgSrc: (card.querySelector('img') as HTMLImageElement)?.src ?? '',
-            price: card.querySelector('[class*="price"]')?.textContent?.replace(/[^\d]/g, '') ?? '',
+        const domItems = await page.evaluate((base: string) => {
+          const selectors = [
+            '[data-product-id]',
+            '.ProductCard',
+            '.product-tile',
+            '[class*="ProductCard"]',
+            '[class*="product-card"]',
+            'article[class*="product"]',
+          ];
+          const cards = Array.from(document.querySelectorAll(selectors.join(', ')));
+          return cards.slice(0, 20).map((card) => ({
+            title: (
+              card.querySelector('[class*="name"], [class*="title"], h3, h2')?.textContent ?? ''
+            ).trim(),
+            href: (() => {
+              const a = card.querySelector('a[href]') as HTMLAnchorElement | null;
+              const href = a?.getAttribute('href') ?? '';
+              return href.startsWith('http') ? href : `${base}${href}`;
+            })(),
+            imgSrc:
+              (card.querySelector('img') as HTMLImageElement | null)?.getAttribute('data-src') ??
+              (card.querySelector('img') as HTMLImageElement | null)?.src ?? '',
+            price: (card.querySelector('[class*="price"]')?.textContent ?? '').replace(/[^\d]/g, ''),
           }));
-        });
+        }, BASE);
 
         for (const item of domItems) {
           const brand = detectBrand(item.title);
           if (!brand || !item.href) continue;
           if (seen.has(item.href)) continue;
           seen.add(item.href);
+          const price = item.price ? parseInt(item.price) : undefined;
+          if (!price || price <= 0) continue;
 
           results.push({
             sourceUrl: item.href,
             sourceSite: 'footlocker',
             name: item.title,
             brand,
-            price: item.price ? parseInt(item.price) : undefined,
+            price,
             images: item.imgSrc ? [item.imgSrc] : [],
             sizes: [],
             tags: ['footlocker', brand.toLowerCase()],
