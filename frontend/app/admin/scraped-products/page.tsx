@@ -55,6 +55,13 @@ export default function ScrapedProductsPage() {
     if (typeof window === 'undefined') return 0;
     return Number(localStorage.getItem('scraper_cooldown_until') ?? 0);
   });
+  const [scraperRunStatus, setScraperRunStatus] = useState<{
+    status: string;
+    conclusion: string | null;
+    startedAt: string;
+    updatedAt: string;
+    runUrl: string;
+  } | null>(null);
   const [toast, setToast] = useState('');
   const limit = 20;
 
@@ -88,6 +95,33 @@ export default function ScrapedProductsPage() {
   }, [getToken, status, page]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  useEffect(() => {
+    if (Date.now() >= scraperCooldownUntil) return;
+    const token = localStorage.getItem('admin_token') ?? '';
+    async function pollStatus() {
+      try {
+        const res = await fetch(`${API}/admin/scraped-products/scraper-status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.status) setScraperRunStatus(data);
+        if (data.status === 'completed') {
+          localStorage.removeItem('scraper_cooldown_until');
+          setScraperCooldownUntil(0);
+          if (data.conclusion === 'success') {
+            showToast('Scraper finished — new drafts ready');
+            fetchItems();
+          } else {
+            showToast(`Scraper ${data.conclusion ?? 'failed'} — check GitHub Actions`);
+          }
+        }
+      } catch { /* silent */ }
+    }
+    pollStatus();
+    const id = setInterval(pollStatus, 30_000);
+    return () => clearInterval(id);
+  }, [scraperCooldownUntil, fetchItems]);
 
   async function handleReject(id: string) {
     const token = getToken();
@@ -198,6 +232,38 @@ export default function ScrapedProductsPage() {
             : 'Run Scraper Now'}
         </button>
       </div>
+
+      {/* Scraper status badge */}
+      {scraperRunStatus && (
+        <div className="flex items-center gap-2 text-xs">
+          {scraperRunStatus.status === 'completed' ? (
+            scraperRunStatus.conclusion === 'success' ? (
+              <span className="flex items-center gap-1.5 text-green-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                Scraper succeeded
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 text-red-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                Scraper {scraperRunStatus.conclusion ?? 'failed'}
+              </span>
+            )
+          ) : (
+            <span className="flex items-center gap-1.5 text-yellow-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
+              {scraperRunStatus.status === 'in_progress' ? 'Running on GitHub Actions...' : 'Queued...'}
+            </span>
+          )}
+          <a
+            href={scraperRunStatus.runUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-zinc-500 hover:text-zinc-300 underline"
+          >
+            View run
+          </a>
+        </div>
+      )}
 
       {/* Status tabs */}
       <div className="flex gap-1 border-b border-zinc-800">

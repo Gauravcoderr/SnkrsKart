@@ -756,6 +756,40 @@ router.post('/scraped-products/run-scraper', adminAuth, async (_req: Request, re
   }
 });
 
+router.get('/scraped-products/scraper-status', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const pat = process.env.GITHUB_PAT;
+    if (!pat) { res.status(500).json({ error: 'GITHUB_PAT not configured' }); return; }
+    const r = await fetch(
+      'https://api.github.com/repos/Gauravcoderr/SnkrsKart/actions/workflows/scraper.yml/runs?per_page=1',
+      {
+        headers: {
+          Authorization: `Bearer ${pat}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      }
+    );
+    if (!r.ok) {
+      const body = await r.text();
+      res.status(r.status).json({ error: `GitHub API error: ${body}` });
+      return;
+    }
+    const data = await r.json() as { workflow_runs: Array<{ status: string; conclusion: string | null; created_at: string; updated_at: string; html_url: string }> };
+    const run = data.workflow_runs[0] ?? null;
+    if (!run) { res.json({ status: null }); return; }
+    res.json({
+      status: run.status,
+      conclusion: run.conclusion,
+      startedAt: run.created_at,
+      updatedAt: run.updated_at,
+      runUrl: run.html_url,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to fetch scraper status' });
+  }
+});
+
 router.post('/scraped-products/:id/publish', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const scraped = await ScrapedProduct.findById(req.params.id);
