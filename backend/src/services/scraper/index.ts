@@ -3,7 +3,15 @@ import { scrapeAllShopify } from './shopify';
 import { scrapeNikeIndia } from './nike';
 import { ScrapedItem } from './utils';
 
-export async function runRenderScraper(): Promise<void> {
+export interface ScraperRunResult {
+  inserted: number;
+  updated: number;
+  shopifyFailed: boolean;
+  nikeFailed: boolean;
+  durationSec: number;
+}
+
+export async function runRenderScraper(): Promise<ScraperRunResult> {
   console.log('[scraper] Render run starting...');
   const start = Date.now();
   let inserted = 0;
@@ -43,6 +51,14 @@ export async function runRenderScraper(): Promise<void> {
     }
   }
 
-  const duration = Math.round((Date.now() - start) / 1000);
-  console.log(`[scraper] Done in ${duration}s — inserted: ${inserted}, updated: ${updated}`);
+  const durationSec = Math.round((Date.now() - start) / 1000);
+  console.log(`[scraper] Done in ${durationSec}s — inserted: ${inserted}, updated: ${updated}`);
+
+  return {
+    inserted,
+    updated,
+    shopifyFailed: shopifyResult.status === 'rejected',
+    nikeFailed: nikeResult.status === 'rejected',
+    durationSec,
+  };
 }

@@ -57,12 +57,9 @@ export default function ScrapedProductsPage() {
     if (typeof window === 'undefined') return 0;
     return Number(localStorage.getItem('scraper_cooldown_until') ?? 0);
   });
-  const [scraperRunStatus, setScraperRunStatus] = useState<{
-    status: string;
-    conclusion: string | null;
-    startedAt: string;
-    updatedAt: string;
-    runUrl: string;
+  const [scraperStatus, setScraperStatus] = useState<{
+    github: { status: string; conclusion: string | null; startedAt: string; updatedAt: string; runUrl: string } | null;
+    render: { status: string; startedAt?: string; finishedAt?: string; error?: string; result?: { inserted: number; updated: number; shopifyFailed: boolean; nikeFailed: boolean } };
   } | null>(null);
   const [toast, setToast] = useState('');
   const limit = 20;
@@ -106,16 +103,20 @@ export default function ScrapedProductsPage() {
         const res = await fetch(`${API}/admin/scraped-products/scraper-status`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = await res.json();
-        if (data.status) setScraperRunStatus(data);
-        if (data.status === 'completed') {
+        const data = await res.json() as typeof scraperStatus;
+        setScraperStatus(data);
+        const ghDone = !data?.github || data.github.status === 'completed';
+        const renderDone = !data?.render || data.render.status === 'done' || data.render.status === 'failed' || data.render.status === 'idle';
+        if (ghDone && renderDone) {
           localStorage.removeItem('scraper_cooldown_until');
           setScraperCooldownUntil(0);
-          if (data.conclusion === 'success') {
-            showToast('Scraper finished — new drafts ready');
-            fetchItems();
+          const ghFailed = data?.github?.conclusion && data.github.conclusion !== 'success';
+          const renderFailed = data?.render?.status === 'failed';
+          if (ghFailed || renderFailed) {
+            showToast(`Some scrapers failed — check status panel`);
           } else {
-            showToast(`Scraper ${data.conclusion ?? 'failed'} — check GitHub Actions`);
+            showToast('All scrapers finished — check new drafts');
+            fetchItems();
           }
         }
       } catch { /* silent */ }
@@ -235,35 +236,67 @@ export default function ScrapedProductsPage() {
         </button>
       </div>
 
-      {/* Scraper status badge */}
-      {scraperRunStatus && (
-        <div className="flex items-center gap-2 text-xs">
-          {scraperRunStatus.status === 'completed' ? (
-            scraperRunStatus.conclusion === 'success' ? (
-              <span className="flex items-center gap-1.5 text-green-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                Scraper succeeded
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5 text-red-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                Scraper {scraperRunStatus.conclusion ?? 'failed'}
-              </span>
-            )
-          ) : (
-            <span className="flex items-center gap-1.5 text-yellow-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
-              {scraperRunStatus.status === 'in_progress' ? 'Running on GitHub Actions...' : 'Queued...'}
-            </span>
-          )}
-          <a
-            href={scraperRunStatus.runUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-zinc-500 hover:text-zinc-300 underline"
-          >
-            View run
-          </a>
+      {/* Per-scraper status panel */}
+      {scraperStatus && (
+        <div className="flex flex-wrap gap-3">
+          {/* GitHub Actions status */}
+          {scraperStatus.github ? (() => {
+            const gh = scraperStatus.github;
+            const isDone = gh.status === 'completed';
+            const isOk = isDone && gh.conclusion === 'success';
+            const isFailed = isDone && gh.conclusion !== 'success';
+            const isRunning = !isDone;
+            return (
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium ${
+                isOk ? 'bg-green-950/40 border-green-800 text-green-300' :
+                isFailed ? 'bg-red-950/40 border-red-800 text-red-300' :
+                'bg-yellow-950/40 border-yellow-800 text-yellow-300'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isOk ? 'bg-green-400' : isFailed ? 'bg-red-400' : 'bg-yellow-400 animate-pulse'}`} />
+                <span>GitHub Actions</span>
+                <span className="text-zinc-500">—</span>
+                <span>{isRunning ? (gh.status === 'in_progress' ? 'running' : 'queued') : isOk ? 'success' : gh.conclusion ?? 'failed'}</span>
+                {gh.runUrl && (
+                  <a href={gh.runUrl} target="_blank" rel="noopener noreferrer" className="opacity-60 hover:opacity-100 underline ml-1">
+                    view
+                  </a>
+                )}
+              </div>
+            );
+          })() : null}
+
+          {/* Render scraper status */}
+          {scraperStatus.render && scraperStatus.render.status !== 'idle' && (() => {
+            const r = scraperStatus.render;
+            const isRunning = r.status === 'running';
+            const isDone = r.status === 'done';
+            const isFailed = r.status === 'failed';
+            return (
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium ${
+                isDone && !r.result?.shopifyFailed && !r.result?.nikeFailed ? 'bg-green-950/40 border-green-800 text-green-300' :
+                isFailed || (isDone && (r.result?.shopifyFailed || r.result?.nikeFailed)) ? 'bg-red-950/40 border-red-800 text-red-300' :
+                'bg-yellow-950/40 border-yellow-800 text-yellow-300'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${
+                  isDone && !r.result?.shopifyFailed && !r.result?.nikeFailed ? 'bg-green-400' :
+                  isFailed || (isDone && (r.result?.shopifyFailed || r.result?.nikeFailed)) ? 'bg-red-400' :
+                  'bg-yellow-400 animate-pulse'
+                }`} />
+                <span>Render (Shopify + Nike)</span>
+                <span className="text-zinc-500">—</span>
+                {isRunning && <span>running</span>}
+                {isDone && (
+                  <span>
+                    {r.result?.shopifyFailed && r.result?.nikeFailed ? 'both failed' :
+                     r.result?.shopifyFailed ? 'shopify failed' :
+                     r.result?.nikeFailed ? 'nike failed' :
+                     `+${r.result?.inserted ?? 0} new`}
+                  </span>
+                )}
+                {isFailed && <span title={r.error}>failed</span>}
+              </div>
+            );
+          })()}
         </div>
       )}
 

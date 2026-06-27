@@ -5,8 +5,16 @@ import { adminAuth, AdminRequest } from '../middleware/adminAuth';
 import { Product } from '../models/Product';
 import { ScrapedProduct } from '../models/ScrapedProduct';
 import { uploadToCloudinary } from '../services/scraper/utils';
-import { runRenderScraper } from '../services/scraper/index';
+import { runRenderScraper, ScraperRunResult } from '../services/scraper/index';
 import { Brand } from '../models/Brand';
+
+// In-memory Render scraper state (resets on Render restart — intentional)
+type RenderScraperState =
+  | { status: 'idle' }
+  | { status: 'running'; startedAt: string }
+  | { status: 'done'; startedAt: string; finishedAt: string; result: ScraperRunResult }
+  | { status: 'failed'; startedAt: string; finishedAt: string; error: string };
+let renderScraperState: RenderScraperState = { status: 'idle' };
 import { Inquiry } from '../models/Inquiry';
 import { Review } from '../models/Review';
 import { Banner } from '../models/Banner';
@@ -752,9 +760,20 @@ router.post('/scraped-products/run-scraper', adminAuth, async (_req: Request, re
       return;
     }
     // Also fire Render-side scraper (Shopify + Nike) in background — non-blocking
-    runRenderScraper().catch((e: Error) => console.error('[run-scraper] Render scraper error:', e.message));
+    if (renderScraperState.status !== 'running') {
+      const startedAt = new Date().toISOString();
+      renderScraperState = { status: 'running', startedAt };
+      runRenderScraper()
+        .then((result) => {
+          renderScraperState = { status: 'done', startedAt, finishedAt: new Date().toISOString(), result };
+        })
+        .catch((e: Error) => {
+          renderScraperState = { status: 'failed', startedAt, finishedAt: new Date().toISOString(), error: e.message };
+          console.error('[run-scraper] Render scraper error:', e.message);
+        });
+    }
 
-    res.json({ message: 'Scraper triggered — GitHub Actions (Myntra/Footlocker/VegNonVeg) + Render (Shopify/Nike) both running' });
+    res.json({ message: 'Both scrapers triggered — GitHub Actions (Myntra/Footlocker/VegNonVeg) + Render (Shopify/Nike)' });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to trigger scraper' });
   }
@@ -781,13 +800,15 @@ router.get('/scraped-products/scraper-status', adminAuth, async (_req: Request, 
     }
     const data = await r.json() as { workflow_runs: Array<{ status: string; conclusion: string | null; created_at: string; updated_at: string; html_url: string }> };
     const run = data.workflow_runs[0] ?? null;
-    if (!run) { res.json({ status: null }); return; }
     res.json({
-      status: run.status,
-      conclusion: run.conclusion,
-      startedAt: run.created_at,
-      updatedAt: run.updated_at,
-      runUrl: run.html_url,
+      github: run ? {
+        status: run.status,
+        conclusion: run.conclusion,
+        startedAt: run.created_at,
+        updatedAt: run.updated_at,
+        runUrl: run.html_url,
+      } : null,
+      render: renderScraperState,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to fetch scraper status' });
