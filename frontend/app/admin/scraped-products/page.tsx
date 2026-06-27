@@ -9,7 +9,7 @@ import ProductsTable from '@/components/admin/scraped-products/ProductsTable';
 import FiltersPanel from '@/components/admin/scraped-products/FiltersPanel';
 import AdminFilterDrawer from '@/components/admin/AdminFilterDrawer';
 import { useFilters } from '@/components/admin/scraped-products/useFilters';
-import { ScrapedProduct, Status, STATUS_TABS, API } from '@/components/admin/scraped-products/types';
+import { ScrapedProduct, Status, STATUS_TABS, RejectedUrlEntry, API } from '@/components/admin/scraped-products/types';
 
 const ScraperStatusPanel = dynamic(() => import('@/components/admin/scraped-products/ScraperStatusPanel'), { ssr: false });
 const PublishModal = dynamic(() => import('@/components/admin/scraped-products/PublishModal'), { ssr: false });
@@ -20,13 +20,18 @@ type ScraperStatus = {
   render: { status: string; startedAt?: string; finishedAt?: string; error?: string; result?: { inserted: number; updated: number; shopifyFailed: boolean; nikeFailed: boolean } };
 };
 
+type Tab = Status | 'blacklist';
+
 export default function ScrapedProductsPage() {
   const router = useRouter();
   const [items, setItems] = useState<ScrapedProduct[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
-  const [status, setStatus] = useState<Status>('draft');
+  const [tab, setTab] = useState<Tab>('draft');
+  const [rejectedItems, setRejectedItems] = useState<RejectedUrlEntry[]>([]);
+  const [rejectedTotal, setRejectedTotal] = useState(0);
+  const [rejectedLoading, setRejectedLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editItem, setEditItem] = useState<ScrapedProduct | null>(null);
   const [publishItem, setPublishItem] = useState<ScrapedProduct | null>(null);
@@ -57,10 +62,11 @@ export default function ScrapedProductsPage() {
   };
 
   const fetchItems = useCallback(async () => {
+    if (tab === 'blacklist') return;
     setLoading(true);
     try {
       const token = getToken();
-      const params = new URLSearchParams({ status, page: String(page), limit: String(limit) });
+      const params = new URLSearchParams({ status: tab, page: String(page), limit: String(limit) });
       if (filterSite) params.set('site', filterSite);
       if (filterBrand) params.set('brand', filterBrand);
       if (filterSearch) params.set('search', filterSearch);
@@ -78,10 +84,29 @@ export default function ScrapedProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [getToken, status, page, limit, filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax, filterFlag]);
+  }, [getToken, tab, page, limit, filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax, filterFlag]);
 
-  useEffect(() => { fetchItems(); }, [fetchItems]);
-  useEffect(() => { setPage(1); }, [status]);
+  const fetchRejected = useCallback(async () => {
+    setRejectedLoading(true);
+    try {
+      const token = getToken();
+      const res = await fetch(`${API}/admin/scraped-products/rejected-urls?limit=100`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      setRejectedItems(data.items ?? []);
+      setRejectedTotal(data.total ?? 0);
+    } catch {
+      showToast('Failed to load blacklist');
+    } finally {
+      setRejectedLoading(false);
+    }
+  }, [getToken]);
+
+  useEffect(() => {
+    if (tab === 'blacklist') fetchRejected();
+    else fetchItems();
+  }, [tab, fetchItems, fetchRejected]);
+
+  useEffect(() => { setPage(1); }, [tab]);
 
   useEffect(() => {
     if (Date.now() >= scraperCooldownUntil) return;
@@ -124,6 +149,12 @@ export default function ScrapedProductsPage() {
     fetchItems();
   }
 
+  async function handleUnreject(id: string) {
+    await fetch(`${API}/admin/scraped-products/rejected-urls/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${getToken()}` } });
+    showToast('Removed from blacklist');
+    fetchRejected();
+  }
+
   async function handleRunScraper() {
     setRunningCron(true);
     try {
@@ -150,49 +181,106 @@ export default function ScrapedProductsPage() {
 
       {scraperStatus && <ScraperStatusPanel status={scraperStatus} />}
 
-      {/* Search + Filters button row */}
-      <div className="flex items-center gap-2">
-        <input
-          type="text"
-          aria-label="Search scraped products"
-          placeholder="Search by name..."
-          value={filterSearch}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="flex-1 max-w-sm bg-zinc-900 border border-zinc-800 rounded-lg px-3.5 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
-        />
-        <button
-          type="button"
-          onClick={() => setFilterDrawerOpen(true)}
-          className={`flex items-center gap-2 px-3.5 py-2 text-sm rounded-lg border transition-colors shrink-0 ${
-            activeFilterCount > 0
-              ? 'bg-white text-zinc-900 border-white font-semibold'
-              : 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-white'
-          }`}
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-          </svg>
-          Filters
-          {activeFilterCount > 0 && (
-            <span className="bg-zinc-900 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
-              {activeFilterCount}
-            </span>
-          )}
-        </button>
-      </div>
+      {/* Search + Filters button row — hidden on blacklist tab */}
+      {tab !== 'blacklist' && (
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            aria-label="Search scraped products"
+            placeholder="Search by name..."
+            value={filterSearch}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="flex-1 max-w-sm bg-zinc-900 border border-zinc-800 rounded-lg px-3.5 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+          />
+          <button
+            type="button"
+            onClick={() => setFilterDrawerOpen(true)}
+            className={`flex items-center gap-2 px-3.5 py-2 text-sm rounded-lg border transition-colors shrink-0 ${
+              activeFilterCount > 0
+                ? 'bg-white text-zinc-900 border-white font-semibold'
+                : 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-white'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+            </svg>
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="bg-zinc-900 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
 
+      {/* Tab bar */}
       <div className="flex gap-1 border-b border-zinc-800">
         {STATUS_TABS.map((s) => (
-          <button key={s} type="button" onClick={() => { setStatus(s); setPage(1); }}
-            className={`px-4 py-2 text-xs font-semibold capitalize transition-colors border-b-2 -mb-px ${status === s ? 'border-white text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>
+          <button key={s} type="button" onClick={() => setTab(s)}
+            className={`px-4 py-2 text-xs font-semibold capitalize transition-colors border-b-2 -mb-px ${tab === s ? 'border-white text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>
             {s}
           </button>
         ))}
+        <button type="button" onClick={() => setTab('blacklist')}
+          className={`px-4 py-2 text-xs font-semibold transition-colors border-b-2 -mb-px ${tab === 'blacklist' ? 'border-red-500 text-red-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>
+          Blacklist {rejectedTotal > 0 && <span className="ml-1 text-[10px] bg-red-900/50 text-red-400 px-1.5 py-0.5 rounded">{rejectedTotal}</span>}
+        </button>
       </div>
 
-      <ProductsTable items={items} loading={loading} status={status} onEdit={setEditItem} onPublish={setPublishItem} onReject={handleReject} onBulkDelete={handleBulkDelete} />
+      {/* Products table */}
+      {tab !== 'blacklist' && (
+        <>
+          <ProductsTable items={items} loading={loading} status={tab} onEdit={setEditItem} onPublish={setPublishItem} onReject={handleReject} onBulkDelete={handleBulkDelete} />
+          {total > 0 && <Paginator page={page} totalPages={Math.ceil(total / limit)} onPage={setPage} pageSize={limit} onPageSizeChange={(s) => { setLimit(s); setPage(1); }} totalItems={total} />}
+        </>
+      )}
 
-      {total > 0 && <Paginator page={page} totalPages={Math.ceil(total / limit)} onPage={setPage} pageSize={limit} onPageSizeChange={(s) => { setLimit(s); setPage(1); }} totalItems={total} />}
+      {/* Blacklist table */}
+      {tab === 'blacklist' && (
+        <div className="overflow-x-auto">
+          {rejectedLoading ? (
+            <div className="flex justify-center py-20">
+              <div className="w-6 h-6 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
+            </div>
+          ) : rejectedItems.length === 0 ? (
+            <div className="text-center py-20 text-zinc-600 text-sm">No blacklisted URLs yet.</div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs text-zinc-500 border-b border-zinc-800">
+                  <th className="pb-2 pr-4 font-medium">Source URL</th>
+                  <th className="pb-2 pr-4 font-medium">SKU</th>
+                  <th className="pb-2 pr-4 font-medium">Rejected On</th>
+                  <th className="pb-2 font-medium">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-800/60">
+                {rejectedItems.map((r) => (
+                  <tr key={r._id} className="hover:bg-zinc-900/40 transition-colors">
+                    <td className="py-3 pr-4 max-w-[400px]">
+                      <a href={r.sourceUrl} target="_blank" rel="noopener noreferrer"
+                        className="text-zinc-300 text-xs hover:underline hover:text-white break-all line-clamp-2">
+                        {r.sourceUrl}
+                      </a>
+                    </td>
+                    <td className="py-3 pr-4 text-zinc-500 text-xs">{r.sku ?? '—'}</td>
+                    <td className="py-3 pr-4 text-zinc-500 text-xs whitespace-nowrap">
+                      {new Date(r.rejectedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}
+                    </td>
+                    <td className="py-3">
+                      <button type="button" onClick={() => handleUnreject(r._id)}
+                        className="text-xs px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors">
+                        Un-reject
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
 
       {publishItem && <PublishModal item={publishItem} onClose={() => setPublishItem(null)} onSuccess={(msg) => { showToast(msg); fetchItems(); }} getToken={getToken} />}
       {editItem && <EditModal item={editItem} onClose={() => setEditItem(null)} onSuccess={(msg) => { showToast(msg); fetchItems(); }} getToken={getToken} />}

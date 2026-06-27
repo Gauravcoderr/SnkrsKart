@@ -857,6 +857,30 @@ router.get('/scraped-products/scraper-status', adminAuth, async (_req: Request, 
   }
 });
 
+router.get('/scraped-products/rejected-urls', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const page = Math.max(1, parseInt(String(req.query.page ?? 1)));
+    const limit = Math.min(100, parseInt(String(req.query.limit ?? 50)));
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      RejectedUrl.find().sort({ rejectedAt: -1 }).skip(skip).limit(limit).lean(),
+      RejectedUrl.countDocuments(),
+    ]);
+    res.json({ items, total, page, limit });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to fetch rejected URLs' });
+  }
+});
+
+router.delete('/scraped-products/rejected-urls/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    await RejectedUrl.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to delete' });
+  }
+});
+
 router.post('/scraped-products/:id/publish', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const scraped = await ScrapedProduct.findById(req.params.id);

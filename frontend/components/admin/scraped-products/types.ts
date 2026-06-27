@@ -49,4 +49,11 @@ export const FLAG_STYLES: Record<ProductFlag, string> = {
   popular:    'bg-emerald-900/40 text-emerald-300 border-emerald-700',
 };
 
+export interface RejectedUrlEntry {
+  _id: string;
+  sourceUrl: string;
+  sku?: string;
+  rejectedAt: string;
+}
+
 export const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
