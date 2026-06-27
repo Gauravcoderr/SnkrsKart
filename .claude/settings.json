@@ -81,7 +81,10 @@
       "WebFetch(domain:www.goal.com)",
       "WebFetch(domain:arxiv.org)",
       "WebFetch(domain:ar5iv.labs.arxiv.org)",
-      "WebFetch(domain:3dvar.com)"
+      "WebFetch(domain:3dvar.com)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:earezki.com)",
+      "WebFetch(domain:www.robertodiasduarte.com.br)"
     ],
     "additionalDirectories": [
       "/Users/gauravrauthan/shoe-auth"
