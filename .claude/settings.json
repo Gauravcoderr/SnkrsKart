@@ -79,7 +79,9 @@
       "WebFetch(domain:stockx.com)",
       "WebFetch(domain:www.soccerbible.com)",
       "WebFetch(domain:www.goal.com)",
-      "WebFetch(domain:arxiv.org)"
+      "WebFetch(domain:arxiv.org)",
+      "WebFetch(domain:ar5iv.labs.arxiv.org)",
+      "WebFetch(domain:3dvar.com)"
     ],
     "additionalDirectories": [
       "/Users/gauravrauthan/shoe-auth"

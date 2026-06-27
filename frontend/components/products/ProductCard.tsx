@@ -139,23 +139,23 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         </div>
 
         {/* Product info */}
-        <div className="pt-4 pb-5 px-4">
-          <div className="flex items-center justify-between mb-1.5">
-            <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-400">
+        <div className="pt-3 pb-4 px-3 border-t border-zinc-100">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400">
               {product.brand}
             </p>
             {product.gender && (
-              <span className="text-[10px] font-semibold tracking-wider uppercase text-zinc-400 border border-zinc-200 px-1.5 py-0.5">
-                {product.gender === 'men' ? "Men's" : product.gender === 'women' ? "Women's" : 'Unisex'}
+              <span className="text-[9px] font-bold tracking-wider uppercase text-zinc-400">
+                {product.gender === 'men' ? 'M' : product.gender === 'women' ? 'W' : 'U'}
               </span>
             )}
           </div>
-          <p className="text-sm font-semibold text-zinc-900 leading-snug">
+          <p className="text-sm font-bold text-zinc-900 leading-snug">
             {product.name}
           </p>
-          <p className="text-xs text-zinc-400 mt-1">{product.colorway}</p>
-          <div className="flex items-baseline gap-2 mt-2.5">
-            <span className="text-sm font-bold text-zinc-900 transition-all duration-150">{formatPrice(displayPrice)}</span>
+          <p className="text-[11px] text-zinc-400 mt-0.5 truncate">{product.colorway}</p>
+          <div className="flex items-baseline gap-2 mt-3">
+            <span className="text-base font-black text-zinc-900 transition-all duration-150">{formatPrice(displayPrice)}</span>
             {displayOriginalPrice && displayOriginalPrice > displayPrice && (
               <span className="text-xs text-zinc-400 line-through">
                 {formatPrice(displayOriginalPrice)}
