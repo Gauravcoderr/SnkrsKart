@@ -7,48 +7,54 @@ const WA_LINK =
 
 export default function WhatsAppFloat() {
   return (
-    <Link
-      href={WA_LINK}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Chat with us on WhatsApp"
-      className="fixed bottom-24 right-5 z-40 group flex items-center justify-end"
-    >
-      {/* Expanding pill — grows leftward from the circle */}
-      <div
-        className="flex items-center rounded-full shadow-xl group-hover:shadow-2xl transition-shadow duration-300"
+    <div className="fixed bottom-24 right-5 z-40">
+      {/* Pulse ring behind the button */}
+      <span
+        className="absolute inset-0 rounded-full pointer-events-none"
+        style={{ backgroundColor: '#25D366', animation: 'wa-pulse 2s ease-out infinite' }}
+        aria-hidden="true"
+      />
+
+      <Link
+        href={WA_LINK}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat with us on WhatsApp"
+        className="relative group flex items-center rounded-full shadow-xl overflow-hidden"
         style={{ backgroundColor: '#25D366' }}
       >
-        {/* Text slides out as pill expands */}
+        {/* Label — expands on hover */}
         <span
-          className="overflow-hidden whitespace-nowrap text-white text-sm font-bold leading-none
-                     max-w-0 pl-0
-                     group-hover:max-w-[9rem] group-hover:pl-5
-                     transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+          className="whitespace-nowrap text-white text-sm font-bold leading-none
+                     max-w-0 pl-0 pr-0
+                     group-hover:max-w-[9rem] group-hover:pl-5 group-hover:pr-2
+                     transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
           aria-hidden="true"
         >
           Chat With Us
         </span>
 
-        {/* Icon circle */}
-        <div className="relative w-14 h-14 shrink-0">
-          {/* Pulse ring */}
-          <span
-            className="absolute inset-0 rounded-full"
-            style={{ backgroundColor: '#25D366', animation: 'wa-pulse 2s ease-out infinite' }}
+        {/* Icon — always visible */}
+        <div className="w-11 h-11 flex items-center justify-center shrink-0">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="22"
+            height="22"
+            viewBox="0 0 26 26"
+            fill="none"
             aria-hidden="true"
-          />
-          {/* Button face */}
-          <div
-            className="relative w-full h-full rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-            style={{ backgroundColor: '#25D366' }}
           >
-            <svg className="w-5 h-5" fill="white" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-            </svg>
-          </div>
+            <path
+              d="M13.0005 21.492C11.5141 21.492 10.056 21.0984 8.76481 20.3517L5.45597 21.492L6.13567 17.9878C5.06988 16.5266 4.50781 14.8082 4.50781 12.9987C4.50781 8.31574 8.31759 4.50586 13.0005 4.50586C17.6837 4.50586 21.4935 8.31574 21.4935 12.9987C21.4935 17.682 17.6837 21.492 13.0005 21.492ZM8.91725 18.9628L9.17317 19.123C10.3264 19.8461 11.6501 20.2282 13.0003 20.2282C16.987 20.2282 20.23 16.9852 20.23 12.9987C20.23 9.01263 16.987 5.76959 13.0003 5.76959C9.01435 5.76959 5.7714 9.01263 5.7714 12.9987C5.7714 14.6206 6.30272 16.1574 7.30691 17.4426L7.48452 17.6697L7.11282 19.5844L8.91725 18.9628Z"
+              fill="white"
+            />
+            <path
+              d="M8.71329 9.7375C8.71329 9.7375 9.2119 8.86647 9.61794 8.8167C10.0242 8.7667 10.5473 8.76669 10.6881 9.03225C10.8293 9.29757 11.4595 10.841 11.4595 10.841C11.4595 10.841 11.5677 11.1065 11.4018 11.3638C11.2359 11.6209 10.8626 11.9941 10.8626 11.9941C10.8626 11.9941 10.6552 12.2595 10.8626 12.5418C11.07 12.8236 11.3917 13.3423 12.0574 14.0071C12.7219 14.6725 13.9983 15.1469 13.9983 15.1469C13.9983 15.1469 14.181 15.1716 14.2973 15.0556C14.4131 14.9394 15.044 14.1512 15.044 14.1512C15.044 14.1512 15.2463 13.8901 15.5828 14.0435C15.9187 14.1968 17.3746 14.9228 17.3746 14.9228C17.3746 14.9228 17.5449 14.9849 17.5449 15.2421C17.5449 15.4992 17.4409 16.1286 17.2281 16.3412C17.0152 16.5542 16.3933 17.21 15.4582 17.21C14.5234 17.21 12.2972 16.4492 11.1109 15.2631C9.92455 14.0765 8.87118 12.8733 8.62257 11.7786C8.37349 10.6835 8.4069 10.1886 8.71329 9.7375Z"
+              fill="white"
+            />
+          </svg>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
