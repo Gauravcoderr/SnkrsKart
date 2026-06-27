@@ -7,7 +7,7 @@ const WA_LINK =
 
 export default function WhatsAppFloat() {
   return (
-    <div className="fixed bottom-20 right-4 sm:right-6 z-40">
+    <div className="fixed top-6 right-4 sm:right-6 z-40">
       {/* Pulse ring behind the button */}
       <span
         className="absolute inset-0 rounded-full pointer-events-none"
