@@ -812,7 +812,7 @@ router.post('/scraped-products/:id/publish', adminAuth, async (req: Request, res
     }
 
     // Generate unique slug
-    let slug = toSlug(`${scraped.brand}-${scraped.name}-${scraped.colorway ?? ''}`);
+    let slug = toSlug(`${scraped.brand}-${scraped.name}${scraped.colorway ? `-${scraped.colorway}` : ''}`);
     const baseSlug = slug;
     let suffix = 2;
     while (await Product.exists({ slug })) {
@@ -828,7 +828,7 @@ router.post('/scraped-products/:id/publish', adminAuth, async (req: Request, res
       name: scraped.name,
       brand: scraped.brand,
       slug,
-      colorway: scraped.colorway ?? '',
+      colorway: scraped.colorway || 'N/A',
       price: scraped.price ?? 0,
       originalPrice: scraped.originalPrice ?? scraped.price ?? 0,
       discount,
