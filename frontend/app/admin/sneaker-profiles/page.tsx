@@ -3,6 +3,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Paginator from '../_components/Paginator';
+
+const SP_PAGE_SIZE = 20;
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
@@ -56,6 +59,7 @@ export default function AdminSneakerProfilesPage() {
   const [saving, setSaving] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
 
   const fetchProfiles = useCallback(async () => {
     const token = localStorage.getItem('admin_token');
@@ -159,6 +163,8 @@ export default function AdminSneakerProfilesPage() {
   const filtered = profiles.filter((p) =>
     !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.brand.toLowerCase().includes(search.toLowerCase())
   );
+  const totalPages = Math.max(1, Math.ceil(filtered.length / SP_PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * SP_PAGE_SIZE, page * SP_PAGE_SIZE);
 
   return (
     <div className="p-6">
@@ -173,13 +179,16 @@ export default function AdminSneakerProfilesPage() {
       </div>
 
       <input
-        type="text" placeholder="Search by name or brand…" value={search} onChange={(e) => setSearch(e.target.value)}
+        type="text" placeholder="Search by name or brand…" value={search}
+        onChange={(e) => { setSearch(e.target.value); setPage(1); }}
         className="w-full max-w-sm bg-zinc-800 border border-zinc-700 text-zinc-100 px-3 py-2 text-sm mb-4 focus:outline-none focus:border-zinc-500"
       />
 
       {error && <p className="text-xs text-red-400 mb-4">{error}</p>}
       {loading ? (
-        <div className="text-zinc-500 text-sm">Loading…</div>
+        <div className="flex items-center justify-center h-64">
+          <div className="w-5 h-5 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
+        </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -194,7 +203,7 @@ export default function AdminSneakerProfilesPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((p) => (
+              {paginated.map((p) => (
                 <tr key={p._id} className="border-b border-zinc-800 hover:bg-zinc-800/40 transition-colors">
                   <td className="py-3 pr-4">
                     <p className="font-semibold text-zinc-100">{p.name}</p>
@@ -223,6 +232,7 @@ export default function AdminSneakerProfilesPage() {
               )}
             </tbody>
           </table>
+          <Paginator page={page} totalPages={totalPages} onPage={setPage} pageSize={SP_PAGE_SIZE} totalItems={filtered.length} />
         </div>
       )}
 

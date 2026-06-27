@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SneakerProfile } from '@/types';
 
 const ALL = 'All';
+const PER_PAGE = 24;
 
 const CATEGORY_COLORS: Record<string, string> = {
   running: 'bg-blue-100 text-blue-700',
@@ -34,6 +35,10 @@ interface Props {
 export default function SneakersClient({ profiles }: Props) {
   const [activeBrand, setActiveBrand] = useState(ALL);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+
+  // Reset to page 1 when filters change
+  useEffect(() => { setPage(1); }, [activeBrand, search]);
 
   const brands = useMemo(() => {
     const set = new Set(profiles.map((p) => p.brand));
@@ -60,15 +65,23 @@ export default function SneakersClient({ profiles }: Props) {
     return result;
   }, [profiles, activeBrand, search]);
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+  // Group current page's profiles by brand (only when showing all brands without search)
   const byBrand = useMemo(() => {
-    if (activeBrand !== ALL || search.trim()) {
-      return filtered.length > 0 ? { [activeBrand === ALL ? 'Results' : activeBrand]: filtered } : {};
+    const isPaginated = activeBrand !== ALL || search.trim();
+    if (isPaginated) {
+      const label = search.trim() ? 'Results' : activeBrand;
+      return paginated.length > 0 ? { [label]: paginated } : {};
     }
-    return filtered.reduce<Record<string, SneakerProfile[]>>((acc, p) => {
+    return paginated.reduce<Record<string, SneakerProfile[]>>((acc, p) => {
       (acc[p.brand] = acc[p.brand] || []).push(p);
       return acc;
     }, {});
-  }, [filtered, activeBrand, search]);
+  }, [paginated, activeBrand, search]);
+
+  const isFiltering = activeBrand !== ALL || search.trim();
 
   return (
     <div>
@@ -116,8 +129,8 @@ export default function SneakersClient({ profiles }: Props) {
 
       {Object.keys(byBrand).length === 0 ? (
         <div className="py-20 text-center border border-dashed border-zinc-200">
-          <p className="text-sm text-zinc-400">No sneakers found for "{search}".</p>
-          <button onClick={() => { setSearch(''); setActiveBrand(ALL); }} className="mt-3 text-xs text-zinc-500 underline">Clear filters</button>
+          <p className="text-sm text-zinc-400">No sneakers found for &quot;{search}&quot;.</p>
+          <button type="button" onClick={() => { setSearch(''); setActiveBrand(ALL); }} className="mt-3 text-xs text-zinc-500 underline">Clear filters</button>
         </div>
       ) : (
         Object.entries(byBrand).map(([brand, brandProfiles]) => (
@@ -125,14 +138,16 @@ export default function SneakersClient({ profiles }: Props) {
             {/* Brand header */}
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <h2 className="text-xs font-black tracking-[0.3em] uppercase text-zinc-900">{brand === 'Results' ? `${filtered.length} Result${filtered.length !== 1 ? 's' : ''}` : brand}</h2>
-                {brand !== 'Results' && (
+                <h2 className="text-xs font-black tracking-[0.3em] uppercase text-zinc-900">
+                  {brand === 'Results' ? `${filtered.length} Result${filtered.length !== 1 ? 's' : ''}` : brand}
+                </h2>
+                {brand !== 'Results' && !isFiltering && (
                   <span className="text-[9px] font-bold text-zinc-300 tracking-widest uppercase">
                     {brandProfiles.length} model{brandProfiles.length !== 1 ? 's' : ''}
                   </span>
                 )}
               </div>
-              {brand !== 'Results' && (
+              {!isFiltering && (
                 <Link
                   href={`/products?brand=${encodeURIComponent(brand)}`}
                   className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 hover:text-zinc-900 transition-colors"
@@ -155,7 +170,7 @@ export default function SneakersClient({ profiles }: Props) {
                         src={p.image}
                         alt={p.name}
                         fill
-                        className="object-cover group-hover:scale-108 transition-transform duration-400"
+                        className="object-cover group-hover:scale-105 transition-transform duration-400"
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                       />
                     ) : (
@@ -186,6 +201,56 @@ export default function SneakersClient({ profiles }: Props) {
             </div>
           </div>
         ))
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 border-t border-zinc-100 mt-8">
+          <span className="text-xs text-zinc-400">
+            {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)} of {filtered.length} models
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => { setPage((p) => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              disabled={page === 1}
+              className="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded transition disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+              .reduce<(number | '...')[]>((acc, p, i, arr) => {
+                if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('...');
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((p, i) =>
+                p === '...' ? (
+                  <span key={`e${i}`} className="px-2 text-zinc-300 text-sm select-none">...</span>
+                ) : (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => { setPage(p as number); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    className={`min-w-[32px] h-8 text-sm rounded transition ${
+                      p === page ? 'bg-zinc-900 text-white font-semibold' : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+            <button
+              type="button"
+              onClick={() => { setPage((p) => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              disabled={page === totalPages}
+              className="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded transition disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

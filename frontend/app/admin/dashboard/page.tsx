@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product } from '@/types';
 import ProductFormModal from './ProductFormModal';
@@ -10,13 +10,23 @@ import ImageLightbox from '@/components/ui/ImageLightbox';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
+const BRANDS = ['Nike', 'Jordan', 'Adidas', 'New Balance', 'Crocs'];
+const GENDERS = ['men', 'women', 'kids', 'unisex'];
+const FLAGS = ['featured', 'trending', 'newArrival', 'soldOut'] as const;
+const FLAG_LABELS: Record<string, string> = { featured: 'Featured', trending: 'Trending', newArrival: 'New Arrival', soldOut: 'Sold Out' };
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(20);
+
+  // Filters (left panel)
+  const [filterBrand, setFilterBrand] = useState('');
+  const [filterGender, setFilterGender] = useState('');
+  const [filterFlags, setFilterFlags] = useState<Set<string>>(new Set());
 
   // Modal state
   const [formOpen, setFormOpen] = useState(false);
@@ -26,113 +36,83 @@ export default function AdminDashboard() {
 
   const getToken = useCallback(() => {
     const token = localStorage.getItem('admin_token');
-    if (!token) {
-      router.push('/admin/login');
-      return null;
-    }
+    if (!token) { router.push('/admin/login'); return null; }
     return token;
   }, [router]);
 
   const fetchProducts = useCallback(async () => {
     const token = getToken();
     if (!token) return;
-
     try {
-      const res = await fetch(`${API}/admin/products`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.status === 401) {
-        localStorage.removeItem('admin_token');
-        router.push('/admin/login');
-        return;
-      }
-      const data = await res.json();
-      setProducts(data);
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false);
-    }
+      const res = await fetch(`${API}/admin/products`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.status === 401) { localStorage.removeItem('admin_token'); router.push('/admin/login'); return; }
+      setProducts(await res.json());
+    } catch { /* ignore */ } finally { setLoading(false); }
   }, [getToken, router]);
 
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
-  function handleAdd() {
-    setEditProduct(null);
-    setFormOpen(true);
+  function toggleFlag(flag: string) {
+    setFilterFlags((prev) => {
+      const next = new Set(prev);
+      if (next.has(flag)) next.delete(flag); else next.add(flag);
+      return next;
+    });
+    setPage(1);
   }
 
-  function handleEdit(product: Product) {
-    setEditProduct(product);
-    setFormOpen(true);
+  function clearFilters() {
+    setFilterBrand('');
+    setFilterGender('');
+    setFilterFlags(new Set());
+    setPage(1);
   }
+
+  const hasFilters = filterBrand || filterGender || filterFlags.size > 0;
+
+  function handleAdd() { setEditProduct(null); setFormOpen(true); }
+  function handleEdit(product: Product) { setEditProduct(product); setFormOpen(true); }
 
   async function handleDelete(product: Product) {
     const token = getToken();
     if (!token) return;
-
-    try {
-      const res = await fetch(`${API}/admin/products/${product.id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        setDeleteProduct(null);
-        fetchProducts();
-      }
-    } catch {
-      // ignore
-    }
+    const res = await fetch(`${API}/admin/products/${product.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    if (res.ok) { setDeleteProduct(null); fetchProducts(); }
   }
 
   async function handleSave(data: Partial<Product>) {
     const token = getToken();
     if (!token) return;
-
-    const url = editProduct
-      ? `${API}/admin/products/${editProduct.id}`
-      : `${API}/admin/products`;
-
+    const url = editProduct ? `${API}/admin/products/${editProduct.id}` : `${API}/admin/products`;
     const res = await fetch(url, {
       method: editProduct ? 'PUT' : 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(data),
     });
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Failed to save');
-    }
-
+    if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to save'); }
     const saved = await res.json();
     const slug = saved.slug ?? data.slug;
-    if (slug) {
-      fetch('/api/revalidate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ slug }),
-      }).catch(() => null);
-    }
-
+    if (slug) fetch('/api/revalidate', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ slug }) }).catch(() => null);
     setFormOpen(false);
     setEditProduct(null);
     fetchProducts();
   }
 
-  const filtered = products.filter((p) => {
-    const q = search.toLowerCase();
-    return (
-      p.name.toLowerCase().includes(q) ||
-      p.brand.toLowerCase().includes(q) ||
-      p.sku.toLowerCase().includes(q) ||
-      p.slug.toLowerCase().includes(q)
-    );
-  });
+  const filtered = useMemo(() => {
+    return products.filter((p) => {
+      if (search) {
+        const q = search.toLowerCase();
+        const match = p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q);
+        if (!match) return false;
+      }
+      if (filterBrand && p.brand !== filterBrand) return false;
+      if (filterGender && p.gender !== filterGender) return false;
+      for (const flag of filterFlags) {
+        if (!p[flag as keyof Product]) return false;
+      }
+      return true;
+    });
+  }, [products, search, filterBrand, filterGender, filterFlags]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -147,11 +127,11 @@ export default function AdminDashboard() {
 
   return (
     <div className="text-white">
-      {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-4">
+      {/* Toolbar — search + count + add */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-5">
         <input
           type="text"
-          placeholder="Search products..."
+          placeholder="Search by name, brand, SKU..."
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           className="w-full sm:w-80 bg-zinc-900 border border-zinc-800 rounded-lg px-3.5 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
@@ -168,132 +148,172 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Product Table */}
-      <div className="overflow-x-auto rounded-xl border border-zinc-800">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-zinc-900 text-zinc-400 text-left">
-                <th className="px-4 py-3 font-medium">Image</th>
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Brand</th>
-                <th className="px-4 py-3 font-medium">Price</th>
-                <th className="px-4 py-3 font-medium">MRP</th>
-                <th className="px-4 py-3 font-medium">Gender</th>
-                <th className="px-4 py-3 font-medium">Sizes</th>
-                <th className="px-4 py-3 font-medium">Flags</th>
-                <th className="px-4 py-3 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-800">
-              {paginated.map((p) => (
-                <tr key={p.id} className="hover:bg-zinc-900/50 transition">
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => p.images?.length && setLightbox({ images: p.images, index: 0 })}
-                      className="focus:outline-none"
-                    >
-                      <img
-                        src={p.images[0]}
-                        alt={p.name}
-                        className="w-12 h-12 object-cover rounded-lg bg-zinc-800 cursor-zoom-in hover:opacity-80 transition-opacity"
-                      />
-                    </button>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-white max-w-[200px] truncate">{p.name}</div>
-                    <div className="text-xs text-zinc-500 truncate max-w-[200px]">{p.colorway}</div>
-                  </td>
-                  <td className="px-4 py-3 text-zinc-300">{p.brand}</td>
-                  <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">
-                    {'\u20B9'}{p.price.toLocaleString('en-IN')}
-                  </td>
-                  <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">
-                    {p.originalPrice ? `\u20B9${p.originalPrice.toLocaleString('en-IN')}` : '-'}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="capitalize text-zinc-400">{p.gender}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="text-xs text-zinc-400 max-w-[120px] truncate">
-                      {p.productType !== 'shoes' && p.availableStringSizes?.length
-                        ? p.availableStringSizes.join(', ')
-                        : p.availableSizes.join(', ')}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-1 flex-wrap">
-                      {p.featured && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded">Featured</span>}
-                      {p.trending && <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded">Trending</span>}
-                      {p.newArrival && <span className="text-[10px] bg-green-500/10 text-green-400 px-1.5 py-0.5 rounded">New</span>}
-                      {p.soldOut && <span className="text-[10px] bg-red-500/10 text-red-400 px-1.5 py-0.5 rounded">Sold Out</span>}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
-                      <a
-                        href={`/products/${p.slug}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-zinc-400 hover:text-white px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition"
-                      >
-                        View
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => handleEdit(p)}
-                        className="text-xs text-zinc-400 hover:text-white px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleteProduct(p)}
-                        className="text-xs text-red-400 hover:text-red-300 px-2.5 py-1.5 rounded-md hover:bg-red-500/10 transition"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+      <div className="flex gap-5 items-start">
+        {/* Left filter panel */}
+        <div className="hidden lg:block w-48 shrink-0 space-y-5">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] font-bold tracking-widest uppercase text-zinc-500">Filters</span>
+            {hasFilters && (
+              <button type="button" onClick={clearFilters} className="text-[10px] text-zinc-500 hover:text-white transition">Clear</button>
+            )}
+          </div>
+
+          {/* Brand */}
+          <div>
+            <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-600 mb-2">Brand</p>
+            <div className="space-y-1">
+              {BRANDS.map((b) => (
+                <button
+                  key={b}
+                  type="button"
+                  onClick={() => { setFilterBrand(filterBrand === b ? '' : b); setPage(1); }}
+                  className={`w-full text-left text-xs px-2.5 py-1.5 rounded-md transition ${filterBrand === b ? 'bg-white text-zinc-900 font-semibold' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'}`}
+                >
+                  {b}
+                </button>
               ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-zinc-500">
-                    {search ? 'No products match your search.' : 'No products yet. Add one!'}
-                  </td>
+            </div>
+          </div>
+
+          {/* Gender */}
+          <div>
+            <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-600 mb-2">Gender</p>
+            <div className="space-y-1">
+              {GENDERS.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => { setFilterGender(filterGender === g ? '' : g); setPage(1); }}
+                  className={`w-full text-left text-xs px-2.5 py-1.5 rounded-md capitalize transition ${filterGender === g ? 'bg-white text-zinc-900 font-semibold' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'}`}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Status flags */}
+          <div>
+            <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-600 mb-2">Status</p>
+            <div className="space-y-1.5">
+              {FLAGS.map((f) => (
+                <label key={f} className="flex items-center gap-2 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={filterFlags.has(f)}
+                    onChange={() => toggleFlag(f)}
+                    className="w-3.5 h-3.5 accent-white rounded"
+                  />
+                  <span className={`text-xs transition ${filterFlags.has(f) ? 'text-white font-medium' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
+                    {FLAG_LABELS[f]}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="flex-1 min-w-0">
+          <div className="overflow-x-auto rounded-xl border border-zinc-800">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-zinc-900 text-zinc-400 text-left">
+                  <th className="px-4 py-3 font-medium">Image</th>
+                  <th className="px-4 py-3 font-medium">Name</th>
+                  <th className="px-4 py-3 font-medium">Brand</th>
+                  <th className="px-4 py-3 font-medium">Price</th>
+                  <th className="px-4 py-3 font-medium">MRP</th>
+                  <th className="px-4 py-3 font-medium">Gender</th>
+                  <th className="px-4 py-3 font-medium">Sizes</th>
+                  <th className="px-4 py-3 font-medium">Flags</th>
+                  <th className="px-4 py-3 font-medium text-right">Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-zinc-800">
+                {paginated.map((p) => (
+                  <tr key={p.id} className="hover:bg-zinc-900/50 transition">
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => p.images?.length && setLightbox({ images: p.images, index: 0 })}
+                        className="focus:outline-none"
+                      >
+                        <img
+                          src={p.images[0]}
+                          alt={p.name}
+                          className="w-12 h-12 object-cover rounded-lg bg-zinc-800 cursor-zoom-in hover:opacity-80 transition-opacity"
+                        />
+                      </button>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-white max-w-[200px] truncate">{p.name}</div>
+                      <div className="text-xs text-zinc-500 truncate max-w-[200px]">{p.colorway}</div>
+                    </td>
+                    <td className="px-4 py-3 text-zinc-300">{p.brand}</td>
+                    <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">&#8377;{p.price.toLocaleString('en-IN')}</td>
+                    <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">
+                      {p.originalPrice ? `₹${p.originalPrice.toLocaleString('en-IN')}` : '-'}
+                    </td>
+                    <td className="px-4 py-3 capitalize text-zinc-400">{p.gender}</td>
+                    <td className="px-4 py-3">
+                      <div className="text-xs text-zinc-400 max-w-[120px] truncate">
+                        {p.productType !== 'shoes' && p.availableStringSizes?.length
+                          ? p.availableStringSizes.join(', ')
+                          : p.availableSizes.join(', ')}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1 flex-wrap">
+                        {p.featured && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded">Featured</span>}
+                        {p.trending && <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded">Trending</span>}
+                        {p.newArrival && <span className="text-[10px] bg-green-500/10 text-green-400 px-1.5 py-0.5 rounded">New</span>}
+                        {p.soldOut && <span className="text-[10px] bg-red-500/10 text-red-400 px-1.5 py-0.5 rounded">Sold Out</span>}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <a href={`/products/${p.slug}`} target="_blank" rel="noopener noreferrer"
+                          className="text-xs text-zinc-400 hover:text-white px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition">
+                          View
+                        </a>
+                        <button type="button" onClick={() => handleEdit(p)}
+                          className="text-xs text-zinc-400 hover:text-white px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition">
+                          Edit
+                        </button>
+                        <button type="button" onClick={() => setDeleteProduct(p)}
+                          className="text-xs text-red-400 hover:text-red-300 px-2.5 py-1.5 rounded-md hover:bg-red-500/10 transition">
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={9} className="px-4 py-12 text-center text-zinc-500">
+                      {search || hasFilters ? 'No products match your filters.' : 'No products yet. Add one!'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <Paginator page={page} totalPages={totalPages} onPage={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} totalItems={filtered.length} />
+        </div>
       </div>
 
-      <Paginator page={page} totalPages={totalPages} onPage={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} totalItems={filtered.length} />
-
-      {/* Modals */}
       {formOpen && (
-        <ProductFormModal
-          product={editProduct}
-          onSave={handleSave}
-          onClose={() => { setFormOpen(false); setEditProduct(null); }}
-        />
+        <ProductFormModal product={editProduct} onSave={handleSave} onClose={() => { setFormOpen(false); setEditProduct(null); }} />
       )}
 
       {deleteProduct && (
-        <DeleteConfirmModal
-          product={deleteProduct}
-          onConfirm={() => handleDelete(deleteProduct)}
-          onCancel={() => setDeleteProduct(null)}
-        />
+        <DeleteConfirmModal product={deleteProduct} onConfirm={() => handleDelete(deleteProduct)} onCancel={() => setDeleteProduct(null)} />
       )}
 
       {lightbox && (
-        <ImageLightbox
-          images={lightbox.images}
-          currentIndex={lightbox.index}
-          onIndexChange={(i) => setLightbox({ ...lightbox, index: i })}
-          onClose={() => setLightbox(null)}
-        />
+        <ImageLightbox images={lightbox.images} currentIndex={lightbox.index} onIndexChange={(i) => setLightbox({ ...lightbox, index: i })} onClose={() => setLightbox(null)} />
       )}
     </div>
   );
