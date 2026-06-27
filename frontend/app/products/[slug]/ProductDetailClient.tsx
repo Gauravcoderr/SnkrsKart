@@ -9,6 +9,7 @@ import PurchaseModal from '@/components/product-detail/PurchaseModal';
 import SizeGuideModal from '@/components/product-detail/SizeGuideModal';
 import RestockNotify from '@/components/product-detail/RestockNotify';
 import StickyCartBar from '@/components/product-detail/StickyCartBar';
+import DealVerifyModal from '@/components/product-detail/DealVerifyModal';
 import { formatPrice } from '@/lib/utils';
 import { useWishlist } from '@/context/WishlistContext';
 
@@ -26,6 +27,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [currentPrice, setCurrentPrice] = useState(product.price);
   const [showModal, setShowModal] = useState(false);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
+  const [showDealModal, setShowDealModal] = useState(false);
   const [currentOriginalPrice, setCurrentOriginalPrice] = useState(product.originalPrice);
   const [shareState, setShareState] = useState<'idle' | 'copied'>('idle');
   const sizeSectionRef = useRef<HTMLDivElement>(null);
@@ -192,6 +194,18 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           >
             Want to Purchase? — Enquire Now
           </button>
+
+          {/* Deal verification CTA */}
+          <button
+            type="button"
+            onClick={() => setShowDealModal(true)}
+            className="w-full py-3 border border-zinc-200 text-xs font-semibold tracking-wider uppercase text-zinc-500 hover:border-zinc-400 hover:text-zinc-700 transition-colors duration-200 flex items-center justify-center gap-2"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+            </svg>
+            Found it cheaper? Verify the deal
+          </button>
         </>
       )}
 
@@ -224,6 +238,15 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           selectedSize={selectedSize}
           currentPrice={currentPrice}
           onClose={() => setShowModal(false)}
+        />
+      )}
+      {/* Deal verify modal */}
+      {showDealModal && (
+        <DealVerifyModal
+          productId={product.id}
+          productSlug={product.slug}
+          productName={`${product.brand} ${product.name}`}
+          onClose={() => setShowDealModal(false)}
         />
       )}
       {/* Sticky add-to-cart bar — appears when main CTA scrolls off screen */}

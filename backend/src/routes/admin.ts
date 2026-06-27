@@ -25,6 +25,7 @@ import { Order } from '../models/Order';
 import { Newsletter } from '../models/Newsletter';
 import { User } from '../models/User';
 import ChatLead from '../models/ChatLead';
+import { DealVerification } from '../models/DealVerification';
 import { SneakerProfile } from '../models/SneakerProfile';
 import { Drop } from '../models/Drop';
 import { SiteContent } from '../models/SiteContent';
@@ -450,6 +451,74 @@ router.delete('/chat-leads/:id', adminAuth, async (req: Request, res: Response):
     res.json({ message: 'Deleted' });
   } catch {
     res.status(500).json({ error: 'Failed to delete' });
+  }
+});
+
+// ─── Deal Verifications ────────────────────────────────────────────────────
+
+router.get('/deal-verifications', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const deals = await DealVerification.find().sort({ submittedAt: -1 }).lean();
+    res.json(deals.map((d) => ({ ...d, id: d._id.toString() })));
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch deal verifications' });
+  }
+});
+
+router.put('/deal-verifications/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { status, adminNote } = req.body;
+    if (!status || !['pending', 'real', 'fake', 'inconclusive'].includes(status)) {
+      res.status(400).json({ error: 'Valid status required' });
+      return;
+    }
+
+    const deal = await DealVerification.findByIdAndUpdate(
+      req.params.id,
+      { $set: { status, adminNote: adminNote ?? '', reviewedAt: new Date() } },
+      { returnDocument: 'after' }
+    );
+    if (!deal) { res.status(404).json({ error: 'Deal not found' }); return; }
+
+    // Notify user of verdict
+    const verdictLabel: Record<string, string> = {
+      real: 'REAL DEAL',
+      fake: 'FAKE / SUSPICIOUS',
+      inconclusive: 'INCONCLUSIVE',
+    };
+    const verdictColor: Record<string, string> = {
+      real: '#16a34a',
+      fake: '#dc2626',
+      inconclusive: '#d97706',
+    };
+    const label = verdictLabel[status] ?? status.toUpperCase();
+    const color = verdictColor[status] ?? '#111';
+
+    const { sendMail } = await import('../lib/mailer');
+    sendMail({
+      to: deal.userEmail,
+      subject: `Deal Check Result: ${deal.productName} — ${label}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:32px 24px;">
+          <div style="background:#111;padding:16px;text-align:center;border-radius:8px 8px 0 0;">
+            <img src="https://snkrs-kart.vercel.app/logo.jpg" alt="SNKRS CART" style="height:40px;width:auto;" />
+          </div>
+          <div style="background:#fafafa;padding:32px 24px;border-radius:0 0 8px 8px;border:1px solid #eee;">
+            <h2 style="margin:0 0 8px;color:#111;font-size:18px;">Deal Verification Result</h2>
+            <p style="color:#555;font-size:14px;margin:0 0 16px;">Product: <strong>${deal.productName}</strong></p>
+            <div style="background:${color};color:#fff;font-size:20px;font-weight:900;letter-spacing:2px;text-align:center;padding:14px;border-radius:6px;margin:0 0 16px;">${label}</div>
+            ${adminNote ? `<p style="color:#444;font-size:14px;background:#fff;border:1px solid #e5e7eb;padding:12px;border-radius:6px;margin:0 0 16px;"><strong>Our note:</strong> ${adminNote}</p>` : ''}
+            <a href="https://www.snkrscart.com/products/${deal.productSlug}" style="display:block;background:#111;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:bold;text-align:center;">View Product on SNKRS CART</a>
+            <p style="color:#999;font-size:11px;margin:16px 0 0;text-align:center;">We verify deals to help you shop smart. Stay real.</p>
+          </div>
+        </div>
+      `,
+    });
+
+    res.json({ ...deal.toObject(), id: deal._id.toString() });
+  } catch (err) {
+    console.error('[admin/deal-verifications PUT]', err);
+    res.status(500).json({ error: 'Failed to update deal' });
   }
 });
 

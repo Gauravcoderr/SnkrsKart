@@ -7,7 +7,6 @@ import NewArrivals from '@/components/home/NewArrivals';
 import BrandGrid from '@/components/home/BrandGrid';
 import HomeReviews from '@/components/home/HomeReviews';
 import ComingSoon from '@/components/home/ComingSoon';
-import GenderSplit from '@/components/home/GenderSplit';
 import WhyChooseUs from '@/components/home/WhyChooseUs';
 import NewsletterBar from '@/components/home/NewsletterBar';
 
@@ -111,7 +110,6 @@ export default async function HomePage() {
       <TrendingNow products={trending} />
       <WhyChooseUs />
       <ComingSoon products={comingSoon} />
-      <GenderSplit />
       <NewsletterBar />
     </>
   );

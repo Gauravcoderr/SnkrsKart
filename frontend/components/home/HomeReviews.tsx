@@ -132,7 +132,6 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
               <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="sm:col-span-2">
                   <p className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-4">Share Your Experience</p>
-                  {/* Star picker */}
                   <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-2">Your Rating *</label>
                   <div className="flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (

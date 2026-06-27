@@ -84,7 +84,18 @@
       "WebFetch(domain:3dvar.com)",
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:earezki.com)",
-      "WebFetch(domain:www.robertodiasduarte.com.br)"
+      "WebFetch(domain:www.robertodiasduarte.com.br)",
+      "Bash(grep -oP '\"isDiscountFallback\":false,\"filters\".\\\\K[^\"productId\"]{0,10000}' /private/tmp/claude-502/-Users-gauravrauthan-snkrs-cart/e345ecfa-2946-4846-8c4b-22d3183b316f/tasks/bih3aqaeb.output)",
+      "Bash(curl -sL -A \"Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/131.0.0.0 Safari/537.36\" \"https://www.vegnonveg.com\")",
+      "Bash(curl -sL -A \"Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/131.0.0.0 Safari/537.36\" \"https://www.superkicks.in\")",
+      "Bash(curl -sL -A \"Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/131.0.0.0 Safari/537.36\" \"https://www.superkicks.in/collections/nike/products.json?limit=3\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); prods=d.get\\('products',[]\\); print\\('Superkicks nike:', len\\(prods\\), 'items'\\); [print\\(' ', p['title'], '| vendor:', p.get\\('vendor','?'\\)\\) for p in prods[:2]]\")",
+      "Bash(curl -sL -A \"Mozilla/5.0 Chrome/131\" \"https://www.superkicks.in/collections/nike/products.json?limit=1&sort_by=created-descending\")",
+      "Bash(python3 -c ' *)",
+      "Skill(artifact-design)",
+      "Skill(artifact-design:*)",
+      "Bash(curl -s \"https://api.scrapingant.com\")",
+      "Bash(curl -sL -A 'Mozilla/5.0 Chrome/131' https://www.nike.com/in/w/new-shoes-3n82yznik1zy7ok -w '\\\\nHTTP:%{http_code}')"
     ],
     "additionalDirectories": [
       "/Users/gauravrauthan/shoe-auth"
