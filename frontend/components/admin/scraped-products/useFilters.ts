@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export interface Filters {
   filterSearch: string;
@@ -37,7 +37,10 @@ export function useFilters(onReset: () => void) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax]);
 
-  const filters: Filters = { filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax };
+  const filters = useMemo<Filters>(
+    () => ({ filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax }),
+    [filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax]
+  );
 
   const handlers: FilterHandlers = {
     onSearchChange: setFilterSearch,
