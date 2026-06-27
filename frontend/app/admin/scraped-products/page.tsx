@@ -19,13 +19,12 @@ type ScraperStatus = {
   render: { status: string; startedAt?: string; finishedAt?: string; error?: string; result?: { inserted: number; updated: number; shopifyFailed: boolean; nikeFailed: boolean } };
 };
 
-const LIMIT = 20;
-
 export default function ScrapedProductsPage() {
   const router = useRouter();
   const [items, setItems] = useState<ScrapedProduct[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [status, setStatus] = useState<Status>('draft');
   const [loading, setLoading] = useState(false);
   const [editItem, setEditItem] = useState<ScrapedProduct | null>(null);
@@ -56,7 +55,7 @@ export default function ScrapedProductsPage() {
     try {
       const token = getToken();
       const { filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax } = filters;
-      const params = new URLSearchParams({ status, page: String(page), limit: String(LIMIT) });
+      const params = new URLSearchParams({ status, page: String(page), limit: String(limit) });
       if (filterSite) params.set('site', filterSite);
       if (filterBrand) params.set('brand', filterBrand);
       if (filterSearch) params.set('search', filterSearch);
@@ -73,7 +72,7 @@ export default function ScrapedProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [getToken, status, page, filters]);
+  }, [getToken, status, page, limit, filters]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
   useEffect(() => { setPage(1); }, [status]);
@@ -145,7 +144,7 @@ export default function ScrapedProductsPage() {
 
       <ProductsTable items={items} loading={loading} status={status} onEdit={setEditItem} onPublish={setPublishItem} onReject={handleReject} />
 
-      {total > LIMIT && <Paginator page={page} totalPages={Math.ceil(total / LIMIT)} onPage={setPage} pageSize={LIMIT} totalItems={total} />}
+      {total > 0 && <Paginator page={page} totalPages={Math.ceil(total / limit)} onPage={setPage} pageSize={limit} onPageSizeChange={(s) => { setLimit(s); setPage(1); }} totalItems={total} />}
 
       {publishItem && <PublishModal item={publishItem} onClose={() => setPublishItem(null)} onSuccess={(msg) => { showToast(msg); fetchItems(); }} getToken={getToken} />}
       {editItem && <EditModal item={editItem} onClose={() => setEditItem(null)} onSuccess={(msg) => { showToast(msg); fetchItems(); }} getToken={getToken} />}
