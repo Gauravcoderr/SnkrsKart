@@ -14,6 +14,12 @@
 NEXT_PUBLIC_API_URL        → backend base (e.g. https://snkrskart.onrender.com/api/v1)
 NEXT_PUBLIC_SUPABASE_URL   → exists but NOT used for core data
 GEMINI_API_KEY / GROQ_API_KEY → chatbot AI keys (server-side only)
+BLOB_READ_WRITE_TOKEN      → Vercel Blob — required for deal screenshot uploads
+```
+
+## Key env vars (backend)
+```
+ADMIN_NOTIFICATION_EMAIL   → email to notify on new deal submission (optional, falls back to EMAIL_FROM)
 ```
 
 ## Directory structure
@@ -33,6 +39,7 @@ frontend/
       sellers/                Sellers list
       blogs/                  Blogs CRUD
       chat-leads/page.tsx     Chat leads from KickBot
+    deal-verifications/page.tsx  Deal verification submissions + verdict UI
   components/
     layout/
       ChatBot.tsx             KickBot chat widget (full implementation)
@@ -41,8 +48,12 @@ frontend/
     home/                     Homepage sections
     products/                 Product grid + filters
     product-detail/           Images, sizes, add to cart, reviews
+      DealVerifyModal.tsx     "Found it cheaper?" submission modal
   lib/api.ts                  All fetch helpers (BASE_URL from NEXT_PUBLIC_API_URL)
   types/index.ts              Shared TypeScript interfaces
+  app/api/
+    fetch-url-meta/route.ts   Server-side OG scraper for deal URL preview
+    deal-verify/upload/route.ts  Vercel Blob screenshot upload
 
 backend/src/
   routes/
@@ -50,10 +61,12 @@ backend/src/
     orders.ts / auth.ts / reviews.ts / inquiries.ts
     newsletter.ts / seller.ts / restock.ts
     chatLeads.ts              POST /api/v1/chat/lead (save KickBot leads)
+    dealVerifications.ts      POST /api/v1/deals/send-otp + /submit (in-memory OTP, no User created)
     admin.ts                  All /api/v1/admin/* routes (adminAuth protected)
   models/
     User / Product / Brand / Order / Review / Inquiry
     Banner / Seller / Blog / Newsletter / Restock / ChatLead
+    DealVerification          deal submissions with status pending/real/fake/inconclusive
   config/database.ts          MongoDB connect (MONGODB_URI → dbName: snkrs-cart)
   index.ts                    Express app entry, all routes registered, /health endpoint
 ```
@@ -72,6 +85,10 @@ All prefixed `/api/v1/`. Admin routes require `Authorization: Bearer <admin_toke
 | `PUT /admin/orders/:id` | admin: update status/tracking/notes |
 | `GET /admin/users` | admin: users with orderCount + totalSpend |
 | `GET /admin/newsletter` | admin: newsletter subscribers |
+| `POST /api/v1/deals/send-otp` | send OTP to deal submitter email (in-memory, 5 min TTL) |
+| `POST /api/v1/deals/submit` | verify OTP + create DealVerification + notify admin |
+| `GET /admin/deal-verifications` | admin: list all deal submissions |
+| `PUT /admin/deal-verifications/:id` | admin: set verdict + note → emails user result |
 | `/health` | keep-alive ping (UptimeRobot pings every 5 min) |
 
 ## KickBot (ChatBot.tsx) — key behaviours
@@ -86,13 +103,21 @@ All prefixed `/api/v1/`. Admin routes require `Authorization: Bearer <admin_toke
 - Rate limit: 5 requests/IP/minute
 
 ## Admin sidebar nav order
-Orders → Users → Products → Inquiries → Reviews → Banners → Sellers → Blogs → Chat Leads
+Orders → Users → Products → Inquiries → Reviews → Banners → Sellers → Blogs → Chat Leads → Deal Checks
 
 ## Brands available in store
 Nike, Jordan (Air Jordan), Adidas, New Balance, Crocs
 
 ## Homepage section order
-MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → TrendingNow
+MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → TrendingNow → WhyChooseUs → ComingSoon → NewsletterBar
+
+## Deal Verification feature
+
+- "Found it cheaper? Verify the deal" button on product detail page (non-comingSoon products only)
+- Modal: URL input → server-side OG fetch preview, screenshot upload (Vercel Blob), email + OTP verify
+- OTP stored in-memory (Map) on backend — does NOT create User accounts
+- Admin receives email on new submission, emails user verdict when marked real/fake/inconclusive
+- Screenshot path: `deal-screenshots/{timestamp}-{random}.{ext}` in Vercel Blob
 
 ## Important decisions / gotchas
 - Render free tier sleeps after 15 min inactivity → UptimeRobot pings `/health` every 5 min

@@ -1,14 +1,19 @@
 # SNKRS CART
 
-Premium sneaker e-commerce website — inspired by vegnonveg.com, Nike, and leading 2025 streetwear stores.
+Premium sneaker e-commerce website for the Indian market — inspired by vegnonveg.com, Nike, and leading 2025 streetwear stores.
 
 ## Tech Stack
-- **Frontend**: Next.js 14 (App Router) + Tailwind CSS — Full SSR/ISR
-- **Backend**: Node.js + Express + TypeScript
+
+- **Frontend**: Next.js 14 (App Router) + TypeScript + Tailwind CSS → Vercel
+- **Backend**: Express + TypeScript + MongoDB (Mongoose) → Render
+- **AI Chatbot**: Gemini 2.0 Flash (primary) → Groq llama-3.3-70b (fallback)
+- **Auth**: OTP via email + JWT (httpOnly cookies for customers, localStorage for admin)
+- **Images**: Cloudinary + Vercel Blob (deal screenshots)
 
 ## Getting Started
 
 ### 1. Start the Backend API (Terminal 1)
+
 ```bash
 cd backend
 npm install
@@ -17,6 +22,7 @@ npm run dev
 ```
 
 ### 2. Start the Frontend (Terminal 2)
+
 ```bash
 cd frontend
 npm install
@@ -25,25 +31,52 @@ npm run dev
 ```
 
 ## Features
-- **Homepage**: Marquee ticker, split hero, new arrivals carousel, 6-brand grid, editorial drop banner, trending grid
-- **Product Listing**: Filter by brand / size / gender / price, sort, active filter tags, pagination
-- **Product Detail**: Full SSR, image gallery with zoom, size selector, Add to Cart with micro-interaction
-- **Cart Drawer**: Glassmorphism slide-in, free shipping progress bar, qty controls
-- **Cart Page**: Full bag view with order summary
+
+- **Homepage**: Marquee ticker, hero banner, new arrivals, reviews, brand grid, trending, coming soon drops, newsletter
+- **Product Listing**: Filter by brand / size / gender / price, sort, pagination
+- **Product Detail**: SSR, image gallery, size selector, add to cart, deal verification CTA
+- **Deal Verification**: "Found it cheaper?" — users submit URL + screenshot, admin verifies real/fake/inconclusive and emails verdict
+- **Cart**: Slide-in drawer + full cart page, free shipping progress bar
+- **Checkout**: Cashfree payment integration
+- **KickBot**: AI chat widget (Gemini/Groq), lead capture after 5 messages
+- **Drops Calendar**: Upcoming sneaker release dates
+- **Blogs**: SEO-optimised sneaker content
+- **Sneaker Profiles**: Brand/model reference pages
+- **Admin Panel**: Full CRUD — products, orders, users, reviews, blogs, drops, deals, coupons, banners
 
 ## API Endpoints
-```
-GET /api/v1/products          # All products (supports ?brand=nike&size=9&sort=newest)
-GET /api/v1/products/featured # Featured products
-GET /api/v1/products/new-arrivals
-GET /api/v1/products/trending
-GET /api/v1/products/:slug    # Single product
-GET /api/v1/brands            # All 6 brands
-GET /health                   # Health check
+
+All prefixed `/api/v1/`.
+
+```text
+GET  /products                     list (search, brand, gender, limit, page)
+GET  /products/:slug               single product
+POST /deals/send-otp               send OTP for deal submission
+POST /deals/submit                 verify OTP + save deal verification
+GET  /admin/deal-verifications     admin: list all deal submissions
+PUT  /admin/deal-verifications/:id admin: set verdict + notify user
+GET  /health                       keep-alive (UptimeRobot)
 ```
 
-## SSR Architecture
-- **Homepage**: Server Component with ISR (60s revalidate) — all sections fetched server-side
-- **Product Detail**: Server Component with ISR (60s revalidate) + `generateMetadata`
-- **Product Listing**: Server Component shell + Client Component for filter interactivity
-- **Cart**: Client Component (reads from localStorage, no server state)
+## Required Env Vars
+
+### Frontend (`.env.local`)
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...
+GEMINI_API_KEY=...
+GROQ_API_KEY=...
+```
+
+### Backend (`.env`)
+
+```env
+MONGODB_URI=...
+JWT_SECRET=...
+BREVO_API_KEY=...
+EMAIL_FROM=SNKRS CART <infosnkrscart@gmail.com>
+ADMIN_USERNAME=...
+ADMIN_PASSWORD=...
+ADMIN_NOTIFICATION_EMAIL=...
+```
