@@ -85,40 +85,44 @@ async function scrapeViaApi(seen: Set<string>): Promise<ScrapedItem[]> {
       let pageResults = 0;
 
       // Try JSON-LD first (most reliable structured data)
+      const jsonLdProducts: JsonLdProduct[] = [];
       $('script[type="application/ld+json"]').each((_i, el) => {
         try {
           const data = JSON.parse($(el).html() ?? '{}') as JsonLdProduct;
-          const items: JsonLdProduct[] = data['@type'] === 'ItemList'
-            ? ((data as unknown as { itemListElement?: JsonLdProduct[] }).itemListElement ?? [])
-            : data['@type'] === 'Product' ? [data] : [];
-
-          for (const p of items) {
-            const name = p.name ?? '';
-            const brand = detectBrand(name);
-            if (!brand || !p.url) return;
-            const sourceUrl = p.url.startsWith('http') ? p.url : `${BASE}${p.url}`;
-            if (seen.has(sourceUrl)) return;
-            seen.add(sourceUrl);
-            const price = p.offers?.price ? Math.round(parseFloat(String(p.offers.price))) : undefined;
-            const flDateRaw = p.datePublished ?? p.dateModified ?? p.offers?.availabilityStarts;
-            results.push({
-              sourceUrl,
-              sourceSite: 'footlocker',
-              name,
-              brand,
-              price,
-              images: Array.isArray(p.image) ? p.image : p.image ? [p.image] : [],
-              sizes: [],
-              sku: p.sku,
-              description: p.description?.slice(0, 500),
-              tags: ['footlocker', brand.toLowerCase()],
-              gender: 'unisex',
-              sourceListedAt: flDateRaw ? new Date(flDateRaw) : undefined,
-            });
-            pageResults++;
+          if (data['@type'] === 'ItemList') {
+            const list = (data as unknown as { itemListElement?: JsonLdProduct[] }).itemListElement ?? [];
+            jsonLdProducts.push(...list);
+          } else if (data['@type'] === 'Product') {
+            jsonLdProducts.push(data);
           }
         } catch { /* skip bad JSON-LD */ }
       });
+
+      for (const p of jsonLdProducts) {
+        const name = p.name ?? '';
+        const brand = detectBrand(name);
+        if (!brand || !p.url) continue;
+        const sourceUrl = p.url.startsWith('http') ? p.url : `${BASE}${p.url}`;
+        if (seen.has(sourceUrl)) continue;
+        seen.add(sourceUrl);
+        const price = p.offers?.price ? Math.round(parseFloat(String(p.offers.price))) : undefined;
+        const flDateRaw = p.datePublished ?? p.dateModified ?? p.offers?.availabilityStarts;
+        results.push({
+          sourceUrl,
+          sourceSite: 'footlocker',
+          name,
+          brand,
+          price,
+          images: Array.isArray(p.image) ? p.image : p.image ? [p.image] : [],
+          sizes: [],
+          sku: p.sku,
+          description: p.description?.slice(0, 500),
+          tags: ['footlocker', brand.toLowerCase()],
+          gender: 'unisex',
+          sourceListedAt: flDateRaw ? new Date(flDateRaw) : undefined,
+        });
+        pageResults++;
+      }
 
       // DOM fallback via cheerio if JSON-LD empty
       if (pageResults === 0) {

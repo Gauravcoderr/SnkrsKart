@@ -30,11 +30,16 @@ export function sessionUA(): string {
  * js=true:  JS-rendered page (10 credits) — use for SPA product listing pages
  * Returns the response body as a string. Throws if SCRAPINGANT_API_KEY is unset.
  */
-export async function scrapingAntFetch(url: string, js = true): Promise<string> {
+let _antClient: InstanceType<typeof ScrapingAntClient> | undefined;
+function getAntClient(): InstanceType<typeof ScrapingAntClient> {
   const apiKey = process.env.SCRAPINGANT_API_KEY;
   if (!apiKey) throw new Error('SCRAPINGANT_API_KEY not set');
-  const client = new ScrapingAntClient({ apiKey });
-  return client.scrape(url, { browser: js });
+  if (!_antClient) _antClient = new ScrapingAntClient({ apiKey });
+  return _antClient;
+}
+
+export async function scrapingAntFetch(url: string, js = true): Promise<string> {
+  return getAntClient().scrape(url, { browser: js });
 }
 
 export function jitter(min = 3000, max = 8000): Promise<void> {
