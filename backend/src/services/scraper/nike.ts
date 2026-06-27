@@ -142,14 +142,12 @@ async function scrapeBrowse(seen: Set<string>): Promise<ScrapedItem[]> {
 
         const brand: 'Nike' | 'Jordan' = JORDAN_RE.test(title) ? 'Jordan' : 'Nike';
 
-        // url can be "/in/t/slug" or full URL
+        // url can be "/in/t/slug" or full URL — skip non-India paths
         const rawUrl = p.url ?? '';
-        const productUrl = rawUrl.startsWith('http')
-          ? rawUrl
-          : rawUrl
-          ? `https://www.nike.com${rawUrl}`
-          : '';
-        if (!productUrl || seen.has(productUrl)) continue;
+        if (!rawUrl.includes('/in/')) continue;
+        if (p.price?.currency && p.price.currency !== 'INR') continue;
+        const productUrl = rawUrl.startsWith('http') ? rawUrl : `https://www.nike.com${rawUrl}`;
+        if (seen.has(productUrl)) continue;
         seen.add(productUrl);
 
         const imgPortrait = p.productCard?.portraitURL ?? '';
