@@ -210,8 +210,10 @@ export async function scrapeVegNonVeg(browser: Browser): Promise<ScrapedItem[]> 
   const seen = new Set<string>();
   if (process.env.SCRAPINGANT_API_KEY) {
     console.log('[vnv] using ScrapingAnt residential proxy');
-    return scrapeViaApi(seen);
+    const items = await scrapeViaApi(seen);
+    if (items.length > 0) return items;
+    console.warn('[vnv] ScrapingAnt returned 0 items -- falling back to Puppeteer');
+    seen.clear();
   }
-  console.warn('[vnv] SCRAPINGANT_API_KEY not set -- falling back to Puppeteer');
   return scrapeViaPuppeteer(browser, seen);
 }
