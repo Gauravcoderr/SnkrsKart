@@ -103,8 +103,8 @@ app.listen(PORT, () => {
   connectDB()
     .then(async () => {
       const { ScrapedProduct } = await import('./models/ScrapedProduct');
-      const del = await ScrapedProduct.deleteMany({ sourceSite: 'soleseriouss' });
-      if (del.deletedCount > 0) console.log(`[startup] Purged ${del.deletedCount} soleseriouss products`);
+      const del = await ScrapedProduct.deleteMany({ sourceSite: { $in: ['soleseriouss', 'nike'] } });
+      if (del.deletedCount > 0) console.log(`[startup] Purged ${del.deletedCount} soleseriouss/nike products`);
       startScraperJob();
     })
     .catch((err) => {
