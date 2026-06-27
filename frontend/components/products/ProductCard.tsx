@@ -51,7 +51,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
   return (
     <Link href={`/products/${product.slug}`} className="group block">
-      <article className="relative flex flex-col">
+      <article className="relative flex flex-col hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300">
         {/* Image container */}
         <div className="relative aspect-square overflow-hidden bg-zinc-100 img-hover-swap">
           {/* Default image */}
@@ -102,8 +102,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
           {/* Quick size panel — slides up on hover */}
           {!product.soldOut && !product.comingSoon && quickSizes.length > 0 && (
-            <div className="quick-size-panel absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm p-3 z-10">
-              <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-2 font-medium">
+            <div className="quick-size-panel absolute bottom-0 left-0 right-0 bg-zinc-900/95 backdrop-blur-md p-3 z-10">
+              <p className="text-[10px] text-zinc-400 uppercase tracking-widest mb-2 font-medium">
                 Quick Add
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -114,7 +114,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                     onClick={(e) => handleQuickAdd(e, size)}
                     onMouseEnter={() => setHoveredSize(size)}
                     onMouseLeave={() => setHoveredSize(null)}
-                    className="h-7 px-2 text-xs font-semibold border border-zinc-200 bg-white hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all duration-150"
+                    className="h-7 px-2 text-xs font-semibold border border-zinc-700 bg-zinc-800 text-white/70 hover:bg-white hover:text-zinc-900 hover:border-white transition-all duration-150"
                   >
                     {size}
                   </button>

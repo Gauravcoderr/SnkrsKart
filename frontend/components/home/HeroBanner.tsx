@@ -41,7 +41,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
   return (
     <section
       className="w-full overflow-hidden"
-      style={{ background: FLAT_BG }}
+      style={{ background: 'radial-gradient(ellipse at 25% 60%, #1a0a2e 0%, #09090b 65%)' }}
     >
       <div className="flex flex-col-reverse md:flex-row" style={{ minHeight: 'min(90vh, 700px)' }}>
 
