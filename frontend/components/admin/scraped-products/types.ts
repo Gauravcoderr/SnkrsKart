@@ -33,6 +33,6 @@ export const SITE_COLORS: Record<SourceSite, string> = {
   soleseriouss: 'bg-yellow-900/40 text-yellow-300 border-yellow-800',
 };
 
-export const STATUS_TABS: Status[] = ['draft', 'published', 'rejected'];
+export const STATUS_TABS: Status[] = ['draft', 'published'];
 
 export const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
