@@ -16,6 +16,7 @@ export interface IScrapedProduct extends Document {
   tags: string[];
   flags: string[];
   sourceListedAt?: Date;
+  sourceUpdatedAt?: Date;
   status: 'draft' | 'published' | 'rejected';
   publishedProductId?: mongoose.Types.ObjectId;
   scrapedAt: Date;
@@ -42,6 +43,7 @@ const scrapedProductSchema = new Schema<IScrapedProduct>(
     tags: [{ type: String }],
     flags: [{ type: String }],
     sourceListedAt: { type: Date },
+    sourceUpdatedAt: { type: Date },
     status: {
       type: String,
       enum: ['draft', 'published', 'rejected'],

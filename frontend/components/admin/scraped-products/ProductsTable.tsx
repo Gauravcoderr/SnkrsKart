@@ -156,8 +156,8 @@ export default function ProductsTable({ items, loading, status, onEdit, onPublis
                   {new Date(item.scrapedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}
                 </td>
                 <td className="py-3 pr-3 text-zinc-500 text-xs whitespace-nowrap">
-                  {item.sourceListedAt
-                    ? new Date(item.sourceListedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })
+                  {(item.sourceListedAt ?? item.sourceUpdatedAt)
+                    ? new Date((item.sourceListedAt ?? item.sourceUpdatedAt)!).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })
                     : '—'}
                 </td>
                 <td className="py-3">

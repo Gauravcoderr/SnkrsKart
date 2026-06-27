@@ -22,6 +22,7 @@ export interface ScrapedProduct {
   status: Status;
   scrapedAt: string;
   sourceListedAt?: string;
+  sourceUpdatedAt?: string;
 }
 
 export const SITE_COLORS: Record<SourceSite, string> = {

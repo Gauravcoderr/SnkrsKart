@@ -18,6 +18,7 @@ interface ShopifyProduct {
   images: { src: string }[];
   tags: string[];
   created_at?: string;
+  updated_at?: string;
 }
 
 interface ShopifyResponse {
@@ -102,6 +103,7 @@ async function fetchJson(
       flags: extractFlags(p.tags ?? [], p.title),
       gender: inferGender(p.tags ?? []),
       sourceListedAt: p.created_at ? new Date(p.created_at) : undefined,
+      sourceUpdatedAt: p.updated_at ? new Date(p.updated_at) : undefined,
     });
   }
   return results;

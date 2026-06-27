@@ -1,5 +1,4 @@
 import crypto from 'crypto';
-import axios, { AxiosRequestConfig } from 'axios';
 
 // Larger UA pool: Chrome (Win/Mac/Linux), Edge, Firefox, Chrome Mobile
 export const UA_POOL = [
@@ -94,6 +93,7 @@ export interface ScrapedItem {
   tags?: string[];
   flags?: string[];
   sourceListedAt?: Date;
+  sourceUpdatedAt?: Date;
 }
 
 export async function uploadToCloudinary(sourceImageUrl: string): Promise<string> {
