@@ -1,5 +1,6 @@
 import { Browser } from 'puppeteer';
-import { jitter, randomUA, ScrapedItem } from './utils';
+import * as cheerio from 'cheerio';
+import { jitter, sessionUA, scrapingAntFetch, ScrapedItem } from './utils';
 
 const BASE = 'https://www.footlocker.co.in';
 
@@ -13,7 +14,6 @@ function detectBrand(title: string): 'Nike' | 'Jordan' | null {
 }
 
 interface FLProduct {
-  // API response shape (varies — capture what we can)
   name?: string;
   productName?: string;
   title?: string;
@@ -70,30 +70,125 @@ function extractImages(p: FLProduct): string[] {
   return [];
 }
 
-export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]> {
+// ── Primary: ScrapingAnt JS rendering (10 credits each, handles Akamai) ────────
+async function scrapeViaApi(seen: Set<string>): Promise<ScrapedItem[]> {
   const results: ScrapedItem[] = [];
-  const seen = new Set<string>();
+  const queries = [
+    { url: `${BASE}/en/category/shoes/nike.html`, label: 'nike' },
+    { url: `${BASE}/en/category/shoes/jordan.html`, label: 'jordan' },
+  ];
 
-  // ── Step 1: warm up a page on the homepage to collect cookies / fingerprint ──
+  for (const { url, label } of queries) {
+    try {
+      const html = await scrapingAntFetch(url, true); // browser=true → JS rendered, 10 credits
+      const $ = cheerio.load(html);
+      let pageResults = 0;
+
+      // Try JSON-LD first (most reliable structured data)
+      $('script[type="application/ld+json"]').each((_i, el) => {
+        try {
+          const data = JSON.parse($(el).html() ?? '{}') as JsonLdProduct;
+          const items: JsonLdProduct[] = data['@type'] === 'ItemList'
+            ? ((data as unknown as { itemListElement?: JsonLdProduct[] }).itemListElement ?? [])
+            : data['@type'] === 'Product' ? [data] : [];
+
+          for (const p of items) {
+            const name = p.name ?? '';
+            const brand = detectBrand(name);
+            if (!brand || !p.url) return;
+            const sourceUrl = p.url.startsWith('http') ? p.url : `${BASE}${p.url}`;
+            if (seen.has(sourceUrl)) return;
+            seen.add(sourceUrl);
+            const price = p.offers?.price ? Math.round(parseFloat(String(p.offers.price))) : undefined;
+            const flDateRaw = p.datePublished ?? p.dateModified ?? p.offers?.availabilityStarts;
+            results.push({
+              sourceUrl,
+              sourceSite: 'footlocker',
+              name,
+              brand,
+              price,
+              images: Array.isArray(p.image) ? p.image : p.image ? [p.image] : [],
+              sizes: [],
+              sku: p.sku,
+              description: p.description?.slice(0, 500),
+              tags: ['footlocker', brand.toLowerCase()],
+              gender: 'unisex',
+              sourceListedAt: flDateRaw ? new Date(flDateRaw) : undefined,
+            });
+            pageResults++;
+          }
+        } catch { /* skip bad JSON-LD */ }
+      });
+
+      // DOM fallback via cheerio if JSON-LD empty
+      if (pageResults === 0) {
+        const selectors = [
+          '[data-product-id]', '.ProductCard', '.product-tile',
+          '[class*="ProductCard"]', '[class*="product-card"]',
+          'article[class*="product"]', '[class*="ProductResult"]', '.fl-productcard',
+        ];
+        $(selectors.join(', ')).slice(0, 24).each((_i, el) => {
+          const card = $(el);
+          const title = card.find('[class*="name"], [class*="title"], [class*="Name"], h3, h2').first().text().trim();
+          const brand = detectBrand(title);
+          if (!brand) return;
+          const href = card.find('a[href]').first().attr('href') ?? '';
+          const sourceUrl = href.startsWith('http') ? href : href ? `${BASE}${href}` : '';
+          if (!sourceUrl || seen.has(sourceUrl)) return;
+          seen.add(sourceUrl);
+          const priceText = card.find('[class*="price"], [class*="Price"]').first().text().replace(/[^\d]/g, '');
+          const price = priceText ? parseInt(priceText) : undefined;
+          if (!price || price <= 0) return;
+          const imgSrc = card.find('img').first().attr('data-src') ?? card.find('img').first().attr('src') ?? '';
+          results.push({
+            sourceUrl,
+            sourceSite: 'footlocker',
+            name: title,
+            brand,
+            price,
+            images: imgSrc ? [imgSrc] : [],
+            sizes: [],
+            tags: ['footlocker', brand.toLowerCase()],
+            gender: 'unisex',
+          });
+          pageResults++;
+        });
+      }
+
+      console.log(`[footlocker] ${label} via ScrapingAnt: ${pageResults} items`);
+    } catch (err) {
+      console.error(`[footlocker] ${label} ScrapingAnt failed:`, (err as Error).message);
+    }
+    await jitter(2000, 4000);
+  }
+  return results;
+}
+
+// ── Fallback: Puppeteer with Akamai warmup ─────────────────────────────────────
+async function scrapeViaPuppeteer(browser: Browser, seen: Set<string>): Promise<ScrapedItem[]> {
+  const results: ScrapedItem[] = [];
+
   const warmPage = await browser.newPage();
   try {
-    await warmPage.setUserAgent(randomUA());
+    await warmPage.setUserAgent(sessionUA());
     await warmPage.setExtraHTTPHeaders({
       'Accept-Language': 'en-IN,en;q=0.9',
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
       'DNT': '1',
       'Upgrade-Insecure-Requests': '1',
     });
-    await warmPage.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await jitter(2000, 4000);
+    await warmPage.goto(BASE, { waitUntil: 'networkidle2', timeout: 45000 });
+    const warmBody = await warmPage.evaluate(() => document.body?.innerText?.slice(0, 300) ?? '');
+    const blocked = /access denied|forbidden|robot|challenge/i.test(warmBody);
+    if (blocked) console.warn('[footlocker] warmup: possible block detected');
+    await jitter(3000, 5000);
   } catch { /* silent — warm-up best effort */ } finally {
     await warmPage.close();
   }
 
-  // ── Step 2: scrape each category ──
   const queries = [
-    { url: `${BASE}/en/category/shoes/nike.html`, apiQuery: 'nike', label: 'nike' },
-    { url: `${BASE}/en/category/shoes/jordan.html`, apiQuery: 'jordan', label: 'jordan' },
+    { url: `${BASE}/en/category/shoes/nike.html`, label: 'nike' },
+    { url: `${BASE}/en/category/shoes/jordan.html`, label: 'jordan' },
   ];
 
   for (const { url, label } of queries) {
@@ -101,7 +196,7 @@ export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]>
     let intercepted: FLProduct[] = [];
 
     try {
-      await page.setUserAgent(randomUA());
+      await page.setUserAgent(sessionUA());
       await page.setExtraHTTPHeaders({
         'Accept-Language': 'en-IN,en;q=0.9',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -110,7 +205,6 @@ export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]>
         'Upgrade-Insecure-Requests': '1',
       });
 
-      // Intercept FL internal product API calls
       page.on('response', async (response) => {
         const rUrl = response.url();
         if (
@@ -120,7 +214,6 @@ export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]>
         ) {
           try {
             const json = await response.json() as Record<string, unknown>;
-            // Try multiple response shapes
             const products: FLProduct[] = (
               (json.products as FLProduct[]) ??
               (json.results as FLProduct[]) ??
@@ -138,7 +231,6 @@ export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]>
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 35000 });
       await jitter(3000, 5000);
 
-      // Check for hard block
       const bodyText = await page.evaluate(() => document.body?.innerText?.slice(0, 300) ?? '');
       const blocked = bodyText.toLowerCase().includes('access denied') ||
         bodyText.toLowerCase().includes('challenge') ||
@@ -151,20 +243,16 @@ export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]>
 
       let pageResults = 0;
 
-      // ── Process intercepted API data ──
       if (intercepted.length > 0) {
         for (const p of intercepted.slice(0, 24)) {
           const name = p.name ?? p.productName ?? p.title ?? '';
           const brand = detectBrand(name);
           if (!brand) continue;
-
           const sourceUrl = buildSourceUrl(p);
           if (!sourceUrl || seen.has(sourceUrl)) continue;
           seen.add(sourceUrl);
-
           const price = parsePrice(p);
           if (!price || price <= 0) continue;
-
           results.push({
             sourceUrl,
             sourceSite: 'footlocker',
@@ -182,7 +270,6 @@ export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]>
         console.log(`[footlocker] ${label}: ${pageResults} items via intercepted API`);
       }
 
-      // ── JSON-LD fallback ──
       if (pageResults === 0) {
         const jsonLdItems = await page.evaluate(() => {
           const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
@@ -206,7 +293,6 @@ export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]>
           const sourceUrl = p.url.startsWith('http') ? p.url : `${BASE}${p.url}`;
           if (seen.has(sourceUrl)) continue;
           seen.add(sourceUrl);
-
           const price = p.offers?.price ? Math.round(parseFloat(String(p.offers.price))) : undefined;
           const flDateRaw = p.datePublished ?? p.dateModified ?? p.offers?.availabilityStarts;
           results.push({
@@ -228,22 +314,15 @@ export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]>
         if (pageResults > 0) console.log(`[footlocker] ${label}: ${pageResults} items via JSON-LD`);
       }
 
-      // ── DOM fallback — per-URL, not cumulative ──
       if (pageResults === 0) {
-        // Scroll to trigger lazy-load
         await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2));
         await jitter(1500, 2500);
 
         const domItems = await page.evaluate((base: string) => {
           const selectors = [
-            '[data-product-id]',
-            '.ProductCard',
-            '.product-tile',
-            '[class*="ProductCard"]',
-            '[class*="product-card"]',
-            'article[class*="product"]',
-            '[class*="ProductResult"]',
-            '.fl-productcard',
+            '[data-product-id]', '.ProductCard', '.product-tile',
+            '[class*="ProductCard"]', '[class*="product-card"]',
+            'article[class*="product"]', '[class*="ProductResult"]', '.fl-productcard',
           ];
           const cards = Array.from(document.querySelectorAll(selectors.join(', ')));
           return cards.slice(0, 24).map((card) => ({
@@ -292,4 +371,14 @@ export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]>
   }
 
   return results;
+}
+
+export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]> {
+  const seen = new Set<string>();
+  if (process.env.SCRAPINGANT_API_KEY) {
+    console.log('[footlocker] using ScrapingAnt residential proxy');
+    return scrapeViaApi(seen);
+  }
+  console.warn('[footlocker] SCRAPINGANT_API_KEY not set -- falling back to Puppeteer');
+  return scrapeViaPuppeteer(browser, seen);
 }

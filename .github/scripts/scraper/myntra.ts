@@ -1,5 +1,5 @@
 import { Browser } from 'puppeteer';
-import { jitter, randomUA, ScrapedItem } from './utils';
+import { jitter, sessionUA, ScrapedItem } from './utils';
 
 const JORDAN_RE = /\bjordan\b|\bair jordan\b/i;
 const NIKE_RE = /\bnike\b/i;
@@ -77,7 +77,7 @@ export async function scrapeMyntra(browser: Browser): Promise<ScrapedItem[]> {
     let intercepted: MyntraProduct[] = [];
 
     try {
-      await page.setUserAgent(randomUA());
+      await page.setUserAgent(sessionUA());
       await page.setExtraHTTPHeaders({
         'Accept-Language': 'en-IN,en;q=0.9',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',

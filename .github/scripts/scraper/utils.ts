@@ -1,23 +1,44 @@
 import crypto from 'crypto';
+import axios from 'axios';
 
+// Only Chrome/Edge UAs -- Firefox UAs cause TLS/JS fingerprint mismatch with Chromium
 export const UA_POOL = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.70 Safari/537.36',
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-  // Edge
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0',
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0',
-  // Firefox
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14.2; rv:133.0) Gecko/20100101 Firefox/133.0',
-  // Chrome Mobile
-  'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.105 Mobile Safari/537.36',
 ];
 
 export function randomUA(): string {
   return UA_POOL[crypto.randomInt(0, UA_POOL.length)];
+}
+
+// One UA per process run -- all pages in a session use same UA so CF/Akamai
+// clearance cookies from warmup are accepted on subsequent pages (same fingerprint)
+let _sessionUA: string | undefined;
+export function sessionUA(): string {
+  if (!_sessionUA) _sessionUA = UA_POOL[crypto.randomInt(0, UA_POOL.length)];
+  return _sessionUA;
+}
+
+/**
+ * Fetch a URL through ScrapingAnt's residential proxy network.
+ * js=false: raw fetch (1 credit) — use for JSON/API endpoints
+ * js=true:  JS-rendered page (10 credits) — use for SPA product listing pages
+ * Returns the response body as a string. Throws if SCRAPINGANT_API_KEY is unset.
+ */
+export async function scrapingAntFetch(url: string, js = true): Promise<string> {
+  const apiKey = process.env.SCRAPINGANT_API_KEY;
+  if (!apiKey) throw new Error('SCRAPINGANT_API_KEY not set');
+  const res = await axios.get<string>('https://api.scrapingant.com/v2/general', {
+    params: { url, api_key: apiKey, browser: String(js) },
+    timeout: 60_000,
+    responseType: 'text',
+  });
+  return res.data;
 }
 
 export function jitter(min = 3000, max = 8000): Promise<void> {
