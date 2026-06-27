@@ -76,7 +76,10 @@
       "WebFetch(domain:www.si.com)",
       "WebFetch(domain:runningshoesguru.com)",
       "WebFetch(domain:solecollector.com)",
-      "WebFetch(domain:stockx.com)"
+      "WebFetch(domain:stockx.com)",
+      "WebFetch(domain:www.soccerbible.com)",
+      "WebFetch(domain:www.goal.com)",
+      "WebFetch(domain:arxiv.org)"
     ],
     "additionalDirectories": [
       "/Users/gauravrauthan/shoe-auth"
