@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Paginator from '../_components/Paginator';
 import { SHOE_SIZES, CLOTHING_SIZES, ACCESSORY_SIZES } from '@/lib/constants';
+import ImageLightbox from '@/components/ui/ImageLightbox';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
 
@@ -65,6 +66,9 @@ export default function ScrapedProductsPage() {
   } | null>(null);
   const [toast, setToast] = useState('');
   const limit = 20;
+
+  // ── Lightbox state ──────────────────────────────────────────────────────────
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
   // ── Publish config state ────────────────────────────────────────────────────
   const [publishProductType, setPublishProductType] = useState<PublishProductType>('shoes');
@@ -529,12 +533,18 @@ export default function ScrapedProductsPage() {
                 <tr key={item._id} className="group hover:bg-zinc-900/40 transition-colors">
                   <td className="py-3 pr-3">
                     {item.images[0] ? (
-                      <img
-                        src={item.images[0]}
-                        alt={item.name}
-                        className="w-12 h-12 object-cover rounded-lg bg-zinc-800"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                      />
+                      <button
+                        type="button"
+                        onClick={() => setLightbox({ images: item.images, index: 0 })}
+                        className="focus:outline-none"
+                      >
+                        <img
+                          src={item.images[0]}
+                          alt={item.name}
+                          className="w-12 h-12 object-cover rounded-lg bg-zinc-800 cursor-zoom-in hover:opacity-80 transition-opacity"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      </button>
                     ) : (
                       <div className="w-12 h-12 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-600 text-xs">—</div>
                     )}
@@ -975,6 +985,16 @@ export default function ScrapedProductsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Image lightbox */}
+      {lightbox && (
+        <ImageLightbox
+          images={lightbox.images}
+          currentIndex={lightbox.index}
+          onIndexChange={(i) => setLightbox({ ...lightbox, index: i })}
+          onClose={() => setLightbox(null)}
+        />
       )}
 
       {/* Toast */}

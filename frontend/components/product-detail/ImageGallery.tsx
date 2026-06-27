@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
+import ImageLightbox from '@/components/ui/ImageLightbox';
 
 interface ImageGalleryProps {
   images: string[];
@@ -11,31 +12,9 @@ interface ImageGalleryProps {
 export default function ImageGallery({ images, productName }: ImageGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const touchStartX = useRef<number | null>(null);
 
-  const prev = useCallback(() => setActiveIndex((i) => (i > 0 ? i - 1 : images.length - 1)), [images.length]);
-  const next = useCallback(() => setActiveIndex((i) => (i < images.length - 1 ? i + 1 : 0)), [images.length]);
-
-  useEffect(() => {
-    if (!lightboxOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') prev();
-      else if (e.key === 'ArrowRight') next();
-      else if (e.key === 'Escape') setLightboxOpen(false);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [lightboxOpen, prev, next]);
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) diff > 0 ? next() : prev();
-    touchStartX.current = null;
-  };
+  const prev = () => setActiveIndex((i) => (i > 0 ? i - 1 : images.length - 1));
+  const next = () => setActiveIndex((i) => (i < images.length - 1 ? i + 1 : 0));
 
   return (
     <>
@@ -109,82 +88,12 @@ export default function ImageGallery({ images, productName }: ImageGalleryProps)
 
       {/* Lightbox */}
       {lightboxOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
-          onTouchStart={onTouchStart}
-          onTouchEnd={onTouchEnd}
-        >
-          {/* Close */}
-          <button
-            onClick={() => setLightboxOpen(false)}
-            className="absolute top-4 right-4 z-10 text-white/60 hover:text-white p-2 transition-colors"
-          >
-            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-
-          {/* Counter */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white/60 text-sm font-medium">
-            {activeIndex + 1} / {images.length}
-          </div>
-
-          {/* Prev */}
-          {images.length > 1 && (
-            <button
-              onClick={(e) => { e.stopPropagation(); prev(); }}
-              className="absolute left-3 sm:left-6 z-10 p-3 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-all"
-            >
-              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          )}
-
-          {/* Image */}
-          <div
-            className="relative w-full h-full max-w-4xl max-h-[85vh] mx-16"
-            onClick={() => setLightboxOpen(false)}
-          >
-            <Image
-              src={images[activeIndex]}
-              alt={`${productName} ${activeIndex + 1}`}
-              fill
-              className="object-contain"
-              sizes="(max-width: 1024px) 100vw, 900px"
-              priority
-            />
-          </div>
-
-          {/* Next */}
-          {images.length > 1 && (
-            <button
-              type="button"
-              aria-label="Next image"
-              onClick={(e) => { e.stopPropagation(); next(); }}
-              className="absolute right-3 sm:right-6 z-10 p-3 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-all"
-            >
-              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          )}
-
-          {/* Dot indicators */}
-          {images.length > 1 && (
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-              {images.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  aria-label={`Go to image ${i + 1}`}
-                  onClick={(e) => { e.stopPropagation(); setActiveIndex(i); }}
-                  className={`h-1.5 rounded-full transition-all ${i === activeIndex ? 'bg-white w-5' : 'bg-white/30 w-1.5'}`}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <ImageLightbox
+          images={images}
+          currentIndex={activeIndex}
+          onIndexChange={setActiveIndex}
+          onClose={() => setLightboxOpen(false)}
+        />
       )}
     </>
   );

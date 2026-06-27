@@ -6,6 +6,7 @@ import { Product } from '@/types';
 import ProductFormModal from './ProductFormModal';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import Paginator from '../_components/Paginator';
+import ImageLightbox from '@/components/ui/ImageLightbox';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -21,6 +22,7 @@ export default function AdminDashboard() {
   const [formOpen, setFormOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
 
   const getToken = useCallback(() => {
     const token = localStorage.getItem('admin_token');
@@ -186,11 +188,17 @@ export default function AdminDashboard() {
               {paginated.map((p) => (
                 <tr key={p.id} className="hover:bg-zinc-900/50 transition">
                   <td className="px-4 py-3">
-                    <img
-                      src={p.images[0]}
-                      alt={p.name}
-                      className="w-12 h-12 object-cover rounded-lg bg-zinc-800"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => p.images?.length && setLightbox({ images: p.images, index: 0 })}
+                      className="focus:outline-none"
+                    >
+                      <img
+                        src={p.images[0]}
+                        alt={p.name}
+                        className="w-12 h-12 object-cover rounded-lg bg-zinc-800 cursor-zoom-in hover:opacity-80 transition-opacity"
+                      />
+                    </button>
                   </td>
                   <td className="px-4 py-3">
                     <div className="font-medium text-white max-w-[200px] truncate">{p.name}</div>
@@ -276,6 +284,15 @@ export default function AdminDashboard() {
           product={deleteProduct}
           onConfirm={() => handleDelete(deleteProduct)}
           onCancel={() => setDeleteProduct(null)}
+        />
+      )}
+
+      {lightbox && (
+        <ImageLightbox
+          images={lightbox.images}
+          currentIndex={lightbox.index}
+          onIndexChange={(i) => setLightbox({ ...lightbox, index: i })}
+          onClose={() => setLightbox(null)}
         />
       )}
     </div>
