@@ -17,11 +17,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: .github/scripts/scraper/package-lock.json
 
       - name: Install scraper dependencies
-        run: cd .github/scripts/scraper && npm ci
+        run: cd .github/scripts/scraper && npm install
 
       - name: Install Chromium for Puppeteer
         run: npx puppeteer browsers install chrome
