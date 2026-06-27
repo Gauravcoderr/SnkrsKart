@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { adminAuth, AdminRequest } from '../middleware/adminAuth';
 import { Product } from '../models/Product';
+import { ScrapedProduct } from '../models/ScrapedProduct';
+import { uploadToCloudinary } from '../services/scraper/utils';
 import { Brand } from '../models/Brand';
 import { Inquiry } from '../models/Inquiry';
 import { Review } from '../models/Review';
@@ -680,6 +682,147 @@ router.post('/email-blast', adminAuth, async (req: Request, res: Response): Prom
     res.json({ message: 'Blast queued' });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to send blast' });
+  }
+});
+
+// ─── Scraped Products ──────────────────────────────────────────────────────
+
+router.get('/scraped-products', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { status = 'draft', site, page = '1', limit = '20' } = req.query as Record<string, string>;
+    const filter: Record<string, unknown> = { status };
+    if (site) filter.sourceSite = site;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [items, total] = await Promise.all([
+      ScrapedProduct.find(filter).sort({ scrapedAt: -1 }).skip(skip).limit(parseInt(limit)).lean(),
+      ScrapedProduct.countDocuments(filter),
+    ]);
+    res.json({ items, total, page: parseInt(page), limit: parseInt(limit) });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to fetch scraped products' });
+  }
+});
+
+router.put('/scraped-products/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const allowed = ['name', 'brand', 'price', 'originalPrice', 'images', 'sizes', 'colorway', 'sku', 'description', 'gender', 'tags'];
+    const update: Record<string, unknown> = {};
+    for (const key of allowed) {
+      if (req.body[key] !== undefined) update[key] = req.body[key];
+    }
+    const item = await ScrapedProduct.findByIdAndUpdate(req.params.id, { $set: update }, { new: true });
+    if (!item) { res.status(404).json({ error: 'Not found' }); return; }
+    res.json(item);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to update' });
+  }
+});
+
+router.delete('/scraped-products/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const item = await ScrapedProduct.findByIdAndDelete(req.params.id);
+    if (!item) { res.status(404).json({ error: 'Not found' }); return; }
+    res.json({ message: 'Deleted' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to delete' });
+  }
+});
+
+router.post('/scraped-products/run-scraper', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const pat = process.env.GITHUB_PAT;
+    if (!pat) { res.status(500).json({ error: 'GITHUB_PAT not configured' }); return; }
+    const r = await fetch(
+      'https://api.github.com/repos/Gauravcoderr/SnkrsKart/actions/workflows/scraper.yml/dispatches',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${pat}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ref: 'main' }),
+      }
+    );
+    if (!r.ok && r.status !== 204) {
+      const body = await r.text();
+      res.status(r.status).json({ error: `GitHub API error: ${body}` });
+      return;
+    }
+    res.json({ message: 'Scraper triggered via GitHub Actions' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to trigger scraper' });
+  }
+});
+
+router.post('/scraped-products/:id/publish', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const scraped = await ScrapedProduct.findById(req.params.id);
+    if (!scraped) { res.status(404).json({ error: 'Not found' }); return; }
+    if (scraped.status === 'published') { res.status(400).json({ error: 'Already published' }); return; }
+
+    // Upload images to Cloudinary
+    const cloudinaryImages: string[] = [];
+    for (const imgUrl of scraped.images.slice(0, 5)) {
+      try {
+        const uploaded = await uploadToCloudinary(imgUrl);
+        cloudinaryImages.push(uploaded);
+      } catch (err) {
+        console.error('[publish] Image upload failed:', imgUrl, (err as Error).message);
+      }
+    }
+    if (cloudinaryImages.length === 0 && scraped.images.length > 0) {
+      res.status(500).json({ error: 'All image uploads failed' });
+      return;
+    }
+
+    // Generate unique slug
+    let slug = toSlug(`${scraped.brand}-${scraped.name}-${scraped.colorway ?? ''}`);
+    const baseSlug = slug;
+    let suffix = 2;
+    while (await Product.exists({ slug })) {
+      slug = `${baseSlug}-${suffix++}`;
+    }
+
+    const discount =
+      scraped.originalPrice && scraped.originalPrice > (scraped.price ?? 0)
+        ? Math.round(((scraped.originalPrice - (scraped.price ?? 0)) / scraped.originalPrice) * 100)
+        : 0;
+
+    const productPayload = {
+      name: scraped.name,
+      brand: scraped.brand,
+      slug,
+      colorway: scraped.colorway ?? '',
+      price: scraped.price ?? 0,
+      originalPrice: scraped.originalPrice ?? scraped.price ?? 0,
+      discount,
+      images: cloudinaryImages,
+      hoverImage: cloudinaryImages[1] ?? cloudinaryImages[0] ?? '',
+      sizes: [] as number[],
+      availableSizes: [] as number[],
+      stringSizes: scraped.sizes,
+      availableStringSizes: scraped.sizes,
+      gender: scraped.gender ?? 'unisex',
+      tags: scraped.tags ?? [],
+      sku: scraped.sku ?? slug,
+      description: scraped.description ?? '',
+      productType: 'shoes' as const,
+      newArrival: true,
+      triggerEmail: false,
+    };
+    const product = await Product.create(productPayload);
+
+    await syncBrandCounts();
+    await ScrapedProduct.findByIdAndUpdate(req.params.id, {
+      status: 'published',
+      publishedProductId: product._id,
+    });
+
+    res.status(201).json({ product, message: 'Published successfully' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to publish' });
   }
 });
 

@@ -1,0 +1,20 @@
+{
+  "name": "snkrs-cart-scraper",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "scrape": "ts-node --project tsconfig.json run.ts"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "cheerio": "^1.0.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "puppeteer": "^22.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.0"
+  }
+}
