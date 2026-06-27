@@ -5,6 +5,7 @@ import { adminAuth, AdminRequest } from '../middleware/adminAuth';
 import { Product } from '../models/Product';
 import { ScrapedProduct } from '../models/ScrapedProduct';
 import { uploadToCloudinary } from '../services/scraper/utils';
+import { runRenderScraper } from '../services/scraper/index';
 import { Brand } from '../models/Brand';
 import { Inquiry } from '../models/Inquiry';
 import { Review } from '../models/Review';
@@ -750,7 +751,10 @@ router.post('/scraped-products/run-scraper', adminAuth, async (_req: Request, re
       res.status(r.status).json({ error: `GitHub API error: ${body}` });
       return;
     }
-    res.json({ message: 'Scraper triggered via GitHub Actions' });
+    // Also fire Render-side scraper (Shopify + Nike) in background — non-blocking
+    runRenderScraper().catch((e: Error) => console.error('[run-scraper] Render scraper error:', e.message));
+
+    res.json({ message: 'Scraper triggered — GitHub Actions (Myntra/Footlocker/VegNonVeg) + Render (Shopify/Nike) both running' });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to trigger scraper' });
   }
