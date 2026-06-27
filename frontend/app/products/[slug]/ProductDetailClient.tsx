@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { Product } from '@/types';
 import SizeSelector from '@/components/product-detail/SizeSelector';
 import AddToCartButton from '@/components/product-detail/AddToCartButton';
+import BuyNowButton from '@/components/product-detail/BuyNowButton';
 import PurchaseModal from '@/components/product-detail/PurchaseModal';
 import SizeGuideModal from '@/components/product-detail/SizeGuideModal';
 import RestockNotify from '@/components/product-detail/RestockNotify';
@@ -165,8 +166,13 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           </div>
 
           {/* Add to cart */}
-          <div ref={addToCartRef}>
+          <div ref={addToCartRef} className="space-y-2">
             <AddToCartButton
+              product={effectiveProduct}
+              selectedSize={selectedSize}
+              onRequireSize={handleRequireSize}
+            />
+            <BuyNowButton
               product={effectiveProduct}
               selectedSize={selectedSize}
               onRequireSize={handleRequireSize}

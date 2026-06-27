@@ -33,10 +33,12 @@ const INDIAN_STATES = [
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, subtotal, clearCart } = useCart();
+  const { items, clearCart, buyNowItem, clearBuyNowItem } = useCart();
   const { user, isLoggedIn, loading: authLoading, openAuthModal, loginWithData } = useAuth();
-  const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
-  const total = subtotal + shipping;
+  const checkoutItems = buyNowItem ? [buyNowItem] : items;
+  const checkoutSubtotal = checkoutItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  const shipping = checkoutSubtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+  const total = checkoutSubtotal + shipping;
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [loading, setLoading] = useState(false);
@@ -138,7 +140,7 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           code: couponInput.trim(),
-          items: items.map((item) => ({
+          items: checkoutItems.map((item) => ({
             productId: item.product.id,
             qty: item.quantity,
             price: item.product.price,
@@ -262,7 +264,7 @@ export default function CheckoutPage() {
       const payload = {
         ...contact,
         ...address,
-        items: items.map((item) => ({
+        items: checkoutItems.map((item) => ({
           productId: item.product.id,
           name: item.product.name,
           brand: item.product.brand,
@@ -272,7 +274,7 @@ export default function CheckoutPage() {
           qty: item.quantity,
           image: item.product.images?.[0] || '',
         })),
-        subtotal,
+        subtotal: checkoutSubtotal,
         shipping,
         total,
         coinsRedeemed: coinDiscount > 0 ? coinDiscount : 0,
@@ -295,7 +297,8 @@ export default function CheckoutPage() {
       } else if (data.paymentMode === 'razorpay') {
         await handleRazorpayCheckout(data, confirmBase);
       } else {
-        clearCart(); clearCheckoutSession();
+        if (buyNowItem) clearBuyNowItem(); else clearCart();
+        clearCheckoutSession();
         router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=pending`);
       }
     } catch (err: unknown) {
@@ -318,7 +321,8 @@ export default function CheckoutPage() {
         setError(isDropped ? 'Payment cancelled. You can try again.' : `Payment failed: ${result.error.message || 'Please try again.'}`);
         setLoading(false);
       } else {
-        clearCart(); clearCheckoutSession();
+        if (buyNowItem) clearBuyNowItem(); else clearCart();
+        clearCheckoutSession();
         router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=paid`);
       }
     } catch {
@@ -351,7 +355,8 @@ export default function CheckoutPage() {
             }),
           });
           if (verifyRes.ok) {
-            clearCart(); clearCheckoutSession();
+            if (buyNowItem) clearBuyNowItem(); else clearCart();
+            clearCheckoutSession();
             router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=paid`);
           } else {
             setError('Payment verification failed. Please contact support with your order number.');
@@ -372,7 +377,7 @@ export default function CheckoutPage() {
     rzp.open();
   }
 
-  if (items.length === 0 && step !== 3) {
+  if (checkoutItems.length === 0 && step !== 3) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
         <p className="text-lg font-bold text-zinc-900 mb-2">Your bag is empty</p>
@@ -564,7 +569,7 @@ export default function CheckoutPage() {
 
               {/* Items */}
               <div className="border border-zinc-100">
-                {items.map((item) => (
+                {checkoutItems.map((item) => (
                   <div key={`${item.product.id}-${item.size}`} className="flex gap-4 p-4 border-b border-zinc-100 last:border-0 group">
                     <Link href={`/products/${item.product.slug}`} className="relative w-16 h-16 bg-zinc-50 shrink-0 overflow-hidden block ring-1 ring-zinc-100 hover:ring-zinc-300 transition-all">
                       {item.product.images?.[0] && (
@@ -808,10 +813,10 @@ export default function CheckoutPage() {
           <div className="border border-zinc-100 p-6">
             <div className="flex items-center justify-between mb-4">
               <p className="text-xs font-bold tracking-widest uppercase text-zinc-900">Order Summary</p>
-              <span className="text-[10px] text-zinc-400 font-medium">{items.length} {items.length === 1 ? 'item' : 'items'}</span>
+              <span className="text-[10px] text-zinc-400 font-medium">{checkoutItems.length} {checkoutItems.length === 1 ? 'item' : 'items'}</span>
             </div>
             <div className="space-y-3 mb-4">
-              {items.map((item) => (
+              {checkoutItems.map((item) => (
                 <div key={`${item.product.id}-${item.size}`} className="flex items-center gap-3 group">
                   <Link href={`/products/${item.product.slug}`} className="relative w-14 h-14 bg-zinc-50 shrink-0 overflow-hidden block ring-1 ring-zinc-100 hover:ring-zinc-300 transition-all">
                     {item.product.images?.[0] && (
@@ -831,7 +836,7 @@ export default function CheckoutPage() {
             <div className="border-t border-zinc-100 pt-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-500">Subtotal</span>
-                <span className="font-semibold">{formatPrice(subtotal)}</span>
+                <span className="font-semibold">{formatPrice(checkoutSubtotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-500">Shipping</span>
