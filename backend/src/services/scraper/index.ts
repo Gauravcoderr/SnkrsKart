@@ -1,5 +1,6 @@
 import { ScrapedProduct } from '../../models/ScrapedProduct';
 import { scrapeAllShopify } from './shopify';
+import { scrapeNikeIndia } from './nike';
 import { ScrapedItem } from './utils';
 
 export interface ScraperRunResult {
@@ -16,13 +17,21 @@ export async function runRenderScraper(): Promise<ScraperRunResult> {
   let inserted = 0;
   let updated = 0;
 
-  const shopifyResult = await Promise.allSettled([scrapeAllShopify()]);
-  const [shopify] = shopifyResult;
+  const [shopifyResult, nikeResult] = await Promise.allSettled([
+    scrapeAllShopify(),
+    scrapeNikeIndia(),
+  ]);
 
-  const allItems: ScrapedItem[] = shopify.status === 'fulfilled' ? shopify.value : [];
+  const allItems: ScrapedItem[] = [
+    ...(shopifyResult.status === 'fulfilled' ? shopifyResult.value : []),
+    ...(nikeResult.status === 'fulfilled' ? nikeResult.value : []),
+  ];
 
-  if (shopify.status === 'rejected') {
-    console.error('[scraper] Shopify run failed:', shopify.reason);
+  if (shopifyResult.status === 'rejected') {
+    console.error('[scraper] Shopify run failed:', shopifyResult.reason);
+  }
+  if (nikeResult.status === 'rejected') {
+    console.error('[scraper] Nike run failed:', nikeResult.reason);
   }
 
   console.log(`[scraper] Total items fetched: ${allItems.length}`);
@@ -48,8 +57,8 @@ export async function runRenderScraper(): Promise<ScraperRunResult> {
   return {
     inserted,
     updated,
-    shopifyFailed: shopify.status === 'rejected',
-    nikeFailed: false,
+    shopifyFailed: shopifyResult.status === 'rejected',
+    nikeFailed: nikeResult.status === 'rejected',
     durationSec,
   };
 }

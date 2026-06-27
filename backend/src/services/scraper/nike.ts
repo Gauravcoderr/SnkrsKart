@@ -140,11 +140,12 @@ async function scrapeBrowse(seen: Set<string>): Promise<ScrapedItem[]> {
 
         const brand: 'Nike' | 'Jordan' = JORDAN_RE.test(title) ? 'Jordan' : 'Nike';
 
-        // url can be "/in/t/slug" or full URL — skip non-India paths
+        // url is "/in/t/slug" — build nike.in URL by stripping /in prefix
         const rawUrl = p.url ?? '';
-        if (!rawUrl.includes('/in/')) continue;
+        if (!rawUrl.startsWith('/in/')) continue;
         if (p.price?.currency && p.price.currency !== 'INR') continue;
-        const productUrl = rawUrl.startsWith('http') ? rawUrl : `https://www.nike.com${rawUrl}`;
+        // /in/t/slug → https://www.nike.in/t/slug
+        const productUrl = `https://www.nike.in${rawUrl.replace(/^\/in/, '')}`;
         if (seen.has(productUrl)) continue;
         seen.add(productUrl);
 
@@ -216,7 +217,7 @@ async function scrapeThreadFeed(seen: Set<string>): Promise<ScrapedItem[]> {
         const slug = props.seo?.slug ?? '';
         if (!slug) continue;
 
-        const productUrl = `https://www.nike.com/in/t/${slug}`;
+        const productUrl = `https://www.nike.in/t/${slug}`;
         if (seen.has(productUrl)) continue;
         seen.add(productUrl);
 
