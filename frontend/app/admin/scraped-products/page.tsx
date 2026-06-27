@@ -65,7 +65,16 @@ export default function ScrapedProductsPage() {
     render: { status: string; startedAt?: string; finishedAt?: string; error?: string; result?: { inserted: number; updated: number; shopifyFailed: boolean; nikeFailed: boolean } };
   } | null>(null);
   const [toast, setToast] = useState('');
-  const limit = 20;
+  const [limit, setLimit] = useState(20);
+
+  // ── Filter state ────────────────────────────────────────────────────────────
+  const [filterSite, setFilterSite] = useState('');
+  const [filterBrand, setFilterBrand] = useState('');
+  const [filterSearch, setFilterSearch] = useState('');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
+  const [filterPriceMin, setFilterPriceMin] = useState('');
+  const [filterPriceMax, setFilterPriceMax] = useState('');
 
   // ── Lightbox state ──────────────────────────────────────────────────────────
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
@@ -234,10 +243,15 @@ export default function ScrapedProductsPage() {
     setLoading(true);
     try {
       const token = getToken();
-      const res = await fetch(
-        `${API}/admin/scraped-products?status=${status}&page=${page}&limit=${limit}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const params = new URLSearchParams({ status, page: String(page), limit: String(limit) });
+      if (filterSite) params.set('site', filterSite);
+      if (filterBrand) params.set('brand', filterBrand);
+      if (filterSearch) params.set('search', filterSearch);
+      if (filterDateFrom) params.set('dateFrom', filterDateFrom);
+      if (filterDateTo) params.set('dateTo', filterDateTo);
+      if (filterPriceMin) params.set('priceMin', filterPriceMin);
+      if (filterPriceMax) params.set('priceMax', filterPriceMax);
+      const res = await fetch(`${API}/admin/scraped-products?${params}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       setItems(data.items ?? []);
       setTotal(data.total ?? 0);
@@ -246,9 +260,12 @@ export default function ScrapedProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [getToken, status, page]);
+  }, [getToken, status, page, filterSite, filterBrand, filterSearch, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => { setPage(1); }, [filterSite, filterBrand, filterSearch, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax, status]);
 
   useEffect(() => {
     if (Date.now() >= scraperCooldownUntil) return;
@@ -486,6 +503,110 @@ export default function ScrapedProductsPage() {
         </div>
       )}
 
+      {/* Filters */}
+      <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 space-y-3">
+        {/* Search + site + brand */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <input
+            type="text"
+            aria-label="Search by name"
+            placeholder="Search by name..."
+            value={filterSearch}
+            onChange={(e) => setFilterSearch(e.target.value)}
+            className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
+          />
+          <select
+            aria-label="Filter by site"
+            value={filterSite}
+            onChange={(e) => setFilterSite(e.target.value)}
+            className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-500"
+          >
+            <option value="">All Sites</option>
+            {(['myntra','footlocker','vegnonveg','limitededt','superkicks','nike','crepdogcrew','soleseriouss'] as SourceSite[]).map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+          <select
+            aria-label="Filter by brand"
+            value={filterBrand}
+            onChange={(e) => setFilterBrand(e.target.value)}
+            className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-500"
+          >
+            <option value="">All Brands</option>
+            <option value="Nike">Nike</option>
+            <option value="Jordan">Jordan</option>
+          </select>
+        </div>
+        {/* Date + price */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div>
+            <label className="block text-[10px] text-zinc-500 uppercase mb-1">Date From</label>
+            <input
+              type="date"
+              aria-label="Date from"
+              value={filterDateFrom}
+              onChange={(e) => setFilterDateFrom(e.target.value)}
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-500"
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] text-zinc-500 uppercase mb-1">Date To</label>
+            <input
+              type="date"
+              aria-label="Date to"
+              value={filterDateTo}
+              onChange={(e) => setFilterDateTo(e.target.value)}
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-500"
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] text-zinc-500 uppercase mb-1">Min Price (₹)</label>
+            <input
+              type="number"
+              aria-label="Min price"
+              placeholder="e.g. 1000"
+              value={filterPriceMin}
+              onChange={(e) => setFilterPriceMin(e.target.value)}
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] text-zinc-500 uppercase mb-1">Max Price (₹)</label>
+            <input
+              type="number"
+              aria-label="Max price"
+              placeholder="e.g. 20000"
+              value={filterPriceMax}
+              onChange={(e) => setFilterPriceMax(e.target.value)}
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
+            />
+          </div>
+        </div>
+        {/* Active filter count + clear */}
+        {(filterSearch || filterSite || filterBrand || filterDateFrom || filterDateTo || filterPriceMin || filterPriceMax) && (
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-[11px] text-zinc-400">
+              {[filterSearch && 'search', filterSite && 'site', filterBrand && 'brand', (filterDateFrom || filterDateTo) && 'date', (filterPriceMin || filterPriceMax) && 'price'].filter(Boolean).join(' · ')} active
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setFilterSearch('');
+                setFilterSite('');
+                setFilterBrand('');
+                setFilterDateFrom('');
+                setFilterDateTo('');
+                setFilterPriceMin('');
+                setFilterPriceMax('');
+              }}
+              className="text-[11px] text-zinc-400 hover:text-white underline transition-colors"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Status tabs */}
       <div className="flex gap-1 border-b border-zinc-800">
         {STATUS_TABS.map((s) => (
@@ -578,7 +699,8 @@ export default function ScrapedProductsPage() {
                     {item.sizes.length > 0 ? `${item.sizes.length} sizes` : '—'}
                   </td>
                   <td className="py-3 pr-3 text-zinc-500 text-xs whitespace-nowrap">
-                    {new Date(item.scrapedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                    <span>{new Date(item.scrapedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
+                    <span className="block text-zinc-600">{new Date(item.scrapedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
                   </td>
                   <td className="py-3">
                     <div className="flex items-center gap-2">
@@ -616,8 +738,15 @@ export default function ScrapedProductsPage() {
         </div>
       )}
 
-      {total > limit && (
-        <Paginator page={page} totalPages={Math.ceil(total / limit)} onPage={setPage} pageSize={limit} totalItems={total} />
+      {total > 0 && (
+        <Paginator
+          page={page}
+          totalPages={Math.max(1, Math.ceil(total / limit))}
+          onPage={setPage}
+          pageSize={limit}
+          onPageSizeChange={(s) => { setLimit(s); setPage(1); }}
+          totalItems={total}
+        />
       )}
 
       {/* Publish modal */}

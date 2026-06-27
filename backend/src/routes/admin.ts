@@ -698,9 +698,23 @@ router.post('/email-blast', adminAuth, async (req: Request, res: Response): Prom
 
 router.get('/scraped-products', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { status = 'draft', site, page = '1', limit = '20' } = req.query as Record<string, string>;
+    const { status = 'draft', site, brand, search, dateFrom, dateTo, priceMin, priceMax, page = '1', limit = '20' } = req.query as Record<string, string>;
     const filter: Record<string, unknown> = { status };
     if (site) filter.sourceSite = site;
+    if (brand) filter.brand = brand;
+    if (search) filter.name = { $regex: search, $options: 'i' };
+    if (dateFrom || dateTo) {
+      const dateFilter: Record<string, Date> = {};
+      if (dateFrom) dateFilter.$gte = new Date(dateFrom);
+      if (dateTo) { const d = new Date(dateTo); d.setHours(23, 59, 59, 999); dateFilter.$lte = d; }
+      filter.scrapedAt = dateFilter;
+    }
+    if (priceMin || priceMax) {
+      const priceFilter: Record<string, number> = {};
+      if (priceMin) priceFilter.$gte = parseFloat(priceMin);
+      if (priceMax) priceFilter.$lte = parseFloat(priceMax);
+      filter.price = priceFilter;
+    }
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const [items, total] = await Promise.all([
       ScrapedProduct.find(filter).sort({ scrapedAt: -1 }).skip(skip).limit(parseInt(limit)).lean(),

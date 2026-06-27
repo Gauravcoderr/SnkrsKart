@@ -7,7 +7,7 @@ interface PaginatorProps {
   totalItems: number;
 }
 
-const SIZE_OPTIONS = [5, 10, 20, 50];
+const SIZE_OPTIONS = [5, 10, 20, 50, 100];
 
 export default function Paginator({ page, totalPages, onPage, pageSize, onPageSizeChange, totalItems }: PaginatorProps) {
   const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
