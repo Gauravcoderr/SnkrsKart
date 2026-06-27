@@ -8,9 +8,7 @@ const BROWSE_URL = 'https://api.nike.com/cic/browse/v2';
 
 // Collections to scrape on Nike India
 const BROWSE_PATHS = [
-  '/in/w/new-shoes-3n82yr',
-  '/in/w/jordan-shoes-37eefznik1',
-  '/in/w/best-shoes-1n3f1',
+  '/in/c/94475',    // nike.in new-featured / new-arrivals
 ];
 
 interface NikeBrowseSku {
