@@ -266,7 +266,7 @@ export default function ScrapedProductsPage() {
                     </td>
                     <td className="py-3 pr-4 text-zinc-500 text-xs">{r.sku ?? '—'}</td>
                     <td className="py-3 pr-4 text-zinc-500 text-xs whitespace-nowrap">
-                      {new Date(r.rejectedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}
+                      {new Date(r.rejectedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
                     </td>
                     <td className="py-3">
                       <button type="button" onClick={() => handleUnreject(r._id)}

@@ -165,11 +165,11 @@ export default function ProductsTable({ items, loading, status, onEdit, onPublis
                   {item.sizes.length > 0 ? `${item.sizes.length} sizes` : '—'}
                 </td>
                 <td className="py-3 pr-3 text-zinc-500 text-xs whitespace-nowrap">
-                  {new Date(item.scrapedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}
+                  {new Date(item.scrapedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
                 </td>
                 <td className="py-3 pr-3 text-zinc-500 text-xs whitespace-nowrap">
                   {(item.sourceListedAt ?? item.sourceUpdatedAt)
-                    ? new Date((item.sourceListedAt ?? item.sourceUpdatedAt)!).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })
+                    ? new Date((item.sourceListedAt ?? item.sourceUpdatedAt)!).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
                     : '—'}
                 </td>
                 <td className="py-3">
