@@ -42,15 +42,20 @@ export function scrapingAntFetch(url: string, js = true): Promise<string> {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept-Encoding': 'identity',
           'x-api-key': apiKey,
           'Content-Length': Buffer.byteLength(body),
         },
         timeout: 120_000,
       },
       (res) => {
-        let data = '';
-        res.on('data', (chunk: Buffer) => { data += chunk; });
-        res.on('end', () => resolve(data));
+        const chunks: Buffer[] = [];
+        res.on('data', (chunk: Buffer) => chunks.push(chunk));
+        res.on('end', () => {
+          const raw = Buffer.concat(chunks).toString('utf8');
+          if (process.env.ANT_DEBUG) console.log(`[ant] status=${res.statusCode} body[0:200]=${raw.slice(0, 200)}`);
+          resolve(raw);
+        });
       }
     );
     req.on('error', reject);

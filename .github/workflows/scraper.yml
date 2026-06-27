@@ -31,3 +31,4 @@ jobs:
           BACKEND_URL: ${{ secrets.BACKEND_URL }}
           SCRAPER_SECRET: ${{ secrets.SCRAPER_SECRET }}
           SCRAPINGANT_API_KEY: ${{ secrets.SCRAPINGANT_API_KEY }}
+          ANT_DEBUG: "1"
