@@ -3,6 +3,7 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { scrapeMyntra } from './myntra';
 import { scrapeFootlocker } from './footlocker';
 import { scrapeVegNonVeg } from './vegnonveg';
+import { scrapeSuperkicks } from './superkicks';
 import { ScrapedItem } from './utils';
 
 puppeteer.use(StealthPlugin());
@@ -61,8 +62,9 @@ async function main(): Promise<void> {
     const myntraItems = await safeScrape('Myntra', () => scrapeMyntra(browser));
     const footlockerItems = await safeScrape('Footlocker', () => scrapeFootlocker(browser));
     const vegNonVegItems = await safeScrape('VegNonVeg', () => scrapeVegNonVeg(browser));
+    const superkicksItems = await safeScrape('Superkicks', () => scrapeSuperkicks());
 
-    const allItems: ScrapedItem[] = [...myntraItems, ...footlockerItems, ...vegNonVegItems];
+    const allItems: ScrapedItem[] = [...myntraItems, ...footlockerItems, ...vegNonVegItems, ...superkicksItems];
 
     console.log(`[run] Total items scraped: ${allItems.length}`);
     await ingest(allItems);
