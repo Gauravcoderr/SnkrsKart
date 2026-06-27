@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import ScrapingAntClient from '@scrapingant/scrapingant-client';
+import https from 'https';
 
 // Only Chrome/Edge UAs -- Firefox UAs cause TLS/JS fingerprint mismatch with Chromium
 export const UA_POOL = [
@@ -30,16 +30,34 @@ export function sessionUA(): string {
  * js=true:  JS-rendered page (10 credits) — use for SPA product listing pages
  * Returns the response body as a string. Throws if SCRAPINGANT_API_KEY is unset.
  */
-let _antClient: InstanceType<typeof ScrapingAntClient> | undefined;
-function getAntClient(): InstanceType<typeof ScrapingAntClient> {
+export function scrapingAntFetch(url: string, js = true): Promise<string> {
   const apiKey = process.env.SCRAPINGANT_API_KEY;
   if (!apiKey) throw new Error('SCRAPINGANT_API_KEY not set');
-  if (!_antClient) _antClient = new ScrapingAntClient({ apiKey });
-  return _antClient;
-}
-
-export async function scrapingAntFetch(url: string, js = true): Promise<string> {
-  return getAntClient().scrape(url, { browser: js });
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({ url, browser: js });
+    const req = https.request(
+      {
+        hostname: 'api.scrapingant.com',
+        path: '/v1/general',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'Content-Length': Buffer.byteLength(body),
+        },
+        timeout: 120_000,
+      },
+      (res) => {
+        let data = '';
+        res.on('data', (chunk: Buffer) => { data += chunk; });
+        res.on('end', () => resolve(data));
+      }
+    );
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('ScrapingAnt timeout')); });
+    req.write(body);
+    req.end();
+  });
 }
 
 export function jitter(min = 3000, max = 8000): Promise<void> {

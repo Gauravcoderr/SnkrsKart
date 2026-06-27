@@ -6,8 +6,6 @@
     "scrape": "ts-node --project tsconfig.json run.ts"
   },
   "dependencies": {
-    "@scrapingant/scrapingant-client": "^0.2.1",
-    "axios": "^1.7.9",
     "cheerio": "^1.0.0",
     "puppeteer": "^22.0.0",
     "puppeteer-extra": "^3.3.6",
