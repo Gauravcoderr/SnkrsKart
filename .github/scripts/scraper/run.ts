@@ -2,6 +2,7 @@ import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { scrapeMyntra } from './myntra';
 import { scrapeFootlocker } from './footlocker';
+import { scrapeVegNonVeg } from './vegnonveg';
 import { ScrapedItem } from './utils';
 
 puppeteer.use(StealthPlugin());
@@ -44,14 +45,16 @@ async function main(): Promise<void> {
   });
 
   try {
-    const [myntraResult, footlockerResult] = await Promise.allSettled([
+    const [myntraResult, footlockerResult, vegNonVegResult] = await Promise.allSettled([
       scrapeMyntra(browser),
       scrapeFootlocker(browser),
+      scrapeVegNonVeg(browser),
     ]);
 
     const allItems: ScrapedItem[] = [
       ...(myntraResult.status === 'fulfilled' ? myntraResult.value : []),
       ...(footlockerResult.status === 'fulfilled' ? footlockerResult.value : []),
+      ...(vegNonVegResult.status === 'fulfilled' ? vegNonVegResult.value : []),
     ];
 
     if (myntraResult.status === 'rejected') {
@@ -59,6 +62,9 @@ async function main(): Promise<void> {
     }
     if (footlockerResult.status === 'rejected') {
       console.error('[run] Footlocker failed:', footlockerResult.reason);
+    }
+    if (vegNonVegResult.status === 'rejected') {
+      console.error('[run] VegNonVeg failed:', vegNonVegResult.reason);
     }
 
     console.log(`[run] Total items scraped: ${allItems.length}`);

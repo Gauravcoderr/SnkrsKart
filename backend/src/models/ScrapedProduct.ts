@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IScrapedProduct extends Document {
   sourceUrl: string;
-  sourceSite: 'myntra' | 'footlocker' | 'vegnonveg' | 'limitededt' | 'superkicks' | 'nike';
+  sourceSite: 'myntra' | 'footlocker' | 'vegnonveg' | 'limitededt' | 'superkicks' | 'nike' | 'crepdogcrew' | 'soleseriouss';
   name: string;
   brand: 'Nike' | 'Jordan';
   price?: number;
@@ -24,7 +24,7 @@ const scrapedProductSchema = new Schema<IScrapedProduct>(
     sourceUrl: { type: String, required: true, unique: true },
     sourceSite: {
       type: String,
-      enum: ['myntra', 'footlocker', 'vegnonveg', 'limitededt', 'superkicks', 'nike'],
+      enum: ['myntra', 'footlocker', 'vegnonveg', 'limitededt', 'superkicks', 'nike', 'crepdogcrew', 'soleseriouss'],
       required: true,
     },
     name: { type: String, required: true },

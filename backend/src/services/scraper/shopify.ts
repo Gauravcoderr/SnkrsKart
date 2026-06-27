@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { buildHeaders, jitter, ScrapedItem } from './utils';
+import { buildHeaders, jitter, withRetry, ScrapedItem } from './utils';
 
 interface ShopifyVariant {
   title: string;
@@ -53,19 +53,24 @@ async function fetchJson(
   collection: string,
   site: ScrapedItem['sourceSite']
 ): Promise<ScrapedItem[]> {
-  const url = `${baseUrl}/collections/${collection}/products.json?limit=20`;
-  const res = await axios.get<ShopifyResponse>(url, {
-    headers: buildHeaders(baseUrl),
-    timeout: 15000,
-  });
+  const url = `${baseUrl}/collections/${collection}/products.json?limit=24&sort_by=created-descending`;
+  const res = await withRetry(() =>
+    axios.get<ShopifyResponse>(url, {
+      headers: buildHeaders(baseUrl),
+      timeout: 15000,
+    })
+  );
   const products = res.data?.products ?? [];
   const results: ScrapedItem[] = [];
 
   for (const p of products) {
     const brand = detectBrand(p.title, p.vendor);
     if (!brand) continue;
+    if (!p.images || p.images.length === 0) continue; // skip if no images
 
     const price = p.variants[0] ? Math.round(parseFloat(p.variants[0].price)) : undefined;
+    if (!price || price <= 0) continue; // skip zero-price
+
     const origRaw = p.variants[0]?.compare_at_price;
     const originalPrice = origRaw ? Math.round(parseFloat(origRaw)) : undefined;
 
@@ -75,7 +80,7 @@ async function fetchJson(
       name: p.title,
       brand,
       price,
-      originalPrice: originalPrice && originalPrice > (price ?? 0) ? originalPrice : undefined,
+      originalPrice: originalPrice && originalPrice > price ? originalPrice : undefined,
       images: p.images.map((i) => i.src),
       sizes: parseSizes(p.variants),
       description: cheerio.load(p.body_html).text().trim().slice(0, 500),
@@ -112,18 +117,22 @@ async function fetchHtml(
     const href = $(el).find('a[href*="/products/"]').first().attr('href') ?? '';
     const sourceUrl = href.startsWith('http') ? href : `${baseUrl}${href}`;
     const priceText = $(el).find('[class*="price"]').first().text().replace(/[^\d.]/g, '');
+    const price = priceText ? Math.round(parseFloat(priceText)) : undefined;
+    if (!price || price <= 0) return;
+
     const imgSrc =
       $(el).find('img').first().attr('data-src') ??
       $(el).find('img').first().attr('src') ??
       '';
+    if (!imgSrc) return;
 
     results.push({
       sourceUrl,
       sourceSite: site,
       name: title,
       brand,
-      price: priceText ? Math.round(parseFloat(priceText)) : undefined,
-      images: imgSrc ? [imgSrc] : [],
+      price,
+      images: [imgSrc],
       sizes: [],
       tags: [],
       gender: 'unisex',
@@ -133,9 +142,11 @@ async function fetchHtml(
 }
 
 const SITES: { baseUrl: string; collections: string[]; site: ScrapedItem['sourceSite'] }[] = [
-  // VegNonVeg removed — Cloudflare blocks server requests; handled by GitHub Actions Puppeteer scraper
-  { baseUrl: 'https://limitededt.in', collections: ['nike', 'jordan'], site: 'limitededt' },
-  { baseUrl: 'https://www.superkicks.in', collections: ['nike', 'jordan', 'air-jordan'], site: 'superkicks' },
+  // VegNonVeg — Cloudflare-protected, handled by GitHub Actions Puppeteer
+  { baseUrl: 'https://limitededt.in',         collections: ['nike', 'jordan'],               site: 'limitededt' },
+  { baseUrl: 'https://www.superkicks.in',      collections: ['nike', 'jordan', 'air-jordan'], site: 'superkicks' },
+  { baseUrl: 'https://www.crepdogcrew.com',    collections: ['nike', 'jordan'],               site: 'crepdogcrew' },
+  { baseUrl: 'https://www.soleseriouss.com',   collections: ['sneakers'],                     site: 'soleseriouss' },
 ];
 
 export async function scrapeAllShopify(): Promise<ScrapedItem[]> {
