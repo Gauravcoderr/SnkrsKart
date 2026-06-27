@@ -309,7 +309,7 @@ export default function ScrapedProductsPage() {
       )}
 
       {total > limit && (
-        <Paginator page={page} totalPages={Math.ceil(total / limit)} onPageChange={setPage} />
+        <Paginator page={page} totalPages={Math.ceil(total / limit)} onPage={setPage} pageSize={limit} totalItems={total} />
       )}
 
       {/* Publish modal */}

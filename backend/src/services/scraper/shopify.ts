@@ -133,7 +133,7 @@ async function fetchHtml(
 }
 
 const SITES: { baseUrl: string; collections: string[]; site: ScrapedItem['sourceSite'] }[] = [
-  { baseUrl: 'https://www.vegnonveg.com', collections: ['nike', 'jordan', 'air-jordan'], site: 'vegnonveg' },
+  // VegNonVeg removed — Cloudflare blocks server requests; handled by GitHub Actions Puppeteer scraper
   { baseUrl: 'https://limitededt.in', collections: ['nike', 'jordan'], site: 'limitededt' },
   { baseUrl: 'https://www.superkicks.in', collections: ['nike', 'jordan', 'air-jordan'], site: 'superkicks' },
 ];
