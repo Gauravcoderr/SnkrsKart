@@ -26,7 +26,7 @@ export function jitter(min = 3000, max = 8000): Promise<void> {
 
 export interface ScrapedItem {
   sourceUrl: string;
-  sourceSite: 'myntra' | 'footlocker' | 'vegnonveg' | 'limitededt' | 'superkicks' | 'nike' | 'crepdogcrew' | 'soleseriouss';
+  sourceSite: 'myntra' | 'footlocker' | 'vegnonveg' | 'limitededt' | 'superkicks' | 'nike' | 'crepdogcrew';
   name: string;
   brand: 'Nike' | 'Jordan';
   price?: number;

@@ -164,7 +164,6 @@ const SITES: { baseUrl: string; collections: string[]; site: ScrapedItem['source
   { baseUrl: 'https://limitededt.in',         collections: ['nike', 'jordan'],               site: 'limitededt' },
   { baseUrl: 'https://www.superkicks.in',      collections: ['nike', 'jordan', 'air-jordan'], site: 'superkicks' },
   { baseUrl: 'https://www.crepdogcrew.com',    collections: ['nike', 'jordan'],               site: 'crepdogcrew' },
-  { baseUrl: 'https://www.soleseriouss.com',   collections: ['sneakers'],                     site: 'soleseriouss' },
 ];
 
 export async function scrapeAllShopify(): Promise<ScrapedItem[]> {

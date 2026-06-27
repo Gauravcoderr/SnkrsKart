@@ -101,7 +101,10 @@ app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 app.listen(PORT, () => {
   console.log(`🚀 SNKRS CART API running on http://localhost:${PORT}`);
   connectDB()
-    .then(() => {
+    .then(async () => {
+      const { ScrapedProduct } = await import('./models/ScrapedProduct');
+      const del = await ScrapedProduct.deleteMany({ sourceSite: 'soleseriouss' });
+      if (del.deletedCount > 0) console.log(`[startup] Purged ${del.deletedCount} soleseriouss products`);
       startScraperJob();
     })
     .catch((err) => {

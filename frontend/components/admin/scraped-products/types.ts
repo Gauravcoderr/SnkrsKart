@@ -1,4 +1,4 @@
-export type SourceSite = 'myntra' | 'footlocker' | 'vegnonveg' | 'limitededt' | 'superkicks' | 'nike' | 'crepdogcrew' | 'soleseriouss';
+export type SourceSite = 'myntra' | 'footlocker' | 'vegnonveg' | 'limitededt' | 'superkicks' | 'nike' | 'crepdogcrew';
 export type Status = 'draft' | 'published' | 'rejected';
 export type Gender = 'men' | 'women' | 'unisex' | 'kids';
 export type PublishProductType = 'shoes' | 'clothing' | 'accessories';
@@ -33,7 +33,6 @@ export const SITE_COLORS: Record<SourceSite, string> = {
   superkicks:   'bg-orange-900/40 text-orange-300 border-orange-800',
   nike:         'bg-zinc-800/60 text-zinc-300 border-zinc-700',
   crepdogcrew:  'bg-red-900/40 text-red-300 border-red-800',
-  soleseriouss: 'bg-yellow-900/40 text-yellow-300 border-yellow-800',
 };
 
 export const STATUS_TABS: Status[] = ['draft', 'published'];

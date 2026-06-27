@@ -79,7 +79,7 @@ export async function withRetry<T>(
 
 export interface ScrapedItem {
   sourceUrl: string;
-  sourceSite: 'myntra' | 'footlocker' | 'vegnonveg' | 'limitededt' | 'superkicks' | 'nike' | 'crepdogcrew' | 'soleseriouss';
+  sourceSite: 'myntra' | 'footlocker' | 'vegnonveg' | 'limitededt' | 'superkicks' | 'nike' | 'crepdogcrew';
   name: string;
   brand: 'Nike' | 'Jordan';
   price?: number;

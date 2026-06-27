@@ -3,7 +3,7 @@
 import { Filters, FilterHandlers } from './useFilters';
 import { SourceSite, ALL_FLAGS, FLAG_STYLES, ProductFlag } from './types';
 
-const ALL_SITES: SourceSite[] = ['myntra', 'footlocker', 'vegnonveg', 'limitededt', 'superkicks', 'nike', 'crepdogcrew', 'soleseriouss'];
+const ALL_SITES: SourceSite[] = ['myntra', 'footlocker', 'vegnonveg', 'limitededt', 'superkicks', 'nike', 'crepdogcrew'];
 
 type Props = Pick<Filters, 'filterSite' | 'filterBrand' | 'filterDateFrom' | 'filterDateTo' | 'filterPriceMin' | 'filterPriceMax' | 'filterFlag'> &
   Pick<FilterHandlers, 'onSiteChange' | 'onBrandChange' | 'onDateFromChange' | 'onDateToChange' | 'onPriceMinChange' | 'onPriceMaxChange' | 'onFlagChange' | 'onClear'>;
