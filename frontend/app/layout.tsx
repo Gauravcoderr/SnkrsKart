@@ -7,6 +7,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import QueryProvider from '@/components/layout/QueryProvider';
 import LayoutShell from '@/components/layout/LayoutShell';
 import AuthModal from '@/components/auth/AuthModal';
+import EmailCaptureModal from '@/components/layout/EmailCaptureModal';
 import GoogleAuthProvider from '@/components/auth/GoogleAuthProvider';
 import { Analytics } from '@vercel/analytics/next';
 
@@ -241,6 +242,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <WishlistProvider>
                   <LayoutShell>{children}</LayoutShell>
                   <AuthModal />
+                  <EmailCaptureModal />
                 </WishlistProvider>
               </CartProvider>
             </AuthProvider>
