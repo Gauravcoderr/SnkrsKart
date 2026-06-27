@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import axios from 'axios';
+import ScrapingAntClient from '@scrapingant/scrapingant-client';
 
 // Only Chrome/Edge UAs -- Firefox UAs cause TLS/JS fingerprint mismatch with Chromium
 export const UA_POOL = [
@@ -33,12 +33,8 @@ export function sessionUA(): string {
 export async function scrapingAntFetch(url: string, js = true): Promise<string> {
   const apiKey = process.env.SCRAPINGANT_API_KEY;
   if (!apiKey) throw new Error('SCRAPINGANT_API_KEY not set');
-  const res = await axios.get<string>('https://api.scrapingant.com/v2/general', {
-    params: { url, api_key: apiKey, browser: String(js) },
-    timeout: 60_000,
-    responseType: 'text',
-  });
-  return res.data;
+  const client = new ScrapingAntClient({ apiKey });
+  return client.scrape(url, { browser: js });
 }
 
 export function jitter(min = 3000, max = 8000): Promise<void> {
