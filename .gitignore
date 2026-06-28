@@ -27,3 +27,7 @@ yarn-debug.log*
 
 # Vercel
 .vercel
+
+# WhatsApp Web session (whatsapp-web.js LocalAuth)
+.wwebjs_auth/
+.wwebjs_cache/

@@ -26,6 +26,7 @@ import siteContentRoutes from './routes/siteContent';
 import couponRoutes from './routes/coupons';
 import scraperIngestRoutes from './routes/scraperIngest';
 import { startScraperJob } from './jobs/scraperJob';
+import { initWhatsApp } from './services/whatsapp';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -101,6 +102,25 @@ app.use('/api/v1/scraper', scraperIngestRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
+app.get('/whatsapp-qr', (_req, res) => {
+  const { getPairingCode } = require('./services/whatsapp');
+  const code = getPairingCode();
+  res.send(`<!DOCTYPE html><html><head><title>WhatsApp Pairing</title>
+    <meta http-equiv="refresh" content="5">
+    <style>body{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      min-height:100vh;background:#fff;font-family:sans-serif;text-align:center;}
+      .code{font-size:48px;font-weight:900;letter-spacing:12px;color:#111;margin:16px 0;font-family:monospace;}
+      p{color:#666;font-size:14px;max-width:360px;line-height:1.6;}</style></head>
+    <body>
+      <h2>WhatsApp Pairing Code</h2>
+      ${code
+        ? `<div class="code">${code}</div>
+           <p>Open WhatsApp → Settings → Linked Devices → Link a Device → <strong>Link with phone number</strong><br>Enter this 8-digit code</p>`
+        : `<p>Waiting for pairing code… (auto-refreshes)<br>Make sure <code>WHATSAPP_PHONE</code> is set in backend .env</p>`
+      }
+    </body></html>`);
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 SNKRS CART API running on http://localhost:${PORT}`);
   connectDB()
@@ -109,6 +129,7 @@ app.listen(PORT, () => {
       const del = await ScrapedProduct.deleteMany({ sourceSite: { $in: ['soleseriouss', 'nike'] } });
       if (del.deletedCount > 0) console.log(`[startup] Purged ${del.deletedCount} soleseriouss/nike products`);
       startScraperJob();
+      if (process.env.WHATSAPP_ENABLED === 'true') initWhatsApp();
     })
     .catch((err) => {
       console.error('❌ DB connection failed:', err);

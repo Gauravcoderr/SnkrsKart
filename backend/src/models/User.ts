@@ -12,7 +12,7 @@ export interface IAddress {
 export interface IUser extends Document {
   email: string;
   name: string;
-  phone: string;
+  phone: string | null;
   googleId?: string;
   addresses: IAddress[];
   otp: string | null;
@@ -34,9 +34,9 @@ const AddressSchema = new Schema<IAddress>({
 
 const UserSchema = new Schema<IUser>(
   {
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    email: { type: String, unique: true, sparse: true, lowercase: true, trim: true, default: undefined },
     name: { type: String, default: '' },
-    phone: { type: String, default: '' },
+    phone: { type: String, default: null, sparse: true },
     addresses: [AddressSchema],
     otp: { type: String, default: null },
     otpExpiry: { type: Date, default: null },

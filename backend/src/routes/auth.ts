@@ -6,6 +6,8 @@ import { User } from '../models/User';
 import { Order } from '../models/Order';
 import { customerAuth, AuthRequest } from '../middleware/customerAuth';
 import { sendMail } from '../lib/mailer';
+import { sendSMS } from '../services/sms';
+import { sendWhatsApp } from '../services/whatsapp';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -38,17 +40,82 @@ function setTokenCookies(res: Response, accessToken: string, refreshToken: strin
 
 // ─── Send OTP ──────────────────────────────────────────────────────────────
 
+async function sendOtpToPhone(phone: string, otp: string): Promise<void> {
+  const message = `${otp} is your SNKRS CART verification code. Valid for 5 minutes. Do not share.`;
+  try {
+    await sendWhatsApp(phone, message);
+  } catch {
+    // WhatsApp not ready or failed — fall back to SMS
+    try {
+      await sendSMS(phone, message);
+    } catch (smsErr) {
+      console.warn('[OTP] Both WhatsApp and SMS failed for', phone, smsErr);
+    }
+  }
+}
+
 router.post('/send-otp', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email } = req.body;
+    const { email, phone, loginPhone } = req.body;
+
+    // ── Phone-only login ──────────────────────────────────────────────────
+    if (loginPhone && !email) {
+      const cleanPhone = loginPhone.trim().replace(/[\s\-().]/g, '');
+      if (!/^(\+91|91)?[6-9]\d{9}$/.test(cleanPhone)) {
+        res.status(400).json({ error: 'Enter a valid 10-digit Indian mobile number' });
+        return;
+      }
+      let user = await User.findOne({ phone: cleanPhone });
+      if (user?.lastOtpSent) {
+        const diff = Date.now() - new Date(user.lastOtpSent).getTime();
+        if (diff < 60000) {
+          res.status(429).json({ error: 'Please wait before requesting another code', retryAfter: Math.ceil((60000 - diff) / 1000) });
+          return;
+        }
+      }
+      const otp = String(crypto.randomInt(100000, 999999));
+      user = await User.findOneAndUpdate(
+        { phone: cleanPhone },
+        { $set: { otp: hashOtp(otp), otpExpiry: new Date(Date.now() + 5 * 60 * 1000), otpAttempts: 0, lastOtpSent: new Date() },
+          $setOnInsert: { name: '', phone: cleanPhone } },
+        { upsert: true, returnDocument: 'after' }
+      );
+      // Send via WhatsApp/SMS (fire-and-forget)
+      sendOtpToPhone(cleanPhone, otp);
+
+      // Also send via email if user has one — ensures delivery when WA/SMS not configured
+      if (user!.email) {
+        sendMail({
+          to: user!.email,
+          subject: `${otp} — Your SNKRS CART verification code`,
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;text-align:center;padding:32px 24px;">
+              <div style="background:#111;padding:16px;text-align:center;border-radius:8px 8px 0 0;">
+                <img src="https://snkrs-kart.vercel.app/logo.jpg" alt="SNKRS CART" style="height:40px;width:auto;" />
+              </div>
+              <div style="background:#fafafa;padding:32px 24px;border-radius:0 0 8px 8px;border:1px solid #eee;">
+                <p style="color:#666;font-size:14px;margin:0 0 16px;">Your verification code is</p>
+                <p style="font-size:36px;font-weight:900;letter-spacing:8px;color:#111;margin:0 0 16px;font-family:monospace;">${otp}</p>
+                <p style="color:#999;font-size:12px;margin:0;">Expires in 5 minutes. Do not share this code.</p>
+              </div>
+            </div>
+          `,
+        });
+      }
+
+      res.json({ message: 'OTP sent', isNewUser: !user!.name });
+      return;
+    }
+
+    // ── Email login (with optional phone) ────────────────────────────────
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       res.status(400).json({ error: 'Valid email is required' });
       return;
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    const cleanPhone = phone ? phone.trim().replace(/\s+/g, '') : '';
 
-    // Check cooldown (60s)
     let user = await User.findOne({ email: cleanEmail });
     if (user?.lastOtpSent) {
       const diff = Date.now() - new Date(user.lastOtpSent).getTime();
@@ -58,26 +125,23 @@ router.post('/send-otp', async (req: Request, res: Response): Promise<void> => {
       }
     }
 
-    // Generate 6-digit OTP
     const otp = String(crypto.randomInt(100000, 999999));
     const hashed = hashOtp(otp);
 
-    // Upsert user with OTP
+    const setFields: Record<string, any> = {
+      otp: hashed,
+      otpExpiry: new Date(Date.now() + 5 * 60 * 1000),
+      otpAttempts: 0,
+      lastOtpSent: new Date(),
+    };
+    if (cleanPhone) setFields.phone = cleanPhone;
+
     user = await User.findOneAndUpdate(
       { email: cleanEmail },
-      {
-        $set: {
-          otp: hashed,
-          otpExpiry: new Date(Date.now() + 5 * 60 * 1000), // 5 min
-          otpAttempts: 0,
-          lastOtpSent: new Date(),
-        },
-        $setOnInsert: { email: cleanEmail, name: '', phone: '' },
-      },
+      { $set: setFields, $setOnInsert: { email: cleanEmail, name: '', phone: cleanPhone } },
       { upsert: true, returnDocument: 'after' }
     );
 
-    // Send OTP email
     sendMail({
       to: cleanEmail,
       subject: `${otp} — Your SNKRS CART verification code`,
@@ -95,8 +159,10 @@ router.post('/send-otp', async (req: Request, res: Response): Promise<void> => {
       `,
     });
 
-    const isNewUser = !user!.name;
-    res.json({ message: 'OTP sent', isNewUser });
+    const phoneForOtp = cleanPhone || user!.phone;
+    if (phoneForOtp) sendOtpToPhone(phoneForOtp, otp);
+
+    res.json({ message: 'OTP sent', isNewUser: !user!.name });
   } catch (err: any) {
     console.error('send-otp error:', err);
     res.status(500).json({ error: 'Failed to send OTP' });
@@ -107,14 +173,16 @@ router.post('/send-otp', async (req: Request, res: Response): Promise<void> => {
 
 router.post('/verify-otp', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, otp, name, phone } = req.body;
-    if (!email || !otp) {
-      res.status(400).json({ error: 'Email and OTP are required' });
+    const { email, loginPhone, otp, name, phone } = req.body;
+    if ((!email && !loginPhone) || !otp) {
+      res.status(400).json({ error: 'Email or phone and OTP are required' });
       return;
     }
 
-    const cleanEmail = email.trim().toLowerCase();
-    const user = await User.findOne({ email: cleanEmail });
+    const cleanEmail = email ? email.trim().toLowerCase() : '';
+    const user = loginPhone
+      ? await User.findOne({ phone: loginPhone.trim().replace(/[\s\-().]/g, '') })
+      : await User.findOne({ email: cleanEmail });
 
     if (!user || !user.otp || !user.otpExpiry) {
       res.status(400).json({ error: 'No OTP requested for this email' });
@@ -152,17 +220,21 @@ router.post('/verify-otp', async (req: Request, res: Response): Promise<void> =>
     if (name) updates.name = name.trim();
     if (phone) updates.phone = phone.trim();
 
+    // Use actual email from user doc (phone login may not have email in request)
+    const resolvedEmail = user.email;
+
     // Generate tokens
-    const { accessToken, refreshToken } = generateTokens(user._id.toString(), cleanEmail);
+    const { accessToken, refreshToken } = generateTokens(user._id.toString(), resolvedEmail);
     updates.refreshToken = hashOtp(refreshToken);
 
     await User.updateOne({ _id: user._id }, { $set: updates });
 
-    // Link any guest orders placed with this email to this user account
-    Order.updateMany(
-      { email: cleanEmail, userId: null },
-      { $set: { userId: user._id } }
-    ).catch(() => {});
+    if (resolvedEmail) {
+      Order.updateMany(
+        { email: resolvedEmail, userId: null },
+        { $set: { userId: user._id } }
+      ).catch(() => {});
+    }
 
     setTokenCookies(res, accessToken, refreshToken);
 
@@ -170,7 +242,7 @@ router.post('/verify-otp', async (req: Request, res: Response): Promise<void> =>
       accessToken,
       user: {
         id: user._id.toString(),
-        email: cleanEmail,
+        email: resolvedEmail,
         name: name || user.name,
         phone: phone || user.phone,
         addresses: user.addresses || [],

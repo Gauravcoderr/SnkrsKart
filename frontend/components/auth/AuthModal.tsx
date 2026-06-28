@@ -9,14 +9,17 @@ import { useScrollLock } from '@/hooks/useScrollLock';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
-type Step = 'email' | 'otp' | 'profile';
+type Step = 'email' | 'otp' | 'success' | 'profile';
+type LoginMode = 'email' | 'phone';
 
 export default function AuthModal() {
   const { authModalOpen, closeAuthModal, loginWithData } = useAuth();
   const pendingTokenRef = useRef<string>('');
 
+  const [loginMode, setLoginMode] = useState<LoginMode>('email');
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
+  const [phoneInput, setPhoneInput] = useState('');
   const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -27,8 +30,10 @@ export default function AuthModal() {
   useEffect(() => {
     if (!authModalOpen) {
       setTimeout(() => {
+        setLoginMode('email');
         setStep('email');
         setEmail('');
+        setPhoneInput('');
         setOtp(Array(6).fill(''));
         setName('');
         setPhone('');
@@ -50,12 +55,12 @@ export default function AuthModal() {
   // ── Mutations ────────────────────────────────────────────────────────────
 
   const sendOtpMutation = useMutation({
-    mutationFn: async (emailArg: string) => {
+    mutationFn: async (arg: { email?: string; loginPhone?: string }) => {
       const res = await fetch(`${API}/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ email: emailArg.trim() }),
+        body: JSON.stringify(arg),
       });
       const data = await res.json();
       if (!res.ok) throw { ...data, status: res.status };
@@ -80,7 +85,7 @@ export default function AuthModal() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          email: email.trim(),
+          ...(loginMode === 'phone' ? { loginPhone: phoneInput.trim() } : { email: email.trim() }),
           otp: code,
           ...(name ? { name } : {}),
           ...(phone ? { phone } : {}),
@@ -93,11 +98,15 @@ export default function AuthModal() {
     onSuccess: (data) => {
       if (data.user?.isNewUser && !name) {
         pendingTokenRef.current = data.accessToken;
-        setStep('profile');
+        setStep('success');
+        setTimeout(() => setStep('profile'), 1200);
         return;
       }
-      loginWithData(data.user, data.accessToken);
-      closeAuthModal();
+      setStep('success');
+      setTimeout(() => {
+        loginWithData(data.user, data.accessToken);
+        closeAuthModal();
+      }, 1200);
     },
     onError: (err: any) => {
       setError(err.error || 'Invalid code');
@@ -156,12 +165,29 @@ export default function AuthModal() {
 
   function handleSendOtp(e?: React.FormEvent) {
     e?.preventDefault();
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError('Enter a valid email address');
-      return;
+    if (loginMode === 'phone') {
+      const digits = phoneInput.trim().replace(/[\s\-().+]/g, '');
+      if (!/^(91)?[6-9]\d{9}$/.test(digits)) {
+        setError('Enter a valid 10-digit Indian mobile number');
+        return;
+      }
+      setError('');
+      sendOtpMutation.mutate({ loginPhone: phoneInput.trim() });
+    } else {
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setError('Enter a valid email address');
+        return;
+      }
+      setError('');
+      sendOtpMutation.mutate({ email });
     }
+  }
+
+  function switchMode(mode: LoginMode) {
+    setLoginMode(mode);
+    setEmail('');
+    setPhoneInput('');
     setError('');
-    sendOtpMutation.mutate(email);
   }
 
   function handleVerifyOtp(code: string) {
@@ -201,7 +227,7 @@ export default function AuthModal() {
           </div>
 
           <div className="px-6 sm:px-8 pb-8">
-            {/* Step 1: Email */}
+            {/* Step 1: Email or Phone */}
             {step === 'email' && (
               <form onSubmit={handleSendOtp}>
                 <div className="text-center mb-6">
@@ -210,38 +236,76 @@ export default function AuthModal() {
                 </div>
                 {error && <p className="text-sm text-red-500 text-center mb-4">{error}</p>}
 
-                {/* Google Sign-In */}
-                <div className="flex justify-center mb-4">
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={() => setError('Google sign-in failed')}
-                    width="368"
-                    text="continue_with"
-                    shape="pill"
-                    theme="outline"
-                    size="large"
-                  />
-                </div>
+                {loginMode === 'email' && (
+                  <>
+                    <div className="flex justify-center mb-4">
+                      <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={() => setError('Google sign-in failed')}
+                        width="368"
+                        text="continue_with"
+                        shape="pill"
+                        theme="outline"
+                        size="large"
+                      />
+                    </div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex-1 h-px bg-zinc-200" />
+                      <span className="text-xs text-zinc-400 uppercase tracking-widest">or</span>
+                      <div className="flex-1 h-px bg-zinc-200" />
+                    </div>
+                  </>
+                )}
 
-                {/* Divider */}
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex-1 h-px bg-zinc-200" />
-                  <span className="text-xs text-zinc-400 uppercase tracking-widest">or</span>
-                  <div className="flex-1 h-px bg-zinc-200" />
-                </div>
+                {loginMode === 'email' ? (
+                  <>
+                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-1.5">What&apos;s your email?</label>
+                    <input
+                      type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com" autoFocus required
+                      className="w-full border-2 border-zinc-200 rounded-xl px-4 py-3 text-base outline-none focus:border-zinc-900 transition mb-4"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-1.5">Your mobile number</label>
+                    <div className="flex gap-2 mb-4">
+                      <span className="flex items-center px-3 border-2 border-zinc-200 rounded-xl text-sm text-zinc-500 font-medium bg-zinc-50 select-none">+91</span>
+                      <input
+                        type="tel" value={phoneInput} onChange={(e) => setPhoneInput(e.target.value)}
+                        placeholder="98765 43210" autoFocus required maxLength={10}
+                        className="flex-1 border-2 border-zinc-200 rounded-xl px-4 py-3 text-base outline-none focus:border-zinc-900 transition"
+                      />
+                    </div>
+                  </>
+                )}
 
-                <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-1.5">What&apos;s your email?</label>
-                <input
-                  type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com" autoFocus required
-                  className="w-full border-2 border-zinc-200 rounded-xl px-4 py-3 text-base outline-none focus:border-zinc-900 transition mb-4"
-                />
                 <button type="submit" disabled={isLoading} className="w-full bg-zinc-900 text-white font-bold py-3 rounded-xl hover:bg-zinc-700 transition disabled:opacity-50 text-sm tracking-wide">
                   {isLoading ? 'Sending code...' : 'Continue'}
                 </button>
-                <p className="text-[11px] text-zinc-400 text-center mt-4 leading-relaxed">
-                  We&apos;ll send a 6-digit code to your email. No passwords needed.
+
+                <p className="text-center mt-4">
+                  {loginMode === 'email' ? (
+                    <button type="button" onClick={() => switchMode('phone')} className="text-xs text-zinc-500 hover:text-zinc-900 underline underline-offset-2 transition">
+                      Login with mobile number instead
+                    </button>
+                  ) : (
+                    <button type="button" onClick={() => switchMode('email')} className="text-xs text-zinc-500 hover:text-zinc-900 underline underline-offset-2 transition">
+                      Login with email instead
+                    </button>
+                  )}
                 </p>
+
+                {loginMode === 'email' && (
+                  <p className="text-[11px] text-zinc-400 text-center mt-2 leading-relaxed">
+                    We&apos;ll send a 6-digit code to your email. No passwords needed.
+                  </p>
+                )}
+                {loginMode === 'phone' && (
+                  <p className="text-[11px] text-zinc-400 text-center mt-2 leading-relaxed">
+                    We&apos;ll send a 6-digit code via WhatsApp or email. No passwords needed.
+                  </p>
+                )}
               </form>
             )}
 
@@ -249,22 +313,57 @@ export default function AuthModal() {
             {step === 'otp' && (
               <div>
                 <div className="text-center mb-6">
-                  <h2 className="text-2xl font-black tracking-tight text-zinc-900">Check your email</h2>
+                  <h2 className="text-2xl font-black tracking-tight text-zinc-900">
+                    {loginMode === 'phone' ? 'Check WhatsApp' : 'Check your email'}
+                  </h2>
                   <p className="text-sm text-zinc-500 mt-1">
-                    We sent a code to <span className="font-semibold text-zinc-700">{email}</span>
+                    We sent a code to{' '}
+                    <span className="font-semibold text-zinc-700">
+                      {loginMode === 'phone' ? `+91 ${phoneInput.trim()}` : email}
+                    </span>
                   </p>
                 </div>
                 {error && <p className="text-sm text-red-500 text-center mb-4">{error}</p>}
                 <OtpInput value={otp} onChange={setOtp} onComplete={handleVerifyOtp} />
                 {isLoading && <p className="text-sm text-zinc-400 text-center mt-4">Verifying...</p>}
                 <div className="flex items-center justify-between mt-6">
-                  <button type="button" onClick={() => { setStep('email'); setError(''); }} className="text-xs text-zinc-500 hover:text-zinc-900 transition">Change email</button>
+                  <button type="button" onClick={() => { setStep('email'); setError(''); }} className="text-xs text-zinc-500 hover:text-zinc-900 transition">
+                    {loginMode === 'phone' ? 'Change number' : 'Change email'}
+                  </button>
                   {countdown > 0 ? (
                     <span className="text-xs text-zinc-400">Resend in {countdown}s</span>
                   ) : (
                     <button type="button" onClick={() => handleSendOtp()} className="text-xs font-semibold text-zinc-900 hover:text-zinc-600 transition">Resend code</button>
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* Step: Success tick */}
+            {step === 'success' && (
+              <div className="flex flex-col items-center justify-center py-8">
+                <div className="relative w-20 h-20 mb-5">
+                  <svg viewBox="0 0 80 80" fill="none" className="w-full h-full">
+                    <circle
+                      cx="40" cy="40" r="36"
+                      stroke="#18181b" strokeWidth="4"
+                      strokeDasharray="226" strokeDashoffset="226"
+                      className="animate-[dash_0.5s_ease-out_forwards]"
+                      style={{ animation: 'dash 0.5s ease-out forwards' }}
+                    />
+                    <polyline
+                      points="24,42 35,53 56,30"
+                      stroke="#18181b" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"
+                      strokeDasharray="50" strokeDashoffset="50"
+                      style={{ animation: 'dash 0.4s ease-out 0.4s forwards' }}
+                    />
+                  </svg>
+                  <style>{`
+                    @keyframes dash { to { stroke-dashoffset: 0; } }
+                  `}</style>
+                </div>
+                <p className="text-lg font-black text-zinc-900 tracking-tight">Verified!</p>
+                <p className="text-sm text-zinc-400 mt-1">You&apos;re all set</p>
               </div>
             )}
 
