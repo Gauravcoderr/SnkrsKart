@@ -26,6 +26,7 @@ const blogs = [
   // virat-kohli-one8-sneaker-india-2026, bape-adidas-adizero-evo-sl-2026, jaide-air-jordan-11-low-first-collab-2026 — seeded 2026-06-21
   // one8-global-premiere-virat-kohli-delhi-2026, one8-vs-hrx-celebrity-sportswear-india-2026, virat-kohli-one8-agilitas-equity-story-2026, puma-india-post-kohli-next-gen-ambassadors-2026 — seeded 2026-06-25
   // ronaldo-cr7-mercurial-gold-six-world-cups-2026, messi-f50-el-ultimo-tango-farewell-boot-2026, skechers-reebok-world-cup-2026-underdogs — seeded 2026-06-26
+  // air-jordan-7-miro-barcelona-2026, kith-new-balance-2011-ronnie-fieg-2026, air-jordan-3-true-blue-2026 — seeded 2026-06-29
 ];
 
 async function seed() {
