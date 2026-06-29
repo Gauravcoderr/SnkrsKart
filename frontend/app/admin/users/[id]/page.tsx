@@ -62,6 +62,7 @@ export default function AdminUserDetailPage() {
         });
         if (res.status === 401) { router.push('/admin/login'); return; }
         if (res.status === 404) { router.push('/admin/users'); return; }
+        if (!res.ok) { console.error('Failed to fetch user', res.status); return; }
         setUser(await res.json());
       } catch (err) {
         console.error(err);
@@ -81,7 +82,9 @@ export default function AdminUserDetailPage() {
 
   if (!user) return null;
 
-  const totalSpend = user.orders
+  const orders = user.orders ?? [];
+  const addresses = user.addresses ?? [];
+  const totalSpend = orders
     .filter((o) => o.status !== 'cancelled')
     .reduce((s, o) => s + o.total, 0);
 
@@ -100,7 +103,7 @@ export default function AdminUserDetailPage() {
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-white font-black text-lg uppercase">
-              {(user.name || user.email)[0]}
+              {(user.name || user.email || user.phone || '?')[0]}
             </div>
             <div>
               <p className="text-lg font-black text-white">{user.name || <span className="text-zinc-500 italic font-normal text-base">No name set</span>}</p>
@@ -116,9 +119,9 @@ export default function AdminUserDetailPage() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mt-6 pt-6 border-t border-zinc-800">
           {[
-            { label: 'Total Orders', value: user.orders.length },
+            { label: 'Total Orders', value: orders.length },
             { label: 'Total Spent', value: totalSpend > 0 ? `₹${totalSpend.toLocaleString('en-IN')}` : '—' },
-            { label: 'Addresses', value: user.addresses.length },
+            { label: 'Addresses', value: addresses.length },
           ].map(({ label, value }) => (
             <div key={label}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">{label}</p>
@@ -134,11 +137,11 @@ export default function AdminUserDetailPage() {
           <div className="px-5 py-4 border-b border-zinc-800">
             <p className="text-sm font-bold text-white">Order History</p>
           </div>
-          {user.orders.length === 0 ? (
+          {orders.length === 0 ? (
             <div className="py-12 text-center text-zinc-500 text-sm">No orders yet.</div>
           ) : (
             <div className="divide-y divide-zinc-800">
-              {user.orders.map((order) => (
+              {orders.map((order) => (
                 <div key={order._id} className="px-5 py-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -177,11 +180,11 @@ export default function AdminUserDetailPage() {
           <div className="px-5 py-4 border-b border-zinc-800">
             <p className="text-sm font-bold text-white">Saved Addresses</p>
           </div>
-          {user.addresses.length === 0 ? (
+          {addresses.length === 0 ? (
             <div className="py-10 text-center text-zinc-500 text-sm">No addresses saved.</div>
           ) : (
             <div className="divide-y divide-zinc-800">
-              {user.addresses.map((addr, i) => (
+              {addresses.map((addr, i) => (
                 <div key={addr._id ?? i} className="px-5 py-4">
                   {addr.isDefault && (
                     <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-900/30 px-1.5 py-0.5 rounded mb-2 inline-block">
