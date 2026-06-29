@@ -81,6 +81,51 @@ export function jitter(min = 3000, max = 8000): Promise<void> {
   return new Promise((r) => setTimeout(r, crypto.randomInt(min, max)));
 }
 
+// Validates a batch of scraped items by checking their URLs concurrently.
+// Drops only hard 404s — 403/429/timeouts are treated as live (bot-blocked, not dead).
+export async function filterDeadUrls<T extends { sourceUrl: string }>(
+  items: T[],
+  referer: string,
+  concurrency = 8
+): Promise<T[]> {
+  const ua = sessionUA();
+  const results: T[] = [];
+
+  for (let i = 0; i < items.length; i += concurrency) {
+    const batch = items.slice(i, i + concurrency);
+    const checks = await Promise.allSettled(
+      batch.map(async (item) => {
+        try {
+          const res = await fetch(item.sourceUrl, {
+            method: 'HEAD',
+            headers: {
+              'User-Agent': ua,
+              'Accept': 'text/html,application/xhtml+xml,*/*;q=0.8',
+              'Accept-Language': 'en-IN,en;q=0.9',
+              'Referer': referer,
+            },
+            signal: AbortSignal.timeout(6000),
+            redirect: 'follow',
+          });
+          if (res.status === 404) {
+            console.log(`[url-check] dead (404): ${item.sourceUrl}`);
+            return null;
+          }
+          return item;
+        } catch {
+          return item; // timeout / network error — assume live
+        }
+      })
+    );
+    for (const r of checks) {
+      if (r.status === 'fulfilled' && r.value) results.push(r.value);
+    }
+    if (i + concurrency < items.length) await jitter(500, 1500);
+  }
+
+  return results;
+}
+
 export interface ScrapedItem {
   sourceUrl: string;
   sourceSite: 'myntra' | 'footlocker' | 'vegnonveg' | 'limitededt' | 'superkicks' | 'nike' | 'crepdogcrew';

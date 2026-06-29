@@ -1,6 +1,6 @@
 import axios from 'axios';
 import crypto from 'crypto';
-import { buildHeaders, jitter, withRetry, ScrapedItem } from './utils';
+import { buildHeaders, jitter, withRetry, filterDeadUrls, ScrapedItem } from './utils';
 
 // ── Browse API (primary) — returns products with price + available sizes ─────
 
@@ -188,7 +188,7 @@ async function scrapeBrowse(seen: Set<string>): Promise<ScrapedItem[]> {
 async function scrapeThreadFeed(seen: Set<string>): Promise<ScrapedItem[]> {
   const results: ScrapedItem[] = [];
 
-  for (let page = 0; page < 3; page++) {
+  for (let page = 0; page < 8; page++) {
     const anchor = page * PAGE_SIZE;
     try {
       const res = await withRetry(() =>
@@ -252,17 +252,17 @@ async function scrapeThreadFeed(seen: Set<string>): Promise<ScrapedItem[]> {
 export async function scrapeNikeIndia(): Promise<ScrapedItem[]> {
   const seen = new Set<string>();
 
-  // Primary: browse API (has price + sizes)
+  // Primary: browse API (has price + sizes — new-featured collection)
   const browseResults = await scrapeBrowse(seen);
   console.log(`[nike] browse total: ${browseResults.length}`);
 
-  // Fallback: thread feed if browse got nothing
-  if (browseResults.length === 0) {
-    console.log('[nike] browse returned 0, falling back to thread feed');
-    const threadResults = await scrapeThreadFeed(seen);
-    console.log(`[nike] thread feed total: ${threadResults.length}`);
-    return threadResults;
-  }
+  // Always run thread feed — covers full catalog (running, lifestyle, etc.)
+  const threadResults = await scrapeThreadFeed(seen);
+  console.log(`[nike] thread feed total: ${threadResults.length}`);
 
-  return browseResults;
+  const combined = [...browseResults, ...threadResults];
+  console.log(`[nike] validating ${combined.length} URLs (dropping 404s)...`);
+  const live = await filterDeadUrls(combined, 'https://www.nike.in');
+  console.log(`[nike] live after validation: ${live.length}`);
+  return live;
 }

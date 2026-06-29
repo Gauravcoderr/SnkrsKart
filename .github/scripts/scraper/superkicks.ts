@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { jitter, ScrapedItem } from './utils';
+import { jitter, filterDeadUrls, ScrapedItem } from './utils';
 
 const BASE = 'https://www.superkicks.in';
 
@@ -104,5 +104,8 @@ export async function scrapeSuperkicks(): Promise<ScrapedItem[]> {
     await jitter(800, 1500);
   }
 
-  return results;
+  console.log(`[superkicks] validating ${results.length} URLs (dropping 404s)...`);
+  const live = await filterDeadUrls(results, BASE);
+  console.log(`[superkicks] live after validation: ${live.length}`);
+  return live;
 }

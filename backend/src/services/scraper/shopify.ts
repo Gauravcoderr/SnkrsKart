@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { buildHeaders, jitter, withRetry, ScrapedItem } from './utils';
+import { buildHeaders, jitter, withRetry, filterDeadUrls, ScrapedItem } from './utils';
 
 interface ShopifyVariant {
   title: string;
@@ -192,9 +192,14 @@ export async function scrapeAllShopify(): Promise<ScrapedItem[]> {
 
   // Deduplicate within this run by sourceUrl
   const seen = new Set<string>();
-  return all.filter((item) => {
+  const deduped = all.filter((item) => {
     if (seen.has(item.sourceUrl)) return false;
     seen.add(item.sourceUrl);
     return true;
   });
+
+  console.log(`[shopify] validating ${deduped.length} URLs (dropping 404s)...`);
+  const live = await filterDeadUrls(deduped, 'https://www.google.com');
+  console.log(`[shopify] live after validation: ${live.length}`);
+  return live;
 }
