@@ -83,7 +83,41 @@ function mapProducts(products: MyntraProduct[], seen: Set<string>): ScrapedItem[
   return out;
 }
 
-export async function scrapeMyntra(browser: Browser): Promise<ScrapedItem[]> {
+// Puppeteer got 0 items live — Myntra's WAF serves an empty window.__myx to headless/CDP
+// sessions specifically (title stayed normal, no "access denied", just empty SSR state).
+// A plain HTTPS GET (no JS engine, no CDP fingerprint) gets the real SSR payload straight
+// through — verified live: window.__myx.searchData.results.products populated (50 items).
+async function fetchSearchHtml(url: string): Promise<string> {
+  const res = await fetch(url, {
+    headers: {
+      'User-Agent': sessionUA(),
+      'Accept-Language': 'en-IN,en;q=0.9',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Referer': 'https://www.myntra.com',
+    },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.text();
+}
+
+function extractMyxProducts(html: string): MyntraProduct[] {
+  const marker = 'window.__myx = ';
+  const start = html.indexOf(marker);
+  if (start === -1) return [];
+  const jsonStart = start + marker.length;
+  const end = html.indexOf('</script>', jsonStart);
+  if (end === -1) return [];
+  const blob = html.slice(jsonStart, end).replace(/;\s*$/, '');
+  try {
+    const myx = JSON.parse(blob) as Record<string, unknown>;
+    const results = (myx.searchData as Record<string, unknown>)?.results as Record<string, unknown>;
+    return (results?.products as MyntraProduct[]) ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function scrapeMyntra(_browser: Browser): Promise<ScrapedItem[]> {
   const results: ScrapedItem[] = [];
   const seen = new Set<string>();
 
@@ -93,79 +127,20 @@ export async function scrapeMyntra(browser: Browser): Promise<ScrapedItem[]> {
   ];
 
   for (const { url, label } of queries) {
-    const page = await browser.newPage();
     try {
-      await page.setUserAgent(sessionUA());
-      await page.setExtraHTTPHeaders({
-        'Accept-Language': 'en-IN,en;q=0.9',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Referer': 'https://www.myntra.com',
-        'DNT': '1',
-        'Upgrade-Insecure-Requests': '1',
-      });
-
-      // Intercept Myntra's search API — current pattern observed in network traffic
-      const intercepted: MyntraProduct[] = [];
-      page.on('response', async (response) => {
-        const rUrl = response.url();
-        if (
-          rUrl.includes('myntra.com') &&
-          (rUrl.includes('/gateway/v2/product/list') ||
-            rUrl.includes('/search/search') ||
-            rUrl.includes('/api/v2/catalog') ||
-            rUrl.includes('/v2/search') ||
-            (rUrl.includes('search') && rUrl.includes('json'))) &&
-          response.headers()['content-type']?.includes('json')
-        ) {
-          try {
-            const json = (await response.json()) as Record<string, unknown>;
-            const products: MyntraProduct[] =
-              ((json.searchData as Record<string, unknown>)?.results as Record<string, unknown>)?.products as MyntraProduct[] ??
-              (json.products as MyntraProduct[]) ??
-              [];
-            if (products.length > 0) {
-              intercepted.push(...products.slice(0, 50));
-              console.log(`[myntra] ${label}: intercepted ${products.length} products from ${rUrl}`);
-            }
-          } catch {
-            // non-JSON or parse fail
-          }
-        }
-      });
-
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-      await jitter(3000, 5000);
-
-      const title = await page.title();
-      if (title.toLowerCase().includes('access denied') || title.toLowerCase().includes('robot')) {
-        console.warn(`[myntra] ${label}: bot detection (title: ${title})`);
-        continue;
-      }
-
-      // Primary: read window.__myx embedded SSR state (fastest, no extra requests)
-      const ssrProducts = await page.evaluate(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const myx = (window as any).__myx;
-        return (myx?.searchData?.results?.products ?? []) as unknown[];
-      }) as MyntraProduct[];
-
-      if (ssrProducts.length > 0) {
-        const items = mapProducts(ssrProducts, seen);
+      const html = await fetchSearchHtml(url);
+      const products = extractMyxProducts(html);
+      if (products.length > 0) {
+        const items = mapProducts(products, seen);
         results.push(...items);
         console.log(`[myntra] ${label}: ${items.length} items via window.__myx`);
-      } else if (intercepted.length > 0) {
-        const items = mapProducts(intercepted, seen);
-        results.push(...items);
-        console.log(`[myntra] ${label}: ${items.length} items via intercepted API`);
       } else {
-        console.warn(`[myntra] ${label}: 0 items — window.__myx empty and no API intercept`);
+        console.warn(`[myntra] ${label}: 0 items — window.__myx empty or unparseable`);
       }
     } catch (err) {
       console.error(`[myntra] ${label} failed:`, (err as Error).message);
-    } finally {
-      await page.close();
-      await jitter(3000, 5000);
     }
+    await jitter(2000, 4000);
   }
 
   return results;

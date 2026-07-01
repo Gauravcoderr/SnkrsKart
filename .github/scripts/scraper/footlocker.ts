@@ -4,6 +4,13 @@ import { jitter, sessionUA, scrapingAntFetch, ScrapedItem } from './utils';
 
 const BASE = 'https://www.footlocker.co.in';
 
+// /en/category/shoes/{brand}.html is dead (real 404 from origin, confirmed via ScrapingAnt log).
+// Site now routes through category IDs with brand filters — verified live 2026-07.
+const CATEGORY_QUERIES = [
+  { url: `${BASE}/men/c/6823?root=topnav_1&f=brand_filter%3D11784_`, label: 'nike' },
+  { url: `${BASE}/jordan-picks/c/68782?root=nav_3&ptype=listing%2Call-brands%2Cjordan%2C1%2Cjordan`, label: 'jordan' },
+];
+
 const JORDAN_RE = /\bjordan\b|\bair jordan\b/i;
 const NIKE_RE = /\bnike\b/i;
 
@@ -73,12 +80,8 @@ function extractImages(p: FLProduct): string[] {
 // ── Primary: ScrapingAnt JS rendering (10 credits each, handles Akamai) ────────
 async function scrapeViaApi(seen: Set<string>): Promise<ScrapedItem[]> {
   const results: ScrapedItem[] = [];
-  const queries = [
-    { url: `${BASE}/en/category/shoes/nike.html`, label: 'nike' },
-    { url: `${BASE}/en/category/shoes/jordan.html`, label: 'jordan' },
-  ];
 
-  for (const { url, label } of queries) {
+  for (const { url, label } of CATEGORY_QUERIES) {
     try {
       const html = await scrapingAntFetch(url, true); // browser=true → JS rendered, 10 credits
       const $ = cheerio.load(html);
@@ -190,12 +193,7 @@ async function scrapeViaPuppeteer(browser: Browser, seen: Set<string>): Promise<
     await warmPage.close();
   }
 
-  const queries = [
-    { url: `${BASE}/en/category/shoes/nike.html`, label: 'nike' },
-    { url: `${BASE}/en/category/shoes/jordan.html`, label: 'jordan' },
-  ];
-
-  for (const { url, label } of queries) {
+  for (const { url, label } of CATEGORY_QUERIES) {
     const page = await browser.newPage();
     let intercepted: FLProduct[] = [];
 
