@@ -792,7 +792,29 @@ router.get('/scraped-products', adminAuth, async (req: Request, res: Response): 
       ScrapedProduct.find(filter).sort({ scrapedAt: -1 }).skip(skip).limit(parseInt(limit)).lean(),
       ScrapedProduct.countDocuments(filter),
     ]);
-    res.json({ items, total, page: parseInt(page), limit: parseInt(limit) });
+
+    const skus = items.map((i) => i.sku).filter((s): s is string => !!s);
+    const baseSlugs = items.map((i) => toSlug(`${i.brand}-${i.name}${i.colorway ? `-${i.colorway}` : ''}`));
+    const matchedProducts = items.length
+      ? await Product.find({
+          $or: [
+            { sku: { $in: skus } },
+            { slug: { $regex: new RegExp(`^(${baseSlugs.join('|')})(-\\d+)?$`) } },
+          ],
+        }, 'slug sku').lean()
+      : [];
+    const matchedSkus = new Set(matchedProducts.map((p) => p.sku));
+    const matchedSlugs = new Set(matchedProducts.map((p) => p.slug));
+    const itemsWithPublishState = items.map((i) => {
+      const baseSlug = toSlug(`${i.brand}-${i.name}${i.colorway ? `-${i.colorway}` : ''}`);
+      const alreadyPublished = i.status !== 'published' && (
+        (!!i.sku && matchedSkus.has(i.sku)) ||
+        Array.from(matchedSlugs).some((slug) => slug === baseSlug || slug.startsWith(`${baseSlug}-`))
+      );
+      return { ...i, alreadyPublished };
+    });
+
+    res.json({ items: itemsWithPublishState, total, page: parseInt(page), limit: parseInt(limit) });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to fetch scraped products' });
   }

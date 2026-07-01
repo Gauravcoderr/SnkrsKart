@@ -20,6 +20,7 @@ export interface ScrapedProduct {
   tags: string[];
   flags: string[];
   status: Status;
+  alreadyPublished?: boolean;
   scrapedAt: string;
   sourceListedAt?: string;
   sourceUpdatedAt?: string;

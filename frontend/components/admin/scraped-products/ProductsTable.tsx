@@ -181,7 +181,13 @@ export default function ProductsTable({ items, loading, status, onEdit, onPublis
                     {item.status === 'draft' && (
                       <>
                         <button type="button" onClick={() => onPublish(item)}
-                          className="text-xs px-2 py-1 rounded bg-white text-zinc-900 hover:bg-zinc-100 font-semibold transition-colors">
+                          disabled={item.alreadyPublished}
+                          title={item.alreadyPublished ? 'Already published' : undefined}
+                          className={`text-xs px-2 py-1 rounded font-semibold transition-colors ${
+                            item.alreadyPublished
+                              ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                              : 'bg-white text-zinc-900 hover:bg-zinc-100'
+                          }`}>
                           Publish
                         </button>
                         <button type="button" onClick={() => onReject(item._id)}
