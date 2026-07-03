@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import axios from 'axios';
 
 // Larger UA pool: Chrome (Win/Mac/Linux), Edge, Firefox, Chrome Mobile
 export const UA_POOL = [
@@ -134,6 +135,23 @@ export async function filterDeadUrls<T extends { sourceUrl: string }>(
   }
 
   return results;
+}
+
+// Fetch a URL through ScrapingAnt's residential proxy — needed for sites that
+// block datacenter IPs outright (Akamai etc). js=true renders JS before returning HTML.
+// Requires SCRAPINGANT_API_KEY in the Render env (same key used by the GitHub Actions scraper).
+export async function scrapingAntFetch(url: string, js = true): Promise<string> {
+  const apiKey = process.env.SCRAPINGANT_API_KEY;
+  if (!apiKey) throw new Error('SCRAPINGANT_API_KEY not set');
+  const res = await axios.post(
+    'https://api.scrapingant.com/v1/general',
+    { url, browser: js },
+    { headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' }, timeout: 120000 }
+  );
+  const data = res.data as string | { content?: string };
+  if (typeof data === 'string') return data;
+  if (typeof data?.content === 'string') return data.content;
+  throw new Error('Unexpected ScrapingAnt response shape');
 }
 
 export async function uploadToCloudinary(sourceImageUrl: string): Promise<string> {

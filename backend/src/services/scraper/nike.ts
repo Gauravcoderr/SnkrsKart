@@ -1,268 +1,102 @@
-import axios from 'axios';
-import crypto from 'crypto';
-import { buildHeaders, jitter, withRetry, filterDeadUrls, ScrapedItem } from './utils';
+import * as cheerio from 'cheerio';
+import { jitter, filterDeadUrls, scrapingAntFetch, ScrapedItem } from './utils';
 
-// ── Browse API (primary) — returns products with price + available sizes ─────
+const BASE = 'https://www.nike.in';
 
-const BROWSE_URL = 'https://api.nike.com/cic/browse/v2';
-
-// Collections to scrape on Nike India
-const BROWSE_PATHS = [
-  '/in/c/94475',    // nike.in new-featured / new-arrivals
+// nike.in's own commerce API (api.nike.com/cic/browse/v2) was retired — now returns a hard 404
+// (error code 310, "resource does not exist"). Its old PDP link format (/t/{slug}) is dead too;
+// nike.in's real product pages now live at /{slug}/p/{numericId} — verified live 2026-07.
+// Akamai blocks datacenter IPs outright on nike.in (403 on every direct fetch, browser or not),
+// so we go through ScrapingAnt like footlocker/vegnonveg, then scrape the rendered category
+// pages directly — the real PDP links are already embedded in the anchors, no API needed.
+const CATEGORY_PAGES = [
+  { url: `${BASE}/new-featured/c/94475`, label: 'new-featured' },
+  { url: `${BASE}/jordan-footwear/c/94044`, label: 'jordan-footwear' },
 ];
 
-interface NikeBrowseSku {
-  nikeSize?: string;
-  countInStock?: number;
-  available?: boolean;
-}
-
-interface NikeBrowseProduct {
-  id?: string;
-  title?: string;
-  subtitle?: string;
-  colorDescription?: string;
-  price?: {
-    currentPrice?: number;
-    msrp?: number;
-    currency?: string;
-    discounted?: boolean;
-  };
-  productCard?: {
-    squarishURL?: string;
-    portraitURL?: string;
-  };
-  url?: string;
-  availableSkus?: NikeBrowseSku[];
-  skus?: NikeBrowseSku[];
-  inStock?: boolean;
-  startSellDate?: string;
-  publishedDate?: string;
-}
-
-interface NikeBrowseResponse {
-  data?: {
-    products?: {
-      products?: NikeBrowseProduct[];
-      pages?: { totalResources?: number };
-    };
-  };
-}
-
-// ── Thread feed (fallback) — no price/sizes but reliable ────────────────────
-
-const THREAD_URL =
-  'https://api.nike.com/product_feed/threads/v2' +
-  '?filter=marketplace(IN)' +
-  '&filter=language(en-GB)' +
-  '&filter=channelId(d9a5bc42-4b9c-4976-858a-f159cf99c647)' +
-  '&filter=exclusiveAccess(true,false)' +
-  '&sort=effectiveStartSellDateDesc';
-
-interface NikeThread {
-  startSellDate?: string;
-  publishedContent?: {
-    properties?: {
-      title?: string;
-      subtitle?: string;
-      seo?: { slug?: string };
-      productCard?: {
-        properties?: { squarishURL?: string; portraitURL?: string };
-      };
-      publish?: { startDate?: string };
-    };
-  };
-}
-
-interface NikeThreadResponse {
-  objects?: NikeThread[];
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-
 const JORDAN_RE = /\bjordan\b|\bair jordan\b/i;
-const SHOE_RE = /shoe|sneaker|trainer|footwear|low|mid|high/i;
-const PAGE_SIZE = 48;
+const NIKE_RE = /\bnike\b/i;
+const PRICE_RE = /₹\s?([\d,]+)/;
 
-function inferGender(subtitle: string): ScrapedItem['gender'] {
-  const s = subtitle.toLowerCase();
+function detectBrand(title: string): 'Nike' | 'Jordan' | null {
+  if (JORDAN_RE.test(title)) return 'Jordan';
+  if (NIKE_RE.test(title)) return 'Nike';
+  return null;
+}
+
+function inferGender(title: string): ScrapedItem['gender'] {
+  const s = title.toLowerCase();
   if (s.includes('women')) return 'women';
   if (s.includes('kids') || s.includes('child') || s.includes('infant') || s.includes('toddler')) return 'kids';
   if (s.includes('men')) return 'men';
   return 'unisex';
 }
 
-function parseSizes(skus?: NikeBrowseSku[]): string[] {
-  if (!skus?.length) return [];
-  return skus
-    .filter((s) => s.nikeSize && (s.countInStock === undefined || s.countInStock > 0) && s.available !== false)
-    .map((s) => s.nikeSize as string)
-    .filter(Boolean);
+function parsePriceFromContext($card: cheerio.Cheerio<any>): number | undefined { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const text = $card.text();
+  const m = text.match(PRICE_RE);
+  if (!m) return undefined;
+  const n = parseInt(m[1].replace(/,/g, ''), 10);
+  return isNaN(n) || n <= 0 ? undefined : n;
 }
 
-async function scrapeBrowse(seen: Set<string>): Promise<ScrapedItem[]> {
+async function scrapeCategoryPage(url: string, label: string, seen: Set<string>): Promise<ScrapedItem[]> {
   const results: ScrapedItem[] = [];
+  const html = await scrapingAntFetch(url, true);
+  const $ = cheerio.load(html);
 
-  for (const path of BROWSE_PATHS) {
-    try {
-      const res = await withRetry(() =>
-        axios.get<NikeBrowseResponse>(BROWSE_URL, {
-          headers: {
-            ...buildHeaders('https://www.nike.com/in'),
-            'Accept': 'application/json',
-            'Origin': 'https://www.nike.com',
-            'nike-api-caller-id': 'com.nike.commerce.nikedotcom.web',
-            'Referer': `https://www.nike.com${path}`,
-          },
-          params: {
-            queryid: 'products',
-            anonymousId: crypto.randomUUID(),
-            country: 'IN',
-            language: 'en-GB',
-            localizedRangeStr: '{priceLow} - {priceHigh}',
-            count: PAGE_SIZE,
-            offset: 0,
-            pageType: '',
-            path,
-          },
-          timeout: 25000,
-        })
-      );
+  // Real PDP links match /{slug}/p/{numericId} — matching by that pattern is markup-agnostic,
+  // safer than guessing card class names we can't see from here (Akamai blocks direct inspection).
+  $('a[href*="/p/"]').each((_i, el) => {
+    const anchor = $(el);
+    const href = anchor.attr('href') ?? '';
+    if (!/\/p\/\d+/.test(href)) return;
+    const sourceUrl = href.startsWith('http') ? href : `${BASE}${href}`;
+    if (seen.has(sourceUrl)) return;
 
-      const products = res.data?.data?.products?.products ?? [];
-      console.log(`[nike] browse ${path}: ${products.length} products`);
+    const card = anchor.closest('li, article, div').length ? anchor.closest('li, article, div') : anchor;
+    const name = (anchor.attr('aria-label') ?? anchor.attr('title') ?? anchor.text() ?? card.find('img').first().attr('alt') ?? '').trim();
+    const brand = detectBrand(name);
+    if (!name || !brand) return;
 
-      for (const p of products) {
-        const title = p.title ?? '';
-        const subtitle = p.subtitle ?? '';
-        if (!title) continue;
-        if (subtitle && !SHOE_RE.test(subtitle)) continue;
+    const price = parsePriceFromContext(card);
+    const img = card.find('img').first();
+    const image = img.attr('data-src') ?? img.attr('src') ?? '';
 
-        const brand: 'Nike' | 'Jordan' = JORDAN_RE.test(title) ? 'Jordan' : 'Nike';
+    seen.add(sourceUrl);
+    results.push({
+      sourceUrl,
+      sourceSite: 'nike',
+      name,
+      brand,
+      price,
+      images: image ? [image] : [],
+      sizes: [],
+      tags: ['nike', brand.toLowerCase(), 'new-arrival'],
+      gender: inferGender(name),
+    });
+  });
 
-        // url is "/in/t/slug" — build nike.in URL by stripping /in prefix
-        const rawUrl = p.url ?? '';
-        if (!rawUrl.startsWith('/in/')) continue;
-        if (p.price?.currency && p.price.currency !== 'INR') continue;
-        // /in/t/slug → https://www.nike.in/t/slug
-        const productUrl = `https://www.nike.in${rawUrl.replace(/^\/in/, '')}`;
-        if (seen.has(productUrl)) continue;
-        seen.add(productUrl);
-
-        const imgPortrait = p.productCard?.portraitURL ?? '';
-        const imgSquare = p.productCard?.squarishURL ?? '';
-        const images = [imgPortrait, imgSquare].filter(Boolean);
-        if (images.length === 0) continue;
-
-        const price = p.price?.currentPrice;
-        const msrp = p.price?.msrp;
-        // Try availableSkus first, then all skus
-        const sizes = parseSizes(p.availableSkus?.length ? p.availableSkus : p.skus);
-
-        const listedRaw = p.startSellDate ?? p.publishedDate;
-        results.push({
-          sourceUrl: productUrl,
-          sourceSite: 'nike',
-          name: title,
-          brand,
-          price: price && price > 0 ? price : undefined,
-          originalPrice: msrp && price && msrp > price ? msrp : undefined,
-          images,
-          sizes,
-          colorway: p.colorDescription,
-          tags: ['nike', brand.toLowerCase(), 'new-arrival'],
-          gender: inferGender(subtitle),
-          sourceListedAt: listedRaw ? new Date(listedRaw) : undefined,
-        });
-      }
-    } catch (err) {
-      console.error(`[nike] browse ${path} failed:`, (err as Error).message);
-    }
-
-    await jitter(3000, 6000);
-  }
-
-  return results;
-}
-
-async function scrapeThreadFeed(seen: Set<string>): Promise<ScrapedItem[]> {
-  const results: ScrapedItem[] = [];
-
-  for (let page = 0; page < 8; page++) {
-    const anchor = page * PAGE_SIZE;
-    try {
-      const res = await withRetry(() =>
-        axios.get<NikeThreadResponse>(`${THREAD_URL}&count=${PAGE_SIZE}&anchor=${anchor}`, {
-          headers: {
-            ...buildHeaders('https://www.nike.com/in'),
-            'Accept': 'application/json',
-            'Origin': 'https://www.nike.com',
-          },
-          timeout: 20000,
-        })
-      );
-
-      const threads = res.data?.objects ?? [];
-      console.log(`[nike] thread feed page ${page + 1}: ${threads.length} threads`);
-      if (threads.length === 0) break;
-
-      for (const thread of threads) {
-        const props = thread.publishedContent?.properties;
-        if (!props?.title) continue;
-
-        const subtitle = props.subtitle ?? '';
-        if (subtitle && !SHOE_RE.test(subtitle)) continue;
-
-        const brand: 'Nike' | 'Jordan' = JORDAN_RE.test(props.title) ? 'Jordan' : 'Nike';
-        const slug = props.seo?.slug ?? '';
-        if (!slug) continue;
-
-        const productUrl = `https://www.nike.in/t/${slug}`;
-        if (seen.has(productUrl)) continue;
-        seen.add(productUrl);
-
-        const imgSquare = props.productCard?.properties?.squarishURL ?? '';
-        const imgPortrait = props.productCard?.properties?.portraitURL ?? '';
-        const images = [imgPortrait, imgSquare].filter(Boolean);
-        if (images.length === 0) continue;
-
-        const threadDateRaw = thread.startSellDate ?? props.publish?.startDate;
-        results.push({
-          sourceUrl: productUrl,
-          sourceSite: 'nike',
-          name: props.title,
-          brand,
-          images,
-          sizes: [],
-          tags: ['nike', brand.toLowerCase(), 'new-arrival'],
-          gender: inferGender(subtitle),
-          sourceListedAt: threadDateRaw ? new Date(threadDateRaw) : undefined,
-        });
-      }
-    } catch (err) {
-      console.error(`[nike] thread feed page ${page + 1} failed:`, (err as Error).message);
-    }
-
-    await jitter(3000, 7000);
-  }
-
+  console.log(`[nike] ${label}: ${results.length} items`);
   return results;
 }
 
 export async function scrapeNikeIndia(): Promise<ScrapedItem[]> {
   const seen = new Set<string>();
+  const results: ScrapedItem[] = [];
 
-  // Primary: browse API (has price + sizes — new-featured collection)
-  const browseResults = await scrapeBrowse(seen);
-  console.log(`[nike] browse total: ${browseResults.length}`);
+  for (const { url, label } of CATEGORY_PAGES) {
+    try {
+      const items = await scrapeCategoryPage(url, label, seen);
+      results.push(...items);
+    } catch (err) {
+      console.error(`[nike] ${label} failed:`, (err as Error).message);
+    }
+    await jitter(2000, 4000);
+  }
 
-  // Always run thread feed — covers full catalog (running, lifestyle, etc.)
-  const threadResults = await scrapeThreadFeed(seen);
-  console.log(`[nike] thread feed total: ${threadResults.length}`);
-
-  const combined = [...browseResults, ...threadResults];
-  console.log(`[nike] validating ${combined.length} URLs (dropping 404s)...`);
-  const live = await filterDeadUrls(combined, 'https://www.nike.in');
+  console.log(`[nike] validating ${results.length} URLs (dropping 404s)...`);
+  const live = await filterDeadUrls(results, BASE);
   console.log(`[nike] live after validation: ${live.length}`);
   return live;
 }
