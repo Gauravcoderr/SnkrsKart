@@ -286,7 +286,7 @@ export default function BlogForm({ blogId }: BlogFormProps) {
                 type="text"
                 value={form.metaTitle}
                 onChange={(e) => set('metaTitle', e.target.value)}
-                placeholder={form.title ? `${form.title} | SNKRS CART Blog` : 'Auto-generated from title'}
+                placeholder={form.title ? `${form.title} | Snkrs Cart Blog` : 'Auto-generated from title'}
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20"
               />
             </div>

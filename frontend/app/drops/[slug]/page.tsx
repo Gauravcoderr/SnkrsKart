@@ -15,14 +15,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const url = `${SITE_URL}/drops/${params.slug}`;
     const releaseDate = new Date(drop.releaseDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
     return {
-      title: { absolute: `${drop.name} Release Date India | ${releaseDate} | SNKRS CART` },
+      title: { absolute: `${drop.name} Release Date India | ${releaseDate} | Snkrs Cart` },
       description: `${drop.name} releases in India on ${releaseDate}${drop.retailPrice ? ` for ₹${drop.retailPrice.toLocaleString('en-IN')}` : ''}. ${drop.description || `Official ${drop.brand} drop — ${drop.where || 'check official channels'}.`}`,
       alternates: { canonical: url },
       openGraph: {
         title: `${drop.name} | Release ${releaseDate}`,
         description: `${drop.brand} drop releasing ${releaseDate}${drop.retailPrice ? ` — ₹${drop.retailPrice.toLocaleString('en-IN')}` : ''}.`,
         url,
-        siteName: 'SNKRS CART',
+        siteName: 'Snkrs Cart',
         type: 'website',
         ...(drop.image ? { images: [{ url: cloudinaryOgImage(drop.image), width: 1200, height: 630, alt: drop.name }] } : {}),
       },
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     };
   } catch {
-    return { title: { absolute: 'Drop | SNKRS CART' } };
+    return { title: { absolute: 'Drop | Snkrs Cart' } };
   }
 }
 

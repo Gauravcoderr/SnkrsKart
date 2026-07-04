@@ -35,7 +35,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
   const handleShare = async () => {
     const url = `${SITE_URL}/products/${product.slug}`;
-    const title = `${product.brand} ${product.name} — ${formatPrice(currentPrice)} | SNKRS CART`;
+    const title = `${product.brand} ${product.name} — ${formatPrice(currentPrice)} | Snkrs Cart`;
 
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {

@@ -3,14 +3,14 @@ import { Metadata } from 'next';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
 export const metadata: Metadata = {
-  title: { absolute: 'Contact Us | SNKRS CART' },
+  title: { absolute: 'Contact Us | Snkrs Cart' },
   description: 'Get in touch with SNKRS CART. Email, phone/WhatsApp, or visit us in Pauri Garhwal, Uttarakhand. Mon–Sat 10am–7pm IST.',
   alternates: { canonical: `${SITE_URL}/contact` },
   openGraph: {
-    title: 'Contact Us | SNKRS CART',
+    title: 'Contact Us | Snkrs Cart',
     description: 'Reach SNKRS CART by email or WhatsApp. We reply within a few hours on business days.',
     url: `${SITE_URL}/contact`,
-    siteName: 'SNKRS CART',
+    siteName: 'Snkrs Cart',
     type: 'website',
   },
 };

@@ -23,7 +23,7 @@ async function getPageContent(): Promise<SiteContent | null> {
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getPageContent();
-  const title = content?.metaTitle || 'Terms of Service | SNKRS CART';
+  const title = content?.metaTitle || 'Terms of Service | Snkrs Cart';
   const description = content?.metaDescription ||
     "Terms of Service for SNKRS CART — India's authentic sneaker store. Read about our inquiry-based purchase process, return policy, and product authenticity guarantee.";
   const ogTitle = content?.ogTitle || title;
@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     alternates: { canonical: `${SITE_URL}/terms` },
     robots: { index: true, follow: true },
-    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/terms`, siteName: 'SNKRS CART', type: 'website' },
+    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/terms`, siteName: 'Snkrs Cart', type: 'website' },
     twitter: { card: 'summary', title: ogTitle, description: ogDescription },
   };
 }

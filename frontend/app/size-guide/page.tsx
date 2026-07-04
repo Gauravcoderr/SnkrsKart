@@ -1,18 +1,18 @@
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
 export const metadata = {
-  title: { absolute: 'Sneaker Size Guide — UK, US, EU & CM | SNKRS CART' },
+  title: { absolute: 'Sneaker Size Guide — UK, US, EU & CM | Snkrs Cart' },
   description: 'Find your perfect sneaker size with the SNKRS CART size guide. UK, US, EU and CM conversions for men and women — Nike, Jordan, Adidas, New Balance & Crocs.',
   keywords: ['sneaker size guide India', 'Nike size chart India', 'Jordan size guide', 'shoe size UK US EU conversion India'],
   alternates: { canonical: `${SITE_URL}/size-guide` },
   openGraph: {
-    title: 'Sneaker Size Guide | SNKRS CART',
+    title: 'Sneaker Size Guide | Snkrs Cart',
     description: 'UK, US, EU and CM size conversions for all sneaker brands.',
     url: `${SITE_URL}/size-guide`,
-    siteName: 'SNKRS CART',
+    siteName: 'Snkrs Cart',
     type: 'website',
   },
-  twitter: { card: 'summary', title: 'Sneaker Size Guide | SNKRS CART', description: 'UK, US, EU and CM conversions for Nike, Jordan, Adidas & more.' },
+  twitter: { card: 'summary', title: 'Sneaker Size Guide | Snkrs Cart', description: 'UK, US, EU and CM conversions for Nike, Jordan, Adidas & more.' },
 };
 
 const mensData = [

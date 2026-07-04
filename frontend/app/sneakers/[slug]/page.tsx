@@ -17,26 +17,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const profile = await fetchSneakerProfileBySlug(params.slug);
     const url = `${SITE_URL}/sneakers/${params.slug}`;
     return {
-      title: { absolute: `${profile.name} Price India | Buy ${profile.brand} ${profile.name} Online | SNKRS CART` },
+      title: { absolute: `${profile.name} Price India | Buy ${profile.brand} ${profile.name} Online | Snkrs Cart` },
       description: `Buy ${profile.name} sneakers in India. ${profile.tagline ? profile.tagline + '. ' : ''}Authentic pairs, free pan-India shipping. ${profile.originalRetailPrice ? `Original retail: $${profile.originalRetailPrice}.` : ''} Shop at SNKRS CART.`,
       alternates: { canonical: url },
       openGraph: {
-        title: `${profile.name} | SNKRS CART`,
+        title: `${profile.name} | Snkrs Cart`,
         description: `Buy authentic ${profile.name} in India.`,
         url,
-        siteName: 'SNKRS CART',
+        siteName: 'Snkrs Cart',
         type: 'website',
         ...(profile.image ? { images: [{ url: cloudinaryOgImage(profile.image), width: 1200, height: 630, alt: profile.name }] } : {}),
       },
       twitter: {
         card: 'summary_large_image',
-        title: `${profile.name} | SNKRS CART`,
+        title: `${profile.name} | Snkrs Cart`,
         description: `Buy authentic ${profile.name} in India.`,
         ...(profile.image ? { images: [cloudinaryOgImage(profile.image)] } : {}),
       },
     };
   } catch {
-    return { title: { absolute: 'Sneaker | SNKRS CART' } };
+    return { title: { absolute: 'Sneaker | Snkrs Cart' } };
   }
 }
 

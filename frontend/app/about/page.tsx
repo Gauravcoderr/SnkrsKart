@@ -84,7 +84,7 @@ export async function generateMetadata(): Promise<Metadata> {
       ? content.metaKeywords.split(',').map((k) => k.trim())
       : ['about SNKRS CART', 'authentic sneakers India', 'sneaker store India', 'Nike Jordan Adidas India'],
     alternates: { canonical: `${SITE_URL}/about` },
-    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/about`, siteName: 'SNKRS CART', type: 'website' },
+    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/about`, siteName: 'Snkrs Cart', type: 'website' },
     twitter: { card: 'summary', title: ogTitle, description: ogDescription },
   };
 }

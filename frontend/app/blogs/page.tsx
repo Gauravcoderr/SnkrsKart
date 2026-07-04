@@ -11,16 +11,16 @@ const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
 export const metadata = {
-  title: { absolute: 'Sneaker Blog | SNKRS CART' },
+  title: { absolute: 'Sneaker Blog | Snkrs Cart' },
   description: "Latest sneaker news, release guides, style tips, and brand stories from SNKRS CART — India's trusted sneaker platform.",
   alternates: { canonical: `${SITE_URL}/blogs` },
   openGraph: {
-    title: 'Sneaker Blog | SNKRS CART',
+    title: 'Sneaker Blog | Snkrs Cart',
     description: 'Latest sneaker news, release guides, and style tips from SNKRS CART.',
-    url: `${SITE_URL}/blogs`, siteName: 'SNKRS CART', type: 'website',
+    url: `${SITE_URL}/blogs`, siteName: 'Snkrs Cart', type: 'website',
     images: [{ url: `${SITE_URL}/logo.png`, width: 512, height: 512, alt: 'SNKRS CART Sneaker Blog' }],
   },
-  twitter: { card: 'summary_large_image', title: 'Sneaker Blog | SNKRS CART', description: 'Latest sneaker content from SNKRS CART.', images: [`${SITE_URL}/logo.png`] },
+  twitter: { card: 'summary_large_image', title: 'Sneaker Blog | Snkrs Cart', description: 'Latest sneaker content from SNKRS CART.', images: [`${SITE_URL}/logo.png`] },
 };
 
 export default async function BlogsPage({ searchParams }: { searchParams?: { tag?: string } }) {

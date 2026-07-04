@@ -133,8 +133,8 @@ async function fetchProductsByTags(tags: string[]): Promise<Product[]> {
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const blog = await fetchBlog(params.slug);
-  if (!blog) return { title: { absolute: 'Blog | SNKRS CART' } };
-  const title = blog.metaTitle || `${blog.title} | SNKRS CART`;
+  if (!blog) return { title: { absolute: 'Blog | Snkrs Cart' } };
+  const title = blog.metaTitle || `${blog.title} | Snkrs Cart`;
   const description = blog.metaDescription || blog.excerpt || `Read "${blog.title}" on the SNKRS CART blog.`;
   const keywords = blog.metaKeywords || blog.tags.join(', ');
   const url = `${SITE_URL}/blogs/${blog.slug}`;
@@ -142,7 +142,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     title: { absolute: title }, description, keywords,
     alternates: { canonical: url },
     openGraph: {
-      title, description, url, siteName: 'SNKRS CART', type: 'article',
+      title, description, url, siteName: 'Snkrs Cart', type: 'article',
       publishedTime: blog.createdAt, modifiedTime: blog.updatedAt,
       authors: [blog.author], tags: blog.tags,
       ...(blog.coverImage ? { images: [{ url: cloudinaryOgImage(blog.coverImage), width: 1200, height: 630, alt: blog.title }] } : {}),

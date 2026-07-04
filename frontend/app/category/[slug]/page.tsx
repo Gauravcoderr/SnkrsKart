@@ -18,7 +18,7 @@ interface CategoryConfig {
 const CATEGORIES: Record<string, CategoryConfig> = {
   running: {
     label: 'Running Shoes',
-    metaTitle: 'Best Running Shoes in India | Buy Online | SNKRS CART',
+    metaTitle: 'Best Running Shoes in India | Buy Online | Snkrs Cart',
     metaDesc: 'Shop authentic running shoes in India from Nike, Adidas, New Balance & more. Performance cushioning, breathable uppers, pan-India delivery.',
     guide: 'Running shoes in India need to balance cushioning, breathability, and durability across varied terrain — from city roads to gym tracks. Look for responsive midsoles, secure heel counters, and mesh uppers that handle India\'s heat. Whether you\'re logging kilometres on Bandra\'s promenade or hitting the treadmill, the right running shoe starts with the right fit.',
     faqs: [
@@ -30,7 +30,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
   },
   basketball: {
     label: 'Basketball Shoes',
-    metaTitle: 'Basketball Shoes India | Buy Air Jordan, Nike Basketball Online | SNKRS CART',
+    metaTitle: 'Basketball Shoes India | Buy Air Jordan, Nike Basketball Online | Snkrs Cart',
     metaDesc: 'Shop authentic basketball shoes in India — Air Jordan, Nike, Adidas. Ankle support, responsive cushioning, iconic silhouettes. Free pan-India shipping.',
     guide: 'Basketball shoes are engineered for explosive lateral cuts, vertical jumps, and hard court traction. Air Jordan, Nike KD, and Adidas Harden lines bring performance from the NBA courts to your local game. High-top silhouettes offer ankle support while low-cuts prioritise speed. Today many basketball shoes cross over into streetwear — the Jordan 4 and Jordan 1 are as popular off-court as on.',
     faqs: [
@@ -42,7 +42,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
   },
   lifestyle: {
     label: 'Lifestyle Sneakers',
-    metaTitle: 'Lifestyle Sneakers India | Buy Nike, Adidas, New Balance Online | SNKRS CART',
+    metaTitle: 'Lifestyle Sneakers India | Buy Nike, Adidas, New Balance Online | Snkrs Cart',
     metaDesc: 'Shop lifestyle sneakers in India — Nike Air Force 1, Adidas Samba, New Balance 550 & more. Authentic pairs, free pan-India shipping.',
     guide: 'Lifestyle sneakers are built for all-day wear and style over sport. From the timeless Nike Air Force 1 — a basketball shoe that became the symbol of street culture — to the Adidas Samba that dominated European football pitches before owning city pavements, lifestyle sneakers carry decades of cultural weight. In India\'s sneaker scene, clean colourways and cult silhouettes rule the streets of Mumbai, Delhi, and Bengaluru.',
     faqs: [
@@ -54,7 +54,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
   },
   training: {
     label: 'Training Shoes',
-    metaTitle: 'Training Shoes India | Buy Cross-Training Shoes Online | SNKRS CART',
+    metaTitle: 'Training Shoes India | Buy Cross-Training Shoes Online | Snkrs Cart',
     metaDesc: 'Shop training shoes in India for the gym, HIIT, and cross-training. Stable flat soles, lateral support, durable construction. Free pan-India shipping.',
     guide: 'Training shoes are the unsung heroes of the gym. Unlike running shoes with their forward-propulsion cushioning, trainers feature flat, stable soles ideal for squats, deadlifts, and lateral agility work. Nike Metcon and Adidas Dropset are favourites in Indian weightlifting and CrossFit communities. A good training shoe should lock your foot in place during heavy compound lifts while still allowing explosive movement.',
     faqs: [
@@ -66,7 +66,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
   },
   men: {
     label: "Men's Sneakers",
-    metaTitle: "Men's Sneakers India | Buy Men's Nike, Jordan, Adidas Online | SNKRS CART",
+    metaTitle: "Men's Sneakers India | Buy Men's Nike, Jordan, Adidas Online | Snkrs Cart",
     metaDesc: "Shop men's sneakers in India — Nike, Jordan, Adidas, New Balance & Crocs. All sizes UK 6–12. Authentic, free pan-India shipping.",
     guide: "Men's sneakers in India span the full spectrum from performance running shoes to luxury collab drops. The staples that dominate Indian men's wardrobes: Nike Air Force 1 in white, Air Jordan 1 in Chicago colourways, Adidas Samba in OG black-and-white, and New Balance 550 in cream. Size runs are typically UK 6 to 12 — and SNKRS KART stocks authentic pairs with verified provenance.",
     faqs: [
@@ -78,7 +78,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
   },
   women: {
     label: "Women's Sneakers",
-    metaTitle: "Women's Sneakers India | Buy Women's Nike, Adidas Online | SNKRS CART",
+    metaTitle: "Women's Sneakers India | Buy Women's Nike, Adidas Online | Snkrs Cart",
     metaDesc: "Shop women's sneakers in India — Nike, Adidas, New Balance & Crocs. Authentic pairs, all sizes, free pan-India shipping.",
     guide: "Women's sneaker culture in India has surged over the past five years. From chunky New Balance 9060s to minimal Adidas Stan Smiths and the iconic Air Jordan 1 Low in exclusive women's colourways, Indian women's sneaker taste runs from clean minimalism to bold statement pieces. Sizes on SNKRS KART are listed in UK men's equivalents — women typically size down 1.5 from their usual Indian size.",
     faqs: [
@@ -90,7 +90,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
   },
   kids: {
     label: "Kids' Sneakers",
-    metaTitle: "Kids' Sneakers India | Buy Kids Nike, Jordan, Adidas Online | SNKRS CART",
+    metaTitle: "Kids' Sneakers India | Buy Kids Nike, Jordan, Adidas Online | Snkrs Cart",
     metaDesc: "Shop authentic kids' sneakers in India — Nike, Jordan, Adidas & New Balance. Durable, lightweight, free pan-India shipping.",
     guide: "Getting kids into authentic sneakers early builds an appreciation for quality and craftsmanship. Nike and Jordan make kid-specific versions of their most iconic silhouettes — lighter, more flexible, and built for active play. Adidas Superstar and Stan Smith remain perennial kids' favourites for school. Look for hook-and-loop closures for younger children and reinforced toe caps for durability.",
     faqs: [
@@ -102,7 +102,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
   },
   sale: {
     label: 'Sneakers on Sale',
-    metaTitle: 'Sneakers on Sale India | Discounted Nike, Adidas, Jordan Online | SNKRS CART',
+    metaTitle: 'Sneakers on Sale India | Discounted Nike, Adidas, Jordan Online | Snkrs Cart',
     metaDesc: 'Shop discounted sneakers in India — authentic Nike, Jordan, Adidas & New Balance on sale. Best prices, free pan-India shipping.',
     guide: "SNKRS KART's sale section features authentic discounted sneakers — same verified pairs, lower prices. Sale stock moves fast: colourways that didn't get a restock, end-of-season pairs, and sample-run sizes. Everything in this section is 100% authentic with the same quality assurance as full-price items. Grab your size before it's gone.",
     faqs: [
@@ -126,7 +126,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: { absolute: config.metaTitle },
     description: config.metaDesc,
     alternates: { canonical: url },
-    openGraph: { title: config.metaTitle, description: config.metaDesc, url, siteName: 'SNKRS CART', type: 'website' },
+    openGraph: { title: config.metaTitle, description: config.metaDesc, url, siteName: 'Snkrs Cart', type: 'website' },
   };
 }
 

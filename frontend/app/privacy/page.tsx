@@ -23,7 +23,7 @@ async function getPageContent(): Promise<SiteContent | null> {
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getPageContent();
-  const title = content?.metaTitle || 'Privacy Policy | SNKRS CART';
+  const title = content?.metaTitle || 'Privacy Policy | Snkrs Cart';
   const description = content?.metaDescription ||
     'Read the SNKRS CART privacy policy. We collect only what is needed to process your order and never sell your personal information to third parties.';
   const ogTitle = content?.ogTitle || title;
@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     alternates: { canonical: `${SITE_URL}/privacy` },
     robots: { index: true, follow: true },
-    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/privacy`, siteName: 'SNKRS CART', type: 'website' },
+    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/privacy`, siteName: 'Snkrs Cart', type: 'website' },
     twitter: { card: 'summary', title: ogTitle, description: ogDescription },
   };
 }

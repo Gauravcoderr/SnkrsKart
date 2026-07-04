@@ -29,21 +29,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     return {
       title: { absolute: lowestPrice
-        ? `${brand.name} Sneakers India — Starting ₹${lowestPrice.toLocaleString('en-IN')} | SNKRS CART`
-        : `${brand.name} Sneakers India | Buy ${brand.name} Shoes Online | SNKRS CART` },
+        ? `${brand.name} Sneakers India — Starting ₹${lowestPrice.toLocaleString('en-IN')} | Snkrs Cart`
+        : `${brand.name} Sneakers India | Buy ${brand.name} Shoes Online | Snkrs Cart` },
       description: `Shop authentic ${brand.name} sneakers in India${lowestPrice ? ` starting from ₹${lowestPrice.toLocaleString('en-IN')}` : ''}. ${brand.description || `Explore the full ${brand.name} collection — exclusive drops, classics & more.`} 100% authentic, free pan-India shipping.`,
       alternates: { canonical: url },
       openGraph: {
-        title: `${brand.name} Sneakers | SNKRS CART`,
+        title: `${brand.name} Sneakers | Snkrs Cart`,
         description: `Shop authentic ${brand.name} shoes in India.`,
         url,
-        siteName: 'SNKRS CART',
+        siteName: 'Snkrs Cart',
         type: 'website',
         images: meta?.cardImage ? [{ url: meta.cardImage, alt: `${brand.name} sneakers` }] : [],
       },
     };
   } catch {
-    return { title: { absolute: 'Brand | SNKRS CART' } };
+    return { title: { absolute: 'Brand | Snkrs Cart' } };
   }
 }
 

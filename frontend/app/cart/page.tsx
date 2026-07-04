@@ -2,7 +2,7 @@ import CartPageClient from './CartPageClient';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: { absolute: 'Your Bag | SNKRS CART' },
+  title: { absolute: 'Your Bag | Snkrs Cart' },
 };
 
 // Cart is a fully client-side page (reads from localStorage)

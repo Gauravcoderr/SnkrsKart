@@ -18,14 +18,14 @@ async function getPageContent(): Promise<SiteContent | null> {
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getPageContent();
-  const title = content?.metaTitle || 'Return & Refund Policy | SNKRS CART';
+  const title = content?.metaTitle || 'Return & Refund Policy | Snkrs Cart';
   const description = content?.metaDescription || 'SNKRS CART return policy — damaged or incorrect items eligible for replacement or full refund within 48 hours of delivery.';
   const ogTitle = content?.ogTitle || title;
   const ogDescription = content?.ogDescription || description;
   return {
     title: { absolute: title }, description,
     alternates: { canonical: `${SITE_URL}/returns` },
-    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/returns`, siteName: 'SNKRS CART', type: 'website' },
+    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/returns`, siteName: 'Snkrs Cart', type: 'website' },
   };
 }
 

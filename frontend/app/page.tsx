@@ -16,7 +16,7 @@ import type { Metadata } from 'next';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Buy Authentic Sneakers Online in India | SNKRS CART',
+  title: 'Buy Authentic Sneakers Online in India | Snkrs Cart',
   description: 'Shop Nike, Adidas, Air Jordan, New Balance & Crocs at the best prices in India. 100% authentic sneakers, fast delivery, new arrivals every week.',
   alternates: { canonical: 'https://www.snkrscart.com' },
 };

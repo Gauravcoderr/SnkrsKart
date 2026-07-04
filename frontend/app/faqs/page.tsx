@@ -27,7 +27,7 @@ async function getPageContent(): Promise<SiteContent | null> {
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getPageContent();
-  const title = content?.metaTitle || 'FAQs | SNKRS CART';
+  const title = content?.metaTitle || 'FAQs | Snkrs Cart';
   const description = content?.metaDescription ||
     "Got questions? Find answers about authenticity, ordering, payment, shipping, returns, sizing, and more at SNKRS CART — India's trusted sneaker store.";
   const ogTitle = content?.ogTitle || title;
@@ -36,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { absolute: title },
     description,
     alternates: { canonical: `${SITE_URL}/faqs` },
-    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/faqs`, siteName: 'SNKRS CART', type: 'website' },
+    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/faqs`, siteName: 'Snkrs Cart', type: 'website' },
     twitter: { card: 'summary', title: ogTitle, description: ogDescription },
   };
 }

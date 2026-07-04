@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   title: {
     default: 'SNKRS CART | Buy Authentic Sneakers, Streetwear & Accessories in India.',
-    template: '%s | SNKRS CART',
+    template: '%s | Snkrs Cart',
   },
   description:
     'Shop 100% authentic sneakers, streetwear, bags & accessories in India. Trusted reselling platform with secure packaging and fast delivery.',
@@ -49,9 +49,9 @@ export const metadata: Metadata = {
     'budget sneakers India', 'Nike shoes price in India',
     'buy cheap Adidas shoes India', 'affordable sneakers online India',
   ],
-  authors: [{ name: 'SNKRS CART', url: SITE_URL }],
-  creator: 'SNKRS CART',
-  publisher: 'SNKRS CART',
+  authors: [{ name: 'Snkrs Cart', url: SITE_URL }],
+  creator: 'Snkrs Cart',
+  publisher: 'Snkrs Cart',
   robots: {
     index: true,
     follow: true,
@@ -68,10 +68,10 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
   },
   openGraph: {
-    title: 'SNKRS CART | Buy Authentic Sneakers, Streetwear & Accessories in India.',
+    title: 'Snkrs Cart | Buy Authentic Sneakers, Streetwear & Accessories in India.',
     description: 'Shop 100% authentic sneakers, streetwear, bags & accessories in India. Trusted reselling platform with secure packaging and fast delivery.',
     url: SITE_URL,
-    siteName: 'SNKRS CART',
+    siteName: 'Snkrs Cart',
     locale: 'en_IN',
     type: 'website',
     images: [
@@ -79,13 +79,13 @@ export const metadata: Metadata = {
         url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: 'SNKRS CART | Buy Authentic Sneakers, Streetwear & Accessories in India.',
+        alt: 'Snkrs Cart | Buy Authentic Sneakers, Streetwear & Accessories in India.',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SNKRS CART | Buy Authentic Sneakers, Streetwear & Accessories in India.',
+    title: 'Snkrs Cart | Buy Authentic Sneakers, Streetwear & Accessories in India.',
     description: 'Shop 100% authentic sneakers, streetwear, bags & accessories in India. Trusted reselling platform with secure packaging and fast delivery.',
     images: [OG_IMAGE],
     creator: '@snkrs_cart',
@@ -96,7 +96,7 @@ export const metadata: Metadata = {
 const orgLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  name: 'SNKRS CART',
+  name: 'Snkrs Cart',
   url: SITE_URL,
   logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
   description: 'India\'s premium sneaker store — 100% authentic Nike, Jordan, Adidas, New Balance & Crocs.',
@@ -131,8 +131,8 @@ const orgLd = {
 const websiteLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: 'SNKRS CART',
-  alternateName: 'snkrscart',
+  name: 'Snkrs Cart',
+  alternateName: 'Snkrs Cart',
   url: SITE_URL,
   potentialAction: {
     '@type': 'SearchAction',
@@ -159,7 +159,7 @@ const siteNavLd = [
 const localBusinessLd = {
   '@context': 'https://schema.org',
   '@type': 'Store',
-  name: 'SNKRS CART',
+  name: 'Snkrs Cart',
   url: SITE_URL,
   logo: `${SITE_URL}/logo.png`,
   image: `${SITE_URL}/logo.png`,

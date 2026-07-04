@@ -6,14 +6,14 @@ import DropsClient from './DropsClient';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
 export const metadata: Metadata = {
-  title: { absolute: 'Sneaker Release Dates India 2026 | Upcoming Drops | SNKRS CART' },
+  title: { absolute: 'Sneaker Release Dates India 2026 | Upcoming Drops | Snkrs Cart' },
   description: 'Upcoming sneaker release dates in India 2026 — Nike, Jordan, Adidas & more. Official drop dates, retail prices, and where to buy. Never miss a release.',
   alternates: { canonical: `${SITE_URL}/drops` },
   openGraph: {
-    title: 'Sneaker Release Dates India 2026 | SNKRS CART',
+    title: 'Sneaker Release Dates India 2026 | Snkrs Cart',
     description: 'Upcoming sneaker drops — official release dates, prices, and where to cop in India.',
     url: `${SITE_URL}/drops`,
-    siteName: 'SNKRS CART',
+    siteName: 'Snkrs Cart',
     type: 'website',
   },
 };

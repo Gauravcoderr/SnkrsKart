@@ -5,7 +5,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com'
 const API = process.env.NEXT_PUBLIC_API_URL || 'https://snkrskart.onrender.com/api/v1';
 
 export const metadata = {
-  title: { absolute: 'Buy Authentic Sneakers Online in India | SNKRS CART' },
+  title: { absolute: 'Buy Authentic Sneakers Online in India | Snkrs Cart' },
   description: 'Shop 100% authentic Nike, Jordan, Adidas, New Balance & Crocs sneakers online in India. Free pan-India shipping. Verified pairs, no fakes — browse the full collection.',
   alternates: { canonical: `${SITE_URL}/products` },
 };

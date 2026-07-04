@@ -55,14 +55,14 @@ function normalizeTag(raw: string) {
 export async function generateMetadata({ params }: { params: { tag: string } }) {
   const tag = normalizeTag(params.tag);
   const label = tag.replace(/-/g, ' ');
-  const title = `${label.charAt(0).toUpperCase() + label.slice(1)} Sneaker Blog | SNKRS CART`;
+  const title = `${label.charAt(0).toUpperCase() + label.slice(1)} Sneaker Blog | Snkrs Cart`;
   const description = `Browse all SNKRS CART blog posts tagged "${label}" — release guides, news, and style tips.`;
   const url = `${SITE_URL}/blogs/tag/${params.tag}`;
   return {
     title: { absolute: title },
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, url, siteName: 'SNKRS CART', type: 'website' },
+    openGraph: { title, description, url, siteName: 'Snkrs Cart', type: 'website' },
     twitter: { card: 'summary_large_image', title, description },
   };
 }

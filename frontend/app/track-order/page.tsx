@@ -18,7 +18,7 @@ async function getPageContent(): Promise<SiteContent | null> {
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getPageContent();
-  const title = content?.metaTitle || 'Track My Order | SNKRS CART';
+  const title = content?.metaTitle || 'Track My Order | Snkrs Cart';
   const description = content?.metaDescription || 'Track your SNKRS CART sneaker order. Get real-time updates on your delivery status via WhatsApp and email. Typical delivery: 3–7 business days across India.';
   const ogTitle = content?.ogTitle || title;
   const ogDescription = content?.ogDescription || description;
@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { absolute: title }, description,
     alternates: { canonical: `${SITE_URL}/track-order` },
     robots: { index: true, follow: true },
-    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/track-order`, siteName: 'SNKRS CART', type: 'website' },
+    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/track-order`, siteName: 'Snkrs Cart', type: 'website' },
     twitter: { card: 'summary', title: ogTitle, description: ogDescription },
   };
 }

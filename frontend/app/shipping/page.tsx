@@ -18,14 +18,14 @@ async function getPageContent(): Promise<SiteContent | null> {
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getPageContent();
-  const title = content?.metaTitle || 'Shipping Info | Free Pan-India Delivery | SNKRS CART';
+  const title = content?.metaTitle || 'Shipping Info | Free Pan-India Delivery | Snkrs Cart';
   const description = content?.metaDescription || 'SNKRS CART ships all orders free across India in 3–7 business days. Faster delivery in Uttarakhand. Track your order anytime.';
-  const ogTitle = content?.ogTitle || 'Shipping Info | SNKRS CART';
+  const ogTitle = content?.ogTitle || 'Shipping Info | Snkrs Cart';
   const ogDescription = content?.ogDescription || 'Free pan-India shipping on all sneaker orders. 3–7 business days delivery.';
   return {
     title: { absolute: title }, description,
     alternates: { canonical: `${SITE_URL}/shipping` },
-    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/shipping`, siteName: 'SNKRS CART', type: 'website' },
+    openGraph: { title: ogTitle, description: ogDescription, url: `${SITE_URL}/shipping`, siteName: 'Snkrs Cart', type: 'website' },
     twitter: { card: 'summary', title: ogTitle, description: ogDescription },
   };
 }

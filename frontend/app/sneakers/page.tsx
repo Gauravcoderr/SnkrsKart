@@ -6,14 +6,14 @@ import SneakersClient from './SneakersClient';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
 export const metadata: Metadata = {
-  title: { absolute: 'Sneaker Guide India | All Models & History | SNKRS CART' },
+  title: { absolute: 'Sneaker Guide India | All Models & History | Snkrs Cart' },
   description: 'Explore the complete sneaker guide — Nike Air Force 1, Jordan 1, Adidas Samba, New Balance 550 & more. History, specs, and where to buy in India.',
   alternates: { canonical: `${SITE_URL}/sneakers` },
   openGraph: {
-    title: 'Sneaker Guide India | SNKRS CART',
+    title: 'Sneaker Guide India | Snkrs Cart',
     description: 'The complete guide to every iconic sneaker model — history, specs, and where to buy in India.',
     url: `${SITE_URL}/sneakers`,
-    siteName: 'SNKRS CART',
+    siteName: 'Snkrs Cart',
     type: 'website',
   },
 };

@@ -44,8 +44,8 @@ export async function generateMetadata({ params }: PageProps) {
     const discountNote = hasDiscount
       ? `${Math.round(((origPrice - product.price) / origPrice) * 100)}% off`
       : 'best price guaranteed';
-    const title = `${product.brand} ${product.name} | Buy in India | SNKRS CART`;
-    const description = `Buy ${product.brand} ${product.name} for ₹${product.price.toLocaleString('en-IN')} (${discountNote}). 100% authentic ${product.brand} shoes in India — pan-India shipping. | SNKRS CART`;
+    const title = `${product.brand} ${product.name} | Buy in India | Snkrs Cart`;
+    const description = `Buy ${product.brand} ${product.name} for ₹${product.price.toLocaleString('en-IN')} (${discountNote}). 100% authentic ${product.brand} shoes in India — pan-India shipping. | Snkrs Cart`;
     const url = `${SITE_URL}/products/${params.slug}`;
     const ogImage = cloudinaryOgImage(product.images?.[0] || '');
 
@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: PageProps) {
         title,
         description,
         url,
-        siteName: 'SNKRS CART',
+        siteName: 'Snkrs Cart',
         type: 'website',
         ...(ogImage ? { images: [{ url: ogImage, width: 1200, height: 630, alt: title }] } : {}),
       },
@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: PageProps) {
     };
   } catch {
     return {
-      title: 'Sneakers | SNKRS CART',
+      title: 'Sneakers | Snkrs Cart',
       description: 'Buy 100% authentic sneakers in India — Nike, Jordan, Adidas, New Balance. Pan-India shipping.',
       alternates: { canonical: `${SITE_URL}/products/${params.slug}` },
     };
