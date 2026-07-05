@@ -8,9 +8,9 @@ import { Blog } from '../models/Blog';
 async function main() {
   await mongoose.connect(process.env.MONGODB_URI as string);
   const slugs = [
-    'hidden-ny-asics-gel-kinetic-2-2026',
-    'new-balance-niobium-concept-1-tokyo-2026',
-    'nike-air-max-95-konbini-pack-2026',
+    'nike-air-zoom-flight-the-glove-india-2026',
+    'vans-old-skool-souvenir-india-2026',
+    'indian-sneaker-festival-gurugram-2026',
   ];
   const blogs = await Blog.find({ slug: { $in: slugs }, published: true }).lean();
   if (!blogs.length) { console.log('No published blogs found'); process.exit(0); }

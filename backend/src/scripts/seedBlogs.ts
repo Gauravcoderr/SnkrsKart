@@ -28,6 +28,7 @@ const blogs = [
   // ronaldo-cr7-mercurial-gold-six-world-cups-2026, messi-f50-el-ultimo-tango-farewell-boot-2026, skechers-reebok-world-cup-2026-underdogs — seeded 2026-06-26
   // air-jordan-7-miro-barcelona-2026, kith-new-balance-2011-ronnie-fieg-2026, air-jordan-3-true-blue-2026 — seeded 2026-06-29
   // hidden-ny-asics-gel-kinetic-2-2026, new-balance-niobium-concept-1-tokyo-2026, nike-air-max-95-konbini-pack-2026 — seeded 2026-07-01
+  // nike-air-zoom-flight-the-glove-india-2026, vans-old-skool-souvenir-india-2026, indian-sneaker-festival-gurugram-2026 — seeded 2026-07-06
 ];
 
 async function seed() {
