@@ -14,7 +14,10 @@ import { LoyaltyAccount } from '@/types';
 
 declare global {
   interface Window {
-    Razorpay: new (options: Record<string, unknown>) => { open(): void };
+    Razorpay: new (options: Record<string, unknown>) => {
+      open(): void;
+      on(event: 'payment.failed', handler: (response: { error: { description?: string; reason?: string } }) => void): void;
+    };
   }
 }
 
@@ -331,6 +334,14 @@ export default function CheckoutPage() {
     }
   }
 
+  function reportRazorpayFailure(orderId: string, reason?: string) {
+    fetch(`${BASE_URL}/orders/razorpay/failed`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, reason }),
+    }).catch(() => {});
+  }
+
   async function handleRazorpayCheckout(data: Record<string, any>, confirmBase: string) {
     const rzp = new window.Razorpay({
       key: data.razorpayKeyId,
@@ -369,10 +380,16 @@ export default function CheckoutPage() {
       },
       modal: {
         ondismiss: () => {
+          reportRazorpayFailure(data.orderId, 'Customer dismissed checkout');
           setError('Payment cancelled. You can try again.');
           setLoading(false);
         },
       },
+    });
+    rzp.on('payment.failed', (response) => {
+      reportRazorpayFailure(data.orderId, response.error?.reason || response.error?.description);
+      setError(`Payment failed: ${response.error?.description || 'Please try again.'}`);
+      setLoading(false);
     });
     rzp.open();
   }

@@ -130,6 +130,35 @@ function sendPaymentConfirmedEmail(order: IOrder, siteUrl: string) {
   });
 }
 
+function sendAdminPaymentFailedEmail(order: IOrder, siteUrl: string, paymentMode: string, reason?: string) {
+  const storeEmail = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.GMAIL_USER || 'infosnkrscart@gmail.com';
+  sendMail({
+    to: storeEmail,
+    subject: `⚠️ Payment Failed — ${order.orderNumber} — ₹${order.total.toLocaleString('en-IN')} — ${order.name}`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;color:#111;">
+        <div style="background:#111;padding:16px 24px;text-align:center;">
+          <img src="${siteUrl}/logo.jpg" alt="SNKRS CART" style="height:48px;width:auto;" />
+        </div>
+        <div style="padding:24px;">
+          <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:16px;margin-bottom:20px;">
+            <p style="font-size:14px;color:#991b1b;font-weight:bold;margin:0;">Payment failed via ${paymentMode.charAt(0).toUpperCase() + paymentMode.slice(1)}${reason ? ` — ${reason}` : ''}</p>
+          </div>
+          <p style="font-size:16px;font-weight:bold;margin-top:0;">Order ${order.orderNumber} — no payment received</p>
+          <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px;">
+            <tr><td style="padding:6px 0;color:#666;width:120px;">Customer</td><td style="padding:6px 0;font-weight:bold;">${order.name}</td></tr>
+            <tr><td style="padding:6px 0;color:#666;">Email</td><td style="padding:6px 0;"><a href="mailto:${order.email}">${order.email}</a></td></tr>
+            <tr><td style="padding:6px 0;color:#666;">Phone</td><td style="padding:6px 0;"><a href="tel:${order.phone}">${order.phone}</a></td></tr>
+            <tr><td style="padding:6px 0;color:#666;">Total</td><td style="padding:6px 0;font-weight:bold;">₹${order.total.toLocaleString('en-IN')}</td></tr>
+          </table>
+          <p style="font-size:13px;color:#666;">Customer likely dropped off or the payment was declined. No action needed unless they report an issue — order stays in the queue as unpaid.</p>
+          <a href="${siteUrl}/admin/orders" style="display:inline-block;margin-top:12px;background:#111;color:#fff;padding:10px 20px;text-decoration:none;font-size:13px;font-weight:bold;border-radius:6px;">View in Admin Panel →</a>
+        </div>
+      </div>
+    `,
+  });
+}
+
 const SHIPPING_THRESHOLD = 3000;
 const SHIPPING_COST = 199;
 
@@ -174,6 +203,7 @@ router.post('/cashfree/webhook', async (req: Request, res: Response) => {
     } else if (paymentStatus === 'FAILED' && order.paymentStatus === 'pending') {
       order.paymentStatus = 'failed';
       await order.save();
+      sendAdminPaymentFailedEmail(order, siteUrl, 'cashfree');
     }
 
     res.status(200).json({ received: true });
@@ -218,6 +248,30 @@ router.post('/razorpay/verify', async (req: Request, res: Response) => {
   } catch (err) {
     console.error('Razorpay verify error:', err);
     res.status(500).json({ error: 'Verification failed' });
+  }
+});
+
+// POST /api/v1/orders/razorpay/failed — Razorpay has no server webhook wired up,
+// so the checkout page reports payment.failed / modal dismissal here directly.
+router.post('/razorpay/failed', async (req: Request, res: Response) => {
+  try {
+    const { orderId, reason } = req.body;
+    if (!orderId) { res.status(400).json({ error: 'orderId required' }); return; }
+
+    const order = await Order.findById(orderId);
+    if (!order) { res.status(200).json({ received: true }); return; }
+
+    if (order.paymentStatus === 'pending') {
+      order.paymentStatus = 'failed';
+      await order.save();
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+      sendAdminPaymentFailedEmail(order, siteUrl, 'razorpay', typeof reason === 'string' ? reason.slice(0, 200) : undefined);
+    }
+
+    res.status(200).json({ received: true });
+  } catch (err) {
+    console.error('Razorpay failed-report error:', err);
+    res.status(200).json({ received: true });
   }
 });
 
