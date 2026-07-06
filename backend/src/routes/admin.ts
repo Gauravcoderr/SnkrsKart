@@ -70,6 +70,21 @@ function toSlug(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
+// Collapses adjacent duplicate words (e.g. scraped titles already starting with
+// the brand name turn "jordan-jordan-nike-..." into "jordan-nike-...").
+function dedupeSlugWords(slug: string): string {
+  const parts = slug.split('-');
+  const out: string[] = [];
+  for (const p of parts) {
+    if (out[out.length - 1] !== p) out.push(p);
+  }
+  return out.join('-');
+}
+
+function buildProductSlug(text: string): string {
+  return dedupeSlugWords(toSlug(text));
+}
+
 // List all products (admin view - no pagination limit)
 router.get('/products', adminAuth, async (_req: Request, res: Response): Promise<void> => {
   try {
@@ -89,9 +104,9 @@ router.post('/products', adminAuth, async (req: Request, res: Response): Promise
       return;
     }
 
-    if (!data.slug) {
-      data.slug = toSlug(`${data.brand}-${data.name}-${data.colorway || ''}`);
-    }
+    data.slug = data.slug
+      ? buildProductSlug(data.slug)
+      : buildProductSlug(`${data.brand}-${data.name}-${data.colorway || ''}`);
 
     const existing = await Product.findOne({ slug: data.slug }).lean();
     if (existing) {
@@ -122,6 +137,14 @@ router.post('/products', adminAuth, async (req: Request, res: Response): Promise
 router.put('/products/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const update = { ...req.body };
+    if (update.slug) {
+      update.slug = buildProductSlug(update.slug);
+      const dup = await Product.findOne({ slug: update.slug, _id: { $ne: req.params.id } }).lean();
+      if (dup) {
+        res.status(409).json({ error: 'Product with this slug already exists' });
+        return;
+      }
+    }
     if (update.soldOut === true) {
       update.availableSizes = [];
       update.availableStringSizes = [];
@@ -1007,7 +1030,7 @@ router.post('/scraped-products/:id/publish', adminAuth, async (req: Request, res
     }
 
     // Generate unique slug
-    let slug = toSlug(`${scraped.brand}-${scraped.name}${scraped.colorway ? `-${scraped.colorway}` : ''}`);
+    let slug = buildProductSlug(`${scraped.brand}-${scraped.name}${scraped.colorway ? `-${scraped.colorway}` : ''}`);
     const baseSlug = slug;
     let suffix = 2;
     while (await Product.exists({ slug })) {
