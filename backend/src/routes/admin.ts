@@ -787,19 +787,23 @@ router.get('/scraped-products', adminAuth, async (req: Request, res: Response): 
     }
     const { flags } = req.query as Record<string, string>;
     if (flags) filter.flags = { $in: flags.split(',').map((f) => f.trim()).filter(Boolean) };
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 20));
+    const skip = (pageNum - 1) * limitNum;
     const [items, total] = await Promise.all([
-      ScrapedProduct.find(filter).sort({ scrapedAt: -1 }).skip(skip).limit(parseInt(limit)).lean(),
+      ScrapedProduct.find(filter).sort({ scrapedAt: -1 }).skip(skip).limit(limitNum).lean(),
       ScrapedProduct.countDocuments(filter),
     ]);
 
     const skus = items.map((i) => i.sku).filter((s): s is string => !!s);
     const baseSlugs = items.map((i) => toSlug(`${i.brand}-${i.name}${i.colorway ? `-${i.colorway}` : ''}`));
+    // One regex per slug (not a single joined pattern) — a giant OR'd regex string here
+    // once overflowed the Atlas proxy's read buffer ("bufio: buffer full") at limit=100.
     const matchedProducts = items.length
       ? await Product.find({
           $or: [
             { sku: { $in: skus } },
-            { slug: { $regex: new RegExp(`^(${baseSlugs.join('|')})(-\\d+)?$`) } },
+            { slug: { $in: baseSlugs.map((s) => new RegExp(`^${s}(-\\d+)?$`)) } },
           ],
         }, 'slug sku').lean()
       : [];
@@ -814,7 +818,7 @@ router.get('/scraped-products', adminAuth, async (req: Request, res: Response): 
       return { ...i, alreadyPublished };
     });
 
-    res.json({ items: itemsWithPublishState, total, page: parseInt(page), limit: parseInt(limit) });
+    res.json({ items: itemsWithPublishState, total, page: pageNum, limit: limitNum });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to fetch scraped products' });
   }
