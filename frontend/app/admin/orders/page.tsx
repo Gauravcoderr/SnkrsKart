@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { getTrackingUrl } from '@/lib/tracking';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -14,11 +15,13 @@ interface OrderItem {
   qty: number;
   price: number;
   image: string;
+  slug?: string;
 }
 
 interface Order {
   _id: string;
   orderNumber: string;
+  userId?: string | null;
   name: string;
   email: string;
   phone: string;
@@ -269,10 +272,20 @@ export default function AdminOrdersPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-sm font-semibold text-white truncate">{order.name}</p>
+                      {order.userId ? (
+                        <Link
+                          href={`/admin/users/${order.userId}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-sm font-semibold text-white hover:underline break-words"
+                        >
+                          {order.name}
+                        </Link>
+                      ) : (
+                        <p className="text-sm font-semibold text-white break-words">{order.name}</p>
+                      )}
                       <p className="text-xs text-zinc-500 truncate">{order.email} · {order.phone}</p>
                       <p className="text-xs text-zinc-500 mt-0.5">
-                        {order.items.length} item{order.items.length !== 1 ? 's' : ''} · {order.city}, {order.state}
+                        {order.items.map((it) => `UK ${it.size}`).join(', ')} · {order.city}, {order.state}
                       </p>
                     </div>
                     <div className="text-right shrink-0">
@@ -296,7 +309,13 @@ export default function AdminOrdersPage() {
             <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
               <div>
                 <p className="text-xs text-zinc-500">{selected.orderNumber}</p>
-                <p className="text-sm font-bold text-white">{selected.name}</p>
+                {selected.userId ? (
+                  <Link href={`/admin/users/${selected.userId}`} className="text-sm font-bold text-white hover:underline">
+                    {selected.name}
+                  </Link>
+                ) : (
+                  <p className="text-sm font-bold text-white">{selected.name}</p>
+                )}
                 <div className="flex items-center gap-1.5 mt-1">
                   {selected.paymentStatus !== 'paid' && (
                     <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded ${PAYMENT_STATUS_COLORS[selected.paymentStatus]}`}>
@@ -342,6 +361,13 @@ export default function AdminOrdersPage() {
               {/* Contact */}
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">Customer</p>
+                {selected.userId ? (
+                  <Link href={`/admin/users/${selected.userId}`} className="text-xs font-semibold text-white hover:underline">
+                    {selected.name}
+                  </Link>
+                ) : (
+                  <p className="text-xs font-semibold text-white">{selected.name}</p>
+                )}
                 <p className="text-xs text-zinc-300">{selected.email}</p>
                 <p className="text-xs text-zinc-300">{selected.phone}</p>
                 <p className="text-xs text-zinc-400 mt-1">{selected.addressLine}, {selected.city}, {selected.state} — {selected.pincode}</p>
@@ -352,8 +378,22 @@ export default function AdminOrdersPage() {
                 <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">Items</p>
                 <div className="space-y-2">
                   {selected.items.map((item, i) => (
-                    <div key={i} className="flex justify-between text-xs">
-                      <span className="text-zinc-300 truncate">{item.brand} {item.name} — UK {item.size} × {item.qty}</span>
+                    <div key={i} className="flex justify-between items-start gap-2 text-xs">
+                      <div className="min-w-0">
+                        {item.slug ? (
+                          <Link
+                            href={`/products/${item.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-zinc-300 hover:text-white hover:underline truncate block"
+                          >
+                            {item.brand} {item.name}
+                          </Link>
+                        ) : (
+                          <span className="text-zinc-300 truncate block">{item.brand} {item.name}</span>
+                        )}
+                        <span className="text-zinc-500">UK {item.size} × {item.qty}</span>
+                      </div>
                       <span className="text-zinc-400 shrink-0 ml-2">₹{(item.price * item.qty).toLocaleString('en-IN')}</span>
                     </div>
                   ))}
