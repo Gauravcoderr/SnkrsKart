@@ -6,9 +6,13 @@ const BASE = 'https://www.footlocker.co.in';
 
 // /en/category/shoes/{brand}.html is dead (real 404 from origin, confirmed via ScrapingAnt log).
 // Site now routes through category IDs with brand filters — verified live 2026-07.
+// category_filter=6864_ = Shoes (facet id confirmed sitewide, works on both the
+// nike designer page and the jordan-picks page). Without it these queries pulled
+// ANY Nike/Jordan-branded item — T-shirts, joggers, caps — since brand-name regex
+// alone doesn't distinguish footwear from apparel.
 const CATEGORY_QUERIES = [
-  { url: `${BASE}/men/c/6823?root=topnav_1&f=brand_filter%3D11784_`, label: 'nike' },
-  { url: `${BASE}/jordan-picks/c/68782?root=nav_3&ptype=listing%2Call-brands%2Cjordan%2C1%2Cjordan`, label: 'jordan' },
+  { url: `${BASE}/designers/nike/c/11784?root=nav_3&ptype=listing%2Call-brands%2Cnike%2C1%2Cnike&f=category_filter%3D6864_`, label: 'nike' },
+  { url: `${BASE}/jordan-picks/c/68782?root=nav_3&ptype=listing%2Call-brands%2Cjordan%2C1%2Cjordan&f=gender_filter%3D5197_%3Bcategory_filter%3D6864_`, label: 'jordan' },
 ];
 
 const JORDAN_RE = /\bjordan\b|\bair jordan\b/i;
