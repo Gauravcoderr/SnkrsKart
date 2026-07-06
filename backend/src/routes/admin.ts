@@ -31,6 +31,8 @@ import { Drop } from '../models/Drop';
 import { SiteContent } from '../models/SiteContent';
 import { Coupon } from '../models/Coupon';
 import { sendProductLaunchBlast, sendBlogPublishBlast, sendCustomBlast } from '../lib/marketingEmails';
+import { sendMail } from '../lib/mailer';
+import { IOrder } from '../models/Order';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET as string;
@@ -377,6 +379,36 @@ router.delete('/blogs/:id', adminAuth, async (req: Request, res: Response): Prom
 
 // ─── Orders ────────────────────────────────────────────────────────────────
 
+function sendOrderCancelledEmail(order: IOrder, siteUrl: string, reason?: string) {
+  sendMail({
+    to: order.email,
+    subject: `Order Cancelled — ${order.orderNumber} | SNKRS CART`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
+        <div style="background:#111;padding:20px 32px;text-align:center;">
+          <img src="${siteUrl}/logo.jpg" alt="SNKRS CART" style="height:56px;width:auto;" />
+        </div>
+        <div style="padding:32px;">
+          <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:20px;margin-bottom:24px;text-align:center;">
+            <p style="font-size:13px;color:#991b1b;font-weight:bold;margin:0 0 4px;">Order Cancelled</p>
+            <p style="font-size:22px;font-weight:bold;color:#111;margin:0;">${order.orderNumber}</p>
+          </div>
+          <p style="font-size:16px;font-weight:bold;margin-top:0;">Hi ${order.name},</p>
+          <p style="color:#444;">Your order <strong>${order.orderNumber}</strong> for ₹${order.total.toLocaleString('en-IN')} has been cancelled.</p>
+          ${reason ? `
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;margin:16px 0;">
+            <p style="font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin:0 0 4px;">Reason</p>
+            <p style="font-size:14px;color:#111;margin:0;">${reason}</p>
+          </div>` : ''}
+          <p style="color:#444;">If any payment was made for this order, it will be refunded to your original payment method within 5–7 business days. If you have questions, reply to this email or reach out via our support channels.</p>
+          <p style="color:#888;font-size:12px;margin-top:32px;"><a href="${siteUrl}/account/orders" style="color:#888;">View your orders</a></p>
+          <p style="color:#888;font-size:12px;">— SNKRS CART Team</p>
+        </div>
+      </div>
+    `,
+  });
+}
+
 router.get('/orders', adminAuth, async (_req: Request, res: Response): Promise<void> => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 }).lean();
@@ -399,13 +431,13 @@ router.get('/orders/:id', adminAuth, async (req: Request, res: Response): Promis
 router.put('/orders/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const { status, trackingNumber, deliveryService, notes, cancelReason } = req.body;
+    const existing = await Order.findById(req.params.id).select('status deliveredAt').lean();
+    if (!existing) { res.status(404).json({ error: 'Order not found' }); return; }
+
     const update: Record<string, unknown> = {};
     if (status) {
       update.status = status;
-      if (status === 'delivered') {
-        const existing = await Order.findById(req.params.id).select('deliveredAt').lean();
-        if (existing && !existing.deliveredAt) update.deliveredAt = new Date();
-      }
+      if (status === 'delivered' && !existing.deliveredAt) update.deliveredAt = new Date();
     }
     if (trackingNumber !== undefined) update.trackingNumber = trackingNumber;
     if (deliveryService !== undefined) update.deliveryService = deliveryService;
@@ -413,6 +445,12 @@ router.put('/orders/:id', adminAuth, async (req: Request, res: Response): Promis
     if (cancelReason !== undefined) update.cancelReason = cancelReason;
     const order = await Order.findByIdAndUpdate(req.params.id, { $set: update }, { returnDocument: 'after', runValidators: true });
     if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
+
+    if (status === 'cancelled' && existing.status !== 'cancelled') {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
+      sendOrderCancelledEmail(order, siteUrl, cancelReason || order.cancelReason || undefined);
+    }
+
     res.json(order);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to update order' });

@@ -297,11 +297,39 @@ export default function AdminOrdersPage() {
               <div>
                 <p className="text-xs text-zinc-500">{selected.orderNumber}</p>
                 <p className="text-sm font-bold text-white">{selected.name}</p>
-                {selected.paymentStatus !== 'paid' && (
-                  <span className={`inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded ${PAYMENT_STATUS_COLORS[selected.paymentStatus]}`}>
-                    {PAYMENT_STATUS_LABELS[selected.paymentStatus].toUpperCase()}
-                  </span>
-                )}
+                <div className="flex items-center gap-1.5 mt-1">
+                  {selected.paymentStatus !== 'paid' && (
+                    <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded ${PAYMENT_STATUS_COLORS[selected.paymentStatus]}`}>
+                      {PAYMENT_STATUS_LABELS[selected.paymentStatus].toUpperCase()}
+                    </span>
+                  )}
+                  {selected.status === 'cancelled' && selected.cancelReason && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      title={selected.cancelReason}
+                      onClick={() => setReasonModal({ title: 'Cancellation Reason', text: selected.cancelReason! })}
+                      className="text-zinc-500 hover:text-zinc-300 cursor-pointer"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8-1.17 0-2.29-.196-3.32-.554L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    </span>
+                  )}
+                  {selected.paymentStatus === 'failed' && selected.paymentFailureReason && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      title={selected.paymentFailureReason}
+                      onClick={() => setReasonModal({ title: 'Payment Failure Reason', text: selected.paymentFailureReason! })}
+                      className="text-red-500/70 hover:text-red-400 cursor-pointer"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8-1.17 0-2.29-.196-3.32-.554L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    </span>
+                  )}
+                </div>
               </div>
               <button onClick={() => setSelected(null)} className="text-zinc-500 hover:text-white transition-colors">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -311,28 +339,6 @@ export default function AdminOrdersPage() {
             </div>
 
             <div className="px-5 py-4 space-y-4">
-              {selected.status === 'cancelled' && selected.cancelReason && (
-                <div className="flex items-start gap-2 bg-red-900/20 border border-red-900/40 rounded-lg px-3 py-2">
-                  <svg className="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8-1.17 0-2.29-.196-3.32-.554L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-red-400">Cancellation Reason</p>
-                    <p className="text-xs text-red-200 mt-0.5">{selected.cancelReason}</p>
-                  </div>
-                </div>
-              )}
-              {selected.paymentStatus === 'failed' && selected.paymentFailureReason && (
-                <div className="flex items-start gap-2 bg-red-900/20 border border-red-900/40 rounded-lg px-3 py-2">
-                  <svg className="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8-1.17 0-2.29-.196-3.32-.554L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-red-400">Payment Failure Reason</p>
-                    <p className="text-xs text-red-200 mt-0.5">{selected.paymentFailureReason}</p>
-                  </div>
-                </div>
-              )}
               {/* Contact */}
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">Customer</p>

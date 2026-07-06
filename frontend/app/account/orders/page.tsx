@@ -77,6 +77,7 @@ interface Order {
   status: string;
   trackingNumber?: string;
   deliveryService?: string;
+  cancelReason?: string;
   createdAt: string;
 }
 
@@ -87,17 +88,22 @@ const STEP_COLORS = [
   { filled: 'bg-emerald-500 ring-emerald-500/25',line: 'bg-emerald-400',  label: 'text-emerald-600' },
 ];
 
-function StatusStepper({ status, compact = false }: { status: string; compact?: boolean }) {
+function StatusStepper({ status, cancelReason, compact = false }: { status: string; cancelReason?: string; compact?: boolean }) {
   const stepIdx = STEP_INDEX[status] ?? 0;
   if (status === 'cancelled') {
     return (
-      <div className="flex items-center gap-2 py-1">
-        <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-          <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+      <div className="py-1">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <span className="text-sm font-bold text-red-600">Order Cancelled</span>
         </div>
-        <span className="text-sm font-bold text-red-600">Order Cancelled</span>
+        {cancelReason && (
+          <p className="text-xs text-zinc-500 mt-1.5 ml-10">Reason: {cancelReason}</p>
+        )}
       </div>
     );
   }
@@ -213,7 +219,7 @@ function OrderCard({ order, onViewDetails }: { order: Order; onViewDetails: (o: 
               {formatPrice(order.total)}
             </p>
           </div>
-          <StatusStepper status={order.status} compact />
+          <StatusStepper status={order.status} cancelReason={order.cancelReason} compact />
         </div>
       </div>
     </div>
@@ -260,12 +266,12 @@ function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
           </div>
           {order.status !== 'cancelled' && (
             <div className="bg-white/5 rounded-xl p-4 mt-2">
-              <StatusStepper status={order.status} />
+              <StatusStepper status={order.status} cancelReason={order.cancelReason} />
             </div>
           )}
           {order.status === 'cancelled' && (
             <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 mt-2">
-              <StatusStepper status={order.status} />
+              <StatusStepper status={order.status} cancelReason={order.cancelReason} />
             </div>
           )}
         </div>
