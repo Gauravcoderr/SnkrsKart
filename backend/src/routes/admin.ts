@@ -398,7 +398,7 @@ router.get('/orders/:id', adminAuth, async (req: Request, res: Response): Promis
 
 router.put('/orders/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { status, trackingNumber, deliveryService, notes } = req.body;
+    const { status, trackingNumber, deliveryService, notes, cancelReason } = req.body;
     const update: Record<string, unknown> = {};
     if (status) {
       update.status = status;
@@ -410,6 +410,7 @@ router.put('/orders/:id', adminAuth, async (req: Request, res: Response): Promis
     if (trackingNumber !== undefined) update.trackingNumber = trackingNumber;
     if (deliveryService !== undefined) update.deliveryService = deliveryService;
     if (notes !== undefined) update.notes = notes;
+    if (cancelReason !== undefined) update.cancelReason = cancelReason;
     const order = await Order.findByIdAndUpdate(req.params.id, { $set: update }, { returnDocument: 'after', runValidators: true });
     if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
     res.json(order);

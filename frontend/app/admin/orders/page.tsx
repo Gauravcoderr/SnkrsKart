@@ -35,6 +35,8 @@ interface Order {
   trackingNumber: string;
   deliveryService?: string;
   notes: string;
+  cancelReason?: string;
+  paymentFailureReason?: string;
   createdAt: string;
 }
 
@@ -81,7 +83,8 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Order | null>(null);
   const [updating, setUpdating] = useState(false);
-  const [updateForm, setUpdateForm] = useState({ status: '', trackingNumber: '', deliveryService: '', notes: '' });
+  const [updateForm, setUpdateForm] = useState({ status: '', trackingNumber: '', deliveryService: '', notes: '', cancelReason: '' });
+  const [reasonModal, setReasonModal] = useState<{ title: string; text: string } | null>(null);
   const [filterStatus, setFilterStatus] = useState('all');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -109,7 +112,7 @@ export default function AdminOrdersPage() {
 
   function openOrder(order: Order) {
     setSelected(order);
-    setUpdateForm({ status: order.status, trackingNumber: order.trackingNumber || '', deliveryService: order.deliveryService || '', notes: order.notes || '' });
+    setUpdateForm({ status: order.status, trackingNumber: order.trackingNumber || '', deliveryService: order.deliveryService || '', notes: order.notes || '', cancelReason: order.cancelReason || '' });
   }
 
   async function handleUpdate() {
@@ -239,6 +242,32 @@ export default function AdminOrdersPage() {
                             {PAYMENT_STATUS_LABELS[order.paymentStatus].toUpperCase()}
                           </span>
                         )}
+                        {order.status === 'cancelled' && order.cancelReason && (
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            title={order.cancelReason}
+                            onClick={(e) => { e.stopPropagation(); setReasonModal({ title: 'Cancellation Reason', text: order.cancelReason! }); }}
+                            className="text-zinc-500 hover:text-zinc-300 shrink-0 cursor-pointer"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8-1.17 0-2.29-.196-3.32-.554L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                          </span>
+                        )}
+                        {order.paymentStatus === 'failed' && order.paymentFailureReason && (
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            title={order.paymentFailureReason}
+                            onClick={(e) => { e.stopPropagation(); setReasonModal({ title: 'Payment Failure Reason', text: order.paymentFailureReason! }); }}
+                            className="text-red-500/70 hover:text-red-400 shrink-0 cursor-pointer"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8-1.17 0-2.29-.196-3.32-.554L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm font-semibold text-white truncate">{order.name}</p>
                       <p className="text-xs text-zinc-500 truncate">{order.email} · {order.phone}</p>
@@ -282,6 +311,28 @@ export default function AdminOrdersPage() {
             </div>
 
             <div className="px-5 py-4 space-y-4">
+              {selected.status === 'cancelled' && selected.cancelReason && (
+                <div className="flex items-start gap-2 bg-red-900/20 border border-red-900/40 rounded-lg px-3 py-2">
+                  <svg className="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8-1.17 0-2.29-.196-3.32-.554L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-red-400">Cancellation Reason</p>
+                    <p className="text-xs text-red-200 mt-0.5">{selected.cancelReason}</p>
+                  </div>
+                </div>
+              )}
+              {selected.paymentStatus === 'failed' && selected.paymentFailureReason && (
+                <div className="flex items-start gap-2 bg-red-900/20 border border-red-900/40 rounded-lg px-3 py-2">
+                  <svg className="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8-1.17 0-2.29-.196-3.32-.554L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-red-400">Payment Failure Reason</p>
+                    <p className="text-xs text-red-200 mt-0.5">{selected.paymentFailureReason}</p>
+                  </div>
+                </div>
+              )}
               {/* Contact */}
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">Customer</p>
@@ -355,6 +406,18 @@ export default function AdminOrdersPage() {
                       {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
                     </select>
                   </div>
+                  {updateForm.status === 'cancelled' && (
+                    <div>
+                      <label className="block text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Cancellation Reason</label>
+                      <textarea
+                        value={updateForm.cancelReason}
+                        onChange={(e) => setUpdateForm((p) => ({ ...p, cancelReason: e.target.value }))}
+                        placeholder="Why was this order cancelled?"
+                        rows={2}
+                        className="w-full bg-zinc-800 border border-zinc-700 text-white text-sm px-3 py-2 rounded focus:outline-none focus:border-zinc-500 placeholder:text-zinc-600 resize-none"
+                      />
+                    </div>
+                  )}
                   <div>
                     <label className="block text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Courier / Delivery Service</label>
                     <select
@@ -400,6 +463,35 @@ export default function AdminOrdersPage() {
           </div>
         )}
       </div>
+
+      {reasonModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          onClick={() => setReasonModal(null)}
+        >
+          <div
+            className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+              <h2 className="text-base font-bold text-white">{reasonModal.title}</h2>
+              <button type="button" onClick={() => setReasonModal(null)} className="text-zinc-400 hover:text-white text-xl leading-none">&times;</button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-zinc-300 whitespace-pre-wrap">{reasonModal.text}</p>
+            </div>
+            <div className="px-6 pb-6 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setReasonModal(null)}
+                className="px-5 py-2 bg-white text-zinc-900 text-sm font-bold tracking-widest uppercase rounded hover:bg-zinc-200 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

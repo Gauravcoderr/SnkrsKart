@@ -201,9 +201,11 @@ router.post('/cashfree/webhook', async (req: Request, res: Response) => {
       sendPaymentConfirmedEmail(order, siteUrl);
       sendAdminNewOrderEmail(order, siteUrl, 'cashfree');
     } else if (paymentStatus === 'FAILED' && order.paymentStatus === 'pending') {
+      const failureReason = String(obj.data?.payment?.payment_message || obj.data?.error_details?.error_description || '').slice(0, 200);
       order.paymentStatus = 'failed';
+      order.paymentFailureReason = failureReason;
       await order.save();
-      sendAdminPaymentFailedEmail(order, siteUrl, 'cashfree');
+      sendAdminPaymentFailedEmail(order, siteUrl, 'cashfree', failureReason || undefined);
     }
 
     res.status(200).json({ received: true });
@@ -262,10 +264,12 @@ router.post('/razorpay/failed', async (req: Request, res: Response) => {
     if (!order) { res.status(200).json({ received: true }); return; }
 
     if (order.paymentStatus === 'pending') {
+      const failureReason = typeof reason === 'string' ? reason.slice(0, 200) : undefined;
       order.paymentStatus = 'failed';
+      order.paymentFailureReason = failureReason || '';
       await order.save();
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
-      sendAdminPaymentFailedEmail(order, siteUrl, 'razorpay', typeof reason === 'string' ? reason.slice(0, 200) : undefined);
+      sendAdminPaymentFailedEmail(order, siteUrl, 'razorpay', failureReason);
     }
 
     res.status(200).json({ received: true });
