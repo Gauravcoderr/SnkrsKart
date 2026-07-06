@@ -102,7 +102,7 @@ export const FOOTER_SHOP_LINKS = [
 export const FOOTER_HELP_LINKS = [
   { label: 'Size Guide', href: '/size-guide' },
   { label: 'Shipping Info', href: '/shipping' },
-  { label: 'Returns & Exchanges', href: '/returns' },
+  { label: 'Cancellation & Refund', href: '/returns' },
   { label: 'Track My Order', href: '/track-order' },
   { label: 'FAQs', href: '/faqs' },
 ];

@@ -5,7 +5,7 @@ export const faqs = [
   },
   {
     q: 'How do I purchase a sneaker?',
-    a: 'Click "Want to Purchase? — Enquire Now" on any product page, fill in your details, and submit. Our team will contact you within 24 hours to confirm availability and complete the purchase via WhatsApp or call.',
+    a: 'Select your size, click "Add to Cart" or "Buy Now," and complete secure checkout — your order is confirmed instantly on successful payment. If you have a question before buying, use "Want to Purchase? — Enquire Now" on the product page and our team will get back to you.',
   },
   {
     q: 'What payment methods do you accept?',
@@ -20,8 +20,8 @@ export const faqs = [
     a: 'Yes, we ship pan-India with free delivery on all orders.',
   },
   {
-    q: 'Can I return or exchange my order?',
-    a: 'All sales are final. We do not accept returns or exchanges — every pair is verified authentic and shown to you before purchase is confirmed. If you receive a wrong or damaged item, contact us within 48 hours of delivery with photos and we will replace it or issue a full refund.',
+    q: 'Can I cancel, return, or exchange my order?',
+    a: 'You can cancel your order anytime before it is dispatched (usually within 1–2 business days) — just email or WhatsApp us with your order ID. Once delivered, all sales are final and we do not accept returns or exchanges for change of mind or size. If you receive a wrong or damaged item, contact us within 48 hours of delivery with photos and we will replace it or issue a full refund. See our full Cancellation & Refund Policy for details.',
   },
   {
     q: 'What sizes are listed in?',

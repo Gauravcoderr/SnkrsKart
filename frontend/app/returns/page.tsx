@@ -18,8 +18,8 @@ async function getPageContent(): Promise<SiteContent | null> {
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getPageContent();
-  const title = content?.metaTitle || 'Return & Refund Policy | Snkrs Cart';
-  const description = content?.metaDescription || 'SNKRS CART return policy — damaged or incorrect items eligible for replacement or full refund within 48 hours of delivery.';
+  const title = content?.metaTitle || 'Cancellation & Refund Policy | Snkrs Cart';
+  const description = content?.metaDescription || 'SNKRS CART cancellation and refund policy — cancel before dispatch, or return damaged/incorrect items within 48 hours of delivery for a full refund.';
   const ogTitle = content?.ogTitle || title;
   const ogDescription = content?.ogDescription || description;
   return {
@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const returnPolicySchema = {
   '@context': 'https://schema.org',
   '@type': 'MerchantReturnPolicy',
-  name: 'SNKRS CART Return & Refund Policy',
+  name: 'SNKRS CART Cancellation & Refund Policy',
   url: `${SITE_URL}/returns`,
   returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
   merchantReturnDays: 2,
@@ -49,8 +49,8 @@ export default async function Returns() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(returnPolicySchema) }} />
       <main className="max-w-3xl mx-auto px-4 py-16">
         <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Help</p>
-        <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-3">Return & Refund Policy</h1>
-        <p className="text-sm text-zinc-500 mb-10">Last updated: May 2026 · Applies to all orders on snkrscart.com</p>
+        <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-3">Cancellation & Refund Policy</h1>
+        <p className="text-sm text-zinc-500 mb-10">Last updated: July 2026 · Applies to all orders on snkrscart.com</p>
 
         <div className="bg-zinc-900 text-white p-6 mb-10">
           <h2 className="text-sm font-bold uppercase tracking-widest mb-2">100% Authentic — Our Promise</h2>
@@ -60,6 +60,13 @@ export default async function Returns() {
         </div>
 
         <div className="space-y-8 text-sm text-zinc-600 leading-relaxed">
+
+          <section>
+            <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Order Cancellation</h2>
+            <p className="mb-2">You can cancel your order anytime <strong className="text-zinc-900">before it is dispatched</strong>. Orders are dispatched within 1–2 business days of confirmation, so cancellation requests must reach us within that window.</p>
+            <p className="mb-2">To cancel: email or WhatsApp us with your order ID. We do not currently support self-service cancellation from your account — every request is handled manually by our team.</p>
+            <p className="text-xs text-zinc-500">Once an order has shipped, it can no longer be cancelled. It can only be returned after delivery if the item is damaged, incorrect, or has an authenticity concern — see eligibility below.</p>
+          </section>
 
           <section>
             <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Return Window</h2>
@@ -98,6 +105,7 @@ export default async function Returns() {
               <li>Full refund processed within <strong className="text-zinc-900">5–7 business days</strong> via the original payment method</li>
             </ol>
             <p className="mt-3 text-xs text-zinc-500">Return address: House No. 4, Lingwal Bhawan, Circuit House Road, Pauri Garhwal – 246001, Uttarakhand, India</p>
+            <p className="mt-3 text-xs text-zinc-500">Cancelled orders (before dispatch) follow the same refund timeline — full refund within 5–7 business days to your original payment method.</p>
           </section>
 
           <section>

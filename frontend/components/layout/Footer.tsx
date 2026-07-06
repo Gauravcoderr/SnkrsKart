@@ -131,7 +131,7 @@ export default function Footer() {
           <div className="flex items-center gap-4 flex-wrap justify-center">
             <Link href="/privacy" className="text-xs text-zinc-500 hover:text-zinc-300">Privacy Policy</Link>
             <Link href="/terms" className="text-xs text-zinc-500 hover:text-zinc-300">Terms of Service</Link>
-            <Link href="/returns" className="text-xs text-zinc-500 hover:text-zinc-300">Returns</Link>
+            <Link href="/returns" className="text-xs text-zinc-500 hover:text-zinc-300">Cancellation & Refund</Link>
             <Link href="/shipping" className="text-xs text-zinc-500 hover:text-zinc-300">Shipping</Link>
             <Link href="/sitemap.xml" className="text-xs text-zinc-500 hover:text-zinc-300">Sitemap</Link>
           </div>

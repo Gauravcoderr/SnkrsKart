@@ -699,7 +699,7 @@ const PAGE_DEFS = [
   { pageKey: 'drops',    label: 'Drop Calendar' },
   { pageKey: 'sneakers',    label: 'Sneaker Guide' },
   { pageKey: 'shipping',    label: 'Shipping Info' },
-  { pageKey: 'returns',     label: 'Returns & Refunds' },
+  { pageKey: 'returns',     label: 'Cancellation & Refund' },
   { pageKey: 'track-order', label: 'Track Order' },
 ];
 

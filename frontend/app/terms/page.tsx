@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const content = await getPageContent();
   const title = content?.metaTitle || 'Terms of Service | Snkrs Cart';
   const description = content?.metaDescription ||
-    "Terms of Service for SNKRS CART — India's authentic sneaker store. Read about our inquiry-based purchase process, return policy, and product authenticity guarantee.";
+    "Terms of Service for SNKRS CART — India's authentic sneaker store. Read about our checkout process, cancellation and return policy, and product authenticity guarantee.";
   const ogTitle = content?.ogTitle || title;
   const ogDescription = content?.ogDescription || description;
   return {
@@ -83,8 +83,8 @@ export default async function TermsOfService() {
         </section>
 
         <section>
-          <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Returns & Cancellations</h2>
-          <p>Please review our <a href="/returns" className="text-zinc-900 underline">Returns & Exchanges</a> policy for full details on cancellations and returns.</p>
+          <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Cancellations & Returns</h2>
+          <p>Please review our <a href="/returns" className="text-zinc-900 underline">Cancellation & Refund Policy</a> for full details on cancelling an order and returns after delivery.</p>
         </section>
 
         <section>

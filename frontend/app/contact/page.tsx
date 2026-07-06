@@ -107,7 +107,7 @@ export default function ContactPage() {
 
         <div className="mt-8 text-sm text-zinc-500 space-y-1">
           <p>For order tracking, visit <a href="/track-order" className="text-zinc-900 underline">Track My Order</a>.</p>
-          <p>For returns and refunds, see our <a href="/returns" className="text-zinc-900 underline">Return Policy</a>.</p>
+          <p>To cancel an order or for returns and refunds, see our <a href="/returns" className="text-zinc-900 underline">Cancellation & Refund Policy</a>.</p>
           <p>For shipping queries, see <a href="/shipping" className="text-zinc-900 underline">Shipping Info</a>.</p>
         </div>
       </main>
