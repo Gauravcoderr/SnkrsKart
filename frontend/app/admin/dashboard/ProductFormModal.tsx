@@ -827,7 +827,17 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
             <Checkbox label="Featured" checked={form.featured} onChange={(v) => set('featured', v)} />
             <Checkbox label="Trending" checked={form.trending} onChange={(v) => set('trending', v)} />
             <Checkbox label="New Arrival" checked={form.newArrival} onChange={(v) => set('newArrival', v)} />
-            <Checkbox label="Sold Out" checked={form.soldOut} onChange={(v) => set('soldOut', v)} />
+            <Checkbox
+              label="Sold Out"
+              checked={form.soldOut}
+              onChange={(v) => {
+                set('soldOut', v);
+                if (v) {
+                  setAvailableNumericSizes(new Set());
+                  setAvailableStringSizes(new Set());
+                }
+              }}
+            />
             <Checkbox label="Coming Soon" checked={form.comingSoon} onChange={(v) => set('comingSoon', v)} />
           </div>
 

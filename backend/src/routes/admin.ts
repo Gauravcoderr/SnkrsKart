@@ -100,6 +100,10 @@ router.post('/products', adminAuth, async (req: Request, res: Response): Promise
     }
 
     const { triggerEmail = true, emailSubject, emailHtml, ...productData } = data;
+    if (productData.soldOut === true) {
+      productData.availableSizes = [];
+      productData.availableStringSizes = [];
+    }
     const product = await Product.create(productData);
     await syncBrandCounts();
     if (triggerEmail !== false) {
@@ -117,7 +121,12 @@ router.post('/products', adminAuth, async (req: Request, res: Response): Promise
 // Update product
 router.put('/products/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, { $set: req.body }, { returnDocument: 'after', runValidators: true });
+    const update = { ...req.body };
+    if (update.soldOut === true) {
+      update.availableSizes = [];
+      update.availableStringSizes = [];
+    }
+    const product = await Product.findByIdAndUpdate(req.params.id, { $set: update }, { returnDocument: 'after', runValidators: true });
     if (!product) {
       res.status(404).json({ error: 'Product not found' });
       return;
