@@ -101,6 +101,19 @@ async function scrapeViaApi(seen: Set<string>): Promise<ScrapedItem[]> {
         } catch { /* skip bad JSON-LD */ }
       });
 
+      // Listing-page JSON-LD on footlocker.co.in omits `image` entirely (only PDP JSON-LD
+      // carries it) — build a href → img lookup from the rendered DOM to backfill it.
+      const domImageByUrl = new Map<string, string>();
+      $('a[href]').each((_i, a) => {
+        const href = $(a).attr('href') ?? '';
+        if (!href) return;
+        const fullUrl = href.startsWith('http') ? href : `${BASE}${href}`;
+        if (domImageByUrl.has(fullUrl)) return;
+        const img = $(a).find('img').first();
+        const src = img.attr('data-src') || img.attr('src') || img.attr('data-lazy') || img.attr('srcset')?.split(' ')[0] || '';
+        if (src) domImageByUrl.set(fullUrl, src);
+      });
+
       for (const p of jsonLdProducts) {
         const name = p.name ?? '';
         const brand = detectBrand(name);
@@ -110,13 +123,15 @@ async function scrapeViaApi(seen: Set<string>): Promise<ScrapedItem[]> {
         seen.add(sourceUrl);
         const price = p.offers?.price ? Math.round(parseFloat(String(p.offers.price))) : undefined;
         const flDateRaw = p.datePublished ?? p.dateModified ?? p.offers?.availabilityStarts;
+        const jsonLdImages = Array.isArray(p.image) ? p.image : p.image ? [p.image] : [];
+        const domImage = domImageByUrl.get(sourceUrl);
         results.push({
           sourceUrl,
           sourceSite: 'footlocker',
           name,
           brand,
           price,
-          images: Array.isArray(p.image) ? p.image : p.image ? [p.image] : [],
+          images: jsonLdImages.length > 0 ? jsonLdImages : domImage ? [domImage] : [],
           sizes: [],
           sku: p.sku,
           description: p.description?.slice(0, 500),
@@ -288,6 +303,19 @@ async function scrapeViaPuppeteer(browser: Browser, seen: Set<string>): Promise<
           return products;
         }) as JsonLdProduct[];
 
+        // Listing-page JSON-LD omits `image` (catalog is white-labeled through Nykaa's
+        // storefront and only carries name/url/offers here) — backfill from the DOM.
+        const domImageEntries = await page.evaluate((base: string) => {
+          return Array.from(document.querySelectorAll('a[href]')).map((a) => {
+            const href = a.getAttribute('href') ?? '';
+            const fullUrl = href.startsWith('http') ? href : href ? `${base}${href}` : '';
+            const img = a.querySelector('img') as HTMLImageElement | null;
+            const src = img?.getAttribute('data-src') || img?.getAttribute('src') || img?.getAttribute('data-lazy') || '';
+            return [fullUrl, src] as [string, string];
+          }).filter(([url, src]) => url && src);
+        }, BASE);
+        const domImageByUrl = new Map(domImageEntries);
+
         for (const p of jsonLdItems.slice(0, 20)) {
           const name = p.name ?? '';
           const brand = detectBrand(name);
@@ -297,13 +325,15 @@ async function scrapeViaPuppeteer(browser: Browser, seen: Set<string>): Promise<
           seen.add(sourceUrl);
           const price = p.offers?.price ? Math.round(parseFloat(String(p.offers.price))) : undefined;
           const flDateRaw = p.datePublished ?? p.dateModified ?? p.offers?.availabilityStarts;
+          const jsonLdImages = Array.isArray(p.image) ? p.image : p.image ? [p.image] : [];
+          const domImage = domImageByUrl.get(sourceUrl);
           results.push({
             sourceUrl,
             sourceSite: 'footlocker',
             name,
             brand,
             price,
-            images: Array.isArray(p.image) ? p.image : p.image ? [p.image] : [],
+            images: jsonLdImages.length > 0 ? jsonLdImages : domImage ? [domImage] : [],
             sizes: [],
             sku: p.sku,
             description: p.description?.slice(0, 500),
