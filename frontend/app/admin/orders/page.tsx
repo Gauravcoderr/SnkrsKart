@@ -31,6 +31,7 @@ interface Order {
   shipping: number;
   total: number;
   status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+  paymentStatus: 'pending' | 'paid' | 'failed';
   trackingNumber: string;
   deliveryService?: string;
   notes: string;
@@ -46,6 +47,17 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const STATUS_OPTIONS = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+
+const PAYMENT_STATUS_COLORS: Record<string, string> = {
+  paid: 'bg-emerald-900/30 text-emerald-400',
+  pending: 'bg-amber-900/30 text-amber-400',
+  failed: 'bg-red-900/30 text-red-400',
+};
+const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  paid: 'Paid',
+  pending: 'Payment Pending',
+  failed: 'Payment Failed',
+};
 
 const DELIVERY_SERVICES = [
   { value: '', label: '— Select courier —' },
@@ -222,6 +234,11 @@ export default function AdminOrdersPage() {
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${STATUS_COLORS[order.status]}`}>
                           {order.status.toUpperCase()}
                         </span>
+                        {order.paymentStatus !== 'paid' && (
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${PAYMENT_STATUS_COLORS[order.paymentStatus]}`}>
+                            {PAYMENT_STATUS_LABELS[order.paymentStatus].toUpperCase()}
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm font-semibold text-white truncate">{order.name}</p>
                       <p className="text-xs text-zinc-500 truncate">{order.email} · {order.phone}</p>
@@ -251,6 +268,11 @@ export default function AdminOrdersPage() {
               <div>
                 <p className="text-xs text-zinc-500">{selected.orderNumber}</p>
                 <p className="text-sm font-bold text-white">{selected.name}</p>
+                {selected.paymentStatus !== 'paid' && (
+                  <span className={`inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded ${PAYMENT_STATUS_COLORS[selected.paymentStatus]}`}>
+                    {PAYMENT_STATUS_LABELS[selected.paymentStatus].toUpperCase()}
+                  </span>
+                )}
               </div>
               <button onClick={() => setSelected(null)} className="text-zinc-500 hover:text-white transition-colors">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
