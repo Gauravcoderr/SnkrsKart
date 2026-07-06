@@ -4,11 +4,41 @@ import ProductsClient from './ProductsClient';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 const API = process.env.NEXT_PUBLIC_API_URL || 'https://snkrskart.onrender.com/api/v1';
 
-export const metadata = {
-  title: { absolute: 'Buy Authentic Sneakers Online in India | Snkrs Cart' },
-  description: 'Shop 100% authentic Nike, Jordan, Adidas, New Balance & Crocs sneakers online in India. Free pan-India shipping. Verified pairs, no fakes — browse the full collection.',
-  alternates: { canonical: `${SITE_URL}/products` },
+const BRAND_LABELS: Record<string, string> = {
+  nike: 'Nike',
+  jordan: 'Jordan',
+  adidas: 'Adidas',
+  'new balance': 'New Balance',
+  crocs: 'Crocs',
 };
+
+function brandLabel(raw: string) {
+  return BRAND_LABELS[raw.toLowerCase()] ?? raw;
+}
+
+export async function generateMetadata({ searchParams }: { searchParams: { brand?: string } }) {
+  const rawBrand = searchParams?.brand?.trim();
+  if (!rawBrand) {
+    return {
+      title: { absolute: 'Buy Authentic Sneakers Online in India | Snkrs Cart' },
+      description: 'Shop 100% authentic Nike, Jordan, Adidas, New Balance & Crocs sneakers online in India. Free pan-India shipping. Verified pairs, no fakes — browse the full collection.',
+      alternates: { canonical: `${SITE_URL}/products` },
+    };
+  }
+
+  const brand = brandLabel(rawBrand);
+  const title = `Buy Authentic ${brand} Sneakers Online in India | Snkrs Cart`;
+  const description = `Shop 100% authentic ${brand} sneakers online in India. Free pan-India shipping, verified pairs, no fakes — browse the full ${brand} collection at SNKRS CART.`;
+  const url = `${SITE_URL}/products?brand=${encodeURIComponent(rawBrand)}`;
+
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, siteName: 'Snkrs Cart', type: 'website' },
+    twitter: { card: 'summary_large_image', title, description },
+  };
+}
 
 export default async function ProductsPage() {
   let catalogSchema = null;
