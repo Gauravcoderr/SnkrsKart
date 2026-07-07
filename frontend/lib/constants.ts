@@ -72,7 +72,7 @@ export const INDIA_STATES = [
 ] as const;
 
 // ─── Product filter options ───────────────────────────────────────────────────
-export const SHOE_SIZES = [5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12];
+export const SHOE_SIZES = [4, 5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12];
 export const CLOTHING_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'] as const;
 export const ACCESSORY_SIZES = ['One Size', 'S/M', 'M/L'] as const;
 export const PRODUCT_TYPES = ['shoes', 'clothing', 'accessories'] as const;

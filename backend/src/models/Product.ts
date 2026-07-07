@@ -30,6 +30,7 @@ export interface IProduct extends Document {
   faqs: Array<{ question: string; answer: string }>;
   featured: boolean;
   trending: boolean;
+  trendingSince: Date | null;
   newArrival: boolean;
   soldOut: boolean;
   comingSoon: boolean;
@@ -64,6 +65,7 @@ const ProductSchema = new Schema<IProduct>(
     faqs:          [{ question: { type: String, default: '' }, answer: { type: String, default: '' } }],
     featured:      { type: Boolean, default: false, index: true },
     trending:      { type: Boolean, default: false, index: true },
+    trendingSince: { type: Date, default: null },
     newArrival:    { type: Boolean, default: false, index: true },
     soldOut:       { type: Boolean, default: false },
   comingSoon:    { type: Boolean, default: false, index: true },
@@ -102,6 +104,6 @@ ProductSchema.index({ comingSoon: -1, soldOut: 1, reviewCount: -1 });
 // For featured / newArrival / trending sub-routes
 ProductSchema.index({ featured: 1, reviewCount: -1 });
 ProductSchema.index({ newArrival: 1, createdAt: -1 });
-ProductSchema.index({ trending: 1, reviewCount: -1 });
+ProductSchema.index({ trending: 1, trendingSince: -1 });
 
 export const Product = mongoose.model<IProduct>('Product', ProductSchema);

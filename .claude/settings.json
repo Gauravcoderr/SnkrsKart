@@ -95,7 +95,10 @@
       "Skill(artifact-design)",
       "Skill(artifact-design:*)",
       "Bash(curl -s \"https://api.scrapingant.com\")",
-      "Bash(curl -sL -A 'Mozilla/5.0 Chrome/131' https://www.nike.com/in/w/new-shoes-3n82yznik1zy7ok -w '\\\\nHTTP:%{http_code}')"
+      "Bash(curl -sL -A 'Mozilla/5.0 Chrome/131' https://www.nike.com/in/w/new-shoes-3n82yznik1zy7ok -w '\\\\nHTTP:%{http_code}')",
+      "WebFetch(domain:www.fashionbeans.com)",
+      "WebFetch(domain:qz.com)",
+      "WebFetch(domain:newbalance.com)"
     ],
     "additionalDirectories": [
       "/Users/gauravrauthan/shoe-auth"

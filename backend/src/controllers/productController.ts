@@ -147,7 +147,7 @@ export const getNewArrivals = async (_req: Request, res: Response): Promise<void
 export const getTrendingProducts = async (_req: Request, res: Response): Promise<void> => {
   try {
     const products = await Product.find({ trending: true })
-      .sort({ reviewCount: -1 })
+      .sort({ trendingSince: -1 })
       .limit(8)
       .select(CARD_FIELDS)
       .lean();

@@ -121,6 +121,9 @@ router.post('/products', adminAuth, async (req: Request, res: Response): Promise
       productData.availableSizes = [];
       productData.availableStringSizes = [];
     }
+    if (productData.trending === true) {
+      productData.trendingSince = new Date();
+    }
     const product = await Product.create(productData);
     await syncBrandCounts();
     if (triggerEmail !== false) {
@@ -150,6 +153,14 @@ router.put('/products/:id', adminAuth, async (req: Request, res: Response): Prom
     if (update.soldOut === true) {
       update.availableSizes = [];
       update.availableStringSizes = [];
+    }
+    if (typeof update.trending === 'boolean') {
+      if (update.trending) {
+        const current = await Product.findById(req.params.id).select('trending').lean();
+        if (!current?.trending) update.trendingSince = new Date();
+      } else {
+        update.trendingSince = null;
+      }
     }
     const product = await Product.findByIdAndUpdate(req.params.id, { $set: update }, { returnDocument: 'after', runValidators: true });
     if (!product) {
