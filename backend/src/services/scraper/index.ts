@@ -1,13 +1,11 @@
 import { ScrapedProduct } from '../../models/ScrapedProduct';
 import { scrapeAllShopify } from './shopify';
-import { scrapeNikeIndia } from './nike';
 import { ScrapedItem } from './utils';
 
 export interface ScraperRunResult {
   inserted: number;
   updated: number;
   shopifyFailed: boolean;
-  nikeFailed: boolean;
   durationSec: number;
 }
 
@@ -17,21 +15,16 @@ export async function runRenderScraper(): Promise<ScraperRunResult> {
   let inserted = 0;
   let updated = 0;
 
-  const [shopifyResult, nikeResult] = await Promise.allSettled([
+  const [shopifyResult] = await Promise.allSettled([
     scrapeAllShopify(),
-    scrapeNikeIndia(),
   ]);
 
   const allItems: ScrapedItem[] = [
     ...(shopifyResult.status === 'fulfilled' ? shopifyResult.value : []),
-    ...(nikeResult.status === 'fulfilled' ? nikeResult.value : []),
   ];
 
   if (shopifyResult.status === 'rejected') {
     console.error('[scraper] Shopify run failed:', shopifyResult.reason);
-  }
-  if (nikeResult.status === 'rejected') {
-    console.error('[scraper] Nike run failed:', nikeResult.reason);
   }
 
   console.log(`[scraper] Total items fetched: ${allItems.length}`);
@@ -58,7 +51,6 @@ export async function runRenderScraper(): Promise<ScraperRunResult> {
     inserted,
     updated,
     shopifyFailed: shopifyResult.status === 'rejected',
-    nikeFailed: nikeResult.status === 'rejected',
     durationSec,
   };
 }

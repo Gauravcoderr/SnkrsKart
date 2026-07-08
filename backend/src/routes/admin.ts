@@ -978,7 +978,7 @@ router.post('/scraped-products/run-scraper', adminAuth, async (_req: Request, re
       res.status(r.status).json({ error: `GitHub API error: ${body}` });
       return;
     }
-    // Also fire Render-side scraper (Shopify + Nike) in background — non-blocking
+    // Also fire Render-side scraper (Shopify) in background — non-blocking
     if (renderScraperState.status !== 'running') {
       const startedAt = new Date().toISOString();
       renderScraperState = { status: 'running', startedAt };
@@ -992,7 +992,7 @@ router.post('/scraped-products/run-scraper', adminAuth, async (_req: Request, re
         });
     }
 
-    res.json({ message: 'Both scrapers triggered — GitHub Actions (Myntra/Footlocker/VegNonVeg) + Render (Shopify/Nike)' });
+    res.json({ message: 'Both scrapers triggered — GitHub Actions (Myntra/Footlocker/VegNonVeg) + Render (Shopify)' });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to trigger scraper' });
   }
