@@ -32,6 +32,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     description: product?.description || '',
     category: product?.category || categoriesForType[0],
     sku: product?.sku || '',
+    sourceUrl: product?.sourceUrl || '',
     colors: product?.colors?.join(', ') || '',
     tags: product?.tags?.join(', ') || '',
     imageList: product?.images?.length ? [...product.images] : [''],
@@ -298,6 +299,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
         description: form.description.trim(),
         category: form.category.trim(),
         sku: form.sku.trim(),
+        sourceUrl: form.sourceUrl.trim() || undefined,
         productType,
         sizes: isShoes ? numericSizes : [],
         availableSizes: isShoes ? Array.from(availableNumericSizes).sort((a, b) => a - b) : [],
@@ -386,6 +388,14 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
             <Field label="Slug" value={form.slug} onChange={(v) => set('slug', v)} placeholder="Auto-generated if empty" />
             <Field label="SKU *" value={form.sku} onChange={(v) => set('sku', v)} required />
           </div>
+
+          {/* Source URL — admin-only, where this listing was resold from */}
+          <Field
+            label="Source URL"
+            value={form.sourceUrl}
+            onChange={(v) => set('sourceUrl', v)}
+            placeholder="Where this product was sourced from (admin-only, not shown to customers)"
+          />
 
           {/* Colorway + Category */}
           <div className="grid grid-cols-2 gap-4">

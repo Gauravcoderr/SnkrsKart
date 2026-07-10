@@ -110,7 +110,8 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
 
 export const getProductBySlug = async (req: Request, res: Response): Promise<void> => {
   try {
-    const product = await Product.findOne({ slug: req.params.slug }).lean();
+    // sourceUrl is admin-only (where the listing was resold from) — never expose it publicly
+    const product = await Product.findOne({ slug: req.params.slug }).select('-sourceUrl').lean();
     if (!product) { res.status(404).json({ error: 'Product not found' }); return; }
     res.json({ ...product, id: (product._id as any).toString() });
   } catch (err) {
