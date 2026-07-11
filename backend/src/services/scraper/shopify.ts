@@ -163,7 +163,6 @@ const SITES: { baseUrl: string; collections: string[]; site: ScrapedItem['source
   // VegNonVeg — Cloudflare-protected, handled by GitHub Actions Puppeteer
   { baseUrl: 'https://limitededt.in',         collections: ['nike', 'jordan'],               site: 'limitededt' },
   { baseUrl: 'https://www.superkicks.in',      collections: ['nike', 'jordan', 'air-jordan'], site: 'superkicks' },
-  { baseUrl: 'https://www.crepdogcrew.com',    collections: ['nike', 'jordan'],               site: 'crepdogcrew' },
 ];
 
 export async function scrapeAllShopify(): Promise<ScrapedItem[]> {
