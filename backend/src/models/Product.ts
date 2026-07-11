@@ -40,6 +40,9 @@ export interface IProduct extends Document {
   category: string;
   sku: string;
   sourceUrl?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords: string[];
   createdAt: Date;
 }
 
@@ -77,6 +80,9 @@ const ProductSchema = new Schema<IProduct>(
     sku:           { type: String, required: true, unique: true },
     // Admin-only: where this listing was resold/sourced from. Never exposed on public product routes.
     sourceUrl:     { type: String, required: false },
+    metaTitle:       { type: String, required: false },
+    metaDescription: { type: String, required: false },
+    metaKeywords:    [{ type: String }],
   },
   {
     timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },

@@ -36,6 +36,9 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
     sourceUrl: product?.sourceUrl || '',
     colors: product?.colors?.join(', ') || '',
     tags: product?.tags?.join(', ') || '',
+    metaTitle: product?.metaTitle || '',
+    metaDescription: product?.metaDescription || '',
+    metaKeywords: product?.metaKeywords?.join(', ') || '',
     imageList: product?.images?.length ? [...product.images] : [''],
     hoverImage: product?.hoverImage || '',
     featured: product?.featured || false,
@@ -325,6 +328,9 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
         availableStringSizes: isShoes ? [] : strAvailable,
         colors: form.colors.split(',').map((c) => c.trim().toLowerCase()).filter(Boolean),
         tags: form.tags.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean),
+        metaTitle: form.metaTitle.trim() || undefined,
+        metaDescription: form.metaDescription.trim() || undefined,
+        metaKeywords: form.metaKeywords.split(',').map((k) => k.trim()).filter(Boolean),
         images: form.imageList.map((u) => u.trim()).filter(Boolean),
         hoverImage: form.hoverImage.trim(),
         variants,
@@ -671,6 +677,33 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <Field label="Colors (comma-separated)" value={form.colors} onChange={(v) => set('colors', v)} placeholder="black, white" />
             <Field label="Tags (comma-separated)" value={form.tags} onChange={(v) => set('tags', v)} placeholder="jordan, retro" />
+          </div>
+
+          {/* SEO / Meta */}
+          <div className="border border-zinc-700 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-semibold text-white">SEO / Meta</p>
+            <Field
+              label="Meta Title"
+              value={form.metaTitle}
+              onChange={(v) => set('metaTitle', v)}
+              placeholder={form.name ? `${form.brand} ${form.name} | Buy in India | Snkrs Cart` : 'Auto-generated if empty'}
+            />
+            <div>
+              <label className="block text-sm font-medium text-zinc-400 mb-1.5">Meta Description</label>
+              <textarea
+                value={form.metaDescription}
+                onChange={(e) => set('metaDescription', e.target.value)}
+                rows={2}
+                placeholder="Auto-generated if empty"
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 resize-none"
+              />
+            </div>
+            <Field
+              label="Meta Keywords (comma-separated)"
+              value={form.metaKeywords}
+              onChange={(v) => set('metaKeywords', v)}
+              placeholder="nike dunk low, sneakers india, stranger things"
+            />
           </div>
 
           {/* Images */}

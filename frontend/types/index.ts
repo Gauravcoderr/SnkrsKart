@@ -32,6 +32,9 @@ export interface Product {
   sku: string;
   /** Admin-only: where this listing was resold/sourced from. Never returned by public product routes. */
   sourceUrl?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string[];
   createdAt: string;
 }
 

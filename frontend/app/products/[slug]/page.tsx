@@ -44,14 +44,16 @@ export async function generateMetadata({ params }: PageProps) {
     const discountNote = hasDiscount
       ? `${Math.round(((origPrice - product.price) / origPrice) * 100)}% off`
       : 'best price guaranteed';
-    const title = `${product.brand} ${product.name} | Buy in India | Snkrs Cart`;
-    const description = `Buy ${product.brand} ${product.name} for ₹${product.price.toLocaleString('en-IN')} (${discountNote}). 100% authentic ${product.brand} shoes in India — pan-India shipping. | Snkrs Cart`;
+    const title = product.metaTitle?.trim() || `${product.brand} ${product.name} | Buy in India | Snkrs Cart`;
+    const description = product.metaDescription?.trim()
+      || `Buy ${product.brand} ${product.name} for ₹${product.price.toLocaleString('en-IN')} (${discountNote}). 100% authentic ${product.brand} shoes in India — pan-India shipping. | Snkrs Cart`;
     const url = `${SITE_URL}/products/${params.slug}`;
     const ogImage = cloudinaryOgImage(product.images?.[0] || '');
 
     return {
       title: { absolute: title },
       description,
+      ...(product.metaKeywords?.length ? { keywords: product.metaKeywords } : {}),
       alternates: { canonical: url },
       openGraph: {
         title,
