@@ -81,6 +81,8 @@ export interface BannerSlide {
   order: number;
   active: boolean;
   price?: number;
+  headlineFontSize?: number;
+  headlineFontWeight?: number;
 }
 
 export interface Review {

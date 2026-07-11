@@ -13,6 +13,8 @@ export interface IBanner extends Document {
   imgBg: string;
   order: number;
   active: boolean;
+  headlineFontSize: number;
+  headlineFontWeight: number;
 }
 
 const BannerSchema = new Schema<IBanner>({
@@ -28,6 +30,8 @@ const BannerSchema = new Schema<IBanner>({
   imgBg:    { type: String, default: '#1a1a1a' },
   order:    { type: Number, default: 0 },
   active:   { type: Boolean, default: true },
+  headlineFontSize:   { type: Number, default: 8 },   // rem — hero word's max clamp size
+  headlineFontWeight: { type: Number, default: 900 }, // 100-900
 });
 
 export const Banner = mongoose.model<IBanner>('Banner', BannerSchema);

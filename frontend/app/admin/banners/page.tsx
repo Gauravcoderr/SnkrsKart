@@ -22,6 +22,8 @@ interface Banner {
   imgBg: string;
   order: number;
   active: boolean;
+  headlineFontSize: number;
+  headlineFontWeight: number;
 }
 
 type BannerForm = Omit<Banner, '_id'>;
@@ -29,7 +31,7 @@ type BannerForm = Omit<Banner, '_id'>;
 const EMPTY_FORM: BannerForm = {
   brand: '', tag: '', headline: [''], sub: '', cta: '', href: '',
   image: '', accent: '#ffffff', bg: '#0a0a0a', imgBg: '#1a1a1a',
-  order: 0, active: true,
+  order: 0, active: true, headlineFontSize: 8, headlineFontWeight: 900,
 };
 
 export default function BannersPage() {
@@ -89,7 +91,11 @@ export default function BannersPage() {
   function openEdit(b: Banner) {
     setSaveError('');
     const { _id, ...rest } = b;
-    setModal({ mode: 'edit', form: { ...rest }, id: _id });
+    setModal({
+      mode: 'edit',
+      form: { ...rest, headlineFontSize: rest.headlineFontSize ?? 8, headlineFontWeight: rest.headlineFontWeight ?? 900 },
+      id: _id,
+    });
   }
 
   async function handleSave() {
@@ -318,6 +324,28 @@ export default function BannersPage() {
                 </div>
               </Field>
 
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Hero Word Size (rem)">
+                  <input id="b-font-size" type="number" min={2} max={12} step={0.5}
+                    value={modal.form.headlineFontSize}
+                    onChange={(e) => setField('headlineFontSize', Number(e.target.value))}
+                    className={inputCls} placeholder="8" />
+                  <p className="text-[11px] text-zinc-500 mt-1">Max size of line 2 (the big accent word). Shrink for long words/phrases.</p>
+                </Field>
+                <Field label="Hero Word Weight">
+                  <select value={modal.form.headlineFontWeight}
+                    onChange={(e) => setField('headlineFontWeight', Number(e.target.value))}
+                    className={inputCls}>
+                    <option value={400}>Regular (400)</option>
+                    <option value={500}>Medium (500)</option>
+                    <option value={600}>Semibold (600)</option>
+                    <option value={700}>Bold (700)</option>
+                    <option value={800}>Extrabold (800)</option>
+                    <option value={900}>Black (900)</option>
+                  </select>
+                </Field>
+              </div>
+
               <Field label="Sub-heading">
                 <input id="b-sub" type="text" value={modal.form.sub} onChange={(e) => setField('sub', e.target.value)}
                   className={inputCls} placeholder="Short sub-heading text" />
@@ -380,8 +408,12 @@ export default function BannersPage() {
                     <p className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: modal.form.accent }}>
                       {modal.form.tag || 'TAG'}
                     </p>
-                    <p className="font-bold text-lg leading-tight" style={{ color: modal.form.accent }}>
-                      {modal.form.headline.join(' ') || 'Headline'}
+                    <p className="leading-tight" style={{
+                      color: modal.form.accent,
+                      fontWeight: modal.form.headlineFontWeight,
+                      fontSize: `${Math.min(modal.form.headlineFontSize * 2.2, 28)}px`,
+                    }}>
+                      {modal.form.headline[1] || modal.form.headline.join(' ') || 'Headline'}
                     </p>
                     <p className="text-xs mt-1 opacity-70" style={{ color: modal.form.accent }}>{modal.form.sub || 'Sub-heading'}</p>
                     <span className="inline-block mt-2 text-xs font-bold px-3 py-1 rounded"

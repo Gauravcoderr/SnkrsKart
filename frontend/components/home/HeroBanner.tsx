@@ -74,15 +74,22 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
                   {s.headline[0]}
                 </p>
               )}
-              {/* Second line — massive accent hero word */}
-              {s.headline[1] && (
-                <h1
-                  className="font-black uppercase leading-[0.85] tracking-tighter break-words"
-                  style={{ fontSize: 'clamp(3rem, 9vw, 8rem)', color: s.accent }}
-                >
-                  {s.headline[1]}
-                </h1>
-              )}
+              {/* Second line — massive accent hero word (size/weight configurable per banner) */}
+              {s.headline[1] && (() => {
+                const size = s.headlineFontSize ?? 8;
+                return (
+                  <h1
+                    className="uppercase leading-[0.85] tracking-tighter break-words"
+                    style={{
+                      fontSize: `clamp(${size * 0.375}rem, ${size * 1.125}vw, ${size}rem)`,
+                      fontWeight: s.headlineFontWeight ?? 900,
+                      color: s.accent,
+                    }}
+                  >
+                    {s.headline[1]}
+                  </h1>
+                );
+              })()}
               {/* Remaining lines if any */}
               {s.headline.slice(2).map((line, i) => (
                 <span key={i} className="font-black uppercase leading-[0.88] tracking-tighter text-white break-words"
