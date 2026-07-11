@@ -9,19 +9,6 @@ const FLAT_BG = '#09090b';
 
 const SLIDE_MS = 5000;
 
-// Hero word shrinks below the baseline size for longer words/phrases so it
-// always fits on one line instead of wrapping or hyphen-breaking mid-word.
-function heroFontSize(word: string): string {
-  const BASELINE_LEN = 10;
-  const len = word.length;
-  if (len <= BASELINE_LEN) return 'clamp(3rem, 9vw, 8rem)';
-  const factor = BASELINE_LEN / len;
-  const min = Math.max(1.75, 3 * factor);
-  const vw = Math.max(4, 9 * factor);
-  const max = Math.max(3, 8 * factor);
-  return `clamp(${min}rem, ${vw}vw, ${max}rem)`;
-}
-
 export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
   const [active, setActive] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
@@ -90,8 +77,8 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
               {/* Second line — massive accent hero word */}
               {s.headline[1] && (
                 <h1
-                  className="font-black uppercase leading-[0.85] tracking-tighter whitespace-nowrap"
-                  style={{ fontSize: heroFontSize(s.headline[1]), color: s.accent }}
+                  className="font-black uppercase leading-[0.85] tracking-tighter break-words"
+                  style={{ fontSize: 'clamp(3rem, 9vw, 8rem)', color: s.accent }}
                 >
                   {s.headline[1]}
                 </h1>
