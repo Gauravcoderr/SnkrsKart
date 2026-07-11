@@ -14,6 +14,7 @@ interface Props {
 
 const GENDERS = ['men', 'women', 'unisex', 'kids'] as const;
 type ProductType = 'shoes' | 'clothing' | 'accessories';
+const CUSTOM_CATEGORY = '__custom__';
 
 export default function ProductFormModal({ product, onSave, onClose }: Props) {
   const isEdit = !!product;
@@ -47,6 +48,12 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
       : [] as Array<{ question: string; answer: string }>,
   });
 
+  // Category isn't in this type's preset list — either loaded from an existing
+  // custom value on edit, or the admin picked "Other" and is typing one now.
+  const [isCustomCategory, setIsCustomCategory] = useState(
+    () => product?.category != null && !(CATEGORIES_BY_TYPE[product?.productType ?? 'shoes'] as readonly string[]).includes(product.category)
+  );
+
   // ── Size selection state (chip-based) ────────────────────────────────────
   // Shoes: Set<number>
   const [selectedSizes, setSelectedSizes] = useState<Set<number>>(() => new Set(product?.sizes ?? []));
@@ -58,7 +65,18 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
   // When productType changes, reset category to first of new type
   function handleProductTypeChange(type: ProductType) {
     setProductType(type);
+    setIsCustomCategory(false);
     set('category', CATEGORIES_BY_TYPE[type][0]);
+  }
+
+  function handleCategorySelect(value: string) {
+    if (value === CUSTOM_CATEGORY) {
+      setIsCustomCategory(true);
+      set('category', '');
+    } else {
+      setIsCustomCategory(false);
+      set('category', value);
+    }
   }
 
   function toggleNumericSize(size: number) {
@@ -403,16 +421,27 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
             <div>
               <label className="block text-sm font-medium text-zinc-400 mb-1.5">Category</label>
               <select aria-label="Category"
-                value={form.category}
-                onChange={(e) => set('category', e.target.value)}
+                value={isCustomCategory ? CUSTOM_CATEGORY : form.category}
+                onChange={(e) => handleCategorySelect(e.target.value)}
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/20"
               >
                 {categoriesForType.map((c) => (
                   <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
                 ))}
+                <option value={CUSTOM_CATEGORY}>Other (type your own)</option>
               </select>
             </div>
           </div>
+
+          {isCustomCategory && (
+            <Field
+              label="Custom category *"
+              value={form.category}
+              onChange={(v) => set('category', v)}
+              placeholder="Type a category name"
+              required
+            />
+          )}
 
           {/* Gender */}
           <div className="grid grid-cols-4 gap-4">

@@ -78,7 +78,7 @@ export const ACCESSORY_SIZES = ['One Size', 'S/M', 'M/L'] as const;
 export const PRODUCT_TYPES = ['shoes', 'clothing', 'accessories'] as const;
 export const CATEGORIES_BY_TYPE = {
   shoes: ['lifestyle', 'basketball', 'running', 'skateboarding', 'casual', 'training'],
-  clothing: ['t-shirts', 'hoodies', 'jackets', 'pants', 'shorts'],
+  clothing: ['t-shirts', 'hoodies', 'sweatshirts', 'jackets', 'pants', 'joggers', 'shorts', 'tracksuits', 'polos', 'shirts', 'jerseys', 'sweaters', 'tights & leggings', 'sports bras', 'skirts & dresses'],
   accessories: ['caps', 'bags', 'socks', 'keychains', 'other'],
 } as const;
 export const GENDERS = ['men', 'women', 'unisex'] as const;
