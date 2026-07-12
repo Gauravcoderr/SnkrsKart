@@ -7,6 +7,7 @@ export interface IDrop extends Document {
   colorway: string;
   releaseDate: Date;
   retailPrice: number | null;
+  currency: 'INR' | 'USD';
   image: string;
   description: string;
   where: string;
@@ -25,6 +26,7 @@ const DropSchema = new Schema<IDrop>(
     colorway: { type: String, default: '' },
     releaseDate: { type: Date, required: true },
     retailPrice: { type: Number, default: null },
+    currency: { type: String, enum: ['INR', 'USD'], default: 'INR' },
     image: { type: String, default: '' },
     description: { type: String, default: '' },
     where: { type: String, default: '' },

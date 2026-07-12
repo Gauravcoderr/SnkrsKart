@@ -9,6 +9,12 @@ export function formatPrice(amount: number): string {
   return `₹${amount.toLocaleString('en-IN')}`;
 }
 
+export function formatDropPrice(amount: number, currency: 'INR' | 'USD' = 'INR'): string {
+  return currency === 'USD'
+    ? `$${amount.toLocaleString('en-US')}`
+    : `₹${amount.toLocaleString('en-IN')}`;
+}
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()

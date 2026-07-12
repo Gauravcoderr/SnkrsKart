@@ -17,6 +17,7 @@ interface Drop {
   colorway: string;
   releaseDate: string;
   retailPrice: number | null;
+  currency: 'INR' | 'USD';
   image: string;
   description: string;
   where: string;
@@ -26,7 +27,7 @@ interface Drop {
 }
 
 const EMPTY_FORM = {
-  name: '', brand: '', colorway: '', releaseDate: '', retailPrice: '',
+  name: '', brand: '', colorway: '', releaseDate: '', retailPrice: '', currency: 'INR',
   image: '', description: '', where: '', availableAtStore: false, productSlug: '', published: false,
 };
 
@@ -89,6 +90,7 @@ export default function AdminDropsPage() {
       name: d.name, brand: d.brand, colorway: d.colorway,
       releaseDate: d.releaseDate ? d.releaseDate.slice(0, 10) : '',
       retailPrice: d.retailPrice ? String(d.retailPrice) : '',
+      currency: d.currency || 'INR',
       image: d.image, description: d.description, where: d.where,
       availableAtStore: d.availableAtStore, productSlug: d.productSlug, published: d.published,
     });
@@ -187,7 +189,7 @@ export default function AdminDropsPage() {
                   </td>
                   <td className="py-3 pr-4 text-zinc-300">{d.brand}</td>
                   <td className="py-3 pr-4 text-zinc-300">{formatDate(d.releaseDate)}</td>
-                  <td className="py-3 pr-4 text-zinc-400">{d.retailPrice ? `₹${d.retailPrice.toLocaleString('en-IN')}` : '—'}</td>
+                  <td className="py-3 pr-4 text-zinc-400">{d.retailPrice ? (d.currency === 'USD' ? `$${d.retailPrice.toLocaleString('en-US')}` : `₹${d.retailPrice.toLocaleString('en-IN')}`) : '—'}</td>
                   <td className="py-3 pr-4 text-zinc-400 text-xs">{d.where || '—'}</td>
                   <td className="py-3 pr-4">
                     <div className="flex flex-col gap-1">
@@ -236,7 +238,6 @@ export default function AdminDropsPage() {
                 ['Name *', 'name', 'text', 'e.g. Nike Dunk Low Panda 2025'],
                 ['Brand *', 'brand', 'text', 'e.g. Nike'],
                 ['Colorway', 'colorway', 'text', 'e.g. White/Black'],
-                ['Retail Price (₹)', 'retailPrice', 'number', 'e.g. 8495'],
                 ['Where', 'where', 'text', 'e.g. Nike SNKRS App'],
                 ['Product Slug (if in store)', 'productSlug', 'text', 'e.g. nike-dunk-low-panda'],
               ].map(([label, key, type, placeholder]) => (
@@ -250,6 +251,26 @@ export default function AdminDropsPage() {
                   />
                 </div>
               ))}
+              <div>
+                <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1">Retail Price</label>
+                <div className="flex gap-2">
+                  <select
+                    value={form.currency}
+                    onChange={(e) => setF('currency', e.target.value)}
+                    className="bg-zinc-800 border border-zinc-700 text-zinc-100 px-2 py-2 text-sm focus:outline-none focus:border-zinc-500"
+                  >
+                    <option value="INR">₹ INR</option>
+                    <option value="USD">$ USD</option>
+                  </select>
+                  <input
+                    type="number" value={form.retailPrice}
+                    onChange={(e) => setF('retailPrice', e.target.value)}
+                    placeholder="e.g. 8495"
+                    className="flex-1 bg-zinc-800 border border-zinc-700 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:border-zinc-500"
+                  />
+                </div>
+                <p className="text-[10px] text-zinc-600 mt-1">Use the price's original currency — never convert</p>
+              </div>
               <div>
                 <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1">Release Date *</label>
                 <input type="date" value={form.releaseDate} onChange={(e) => setF('releaseDate', e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:border-zinc-500" />

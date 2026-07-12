@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { fetchDrops, fetchDropBySlug } from '@/lib/api';
-import { cloudinaryOgImage } from '@/lib/utils';
+import { cloudinaryOgImage, formatDropPrice } from '@/lib/utils';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
@@ -16,11 +16,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const releaseDate = new Date(drop.releaseDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
     return {
       title: { absolute: `${drop.name} Release Date India | ${releaseDate} | Snkrs Cart` },
-      description: `${drop.name} releases in India on ${releaseDate}${drop.retailPrice ? ` for ₹${drop.retailPrice.toLocaleString('en-IN')}` : ''}. ${drop.description || `Official ${drop.brand} drop — ${drop.where || 'check official channels'}.`}`,
+      description: `${drop.name} releases in India on ${releaseDate}${drop.retailPrice ? ` for ${formatDropPrice(drop.retailPrice, drop.currency)}` : ''}. ${drop.description || `Official ${drop.brand} drop — ${drop.where || 'check official channels'}.`}`,
       alternates: { canonical: url },
       openGraph: {
         title: `${drop.name} | Release ${releaseDate}`,
-        description: `${drop.brand} drop releasing ${releaseDate}${drop.retailPrice ? ` — ₹${drop.retailPrice.toLocaleString('en-IN')}` : ''}.`,
+        description: `${drop.brand} drop releasing ${releaseDate}${drop.retailPrice ? ` — ${formatDropPrice(drop.retailPrice, drop.currency)}` : ''}.`,
         url,
         siteName: 'Snkrs Cart',
         type: 'website',
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       twitter: {
         card: 'summary_large_image',
         title: `${drop.name} | Release ${releaseDate}`,
-        description: `${drop.brand} drop releasing ${releaseDate}${drop.retailPrice ? ` — ₹${drop.retailPrice.toLocaleString('en-IN')}` : ''}.`,
+        description: `${drop.brand} drop releasing ${releaseDate}${drop.retailPrice ? ` — ${formatDropPrice(drop.retailPrice, drop.currency)}` : ''}.`,
         ...(drop.image ? { images: [cloudinaryOgImage(drop.image)] } : {}),
       },
     };
@@ -107,7 +107,7 @@ export default async function DropPage({ params }: Props) {
     offers: drop.retailPrice ? {
       '@type': 'Offer',
       price: drop.retailPrice,
-      priceCurrency: 'INR',
+      priceCurrency: drop.currency,
       availability: released ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder',
       validFrom: isoDate,
       url: drop.availableAtStore && drop.productSlug ? `${SITE_URL}/products/${drop.productSlug}` : locationUrl,
@@ -128,7 +128,7 @@ export default async function DropPage({ params }: Props) {
   const specs = [
     ['Brand', drop.brand],
     ['Release Date', formatDate(drop.releaseDate)],
-    ['Retail Price', drop.retailPrice ? `₹${drop.retailPrice.toLocaleString('en-IN')}` : 'TBC'],
+    ['Retail Price', drop.retailPrice ? formatDropPrice(drop.retailPrice, drop.currency) : 'TBC'],
     ['Colorway', drop.colorway || null],
     ['Where to Buy', drop.where || null],
   ].filter(([, v]) => v) as [string, string][];
@@ -207,7 +207,7 @@ export default async function DropPage({ params }: Props) {
               <div className="mb-5 p-4 bg-zinc-950 text-white flex items-center justify-between rounded-sm">
                 <div>
                   <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 mb-0.5">Retail Price</p>
-                  <p className="text-2xl font-black">₹{drop.retailPrice.toLocaleString('en-IN')}</p>
+                  <p className="text-2xl font-black">{formatDropPrice(drop.retailPrice, drop.currency)}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 mb-0.5">Release</p>

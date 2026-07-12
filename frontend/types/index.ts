@@ -171,6 +171,7 @@ export interface Drop {
   colorway: string;
   releaseDate: string;
   retailPrice: number | null;
+  currency: 'INR' | 'USD';
   image: string;
   description: string;
   where: string;

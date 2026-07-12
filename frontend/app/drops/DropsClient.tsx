@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Drop } from '@/types';
+import { formatDropPrice } from '@/lib/utils';
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
@@ -102,7 +103,7 @@ export default function DropsClient({ upcoming, recent }: Props) {
                   <div className="flex items-center gap-4">
                     <p className="text-xs text-zinc-400">{formatDate(hero.releaseDate)}</p>
                     {hero.retailPrice && (
-                      <p className="text-base font-black text-white">₹{hero.retailPrice.toLocaleString('en-IN')}</p>
+                      <p className="text-base font-black text-white">{formatDropPrice(hero.retailPrice, hero.currency)}</p>
                     )}
                     <span className="text-xs font-bold text-zinc-300 underline underline-offset-4 group-hover:text-white transition-colors">
                       View Drop →
@@ -156,7 +157,7 @@ export default function DropsClient({ upcoming, recent }: Props) {
                       <div className="flex items-center justify-between pt-2 border-t border-zinc-50">
                         <p className="text-[10px] text-zinc-400">{formatDate(drop.releaseDate)}</p>
                         {drop.retailPrice && (
-                          <p className="text-xs font-black text-zinc-900">₹{drop.retailPrice.toLocaleString('en-IN')}</p>
+                          <p className="text-xs font-black text-zinc-900">{formatDropPrice(drop.retailPrice, drop.currency)}</p>
                         )}
                       </div>
                       {drop.where && (
