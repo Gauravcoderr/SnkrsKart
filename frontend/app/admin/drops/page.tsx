@@ -27,7 +27,7 @@ interface Drop {
 }
 
 const EMPTY_FORM = {
-  name: '', brand: '', colorway: '', releaseDate: '', retailPrice: '', currency: 'INR',
+  name: '', brand: '', colorway: '', releaseDate: '', retailPrice: '',
   image: '', description: '', where: '', availableAtStore: false, productSlug: '', published: false,
 };
 
@@ -90,7 +90,6 @@ export default function AdminDropsPage() {
       name: d.name, brand: d.brand, colorway: d.colorway,
       releaseDate: d.releaseDate ? d.releaseDate.slice(0, 10) : '',
       retailPrice: d.retailPrice ? String(d.retailPrice) : '',
-      currency: d.currency || 'INR',
       image: d.image, description: d.description, where: d.where,
       availableAtStore: d.availableAtStore, productSlug: d.productSlug, published: d.published,
     });
@@ -253,23 +252,13 @@ export default function AdminDropsPage() {
               ))}
               <div>
                 <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1">Retail Price</label>
-                <div className="flex gap-2">
-                  <select
-                    value={form.currency}
-                    onChange={(e) => setF('currency', e.target.value)}
-                    className="bg-zinc-800 border border-zinc-700 text-zinc-100 px-2 py-2 text-sm focus:outline-none focus:border-zinc-500"
-                  >
-                    <option value="INR">₹ INR</option>
-                    <option value="USD">$ USD</option>
-                  </select>
-                  <input
-                    type="number" value={form.retailPrice}
-                    onChange={(e) => setF('retailPrice', e.target.value)}
-                    placeholder="e.g. 8495"
-                    className="flex-1 bg-zinc-800 border border-zinc-700 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:border-zinc-500"
-                  />
-                </div>
-                <p className="text-[10px] text-zinc-600 mt-1">Use the price's original currency — never convert</p>
+                <input
+                  type="number" value={form.retailPrice}
+                  onChange={(e) => setF('retailPrice', e.target.value)}
+                  placeholder="e.g. 8495"
+                  className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:border-zinc-500"
+                />
+                <p className="text-[10px] text-zinc-600 mt-1">Under 1000 = USD, 1000+ = INR (auto-detected)</p>
               </div>
               <div>
                 <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1">Release Date *</label>

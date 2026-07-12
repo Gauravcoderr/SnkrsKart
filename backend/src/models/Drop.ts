@@ -37,4 +37,24 @@ const DropSchema = new Schema<IDrop>(
   { timestamps: true }
 );
 
+// Sneaker retail prices under 1000 are always USD (no sneaker retails for ₹999 or less);
+// anything at or above 1000 is INR. Keeps currency correct regardless of how price was set.
+function deriveCurrency(price: number): 'INR' | 'USD' {
+  return price < 1000 ? 'USD' : 'INR';
+}
+
+DropSchema.pre('save', async function () {
+  if (this.retailPrice != null) this.currency = deriveCurrency(this.retailPrice);
+});
+
+DropSchema.pre('findOneAndUpdate', async function () {
+  const update = this.getUpdate() as Record<string, any> | null;
+  if (!update) return;
+  const price = update.retailPrice !== undefined ? update.retailPrice : update.$set?.retailPrice;
+  if (price !== undefined && price !== null) {
+    if (update.$set) update.$set.currency = deriveCurrency(price);
+    else update.currency = deriveCurrency(price);
+  }
+});
+
 export const Drop = mongoose.model<IDrop>('Drop', DropSchema);
