@@ -1,5 +1,6 @@
 import { fetchProductBySlug, fetchTrendingProducts, fetchProductReviews } from '@/lib/api';
 import { cloudinaryOgImage } from '@/lib/utils';
+import { Product } from '@/types';
 import { notFound } from 'next/navigation';
 import ImageGallery from '@/components/product-detail/ImageGallery';
 import ProductDetailClient from './ProductDetailClient';
@@ -399,6 +400,29 @@ export default async function ProductDetailPage({ params }: PageProps) {
           </div>
         </section>
       )}
+
+      {/* You Might Also Like — admin-curated picks */}
+      {(() => {
+        const curated = (product.relatedProducts ?? []).filter(
+          (r): r is Product => typeof r !== 'string'
+        );
+        if (curated.length === 0) return null;
+        return (
+          <section className="mt-16 pt-10 border-t border-zinc-100">
+            <div className="flex items-end justify-between mb-8">
+              <div>
+                <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-400 mb-1">Curated</p>
+                <h2 className="text-xl font-bold tracking-[0.15em] uppercase text-zinc-900">You Might Also Like</h2>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+              {curated.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Related blog posts */}
       {relatedBlogs.length > 0 && (

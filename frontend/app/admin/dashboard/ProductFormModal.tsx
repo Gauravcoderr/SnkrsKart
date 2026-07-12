@@ -8,6 +8,7 @@ import { SHOE_SIZES, CLOTHING_SIZES, ACCESSORY_SIZES, CATEGORIES_BY_TYPE } from 
 
 interface Props {
   product: Product | null;
+  allProducts: Product[];
   onSave: (data: Partial<Product>) => Promise<void>;
   onClose: () => void;
 }
@@ -15,8 +16,9 @@ interface Props {
 const GENDERS = ['men', 'women', 'unisex', 'kids'] as const;
 type ProductType = 'shoes' | 'clothing' | 'accessories';
 const CUSTOM_CATEGORY = '__custom__';
+const MAX_RELATED = 8;
 
-export default function ProductFormModal({ product, onSave, onClose }: Props) {
+export default function ProductFormModal({ product, allProducts, onSave, onClose }: Props) {
   const isEdit = !!product;
   const [productType, setProductType] = useState<ProductType>(product?.productType ?? 'shoes');
 
@@ -50,6 +52,34 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
       ? product.faqs.map((f) => ({ question: f.question, answer: f.answer }))
       : [] as Array<{ question: string; answer: string }>,
   });
+
+  // ── Related products ("You Might Also Like") ────────────────────────────
+  const [relatedIds, setRelatedIds] = useState<string[]>(
+    () => (product?.relatedProducts ?? []).map((r) => (typeof r === 'string' ? r : r.id))
+  );
+  const [relatedSearch, setRelatedSearch] = useState('');
+  const relatedProducts = relatedIds
+    .map((id) => allProducts.find((p) => p.id === id))
+    .filter((p): p is Product => !!p);
+  const relatedSearchResults = relatedSearch.trim()
+    ? allProducts
+        .filter((p) => p.id !== product?.id && !relatedIds.includes(p.id))
+        .filter((p) => {
+          const q = relatedSearch.trim().toLowerCase();
+          return p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q);
+        })
+        .slice(0, 8)
+    : [];
+
+  function addRelated(id: string) {
+    if (relatedIds.length >= MAX_RELATED || relatedIds.includes(id)) return;
+    setRelatedIds((prev) => [...prev, id]);
+    setRelatedSearch('');
+  }
+
+  function removeRelated(id: string) {
+    setRelatedIds((prev) => prev.filter((r) => r !== id));
+  }
 
   // Category isn't in this type's preset list — either loaded from an existing
   // custom value on edit, or the admin picked "Other" and is typing one now.
@@ -331,6 +361,7 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
         metaTitle: form.metaTitle.trim() || undefined,
         metaDescription: form.metaDescription.trim() || undefined,
         metaKeywords: form.metaKeywords.split(',').map((k) => k.trim()).filter(Boolean),
+        relatedProducts: relatedIds,
         images: form.imageList.map((u) => u.trim()).filter(Boolean),
         hoverImage: form.hoverImage.trim(),
         variants,
@@ -892,6 +923,67 @@ export default function ProductFormModal({ product, onSave, onClose }: Props) {
             >
               + Add FAQ
             </button>
+          </div>
+
+          {/* Related products — "You Might Also Like" */}
+          <div className="border border-zinc-700 rounded-lg p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-white">You Might Also Like</span>
+              <span className="text-xs text-zinc-500">{relatedIds.length}/{MAX_RELATED} selected</span>
+            </div>
+
+            {relatedProducts.length > 0 && (
+              <div className="space-y-1.5">
+                {relatedProducts.map((p) => (
+                  <div key={p.id} className="flex items-center gap-2.5 bg-zinc-800/50 border border-zinc-700 rounded-lg px-3 py-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.images?.[0]} alt={p.name} className="w-8 h-8 rounded object-cover bg-zinc-800 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white truncate">{p.name}</p>
+                      <p className="text-xs text-zinc-500 truncate">{p.brand}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeRelated(p.id)}
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2 py-1 rounded-lg transition text-xs shrink-0"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {relatedIds.length < MAX_RELATED && (
+              <div className="relative">
+                <input
+                  type="text"
+                  value={relatedSearch}
+                  onChange={(e) => setRelatedSearch(e.target.value)}
+                  placeholder="Search products by name or brand to add…"
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                />
+                {relatedSearchResults.length > 0 && (
+                  <div className="absolute z-10 mt-1 w-full bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl max-h-56 overflow-y-auto">
+                    {relatedSearchResults.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => addRelated(p.id)}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-zinc-700 transition text-left"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={p.images?.[0]} alt={p.name} className="w-7 h-7 rounded object-cover bg-zinc-900 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-white truncate">{p.name}</p>
+                          <p className="text-xs text-zinc-500 truncate">{p.brand}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Flags */}

@@ -303,7 +303,7 @@ export default function AdminDashboard() {
         )}
       </AdminFilterDrawer>
 
-      {formOpen && <ProductFormModal product={editProduct} onSave={handleSave} onClose={() => { setFormOpen(false); setEditProduct(null); }} />}
+      {formOpen && <ProductFormModal product={editProduct} allProducts={products} onSave={handleSave} onClose={() => { setFormOpen(false); setEditProduct(null); }} />}
       {deleteProduct && <DeleteConfirmModal product={deleteProduct} onConfirm={() => handleDelete(deleteProduct)} onCancel={() => setDeleteProduct(null)} />}
       {lightbox && <ImageLightbox images={lightbox.images} currentIndex={lightbox.index} onIndexChange={(i) => setLightbox({ ...lightbox, index: i })} onClose={() => setLightbox(null)} />}
     </div>

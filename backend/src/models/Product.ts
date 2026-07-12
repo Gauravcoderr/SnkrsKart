@@ -43,6 +43,7 @@ export interface IProduct extends Document {
   metaTitle?: string;
   metaDescription?: string;
   metaKeywords: string[];
+  relatedProducts: mongoose.Types.ObjectId[];
   createdAt: Date;
 }
 
@@ -83,6 +84,11 @@ const ProductSchema = new Schema<IProduct>(
     metaTitle:       { type: String, required: false },
     metaDescription: { type: String, required: false },
     metaKeywords:    [{ type: String }],
+    relatedProducts: {
+      type: [{ type: Schema.Types.ObjectId, ref: 'Product' }],
+      validate: [(arr: unknown[]) => arr.length <= 8, 'relatedProducts cannot exceed 8 items'],
+      default: [],
+    },
   },
   {
     timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },

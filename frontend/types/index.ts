@@ -35,6 +35,8 @@ export interface Product {
   metaTitle?: string;
   metaDescription?: string;
   metaKeywords?: string[];
+  /** Plain id strings in admin/list responses; populated Product objects on the single product-detail fetch. */
+  relatedProducts?: Array<string | Product>;
   createdAt: string;
 }
 

@@ -111,8 +111,16 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
 export const getProductBySlug = async (req: Request, res: Response): Promise<void> => {
   try {
     // sourceUrl is admin-only (where the listing was resold from) — never expose it publicly
-    const product = await Product.findOne({ slug: req.params.slug }).select('-sourceUrl').lean();
+    const product: any = await Product.findOne({ slug: req.params.slug })
+      .select('-sourceUrl')
+      .populate({ path: 'relatedProducts', select: CARD_FIELDS })
+      .lean();
     if (!product) { res.status(404).json({ error: 'Product not found' }); return; }
+    if (product.relatedProducts?.length) {
+      product.relatedProducts = product.relatedProducts
+        .filter((rp: any) => rp != null)
+        .map((rp: any) => ({ ...rp, id: rp._id.toString() }));
+    }
     res.json({ ...product, id: (product._id as any).toString() });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch product' });
