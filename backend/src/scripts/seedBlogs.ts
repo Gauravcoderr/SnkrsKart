@@ -31,6 +31,7 @@ const blogs = [
   // nike-air-zoom-flight-the-glove-india-2026, vans-old-skool-souvenir-india-2026, indian-sneaker-festival-gurugram-2026 — seeded 2026-07-06
   // nike-air-force-1-low-01-triple-white-2026, jalen-brunson-nike-kobe-ny-vs-ny-2026, on-running-vs-hoka-india-2026 — seeded 2026-07-07
   // a-cold-wall-salomon-acs-pro-india-2026, air-jordan-1-love-letter-india-2026, carbon-plate-super-shoes-india-2026 — seeded 2026-07-09
+  // air-jordan-16-free-the-youth-metallic-silver-2026, mary-jane-sneaker-trend-india-2026, tamil-nadu-adidas-footwear-manufacturing-india-2026 — seeded 2026-07-12
 ];
 
 async function seed() {
