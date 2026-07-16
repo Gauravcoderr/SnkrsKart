@@ -129,7 +129,7 @@ export default async function BlogsPage({ searchParams }: { searchParams?: { tag
                         <span>&middot;</span>
                         <span>{formatDate(hero.createdAt)}</span>
                         <span>&middot;</span>
-                        <span>{readingTime(hero.content)} min read</span>
+                        <span>{hero.wordCount != null && hero.wordCount > 0 ? Math.max(1, Math.ceil(hero.wordCount / 200)) : readingTime(hero.content)} min read</span>
                       </div>
                       <span className={`inline-flex items-center gap-2 ${a.tagBg} ${a.tagText} px-5 py-2.5 rounded-full text-xs font-black tracking-widest uppercase w-fit group-hover:scale-105 transition-transform`}>
                         Read Article
