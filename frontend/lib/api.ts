@@ -166,3 +166,13 @@ export async function fetchDropBySlug(slug: string): Promise<Drop> {
   if (!res.ok) throw new Error('Drop not found');
   return res.json();
 }
+
+// Client-side fetch (no cache, for filter interactions)
+export async function fetchProductsClient(
+  filters: Partial<FilterState> & { page?: number; limit?: number } = {}
+): Promise<ProductsResponse> {
+  const qs = buildQueryString(filters);
+  const res = await fetch(`${BASE_URL}/products${qs ? `?${qs}` : ''}`);
+  if (!res.ok) throw new Error('Failed to fetch products');
+  return res.json();
+}
