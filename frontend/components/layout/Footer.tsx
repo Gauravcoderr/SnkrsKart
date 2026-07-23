@@ -125,7 +125,8 @@ export default function Footer() {
               © {new Date().getFullYear()} SNKRS CART. All rights reserved.
             </p>
             <p className="text-[10px] text-zinc-600">
-              SNKRS CART is an independent reseller. Not affiliated with Nike, Inc., Jordan Brand, Adidas AG, New Balance Athletics, or Crocs, Inc.
+              Independent reseller · Not brand-affiliated ·{' '}
+              <Link href="/about" className="underline hover:text-zinc-400">Full disclaimer</Link>
             </p>
           </div>
           <div className="flex items-center gap-4 flex-wrap justify-center">
