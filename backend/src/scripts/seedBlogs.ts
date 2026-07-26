@@ -34,6 +34,7 @@ const blogs = [
   // air-jordan-16-free-the-youth-metallic-silver-2026, mary-jane-sneaker-trend-india-2026, tamil-nadu-adidas-footwear-manufacturing-india-2026 — seeded 2026-07-12
   // bape-vans-knu-skool-camo-collab-2026, sneaker-indianization-trend-india-2026, superkicks-delhi-flagship-store-2026 — seeded 2026-07-16
   // victor-solomon-nike-trophies-pack-india-2026, vans-kpop-demon-hunters-golden-india-2026, yoho-blinc-hands-free-sneakers-india-2026 — seeded 2026-07-23
+  // nike-lebron-23-hardwood-classic-india-2026, skechers-cricket-elite-india-endorsement-strategy, anta-puma-stake-india-business-impact — seeded 2026-07-26
 ];
 
 async function seed() {
