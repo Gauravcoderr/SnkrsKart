@@ -30,7 +30,7 @@ export default function ImageGallery({ images, productName }: ImageGalleryProps)
                 activeIndex === i ? 'border-zinc-900' : 'border-zinc-200 hover:border-zinc-400'
               }`}
             >
-              <Image src={src} alt={`${productName} view ${i + 1}`} fill className="object-cover" sizes="80px" />
+              <Image src={src} alt={`${productName} view ${i + 1}`} fill className="object-contain p-1.5" sizes="80px" />
             </button>
           ))}
         </div>
@@ -47,7 +47,7 @@ export default function ImageGallery({ images, productName }: ImageGalleryProps)
               fill
               priority
               sizes="(max-width: 768px) 100vw, 60vw"
-              className="object-cover transition-transform duration-500 hover:scale-105"
+              className="object-contain p-6 transition-transform duration-500 hover:scale-105"
             />
             <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-0.5 text-[11px] font-medium text-zinc-600">
               {activeIndex + 1} / {images.length}
