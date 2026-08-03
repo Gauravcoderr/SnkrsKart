@@ -36,6 +36,7 @@ const blogs = [
   // victor-solomon-nike-trophies-pack-india-2026, vans-kpop-demon-hunters-golden-india-2026, yoho-blinc-hands-free-sneakers-india-2026 — seeded 2026-07-23
   // nike-lebron-23-hardwood-classic-india-2026, skechers-cricket-elite-india-endorsement-strategy, anta-puma-stake-india-business-impact — seeded 2026-07-26
   // nike-atelier-merc-premium-india-2026, india-bis-footwear-qco-2026-extension, reebok-karol-g-classics-india-abfrl-2026 — seeded 2026-07-30
+  // travis-kelce-air-jordan-10-chiefs-pe-2026, nike-air-force-1-low-floral-ir8617-900-india-2026, pokemon-adidas-30th-anniversary-collection-india-2026 — seeded 2026-08-03
 ];
 
 async function seed() {
