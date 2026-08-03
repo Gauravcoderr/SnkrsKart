@@ -61,7 +61,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
               alt={`${product.brand} ${product.name}`}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-contain p-4 img-default group-hover:scale-105 transition-transform duration-500"
+              className="object-cover img-default group-hover:scale-105 transition-transform duration-500"
               priority={priority}
             />
           ) : (
@@ -76,7 +76,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
               alt={`${product.brand} ${product.name} alternate`}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-contain p-4 img-hover absolute inset-0 group-hover:scale-105 transition-transform duration-500"
+              className="object-cover img-hover absolute inset-0 group-hover:scale-105 transition-transform duration-500"
             />
           )}
 

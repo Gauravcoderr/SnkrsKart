@@ -34,7 +34,7 @@ export default function NewArrivals({ products }: NewArrivalsProps) {
         {/* Horizontal scroll on mobile, grid on desktop */}
         <div className="flex gap-4 overflow-x-auto hide-scrollbar sm:grid sm:grid-cols-3 lg:grid-cols-4 sm:gap-6">
           {products.map((product, i) => (
-            <div key={product.id} className="w-[220px] sm:w-auto flex-shrink-0 sm:flex-shrink">
+            <div key={product.id} className="min-w-[220px] sm:min-w-0 flex-shrink-0 sm:flex-shrink">
               <ProductCard product={product} priority={i < 2} />
             </div>
           ))}
