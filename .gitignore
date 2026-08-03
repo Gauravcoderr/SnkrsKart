@@ -31,3 +31,6 @@ yarn-debug.log*
 # WhatsApp Web session (whatsapp-web.js LocalAuth)
 .wwebjs_auth/
 .wwebjs_cache/
+
+# Automated content pipeline rotation state
+.auto-content-state

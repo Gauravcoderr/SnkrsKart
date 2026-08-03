@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.snkrscart.autocontent</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/zsh</string>
+        <string>-lc</string>
+        <string>$HOME/snkrs-cart/scripts/auto-content.sh</string>
+    </array>
+
+    <!-- Every 2 days. launchd fires shortly after wake if the interval
+         elapsed while the Mac was asleep. -->
+    <key>StartInterval</key>
+    <integer>172800</integer>
+
+    <!-- Do not fire the moment this agent is loaded (or on every login). -->
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/gauravrauthan/snkrs-cart</string>
+
+    <!-- USER and LOGNAME are REQUIRED. Without them `claude -p` reports
+         "Not logged in · Please run /login" even though the keychain entry is
+         readable. Verified 2026-08-03: keychain access works in a fully
+         stripped env; it is the identity vars that claude needs. -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/Users/gauravrauthan/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>/Users/gauravrauthan</string>
+        <key>USER</key>
+        <string>gauravrauthan</string>
+        <key>LOGNAME</key>
+        <string>gauravrauthan</string>
+        <key>SHELL</key>
+        <string>/bin/zsh</string>
+    </dict>
+
+    <!-- The script tees to ~/Library/Logs/snkrscart-autocontent.log; these
+         catch anything that escapes before logging is set up. -->
+    <key>StandardOutPath</key>
+    <string>/Users/gauravrauthan/Library/Logs/snkrscart-autocontent.launchd.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/gauravrauthan/Library/Logs/snkrscart-autocontent.launchd.log</string>
+
+    <!-- Long, network- and token-heavy job: keep it out of the foreground's way. -->
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>Nice</key>
+    <integer>5</integer>
+    <key>LowPriorityIO</key>
+    <true/>
+
+    <!-- Hard stop so a wedged run cannot sit forever holding the lock. -->
+    <key>ExitTimeOut</key>
+    <integer>60</integer>
+</dict>
+</plist>
