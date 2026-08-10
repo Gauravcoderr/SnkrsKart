@@ -39,6 +39,7 @@ const blogs = [
   // travis-kelce-air-jordan-10-chiefs-pe-2026, nike-air-force-1-low-floral-ir8617-900-india-2026, pokemon-adidas-30th-anniversary-collection-india-2026 — seeded 2026-08-03
   // adidas-harden-vol-10-northern-lights-canada-exclusive-2026, air-jordan-13-wings-denim-legacy-2026, india-marathon-boom-running-shoes-asics-nike-adidas-2026 — seeded 2026-08-05
   // air-jordan-9-low-what-the-kilroy-2026, nike-moon-shoe-italy-blue-sail-chlorophyll-2026, reebok-angel-reese-1-barbie-india-2026 — seeded 2026-08-07
+  // adidas-limited-edt-superstar-made-in-india-2026, kanye-west-yeezy-jd-sports-comeback-2026, puma-speedcat-low-profile-trend-india-2026 — seeded 2026-08-10
 ];
 
 async function seed() {
