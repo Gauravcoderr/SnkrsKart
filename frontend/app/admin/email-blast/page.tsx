@@ -22,9 +22,14 @@ const LOGO_URL = `${SITE}/logo.jpg`;
 interface Product { id: string; name: string; slug: string; brand?: string; colorway?: string; images?: string[]; price?: number; createdAt?: string; }
 interface Blog { _id: string; title: string; slug: string; coverImage?: string; excerpt?: string; published: boolean; createdAt?: string; }
 
-// Force JPEG for email — f_auto can serve WebP/AVIF which many email clients (and ESP image mirrors) don't render
+// Force JPEG for email — f_auto/f_webp params AND files stored natively as
+// .avif/.webp both render as broken images in Outlook and most webmail clients.
 function emailImg(url: string): string {
-  return url.replace(/\/f_auto/g, '/f_jpg').replace(/\/f_webp/g, '/f_jpg');
+  return url
+    .replace(/\/f_auto\b/g, '/f_jpg')
+    .replace(/\/f_webp\b/g, '/f_jpg')
+    .replace(/\.avif(\?|$)/i, '.jpg$1')
+    .replace(/\.webp(\?|$)/i, '.jpg$1');
 }
 
 // Product/blog names can contain quotes, & or < — unescaped, they break out of

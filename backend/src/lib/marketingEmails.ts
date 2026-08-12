@@ -40,9 +40,14 @@ async function getRecipients(): Promise<string[]> {
 
 const LOGO_URL = `${SITE}/logo.jpg`;
 
-// Force JPEG for email — f_auto can serve WebP which many email clients don't render
+// Force JPEG for email — f_auto/f_webp params AND files stored natively as
+// .avif/.webp both render as broken images in Outlook and most webmail clients.
 function emailImg(url: string): string {
-  return url.replace(/\/f_auto/g, '/f_jpg').replace(/\/f_webp/g, '/f_jpg');
+  return url
+    .replace(/\/f_auto\b/g, '/f_jpg')
+    .replace(/\/f_webp\b/g, '/f_jpg')
+    .replace(/\.avif(\?|$)/i, '.jpg$1')
+    .replace(/\.webp(\?|$)/i, '.jpg$1');
 }
 
 // Product/blog names can contain quotes, & or < — unescaped, they break out of
