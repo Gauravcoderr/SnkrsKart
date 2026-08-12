@@ -65,10 +65,10 @@ function emailShell(preheader: string, bodyRows: string): string {
           <tr>
             <td style="padding:28px 32px 16px;text-align:center;background:#F4F4F5;">
               <a href="https://www.instagram.com/snkrs_cart/" style="display:inline-block;margin:0 5px;text-decoration:none;vertical-align:top;width:34px;height:34px;background:#000000;border-radius:50%;text-align:center;line-height:34px;">
-                <img src="https://res.cloudinary.com/dadulg5bs/image/upload/w_20,h_20,c_fit,f_png/email-icons/instagram-white.png" width="20" height="20" alt="Instagram" style="display:inline-block;vertical-align:middle;border:none;" />
+                <img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1786543961/email-icons/instagram-white-40.png" width="20" height="20" alt="Instagram" style="display:inline-block;vertical-align:middle;border:none;" />
               </a>
               <a href="https://wa.me/919410903791" style="display:inline-block;margin:0 5px;text-decoration:none;vertical-align:top;width:34px;height:34px;background:#000000;border-radius:50%;text-align:center;line-height:34px;">
-                <img src="https://res.cloudinary.com/dadulg5bs/image/upload/w_20,h_20,c_fit,f_png/email-icons/whatsapp-white.png" width="20" height="20" alt="WhatsApp" style="display:inline-block;vertical-align:middle;border:none;" />
+                <img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1786543962/email-icons/whatsapp-white-40.png" width="20" height="20" alt="WhatsApp" style="display:inline-block;vertical-align:middle;border:none;" />
               </a>
             </td>
           </tr>

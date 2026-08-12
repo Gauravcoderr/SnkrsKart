@@ -10,9 +10,14 @@ const LOGO_URL = `${SITE}/logo.jpg`;
 interface Product { id: string; name: string; slug: string; brand?: string; colorway?: string; images?: string[]; price?: number; createdAt?: string; }
 interface Blog { _id: string; title: string; slug: string; coverImage?: string; excerpt?: string; published: boolean; createdAt?: string; }
 
+// Force JPEG for email — f_auto can serve WebP/AVIF which many email clients (and ESP image mirrors) don't render
+function emailImg(url: string): string {
+  return url.replace(/\/f_auto/g, '/f_jpg').replace(/\/f_webp/g, '/f_jpg');
+}
+
 function buildBlastHtml(products: Product[], blogs: Blog[]): string {
   const productCards = products.map(p => {
-    const img = p.images?.[0];
+    const img = p.images?.[0] ? emailImg(p.images[0]) : undefined;
     const meta = [p.brand, p.colorway].filter(Boolean).join(' · ');
     const imgRow = img
       ? `<tr><td style="line-height:0;font-size:0;"><a href="${SITE}/products/${p.slug}" style="display:block;text-decoration:none;"><img src="${img}" alt="${p.name}" width="536" style="width:100%;max-height:260px;object-fit:cover;display:block;border:none;" /></a></td></tr>`
@@ -39,8 +44,9 @@ function buildBlastHtml(products: Product[], blogs: Blog[]): string {
 
   const blogCards = blogs.map(b => {
     const excerpt = b.excerpt ? b.excerpt.slice(0, 130) + (b.excerpt.length > 130 ? '…' : '') : '';
-    const imgRow = b.coverImage
-      ? `<tr><td style="line-height:0;font-size:0;"><a href="${SITE}/blogs/${b.slug}" style="display:block;text-decoration:none;"><img src="${b.coverImage}" alt="${b.title}" width="536" style="width:100%;max-height:220px;object-fit:cover;display:block;border:none;" /></a></td></tr>`
+    const blogImg = b.coverImage ? emailImg(b.coverImage) : undefined;
+    const imgRow = blogImg
+      ? `<tr><td style="line-height:0;font-size:0;"><a href="${SITE}/blogs/${b.slug}" style="display:block;text-decoration:none;"><img src="${blogImg}" alt="${b.title}" width="536" style="width:100%;max-height:220px;object-fit:cover;display:block;border:none;" /></a></td></tr>`
       : '';
     return `
       <tr>
@@ -104,10 +110,10 @@ function buildBlastHtml(products: Product[], blogs: Blog[]): string {
       <!-- FOOTER -->
       <tr><td style="background:#0F0F0F;padding:28px 32px 24px;text-align:center;">
         <a href="https://www.instagram.com/snkrs_cart/" style="display:inline-block;margin:0 6px;text-decoration:none;vertical-align:top;">
-          <img src="https://res.cloudinary.com/dadulg5bs/image/upload/w_22,h_22,c_fit,f_png/email-icons/instagram-white.png" width="22" height="22" alt="Instagram" style="display:block;border:none;opacity:0.7;" />
+          <img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1786543961/email-icons/instagram-white-40.png" width="22" height="22" alt="Instagram" style="display:block;border:none;opacity:0.7;" />
         </a>
         <a href="https://wa.me/919410903791" style="display:inline-block;margin:0 6px;text-decoration:none;vertical-align:top;">
-          <img src="https://res.cloudinary.com/dadulg5bs/image/upload/w_22,h_22,c_fit,f_png/email-icons/whatsapp-white.png" width="22" height="22" alt="WhatsApp" style="display:block;border:none;opacity:0.7;" />
+          <img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1786543962/email-icons/whatsapp-white-40.png" width="22" height="22" alt="WhatsApp" style="display:block;border:none;opacity:0.7;" />
         </a>
         <div style="height:1px;background:rgba(255,255,255,0.08);margin:18px 0 14px;"></div>
         <p style="margin:0 0 6px;font-family:Inter,Arial,sans-serif;font-size:10px;font-weight:800;color:rgba(255,255,255,0.2);letter-spacing:2px;text-transform:uppercase;">SNKRS CART</p>
