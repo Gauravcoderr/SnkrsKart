@@ -4,7 +4,19 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-const SITE = 'https://snkrscart.com';
+
+// Bare domain 308-redirects to www, which breaks ESP image mirroring — force www.
+function withWww(url: string): string {
+  try {
+    const u = new URL(url);
+    if (!u.hostname.startsWith('www.')) u.hostname = `www.${u.hostname}`;
+    return u.toString().replace(/\/$/, '');
+  } catch {
+    return url;
+  }
+}
+
+const SITE = withWww(process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com');
 const LOGO_URL = `${SITE}/logo.jpg`;
 
 interface Product { id: string; name: string; slug: string; brand?: string; colorway?: string; images?: string[]; price?: number; createdAt?: string; }

@@ -3,7 +3,18 @@ import { Newsletter } from '../models/Newsletter';
 import { Review } from '../models/Review';
 import { Order } from '../models/Order';
 
-const SITE = 'https://snkrscart.com';
+// Bare domain 308-redirects to www, which breaks ESP image mirroring — force www.
+function withWww(url: string): string {
+  try {
+    const u = new URL(url);
+    if (!u.hostname.startsWith('www.')) u.hostname = `www.${u.hostname}`;
+    return u.toString().replace(/\/$/, '');
+  } catch {
+    return url;
+  }
+}
+
+const SITE = withWww(process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com');
 
 async function getMarketingEmails(): Promise<string[]> {
   const [n, r, o] = await Promise.all([
