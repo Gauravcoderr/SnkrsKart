@@ -18,6 +18,7 @@ import {
   LogoutIcon,
   SearchIcon,
   DealVerifIcon,
+  MailIcon,
 } from '@/components/ui/Icons';
 
 const NAV = [
@@ -35,6 +36,7 @@ const NAV = [
   { href: '/admin/scraped-products',   label: 'Scraped Products', Icon: SearchIcon },
   { href: '/admin/chat-leads',           label: 'Chat Leads',    Icon: ChatLeadsIcon },
   { href: '/admin/deal-verifications',   label: 'Deal Checks',   Icon: DealVerifIcon },
+  { href: '/admin/newsletter',           label: 'Newsletter',    Icon: MailIcon },
   { href: '/admin/email-blast',          label: 'Email Blast',   Icon: BlogsIcon },
   { href: '/admin/pages',             label: 'Pages & SEO',      Icon: PagesIcon },
 ];
