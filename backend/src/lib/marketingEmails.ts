@@ -11,8 +11,15 @@ async function getMarketingEmails(): Promise<string[]> {
     Review.distinct('email') as Promise<string[]>,
     Order.distinct('email') as Promise<string[]>,
   ]);
-  // Set collapses duplicates: same email across all 3 sources → 1 entry
-  return Array.from(new Set<string>([...n, ...r, ...o]));
+  // Order/Review emails aren't lowercased on save, so normalize case here —
+  // otherwise the same person with different casing across sources gets emailed twice.
+  const seen = new Map<string, string>();
+  for (const raw of [...n, ...r, ...o]) {
+    if (!raw) continue;
+    const key = raw.toLowerCase().trim();
+    if (!seen.has(key)) seen.set(key, raw.trim());
+  }
+  return Array.from(seen.values());
 }
 
 async function getRecipients(): Promise<string[]> {
@@ -25,6 +32,17 @@ const LOGO_URL = `${SITE}/logo.jpg`;
 // Force JPEG for email — f_auto can serve WebP which many email clients don't render
 function emailImg(url: string): string {
   return url.replace(/\/f_auto/g, '/f_jpg').replace(/\/f_webp/g, '/f_jpg');
+}
+
+// Product/blog names can contain quotes, & or < — unescaped, they break out of
+// attributes (e.g. alt="...") and corrupt the surrounding tag.
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function emailShell(preheader: string, bodyRows: string): string {
@@ -117,7 +135,7 @@ function productEmailHtml(p: {
   const heroRow = img
     ? `<tr><td style="background:#E4E4E7;line-height:0;font-size:0;">
         <a href="${url}" style="display:block;text-decoration:none;">
-          <img src="${img}" alt="${p.name}" width="600" style="width:100%;max-height:380px;object-fit:cover;display:block;border:none;" />
+          <img src="${img}" alt="${escapeHtml(p.name)}" width="600" style="width:100%;max-height:380px;object-fit:cover;display:block;border:none;" />
         </a>
        </td></tr>`
     : `<tr><td height="200" style="background:#E4E4E7;text-align:center;vertical-align:middle;">
@@ -186,7 +204,7 @@ function blogEmailHtml(b: {
   const heroRow = img
     ? `<tr><td style="background:#E4E4E7;line-height:0;font-size:0;">
         <a href="${url}" style="display:block;text-decoration:none;">
-          <img src="${img}" alt="${b.title}" width="600" style="width:100%;max-height:320px;object-fit:cover;display:block;border:none;" />
+          <img src="${img}" alt="${escapeHtml(b.title)}" width="600" style="width:100%;max-height:320px;object-fit:cover;display:block;border:none;" />
         </a>
        </td></tr>`
     : `<tr><td height="140" style="background:#F4F4F5;border-bottom:1px solid #E4E4E7;"></td></tr>`;
@@ -279,7 +297,7 @@ export async function sendMultipleBlogBlast(
     const excerpt = b.excerpt ? b.excerpt.slice(0, 120) + (b.excerpt.length > 120 ? '&hellip;' : '') : '';
 
     const imgRow = img
-      ? `<tr><td style="line-height:0;font-size:0;"><a href="${url}" style="display:block;text-decoration:none;"><img src="${img}" alt="${b.title}" width="536" style="width:100%;max-height:220px;object-fit:cover;display:block;border:none;border-radius:6px 6px 0 0;" /></a></td></tr>`
+      ? `<tr><td style="line-height:0;font-size:0;"><a href="${url}" style="display:block;text-decoration:none;"><img src="${img}" alt="${escapeHtml(b.title)}" width="536" style="width:100%;max-height:220px;object-fit:cover;display:block;border:none;border-radius:6px 6px 0 0;" /></a></td></tr>`
       : '';
 
     return `

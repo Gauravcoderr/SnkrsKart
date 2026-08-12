@@ -15,12 +15,24 @@ function emailImg(url: string): string {
   return url.replace(/\/f_auto/g, '/f_jpg').replace(/\/f_webp/g, '/f_jpg');
 }
 
+// Product/blog names can contain quotes, & or < — unescaped, they break out of
+// attributes (e.g. alt="...") and corrupt the surrounding tag.
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function buildBlastHtml(products: Product[], blogs: Blog[]): string {
   const productCards = products.map(p => {
     const img = p.images?.[0] ? emailImg(p.images[0]) : undefined;
-    const meta = [p.brand, p.colorway].filter(Boolean).join(' · ');
+    const name = escapeHtml(p.name);
+    const meta = escapeHtml([p.brand, p.colorway].filter(Boolean).join(' · '));
     const imgRow = img
-      ? `<tr><td style="line-height:0;font-size:0;"><a href="${SITE}/products/${p.slug}" style="display:block;text-decoration:none;"><img src="${img}" alt="${p.name}" width="536" style="width:100%;max-height:260px;object-fit:cover;display:block;border:none;" /></a></td></tr>`
+      ? `<tr><td style="line-height:0;font-size:0;"><a href="${SITE}/products/${p.slug}" style="display:block;text-decoration:none;"><img src="${img}" alt="${name}" width="536" style="width:100%;max-height:260px;object-fit:cover;display:block;border:none;" /></a></td></tr>`
       : '';
     return `
       <tr>
@@ -29,7 +41,7 @@ function buildBlastHtml(products: Product[], blogs: Blog[]): string {
             ${imgRow}
             <tr><td style="padding:24px 28px 8px;">
               <p style="margin:0 0 8px;font-family:Inter,Arial,sans-serif;font-size:9px;font-weight:700;color:#A1A1AA;letter-spacing:3px;text-transform:uppercase;">Just Dropped</p>
-              <h2 style="margin:0 0 6px;font-family:Inter,Arial,sans-serif;font-size:22px;font-weight:700;color:#18181B;line-height:1.2;">${p.name}</h2>
+              <h2 style="margin:0 0 6px;font-family:Inter,Arial,sans-serif;font-size:22px;font-weight:700;color:#18181B;line-height:1.2;">${name}</h2>
               ${meta ? `<p style="margin:0;font-family:Inter,Arial,sans-serif;font-size:12px;color:#71717A;">${meta}</p>` : ''}
             </td></tr>
             ${p.price ? `<tr><td style="padding:4px 28px 0;"><span style="font-family:Inter,Arial,sans-serif;font-size:24px;font-weight:700;color:#18181B;">&#8377;${p.price.toLocaleString('en-IN')}</span></td></tr>` : ''}
@@ -43,10 +55,12 @@ function buildBlastHtml(products: Product[], blogs: Blog[]): string {
   }).join('');
 
   const blogCards = blogs.map(b => {
-    const excerpt = b.excerpt ? b.excerpt.slice(0, 130) + (b.excerpt.length > 130 ? '…' : '') : '';
+    const title = escapeHtml(b.title);
+    const excerptRaw = b.excerpt ? b.excerpt.slice(0, 130) + (b.excerpt.length > 130 ? '…' : '') : '';
+    const excerpt = escapeHtml(excerptRaw);
     const blogImg = b.coverImage ? emailImg(b.coverImage) : undefined;
     const imgRow = blogImg
-      ? `<tr><td style="line-height:0;font-size:0;"><a href="${SITE}/blogs/${b.slug}" style="display:block;text-decoration:none;"><img src="${blogImg}" alt="${b.title}" width="536" style="width:100%;max-height:220px;object-fit:cover;display:block;border:none;" /></a></td></tr>`
+      ? `<tr><td style="line-height:0;font-size:0;"><a href="${SITE}/blogs/${b.slug}" style="display:block;text-decoration:none;"><img src="${blogImg}" alt="${title}" width="536" style="width:100%;max-height:220px;object-fit:cover;display:block;border:none;" /></a></td></tr>`
       : '';
     return `
       <tr>
@@ -55,7 +69,7 @@ function buildBlastHtml(products: Product[], blogs: Blog[]): string {
             ${imgRow}
             <tr><td style="padding:24px 28px 8px;">
               <p style="margin:0 0 8px;font-family:Inter,Arial,sans-serif;font-size:9px;font-weight:700;color:#A1A1AA;letter-spacing:3px;text-transform:uppercase;">New on the Blog</p>
-              <h2 style="margin:0 0 8px;font-family:Inter,Arial,sans-serif;font-size:20px;font-weight:700;color:#18181B;line-height:1.25;">${b.title}</h2>
+              <h2 style="margin:0 0 8px;font-family:Inter,Arial,sans-serif;font-size:20px;font-weight:700;color:#18181B;line-height:1.25;">${title}</h2>
               ${excerpt ? `<p style="margin:0;font-family:Inter,Arial,sans-serif;font-size:13px;line-height:1.65;color:#52525B;">${excerpt}</p>` : ''}
             </td></tr>
             <tr><td style="padding:16px 28px 24px;">
