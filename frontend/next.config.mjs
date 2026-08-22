@@ -11,6 +11,12 @@ const nextConfig = {
       },
       {
         source: '/:path*',
+        has: [{ type: 'host', value: 'www.snkrs-kart.vercel.app' }],
+        destination: 'https://www.snkrscart.com/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
         has: [{ type: 'host', value: 'snkrscart.com' }],
         destination: 'https://www.snkrscart.com/:path*',
         permanent: true,
