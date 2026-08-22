@@ -41,6 +41,7 @@ const blogs = [
   // air-jordan-9-low-what-the-kilroy-2026, nike-moon-shoe-italy-blue-sail-chlorophyll-2026, reebok-angel-reese-1-barbie-india-2026 — seeded 2026-08-07
   // adidas-limited-edt-superstar-made-in-india-2026, kanye-west-yeezy-jd-sports-comeback-2026, puma-speedcat-low-profile-trend-india-2026 — seeded 2026-08-10
   // nike-kobe-5-protro-dodgers-2026, aime-leon-dore-new-balance-running-pack-2026, nike-ja-4-nightmare-2026 — seeded 2026-08-13
+  // air-jordan-6-oreo-2026, vandythepink-asics-gel-kayano-ice-cream-2026, slam-nike-zoom-hyperflight-safety-orange-2026 — seeded 2026-08-22
 ];
 
 async function seed() {
