@@ -4,10 +4,14 @@ import { Review } from '../models/Review';
 import { Order } from '../models/Order';
 
 // Bare domain 308-redirects to www, which breaks ESP image mirroring — force www.
+// Vercel's *.vercel.app cert only covers one subdomain label, so www.snkrs-kart.vercel.app
+// fails TLS entirely — never prepend www onto a vercel.app preview host.
 function withWww(url: string): string {
   try {
     const u = new URL(url);
-    if (!u.hostname.startsWith('www.')) u.hostname = `www.${u.hostname}`;
+    if (!u.hostname.endsWith('.vercel.app') && !u.hostname.startsWith('www.')) {
+      u.hostname = `www.${u.hostname}`;
+    }
     return u.toString().replace(/\/$/, '');
   } catch {
     return url;
