@@ -42,6 +42,7 @@ const blogs = [
   // adidas-limited-edt-superstar-made-in-india-2026, kanye-west-yeezy-jd-sports-comeback-2026, puma-speedcat-low-profile-trend-india-2026 — seeded 2026-08-10
   // nike-kobe-5-protro-dodgers-2026, aime-leon-dore-new-balance-running-pack-2026, nike-ja-4-nightmare-2026 — seeded 2026-08-13
   // air-jordan-6-oreo-2026, vandythepink-asics-gel-kayano-ice-cream-2026, slam-nike-zoom-hyperflight-safety-orange-2026 — seeded 2026-08-22
+  // reebok-question-96-26-zellerfeld-3d-printed-2026, swagger-hub-india-sneaker-reseller-2026, sneaker-cleaning-restoration-india-2026 — seeded 2026-08-25
 ];
 
 async function seed() {
