@@ -18,6 +18,22 @@ const BRAND_TAG: Record<string, string> = {
   'New Balance': 'new-balance', 'Crocs': 'crocs',
 };
 
+// Server-safe sanitizer — strips <script> tags, inline event handlers, and
+// javascript: URIs before the raw HTML is rendered via dangerouslySetInnerHTML.
+// Product descriptions can be pasted in by admins (scraper/manual entry), so a
+// stray full HTML template (with its own embedded <script> block) has landed
+// in this field before — this is a lightweight safety net against that.
+function serverSanitize(html: string): string {
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/javascript\s*:/gi, '');
+}
+
+function stripTags(html: string): string {
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 interface BlogSnippet { _id: string; title: string; slug: string; excerpt: string; coverImage: string; createdAt: string }
 
 async function fetchBlogsByBrand(brand: string): Promise<BlogSnippet[]> {
@@ -114,7 +130,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     '@type': 'Product',
     name: `${product.brand} ${product.name}`,
     brand: { '@type': 'Brand', name: product.brand },
-    description: product.description,
+    description: stripTags(product.description).slice(0, 5000),
     image: product.images,
     sku: product.sku,
     category: schemaCategory,
@@ -319,7 +335,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
           <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-4">About This Product</h3>
           <div
             className="text-sm text-zinc-600 leading-relaxed prose prose-sm prose-zinc max-w-none"
-            dangerouslySetInnerHTML={{ __html: product.description }}
+            dangerouslySetInnerHTML={{ __html: serverSanitize(product.description) }}
           />
         </div>
 

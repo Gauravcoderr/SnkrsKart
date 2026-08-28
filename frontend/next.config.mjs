@@ -4,7 +4,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://translate.googleapis.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' https://fonts.gstatic.com data:",
-  "connect-src 'self' https://snkrskart.onrender.com https://www.google-analytics.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://api.razorpay.com https://lumberjack.razorpay.com https://api.cashfree.com https://sandbox.cashfree.com https://accounts.google.com https://payments.cashfree.com",
+  "connect-src 'self' https://snkrskart.onrender.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://translate.googleapis.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://api.razorpay.com https://lumberjack.razorpay.com https://api.cashfree.com https://sandbox.cashfree.com https://accounts.google.com https://payments.cashfree.com",
   "frame-src 'self' https://checkout.razorpay.com https://api.razorpay.com https://payments.cashfree.com https://sandbox.cashfree.com https://accounts.google.com https://translate.google.com",
   "object-src 'none'",
   "base-uri 'self'",
