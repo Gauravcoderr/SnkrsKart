@@ -1,6 +1,6 @@
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://translate.google.com https://translate.googleapis.com https://www.gstatic.com https://checkout.razorpay.com https://sdk.cashfree.com https://accounts.google.com https://apis.google.com https://va.vercel-scripts.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://www.gstatic.com https://checkout.razorpay.com https://sdk.cashfree.com https://accounts.google.com https://apis.google.com https://va.vercel-scripts.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://translate.googleapis.com https://www.gstatic.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' https://fonts.gstatic.com https://www.gstatic.com data:",
