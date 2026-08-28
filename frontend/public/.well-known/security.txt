@@ -1,0 +1,4 @@
+Contact: mailto:infosnkrscart@gmail.com
+Expires: 2027-08-28T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://www.snkrscart.com/.well-known/security.txt

@@ -8,6 +8,7 @@ import { RejectedUrl } from '../models/RejectedUrl';
 import { uploadToCloudinary } from '../services/scraper/utils';
 import { runRenderScraper, ScraperRunResult } from '../services/scraper/index';
 import { Brand } from '../models/Brand';
+import { pingIndexNow } from '../lib/indexNow';
 
 // In-memory Render scraper state (resets on Render restart — intentional)
 type RenderScraperState =
@@ -126,6 +127,7 @@ router.post('/products', adminAuth, async (req: Request, res: Response): Promise
     }
     const product = await Product.create(productData);
     await syncBrandCounts();
+    pingIndexNow([`/products/${product.slug}`]);
     if (triggerEmail !== false) {
       const subject = emailSubject || `Just Dropped: ${product.name}`;
       const html = emailHtml || undefined;
@@ -347,11 +349,14 @@ router.post('/blogs', adminAuth, async (req: Request, res: Response): Promise<vo
     if (existing) { res.status(409).json({ error: 'Slug already exists' }); return; }
     const { triggerEmail = true, emailSubject, emailHtml, ...blogData } = data;
     const blog = await Blog.create(blogData);
-    if (blog.published && triggerEmail !== false) {
-      const subject = emailSubject || `New on the Blog: ${blog.title}`;
-      const html = emailHtml || undefined;
-      sendBlogPublishBlast({ title: blog.title, slug: blog.slug, coverImage: blog.coverImage, excerpt: blog.excerpt }, subject, html)
-        .catch((err: Error) => console.error('[email] blog blast failed:', err));
+    if (blog.published) {
+      pingIndexNow([`/blogs/${blog.slug}`]);
+      if (triggerEmail !== false) {
+        const subject = emailSubject || `New on the Blog: ${blog.title}`;
+        const html = emailHtml || undefined;
+        sendBlogPublishBlast({ title: blog.title, slug: blog.slug, coverImage: blog.coverImage, excerpt: blog.excerpt }, subject, html)
+          .catch((err: Error) => console.error('[email] blog blast failed:', err));
+      }
     }
     res.status(201).json(blog);
   } catch (err: any) {
@@ -367,8 +372,9 @@ router.put('/blogs/:id', adminAuth, async (req: Request, res: Response): Promise
     const before = await Blog.findById(req.params.id).lean();
     const blog = await Blog.findByIdAndUpdate(req.params.id, { $set: req.body }, { returnDocument: 'after', runValidators: true });
     if (!blog) { res.status(404).json({ error: 'Not found' }); return; }
-    // fire email when draft is published for the first time
+    // fire email + IndexNow ping when draft is published for the first time
     if (req.body.published === true && before && !before.published) {
+      pingIndexNow([`/blogs/${blog.slug}`]);
       sendBlogPublishBlast({ title: blog.title, slug: blog.slug, coverImage: blog.coverImage, excerpt: blog.excerpt })
         .catch((err: Error) => console.error('[email] blog publish blast failed:', err));
     }
@@ -670,6 +676,7 @@ router.post('/drops', adminAuth, async (req: Request, res: Response): Promise<vo
     if (!name || !brand || !releaseDate) { res.status(400).json({ error: 'name, brand and releaseDate are required' }); return; }
     const slug = req.body.slug || toSlug(`${brand}-${name}`);
     const drop = await Drop.create({ ...req.body, slug });
+    pingIndexNow([`/drops/${drop.slug}`]);
     res.status(201).json(drop);
   } catch (err: any) {
     if (err.code === 11000) { res.status(409).json({ error: 'Slug already exists' }); return; }
@@ -1139,6 +1146,7 @@ router.post('/scraped-products/:id/publish', adminAuth, async (req: Request, res
       status: 'published',
       publishedProductId: product._id,
     });
+    pingIndexNow([`/products/${product.slug}`]);
 
     res.status(201).json({ product, message: 'Published successfully' });
   } catch (err: any) {

@@ -11,6 +11,7 @@ import EmailCaptureModal from '@/components/layout/EmailCaptureModal';
 import WhatsAppFloat from '@/components/layout/WhatsAppFloat';
 import GoogleAuthProvider from '@/components/auth/GoogleAuthProvider';
 import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -251,6 +252,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </QueryProvider>
         </GoogleAuthProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

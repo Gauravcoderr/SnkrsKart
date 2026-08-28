@@ -10,6 +10,7 @@ import SizeGuideModal from '@/components/product-detail/SizeGuideModal';
 import RestockNotify from '@/components/product-detail/RestockNotify';
 import StickyCartBar from '@/components/product-detail/StickyCartBar';
 import DealVerifyModal from '@/components/product-detail/DealVerifyModal';
+import TrustBadges from '@/components/product-detail/TrustBadges';
 import { formatPrice } from '@/lib/utils';
 import { useWishlist } from '@/context/WishlistContext';
 
@@ -180,6 +181,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               onRequireSize={handleRequireSize}
             />
           </div>
+
+          <TrustBadges />
 
           {/* Restock notify — only if product is fully sold out */}
           {product.soldOut && (
