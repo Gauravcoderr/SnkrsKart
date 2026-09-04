@@ -44,6 +44,7 @@ const blogs = [
   // air-jordan-6-oreo-2026, vandythepink-asics-gel-kayano-ice-cream-2026, slam-nike-zoom-hyperflight-safety-orange-2026 — seeded 2026-08-22
   // reebok-question-96-26-zellerfeld-3d-printed-2026, swagger-hub-india-sneaker-reseller-2026, sneaker-cleaning-restoration-india-2026 — seeded 2026-08-25
   // awake-ny-air-jordan-6-blueberry-2026, westside-gunn-saucony-grid-jazz-9-2026, air-jordan-12-sumo-japan-import-india-2026 — seeded 2026-08-28
+  // comme-des-garcons-air-jordan-11-india-2026, new-balance-983-vs-1906r-india-2026, jordan-design-studio-syn-zhuang-air-jordan-1-2026 — seeded 2026-09-04
 ];
 
 async function seed() {
