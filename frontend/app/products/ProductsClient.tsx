@@ -28,10 +28,11 @@ export default function ProductsClient() {
     filters,
     products,
     total,
-    page,
-    totalPages,
+    loadedCount,
+    hasMore,
     loading,
-    setPage,
+    loadingMore,
+    loadMore,
     handleFilterChange,
     handleRemoveBrand,
     handleRemoveSize,
@@ -130,39 +131,41 @@ export default function ProductsClient() {
             {/* Grid */}
             <ProductGrid products={products} loading={loading} />
 
-            {/* Pagination */}
-            {totalPages > 1 && !loading && (
-              <div className="flex items-center justify-center gap-2 mt-12">
-                <button
-                  type="button"
-                  onClick={() => { setPage(page - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                  disabled={page === 1}
-                  className="px-4 py-2 text-sm font-semibold border border-zinc-200 text-zinc-700 hover:border-zinc-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  Prev
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            {/* Load more */}
+            {!loading && products.length > 0 && (
+              <div className="flex flex-col items-center gap-4 mt-12">
+                <p className="text-xs tracking-widest uppercase text-zinc-500">
+                  Showing <span className="font-semibold text-zinc-900">{loadedCount}</span> of{' '}
+                  <span className="font-semibold text-zinc-900">{total}</span>
+                </p>
+                <div className="w-48 h-px bg-zinc-200 relative overflow-hidden">
+                  <div
+                    className="absolute inset-y-0 left-0 bg-zinc-900 transition-all duration-500"
+                    style={{ width: `${total ? Math.min(100, (loadedCount / total) * 100) : 100}%` }}
+                  />
+                </div>
+                {hasMore ? (
                   <button
-                    key={p}
                     type="button"
-                    onClick={() => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    className={`w-10 h-10 text-sm font-semibold border transition-colors ${
-                      p === page
-                        ? 'bg-zinc-900 text-white border-zinc-900'
-                        : 'border-zinc-200 text-zinc-700 hover:border-zinc-900'
-                    }`}
+                    onClick={loadMore}
+                    disabled={loadingMore}
+                    aria-busy={loadingMore}
+                    className="min-w-[200px] px-8 py-3 text-xs font-bold tracking-widest uppercase border border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white disabled:opacity-50 disabled:cursor-wait transition-colors"
                   >
-                    {p}
+                    {loadingMore ? (
+                      <span className="inline-flex items-center gap-2">
+                        <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" d="M12 3a9 9 0 1 0 9 9" />
+                        </svg>
+                        Loading
+                      </span>
+                    ) : (
+                      'Load more'
+                    )}
                   </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => { setPage(page + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                  disabled={page === totalPages}
-                  className="px-4 py-2 text-sm font-semibold border border-zinc-200 text-zinc-700 hover:border-zinc-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  Next
-                </button>
+                ) : (
+                  <p className="text-xs text-zinc-400">You&apos;ve seen them all</p>
+                )}
               </div>
             )}
           </div>
