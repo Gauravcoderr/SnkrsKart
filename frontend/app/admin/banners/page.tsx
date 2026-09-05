@@ -17,6 +17,7 @@ interface Banner {
   cta: string;
   href: string;
   image: string;
+  images: string[];
   accent: string;
   bg: string;
   imgBg: string;
@@ -30,7 +31,7 @@ type BannerForm = Omit<Banner, '_id'>;
 
 const EMPTY_FORM: BannerForm = {
   brand: '', tag: '', headline: [''], sub: '', cta: '', href: '',
-  image: '', accent: '#ffffff', bg: '#0a0a0a', imgBg: '#1a1a1a',
+  image: '', images: [], accent: '#ffffff', bg: '#0a0a0a', imgBg: '#1a1a1a',
   order: 0, active: true, headlineFontSize: 8, headlineFontWeight: 900,
 };
 
@@ -50,12 +51,18 @@ export default function BannersPage() {
   const [uploadError, setUploadError] = useState('');
   const imageInputRef = useRef<HTMLInputElement>(null);
 
-  async function handleImageUpload(file: File) {
+  async function handleImageUpload(files: File[]) {
     setUploading(true);
     setUploadError('');
     try {
-      const url = await uploadImage(file, 'products');
-      setField('image', url);
+      for (const file of files) {
+        const url = await uploadImage(file, 'products');
+        setModal((m) => {
+          if (!m) return m;
+          const images = [...m.form.images.filter(Boolean), url];
+          return { ...m, form: { ...m.form, images, image: images[0] } };
+        });
+      }
     } catch (e: any) {
       setUploadError(e.message || 'Upload failed');
     } finally {
@@ -93,7 +100,12 @@ export default function BannersPage() {
     const { _id, ...rest } = b;
     setModal({
       mode: 'edit',
-      form: { ...rest, headlineFontSize: rest.headlineFontSize ?? 8, headlineFontWeight: rest.headlineFontWeight ?? 900 },
+      form: {
+        ...rest,
+        images: rest.images?.length ? rest.images : (rest.image ? [rest.image] : []),
+        headlineFontSize: rest.headlineFontSize ?? 8,
+        headlineFontWeight: rest.headlineFontWeight ?? 900,
+      },
       id: _id,
     });
   }
@@ -108,10 +120,11 @@ export default function BannersPage() {
       const url = modal.mode === 'edit'
         ? `${API}/admin/banners/${modal.id}`
         : `${API}/admin/banners`;
+      const images = modal.form.images.map((u) => u.trim()).filter(Boolean);
       const res = await fetch(url, {
         method: modal.mode === 'edit' ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(modal.form),
+        body: JSON.stringify({ ...modal.form, images, image: images[0] || modal.form.image }),
       });
       if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed'); }
       setModal(null);
@@ -143,6 +156,19 @@ export default function BannersPage() {
   function setField<K extends keyof BannerForm>(key: K, value: BannerForm[K]) {
     if (!modal) return;
     setModal({ ...modal, form: { ...modal.form, [key]: value } });
+  }
+
+  // Images gallery helpers: first non-empty entry is mirrored into `image` (primary)
+  function setImages(images: string[]) {
+    setModal((m) => (m ? { ...m, form: { ...m.form, images, image: images.find(Boolean) || '' } } : m));
+  }
+  function updateImage(idx: number, value: string) {
+    const next = [...(modal?.form.images ?? [])];
+    next[idx] = value;
+    setImages(next);
+  }
+  function removeImage(idx: number) {
+    setImages((modal?.form.images ?? []).filter((_, i) => i !== idx));
   }
 
   const totalPages = Math.max(1, Math.ceil(banners.length / pageSize));
@@ -190,13 +216,18 @@ export default function BannersPage() {
               <tr key={b._id} className="hover:bg-zinc-900/50 transition">
                 <td className="px-4 py-3">
                   <div
-                    className="w-16 h-10 rounded-md overflow-hidden flex items-center justify-center"
+                    className="relative w-16 h-10 rounded-md overflow-hidden flex items-center justify-center"
                     style={{ background: b.bg }}
                   >
                     {b.image ? (
                       <img src={b.image} alt={b.brand} className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-[10px] text-zinc-500">No img</span>
+                    )}
+                    {(b.images?.length ?? 0) > 1 && (
+                      <span className="absolute bottom-0.5 right-0.5 text-[9px] font-bold leading-none bg-black/70 text-white px-1 py-0.5 rounded" title={`${b.images.length} images`}>
+                        {b.images.length}
+                      </span>
                     )}
                   </div>
                 </td>
@@ -362,31 +393,61 @@ export default function BannersPage() {
                 </Field>
               </div>
 
-              <Field label="Image">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={modal.form.image}
-                    onChange={(e) => setField('image', e.target.value)}
-                    className={`${inputCls} flex-1`}
-                    placeholder="https://... or upload →"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => imageInputRef.current?.click()}
-                    disabled={uploading}
-                    className="shrink-0 px-3.5 py-2.5 text-sm font-semibold bg-zinc-800 border border-zinc-700 text-zinc-300 rounded-lg hover:bg-zinc-700 hover:text-white disabled:opacity-50 transition whitespace-nowrap"
-                  >
-                    {uploading ? 'Uploading…' : 'Upload'}
-                  </button>
-                  <input
-                    ref={imageInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    aria-label="Upload banner image"
-                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); e.target.value = ''; }}
-                  />
+              <Field label="Images · first is primary · add 2-3 and they auto-slide inside this banner">
+                <div className="space-y-2">
+                  {(modal.form.images.length ? modal.form.images : ['']).map((url, idx) => (
+                    <div key={idx} className="flex gap-2 items-center">
+                      <div className="w-10 h-10 rounded-md overflow-hidden shrink-0 bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+                        {url ? (
+                          <img src={url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-[10px] text-zinc-500">{idx + 1}</span>
+                        )}
+                      </div>
+                      <input
+                        type="text"
+                        value={url}
+                        onChange={(e) => updateImage(idx, e.target.value)}
+                        className={`${inputCls} flex-1`}
+                        placeholder="https://... or upload →"
+                        aria-label={`Image ${idx + 1} URL`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(idx)}
+                        className="shrink-0 w-10 h-10 text-sm text-zinc-400 border border-zinc-700 rounded-lg hover:text-red-400 hover:border-red-500/50 transition"
+                        aria-label={`Remove image ${idx + 1}`}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateImage(modal.form.images.length, '')}
+                      className="px-3.5 py-2 text-xs font-semibold text-zinc-300 border border-zinc-700 rounded-lg hover:bg-zinc-800 hover:text-white transition"
+                    >
+                      + Add URL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => imageInputRef.current?.click()}
+                      disabled={uploading}
+                      className="px-3.5 py-2 text-xs font-semibold bg-zinc-800 border border-zinc-700 text-zinc-300 rounded-lg hover:bg-zinc-700 hover:text-white disabled:opacity-50 transition"
+                    >
+                      {uploading ? 'Uploading…' : 'Upload image(s)'}
+                    </button>
+                    <input
+                      ref={imageInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      aria-label="Upload banner images"
+                      onChange={(e) => { const fs = Array.from(e.target.files ?? []); if (fs.length) handleImageUpload(fs); e.target.value = ''; }}
+                    />
+                  </div>
                 </div>
                 {uploadError && <p className="text-xs text-red-400 mt-1">{uploadError}</p>}
               </Field>

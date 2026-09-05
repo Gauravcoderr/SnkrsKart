@@ -8,18 +8,26 @@ import { BannerSlide } from '@/types';
 const FLAT_BG = '#09090b';
 
 const SLIDE_MS = 5000;
+const IMG_MS = 2600; // dwell per image when a slide carries several
+
+const imagesOf = (s: BannerSlide): string[] => {
+  const list = s.images && s.images.length ? s.images : [s.image];
+  return list.filter(Boolean);
+};
 
 export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
   const [active, setActive] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
   const [textKey, setTextKey] = useState(0);
   const [progressKey, setProgressKey] = useState(0);
+  const [imgIdx, setImgIdx] = useState(0);
 
   const goTo = useCallback(
     (idx: number) => {
       if (transitioning || idx === active) return;
       setTransitioning(true);
       setActive(idx);
+      setImgIdx(0);
       setTextKey((k) => k + 1);
       setProgressKey((k) => k + 1);
       setTimeout(() => setTransitioning(false), 500);
@@ -27,11 +35,22 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
     [active, transitioning]
   );
 
+  const activeImgs = slides.length ? imagesOf(slides[active]) : [];
+  // Slides with several images stay on screen long enough to show them all
+  const duration = Math.max(SLIDE_MS, activeImgs.length * IMG_MS);
+
   useEffect(() => {
     if (!slides.length) return;
-    const t = setInterval(() => goTo((active + 1) % slides.length), SLIDE_MS);
+    const t = setInterval(() => goTo((active + 1) % slides.length), duration);
     return () => clearInterval(t);
-  }, [active, goTo, slides.length]);
+  }, [active, goTo, slides.length, duration]);
+
+  // Cycle this slide's images while it is active
+  useEffect(() => {
+    if (activeImgs.length < 2) return;
+    const t = setInterval(() => setImgIdx((i) => (i + 1) % activeImgs.length), IMG_MS);
+    return () => clearInterval(t);
+  }, [active, activeImgs.length]);
 
   if (!slides.length) return null;
 
@@ -154,7 +173,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
                       className="h-full rounded-full"
                       style={{
                         background: s.accent,
-                        animation: `banner-progress ${SLIDE_MS}ms linear forwards`,
+                        animation: `banner-progress ${duration}ms linear forwards`,
                       }}
                     />
                   )}
@@ -180,22 +199,43 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
             }}
           />
 
-          {slides.map((slide, i) => (
-            <div
-              key={i}
-              className="absolute inset-0 transition-opacity duration-500"
-              style={{ opacity: i === active ? 1 : 0 }}
-            >
-              <Image
-                src={slide.image}
-                alt={slide.brand}
-                fill
-                priority={i === 0}
-                className="object-cover object-center"
-                sizes="(max-width: 768px) 100vw, 48vw"
-              />
+          {slides.map((slide, i) =>
+            imagesOf(slide).map((src, j) => (
+              <div
+                key={`${i}-${j}`}
+                className="absolute inset-0 transition-opacity duration-700"
+                style={{ opacity: i === active && j === imgIdx ? 1 : 0 }}
+              >
+                <Image
+                  src={src}
+                  alt={slide.brand}
+                  fill
+                  priority={i === 0 && j === 0}
+                  className="object-cover object-center"
+                  sizes="(max-width: 768px) 100vw, 48vw"
+                />
+              </div>
+            ))
+          )}
+
+          {/* Sub-image dots, only when this slide carries several images */}
+          {activeImgs.length > 1 && (
+            <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5">
+              {activeImgs.map((_, j) => (
+                <button
+                  key={j}
+                  type="button"
+                  aria-label={`Image ${j + 1}`}
+                  onClick={() => setImgIdx(j)}
+                  className="h-1.5 rounded-full transition-all duration-300"
+                  style={{
+                    width: j === imgIdx ? 18 : 6,
+                    background: j === imgIdx ? s.accent : 'rgba(255,255,255,0.35)',
+                  }}
+                />
+              ))}
             </div>
-          ))}
+          )}
 
           {/* Mobile: fade shoe into text panel */}
           <div
@@ -213,7 +253,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
           className="h-full"
           style={{
             background: s.accent,
-            animation: `banner-progress ${SLIDE_MS}ms linear forwards`,
+            animation: `banner-progress ${duration}ms linear forwards`,
           }}
         />
       </div>

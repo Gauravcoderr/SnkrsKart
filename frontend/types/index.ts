@@ -80,6 +80,7 @@ export interface BannerSlide {
   cta: string;
   href: string;
   image: string;
+  images?: string[];
   accent: string;
   bg: string;
   imgBg: string;
