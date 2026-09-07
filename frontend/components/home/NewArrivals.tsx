@@ -31,12 +31,10 @@ export default function NewArrivals({ products }: NewArrivalsProps) {
           </Link>
         </div>
 
-        {/* Horizontal scroll on mobile, grid on desktop */}
-        <div className="flex gap-4 overflow-x-auto hide-scrollbar sm:grid sm:grid-cols-3 lg:grid-cols-4 sm:gap-6">
+        {/* Same grid as Trending Now: 2-col mobile, 3 tablet, 4 desktop */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {products.map((product, i) => (
-            <div key={product.id} className="min-w-[220px] sm:min-w-0 flex-shrink-0 sm:flex-shrink">
-              <ProductCard product={product} priority={i < 2} />
-            </div>
+            <ProductCard key={product.id} product={product} priority={i < 2} />
           ))}
         </div>
 
