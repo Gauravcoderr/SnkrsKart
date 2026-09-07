@@ -187,7 +187,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
         </div>
 
         {/* ── Right: shoe image ── */}
-        <div className="relative md:w-[48%] overflow-hidden isolate" style={{ minHeight: 320 }}>
+        <div className="relative flex-1 md:flex-none md:w-[48%] overflow-hidden isolate" style={{ minHeight: 320 }}>
 
           {/* Accent glow — shoe lit from behind, softer than before */}
           <div
