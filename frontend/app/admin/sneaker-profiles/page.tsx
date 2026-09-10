@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Paginator from '../_components/Paginator';
+import ConfirmModal from '../_components/ConfirmModal';
 
 const SP_PAGE_SIZE = 20;
 
@@ -143,11 +144,21 @@ export default function AdminSneakerProfilesPage() {
     }
   }
 
-  async function handleDelete(id: string, name: string) {
-    if (!confirm(`Delete "${name}"?`)) return;
+  const [confirmTarget, setConfirmTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    if (!confirmTarget) return;
+    const { id } = confirmTarget;
+    setDeleting(true);
     const token = localStorage.getItem('admin_token');
-    await fetch(`${API}/admin/sneaker-profiles/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-    setProfiles((prev) => prev.filter((p) => p._id !== id));
+    try {
+      await fetch(`${API}/admin/sneaker-profiles/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      setProfiles((prev) => prev.filter((p) => p._id !== id));
+      setConfirmTarget(null);
+    } finally {
+      setDeleting(false);
+    }
   }
 
   async function handleToggle(p: SneakerProfile) {
@@ -222,7 +233,7 @@ export default function AdminSneakerProfilesPage() {
                   <td className="py-3">
                     <div className="flex items-center gap-3">
                       <button type="button" onClick={() => openEdit(p)} className="text-xs text-zinc-400 hover:text-zinc-100 transition-colors">Edit</button>
-                      <button type="button" onClick={() => handleDelete(p._id, p.name)} className="text-xs text-red-500 hover:text-red-400 transition-colors">Delete</button>
+                      <button type="button" onClick={() => setConfirmTarget({ id: p._id, name: p.name })} className="text-xs text-red-500 hover:text-red-400 transition-colors">Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -323,6 +334,16 @@ export default function AdminSneakerProfilesPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {confirmTarget && (
+        <ConfirmModal
+          title="Delete sneaker profile"
+          highlight={confirmTarget.name}
+          busy={deleting}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmTarget(null)}
+        />
       )}
     </div>
   );

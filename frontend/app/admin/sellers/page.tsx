@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Paginator from '../_components/Paginator';
+import ConfirmModal from '../_components/ConfirmModal';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -57,8 +58,11 @@ export default function SellersPage() {
 
   useEffect(() => { fetchSellers(); }, [fetchSellers]);
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this seller inquiry?')) return;
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+
+  async function handleDelete() {
+    if (!confirmId) return;
+    const id = confirmId;
     setDeletingId(id);
     const token = localStorage.getItem('admin_token');
     try {
@@ -67,6 +71,7 @@ export default function SellersPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSellers((prev) => prev.filter((s) => s._id !== id));
+      setConfirmId(null);
     } finally {
       setDeletingId(null);
     }
@@ -176,7 +181,7 @@ export default function SellersPage() {
                     </a>
                     <button
                       type="button"
-                      onClick={() => handleDelete(s._id)}
+                      onClick={() => setConfirmId(s._id)}
                       disabled={deletingId === s._id}
                       className="text-xs text-red-500 hover:text-red-400 px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition disabled:opacity-40"
                     >
@@ -198,6 +203,16 @@ export default function SellersPage() {
       </div>
 
       <Paginator page={page} totalPages={totalPages} onPage={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} totalItems={filtered.length} />
+
+      {confirmId && (
+        <ConfirmModal
+          title="Delete seller inquiry"
+          message="Remove this seller inquiry? This cannot be undone."
+          busy={deletingId === confirmId}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmId(null)}
+        />
+      )}
     </div>
   );
 }

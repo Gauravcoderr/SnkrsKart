@@ -62,6 +62,15 @@ export default function NewsletterPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState('');
 
+  // toast + delete confirm
+  const [toast, setToast] = useState<{ msg: string; kind: 'ok' | 'err' } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Subscriber | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const showToast = (msg: string, kind: 'ok' | 'err' = 'ok') => {
+    setToast({ msg, kind });
+    setTimeout(() => setToast(null), 3500);
+  };
+
   // single add / edit modal
   const [formOpen, setFormOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null); // null = add mode
@@ -156,16 +165,21 @@ export default function NewsletterPage() {
     }
   }
 
-  async function handleDelete(s: Subscriber) {
-    if (!confirm(`Delete ${s.email || s.phone || 'this contact'}?`)) return;
+  async function handleDelete() {
+    if (!deleteTarget) return;
     const headers = authHeaders();
     if (!headers) return;
+    setDeleting(true);
     try {
-      const res = await fetch(`${API}/admin/newsletter/${s._id}`, { method: 'DELETE', headers });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || `Error ${res.status}`); return; }
+      const res = await fetch(`${API}/admin/newsletter/${deleteTarget._id}`, { method: 'DELETE', headers });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); showToast(d.error || `Error ${res.status}`, 'err'); return; }
+      showToast('Contact deleted');
+      setDeleteTarget(null);
       await fetchSubscribers();
     } catch (e: any) {
-      alert(e.message || 'Delete failed');
+      showToast(e.message || 'Delete failed', 'err');
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -177,11 +191,11 @@ export default function NewsletterPage() {
     try {
       const res = await fetch(`${API}/admin/newsletter/sync-unsubscribes`, { method: 'POST', headers });
       const data = await res.json();
-      if (!res.ok) { alert(data.error || `Error ${res.status}`); return; }
-      alert(`Synced ${data.found} blocked (${data.unsubscribed} unsubscribed, ${data.bounced} bounced). ${data.flagged} flagged, ${data.created} added.`);
+      if (!res.ok) { showToast(data.error || `Error ${res.status}`, 'err'); return; }
+      showToast(`Synced ${data.found} blocked · ${data.unsubscribed} unsubscribed, ${data.bounced} bounced · ${data.flagged} flagged, ${data.created} added`);
       await fetchSubscribers();
     } catch (e: any) {
-      alert(e.message || 'Sync failed');
+      showToast(e.message || 'Sync failed', 'err');
     } finally {
       setSyncing(false);
     }
@@ -343,7 +357,7 @@ export default function NewsletterPage() {
                 <td className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">{formatDate(s.createdAt)}</td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
                   <button type="button" onClick={() => openEdit(s)} className="text-xs text-zinc-400 hover:text-white underline mr-3">Edit</button>
-                  <button type="button" onClick={() => handleDelete(s)} className="text-xs text-red-400/80 hover:text-red-400 underline">Delete</button>
+                  <button type="button" onClick={() => setDeleteTarget(s)} className="text-xs text-red-400/80 hover:text-red-400 underline">Delete</button>
                 </td>
               </tr>
             ))}
@@ -418,6 +432,35 @@ export default function NewsletterPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* delete confirm modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !deleting && setDeleteTarget(null)} />
+          <div className="relative bg-zinc-900 border border-zinc-800 rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-white mb-2">Delete contact</h3>
+            <p className="text-sm text-zinc-400 mb-1">Remove this contact from the newsletter list?</p>
+            <p className="text-sm text-white font-medium mb-6">{deleteTarget.email || deleteTarget.phone || 'this contact'}</p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setDeleteTarget(null)} disabled={deleting} className="text-sm px-4 py-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition disabled:opacity-50">Cancel</button>
+              <button onClick={handleDelete} disabled={deleting} className="text-sm px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition font-medium disabled:opacity-50">
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* toast */}
+      {toast && (
+        <div className={`fixed bottom-6 right-6 z-[60] px-4 py-3 rounded-lg text-sm font-medium shadow-lg border ${
+          toast.kind === 'err'
+            ? 'bg-red-950 border-red-800 text-red-200'
+            : 'bg-zinc-900 border-zinc-700 text-white'
+        }`}>
+          {toast.msg}
         </div>
       )}
     </div>

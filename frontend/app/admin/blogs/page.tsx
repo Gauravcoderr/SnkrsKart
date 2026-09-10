@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Paginator from '../_components/Paginator';
+import ConfirmModal from '../_components/ConfirmModal';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
@@ -57,13 +58,17 @@ export default function AdminBlogsPage() {
 
   useEffect(() => { fetchBlogs(); }, [fetchBlogs]);
 
-  async function handleDelete(id: string, title: string) {
-    if (!confirm(`Delete "${title}"?`)) return;
+  const [confirmTarget, setConfirmTarget] = useState<{ id: string; title: string } | null>(null);
+
+  async function handleDelete() {
+    if (!confirmTarget) return;
+    const { id } = confirmTarget;
     setDeletingId(id);
     const token = localStorage.getItem('admin_token');
     try {
       await fetch(`${API}/admin/blogs/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       setBlogs((prev) => prev.filter((b) => b._id !== id));
+      setConfirmTarget(null);
     } finally {
       setDeletingId(null);
     }
@@ -193,7 +198,7 @@ export default function AdminBlogsPage() {
                     </Link>
                     <button
                       type="button"
-                      onClick={() => handleDelete(blog._id, blog.title)}
+                      onClick={() => setConfirmTarget({ id: blog._id, title: blog.title })}
                       disabled={deletingId === blog._id}
                       className="text-xs text-red-500 hover:text-red-400 px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition disabled:opacity-40"
                     >
@@ -215,6 +220,16 @@ export default function AdminBlogsPage() {
       </div>
 
       <Paginator page={page} totalPages={totalPages} onPage={setPage} pageSize={pageSize} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} totalItems={filtered.length} />
+
+      {confirmTarget && (
+        <ConfirmModal
+          title="Delete blog"
+          highlight={confirmTarget.title}
+          busy={deletingId === confirmTarget.id}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmTarget(null)}
+        />
+      )}
     </div>
   );
 }

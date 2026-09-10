@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Paginator from '../_components/Paginator';
+import ConfirmModal from '../_components/ConfirmModal';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
@@ -123,11 +124,20 @@ export default function AdminDropsPage() {
     finally { setSaving(false); }
   }
 
-  async function handleDelete(id: string, name: string) {
-    if (!confirm(`Delete "${name}"?`)) return;
+  const [confirmTarget, setConfirmTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    if (!confirmTarget) return;
+    setDeleting(true);
     const token = localStorage.getItem('admin_token');
-    await fetch(`${API}/admin/drops/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-    fetchDrops(page, pageSize);
+    try {
+      await fetch(`${API}/admin/drops/${confirmTarget.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      setConfirmTarget(null);
+      fetchDrops(page, pageSize);
+    } finally {
+      setDeleting(false);
+    }
   }
 
   async function handleToggle(d: Drop) {
@@ -201,7 +211,7 @@ export default function AdminDropsPage() {
                   <td className="py-3">
                     <div className="flex items-center gap-3">
                       <button type="button" onClick={() => openEdit(d)} className="text-xs text-zinc-400 hover:text-zinc-100">Edit</button>
-                      <button type="button" onClick={() => handleDelete(d._id, d.name)} className="text-xs text-red-500 hover:text-red-400">Delete</button>
+                      <button type="button" onClick={() => setConfirmTarget({ id: d._id, name: d.name })} className="text-xs text-red-500 hover:text-red-400">Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -304,6 +314,16 @@ export default function AdminDropsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {confirmTarget && (
+        <ConfirmModal
+          title="Delete drop"
+          highlight={confirmTarget.name}
+          busy={deleting}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmTarget(null)}
+        />
       )}
     </div>
   );
