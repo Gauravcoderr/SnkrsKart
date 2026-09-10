@@ -25,7 +25,10 @@ const SITE = withWww(process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com'
 export type BlastAudience = 'optedIn' | 'all';
 
 async function getMarketingEmails(audience: BlastAudience = 'all'): Promise<string[]> {
-  const newsletterFilter: Record<string, unknown> = { unsubscribed: { $ne: true } };
+  const newsletterFilter: Record<string, unknown> = {
+    unsubscribed: { $ne: true },
+    bounced: { $ne: true },
+  };
   if (audience !== 'all') newsletterFilter.source = { $ne: 'uploaded' };
 
   const [n, r, o, u, c, suppressed] = await Promise.all([
@@ -34,7 +37,7 @@ async function getMarketingEmails(audience: BlastAudience = 'all'): Promise<stri
     Order.distinct('email') as Promise<string[]>,
     User.distinct('email') as Promise<string[]>,
     ChatLead.distinct('email') as Promise<string[]>,
-    Newsletter.distinct('email', { unsubscribed: true }) as Promise<string[]>,
+    Newsletter.distinct('email', { $or: [{ unsubscribed: true }, { bounced: true }] }) as Promise<string[]>,
   ]);
 
   const suppressedKeys = new Set(

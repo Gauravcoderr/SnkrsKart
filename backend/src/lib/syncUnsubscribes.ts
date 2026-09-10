@@ -1,76 +1,99 @@
 import { Newsletter } from '../models/Newsletter';
 
 const BREVO_CONTACTS = 'https://api.brevo.com/v3/contacts';
+const BREVO_BLOCKED = 'https://api.brevo.com/v3/smtp/blockedContacts';
 
-interface BrevoContact {
+interface BrevoBlockedContact {
   email?: string;
-  emailBlacklisted?: boolean;
-  modifiedAt?: string;
+  reason?: { code?: string; message?: string };
+  blockedAt?: string;
 }
 
-async function fetchBlacklistedEmails(modifiedSince?: string): Promise<string[]> {
+type BlockKind = 'unsubscribed' | 'bounced';
+interface BlockedEntry {
+  email: string;
+  kind: BlockKind;
+}
+
+// Transactional sends (the /smtp/email API we use) do NOT create Brevo
+// contacts, so unsubscribes land in the transactional block list, not on a
+// contact's emailBlacklisted flag. This pulls that block list, which also
+// carries hard bounces — both should stop future marketing sends. The reason
+// code separates the two: unsubscribedViaEmail vs hardBounce.
+async function fetchBlockedEmails(): Promise<BlockedEntry[]> {
   const key = process.env.BREVO_API_KEY;
   if (!key) {
     console.warn('[unsub-sync] BREVO_API_KEY not set — skipped');
     return [];
   }
 
-  const limit = 500;
+  const limit = 100;
   let offset = 0;
-  const blacklisted: string[] = [];
+  const blocked: BlockedEntry[] = [];
 
   while (true) {
-    const url = new URL(BREVO_CONTACTS);
+    const url = new URL(BREVO_BLOCKED);
     url.searchParams.set('limit', String(limit));
     url.searchParams.set('offset', String(offset));
-    url.searchParams.set('sort', 'desc');
-    if (modifiedSince) url.searchParams.set('modifiedSince', modifiedSince);
 
     const res = await fetch(url.toString(), {
       headers: { 'api-key': key, accept: 'application/json' },
     });
     if (!res.ok) {
-      console.error('[unsub-sync] Brevo contacts error:', res.status, await res.text());
+      console.error('[unsub-sync] Brevo blockedContacts error:', res.status, await res.text());
       break;
     }
 
-    const data = (await res.json()) as { contacts?: BrevoContact[]; count?: number };
+    const data = (await res.json()) as { contacts?: BrevoBlockedContact[]; count?: number };
     const contacts = data.contacts || [];
     for (const ct of contacts) {
-      if (ct.emailBlacklisted && ct.email) blacklisted.push(ct.email.toLowerCase().trim());
+      if (!ct.email) continue;
+      const kind: BlockKind = ct.reason?.code === 'hardBounce' ? 'bounced' : 'unsubscribed';
+      blocked.push({ email: ct.email.toLowerCase().trim(), kind });
     }
 
     if (contacts.length < limit) break;
     offset += limit;
   }
 
-  return blacklisted;
+  return blocked;
 }
 
 /**
- * Pulls unsubscribed (emailBlacklisted) contacts from Brevo and flags matching
- * Newsletter rows as unsubscribed. Creates a suppression-only Newsletter row
- * when the address is not already stored, so the address stays suppressed even
- * if it only ever came from Orders / Users / Reviews.
+ * Pulls Brevo's transactional block list (unsubscribes + hard bounces) and
+ * flags matching Newsletter rows as unsubscribed. Creates a suppression-only
+ * Newsletter row when the address is not already stored, so it stays suppressed
+ * even if it only ever came from Orders / Users / Reviews / Chat.
  */
-export async function syncBrevoUnsubscribes(modifiedSince?: string): Promise<{ found: number; flagged: number; created: number }> {
-  const emails = await fetchBlacklistedEmails(modifiedSince);
-  if (emails.length === 0) return { found: 0, flagged: 0, created: 0 };
+export async function syncBrevoUnsubscribes(): Promise<{ found: number; unsubscribed: number; bounced: number; flagged: number; created: number }> {
+  const entries = await fetchBlockedEmails();
+  if (entries.length === 0) return { found: 0, unsubscribed: 0, bounced: 0, flagged: 0, created: 0 };
 
   const now = new Date();
   let flagged = 0;
   let created = 0;
+  let unsubscribed = 0;
+  let bounced = 0;
 
-  for (const email of emails) {
+  for (const { email, kind } of entries) {
+    if (kind === 'unsubscribed') unsubscribed++;
+    else bounced++;
+
+    const flag =
+      kind === 'bounced'
+        ? { bounced: true, bouncedAt: now }
+        : { unsubscribed: true, unsubscribedAt: now };
+
     const existing = await Newsletter.findOne({ email }).lean();
     if (existing) {
-      if (!existing.unsubscribed) {
-        await Newsletter.updateOne({ email }, { unsubscribed: true, unsubscribedAt: now });
+      const already = kind === 'bounced' ? existing.bounced : existing.unsubscribed;
+      if (!already) {
+        await Newsletter.updateOne({ email }, flag);
         flagged++;
       }
     } else {
       try {
-        await Newsletter.create({ email, source: 'uploaded', unsubscribed: true, unsubscribedAt: now });
+        await Newsletter.create({ email, source: 'uploaded', ...flag });
         created++;
       } catch {
         /* unique race — ignore */
@@ -78,8 +101,8 @@ export async function syncBrevoUnsubscribes(modifiedSince?: string): Promise<{ f
     }
   }
 
-  console.log(`[unsub-sync] found=${emails.length} flagged=${flagged} created=${created}`);
-  return { found: emails.length, flagged, created };
+  console.log(`[unsub-sync] found=${entries.length} unsub=${unsubscribed} bounced=${bounced} flagged=${flagged} created=${created}`);
+  return { found: entries.length, unsubscribed, bounced, flagged, created };
 }
 
 /**

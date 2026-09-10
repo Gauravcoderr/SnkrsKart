@@ -7,6 +7,8 @@ export interface INewsletter extends Document {
   source: 'subscribed' | 'uploaded';
   unsubscribed: boolean;
   unsubscribedAt?: Date;
+  bounced: boolean;
+  bouncedAt?: Date;
   createdAt: Date;
 }
 
@@ -18,6 +20,8 @@ const NewsletterSchema = new Schema<INewsletter>(
     source: { type: String, enum: ['subscribed', 'uploaded'], default: 'subscribed', index: true },
     unsubscribed: { type: Boolean, default: false, index: true },
     unsubscribedAt: { type: Date },
+    bounced: { type: Boolean, default: false, index: true },
+    bouncedAt: { type: Date },
   },
   { timestamps: true }
 );

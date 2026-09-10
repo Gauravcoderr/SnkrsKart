@@ -517,7 +517,7 @@ router.get('/users/:id', adminAuth, async (req: Request, res: Response): Promise
 router.get('/newsletter', adminAuth, async (_req: Request, res: Response): Promise<void> => {
   try {
     const subscribers = await Newsletter.find().sort({ createdAt: -1 }).lean();
-    res.json(subscribers.map((s) => ({ ...s, source: s.source || 'subscribed', unsubscribed: !!s.unsubscribed })));
+    res.json(subscribers.map((s) => ({ ...s, source: s.source || 'subscribed', unsubscribed: !!s.unsubscribed, bounced: !!s.bounced })));
   } catch {
     res.status(500).json({ error: 'Failed to fetch subscribers' });
   }

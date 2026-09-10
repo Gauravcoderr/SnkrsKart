@@ -15,6 +15,7 @@ interface Subscriber {
   phone?: string;
   source: Source;
   unsubscribed?: boolean;
+  bounced?: boolean;
   createdAt: string;
 }
 
@@ -177,7 +178,7 @@ export default function NewsletterPage() {
       const res = await fetch(`${API}/admin/newsletter/sync-unsubscribes`, { method: 'POST', headers });
       const data = await res.json();
       if (!res.ok) { alert(data.error || `Error ${res.status}`); return; }
-      alert(`Synced. ${data.flagged} flagged, ${data.created} added, ${data.found} unsubscribed on Brevo.`);
+      alert(`Synced ${data.found} blocked (${data.unsubscribed} unsubscribed, ${data.bounced} bounced). ${data.flagged} flagged, ${data.created} added.`);
       await fetchSubscribers();
     } catch (e: any) {
       alert(e.message || 'Sync failed');
@@ -192,6 +193,7 @@ export default function NewsletterPage() {
     uploaded: subscribers.filter((s) => s.source === 'uploaded').length,
   };
   const unsubCount = subscribers.filter((s) => s.unsubscribed).length;
+  const bouncedCount = subscribers.filter((s) => s.bounced).length;
 
   const filtered = subscribers.filter((s) => {
     if (sourceFilter !== 'all' && s.source !== sourceFilter) return false;
@@ -241,6 +243,7 @@ export default function NewsletterPage() {
           <p className="text-sm text-zinc-400 mt-1">
             Drop-alert signups and uploaded customer contacts.
             {unsubCount > 0 && <span className="text-zinc-500"> · {unsubCount} unsubscribed</span>}
+            {bouncedCount > 0 && <span className="text-zinc-500"> · {bouncedCount} bounced</span>}
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
@@ -329,6 +332,11 @@ export default function NewsletterPage() {
                   {s.unsubscribed && (
                     <span className="ml-1.5 inline-flex items-center text-xs font-medium rounded-full px-2.5 py-0.5 bg-red-500/15 text-red-400">
                       Unsubscribed
+                    </span>
+                  )}
+                  {s.bounced && (
+                    <span className="ml-1.5 inline-flex items-center text-xs font-medium rounded-full px-2.5 py-0.5 bg-zinc-500/15 text-zinc-400">
+                      Bounced
                     </span>
                   )}
                 </td>
