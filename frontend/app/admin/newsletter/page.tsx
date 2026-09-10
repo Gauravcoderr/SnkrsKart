@@ -53,6 +53,7 @@ export default function NewsletterPage() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [sourceFilter, setSourceFilter] = useState<'all' | Source>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'blocked' | 'unsubscribed' | 'bounced'>('all');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -208,9 +209,23 @@ export default function NewsletterPage() {
   };
   const unsubCount = subscribers.filter((s) => s.unsubscribed).length;
   const bouncedCount = subscribers.filter((s) => s.bounced).length;
+  const activeCount = subscribers.filter((s) => !s.unsubscribed && !s.bounced).length;
+  const blockedCount = subscribers.filter((s) => s.unsubscribed || s.bounced).length;
+
+  const statusTabs: { key: 'all' | 'active' | 'blocked' | 'unsubscribed' | 'bounced'; label: string; count: number }[] = [
+    { key: 'all', label: 'Any status', count: subscribers.length },
+    { key: 'active', label: 'Active', count: activeCount },
+    { key: 'blocked', label: 'Blocked', count: blockedCount },
+    { key: 'unsubscribed', label: 'Unsubscribed', count: unsubCount },
+    { key: 'bounced', label: 'Bounced', count: bouncedCount },
+  ];
 
   const filtered = subscribers.filter((s) => {
     if (sourceFilter !== 'all' && s.source !== sourceFilter) return false;
+    if (statusFilter === 'active' && (s.unsubscribed || s.bounced)) return false;
+    if (statusFilter === 'blocked' && !s.unsubscribed && !s.bounced) return false;
+    if (statusFilter === 'unsubscribed' && !s.unsubscribed) return false;
+    if (statusFilter === 'bounced' && !s.bounced) return false;
     const q = search.toLowerCase();
     if (!q) return true;
     return (
@@ -287,8 +302,9 @@ export default function NewsletterPage() {
         </div>
       </div>
 
-      {/* filter tabs */}
-      <div className="flex gap-2 mb-4">
+      {/* source filter tabs */}
+      <div className="flex flex-wrap gap-2 mb-2">
+        <span className="text-xs text-zinc-600 self-center mr-1">Source</span>
         {tabs.map((t) => (
           <button
             key={t.key}
@@ -303,6 +319,32 @@ export default function NewsletterPage() {
             {t.label} <span className="opacity-60">{counts[t.key]}</span>
           </button>
         ))}
+      </div>
+
+      {/* status filter tabs */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <span className="text-xs text-zinc-600 self-center mr-1">Status</span>
+        {statusTabs.map((t) => {
+          const active = statusFilter === t.key;
+          const activeCls =
+            t.key === 'unsubscribed' ? 'bg-red-500/20 text-red-300 border-red-500/40'
+            : t.key === 'bounced' ? 'bg-zinc-500/25 text-zinc-200 border-zinc-500/50'
+            : t.key === 'blocked' ? 'bg-orange-500/20 text-orange-300 border-orange-500/40'
+            : t.key === 'active' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+            : 'bg-white text-black border-white';
+          return (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => { setStatusFilter(t.key); setPage(1); }}
+              className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition ${
+                active ? activeCls : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white'
+              }`}
+            >
+              {t.label} <span className="opacity-60">{t.count}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-4">
@@ -364,7 +406,7 @@ export default function NewsletterPage() {
             {paginated.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-12 text-center text-zinc-500">
-                  {search || sourceFilter !== 'all' ? 'No contacts match your filters.' : 'No newsletter contacts yet.'}
+                  {search || sourceFilter !== 'all' || statusFilter !== 'all' ? 'No contacts match your filters.' : 'No newsletter contacts yet.'}
                 </td>
               </tr>
             )}
