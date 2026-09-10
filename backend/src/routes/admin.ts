@@ -516,9 +516,128 @@ router.get('/users/:id', adminAuth, async (req: Request, res: Response): Promise
 router.get('/newsletter', adminAuth, async (_req: Request, res: Response): Promise<void> => {
   try {
     const subscribers = await Newsletter.find().sort({ createdAt: -1 }).lean();
-    res.json(subscribers);
+    res.json(subscribers.map((s) => ({ ...s, source: s.source || 'subscribed' })));
   } catch {
     res.status(500).json({ error: 'Failed to fetch subscribers' });
+  }
+});
+
+// POST /admin/newsletter/upload — bulk import contacts (source: uploaded)
+// body: { contacts: [{ email?, name?, phone? }] }  — dedup on email OR phone
+router.post('/newsletter/upload', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const raw = Array.isArray(req.body?.contacts) ? req.body.contacts : [];
+    if (raw.length === 0) { res.status(400).json({ error: 'contacts array required' }); return; }
+
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let inserted = 0, skipped = 0, invalid = 0;
+
+    for (const c of raw) {
+      const email = c?.email ? String(c.email).trim().toLowerCase() : '';
+      const phone = c?.phone ? String(c.phone).trim() : '';
+      const name = c?.name ? String(c.name).trim() : '';
+
+      if (email && !emailRe.test(email)) { invalid++; continue; }
+      if (!email && !phone) { invalid++; continue; } // need at least one identifier
+
+      // dedup: skip if email OR phone already exists
+      const or: any[] = [];
+      if (email) or.push({ email });
+      if (phone) or.push({ phone });
+      const exists = or.length ? await Newsletter.findOne({ $or: or }).lean() : null;
+      if (exists) { skipped++; continue; }
+
+      try {
+        await Newsletter.create({
+          ...(email ? { email } : {}),
+          ...(phone ? { phone } : {}),
+          ...(name ? { name } : {}),
+          source: 'uploaded',
+        });
+        inserted++;
+      } catch {
+        skipped++; // race on unique email
+      }
+    }
+
+    res.json({ success: true, inserted, skipped, invalid, total: raw.length });
+  } catch (err) {
+    console.error('Newsletter upload error:', err);
+    res.status(500).json({ error: 'Failed to upload contacts' });
+  }
+});
+
+// POST /admin/newsletter — manually add one contact (source: uploaded)
+router.post('/newsletter', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const email = req.body?.email ? String(req.body.email).trim().toLowerCase() : '';
+    const phone = req.body?.phone ? String(req.body.phone).trim() : '';
+    const name = req.body?.name ? String(req.body.name).trim() : '';
+
+    if (!email && !phone) { res.status(400).json({ error: 'Email or phone is required' }); return; }
+    if (email && !emailRe.test(email)) { res.status(400).json({ error: 'Invalid email address' }); return; }
+
+    const or: any[] = [];
+    if (email) or.push({ email });
+    if (phone) or.push({ phone });
+    const exists = or.length ? await Newsletter.findOne({ $or: or }).lean() : null;
+    if (exists) { res.status(409).json({ error: 'A contact with this email or phone already exists' }); return; }
+
+    const doc = await Newsletter.create({
+      ...(email ? { email } : {}),
+      ...(phone ? { phone } : {}),
+      ...(name ? { name } : {}),
+      source: 'uploaded',
+    });
+    res.status(201).json({ ...doc.toObject(), source: doc.source });
+  } catch (err) {
+    console.error('Newsletter add error:', err);
+    res.status(500).json({ error: 'Failed to add contact' });
+  }
+});
+
+// PUT /admin/newsletter/:id — edit a contact
+router.put('/newsletter/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const email = req.body?.email ? String(req.body.email).trim().toLowerCase() : '';
+    const phone = req.body?.phone ? String(req.body.phone).trim() : '';
+    const name = req.body?.name ? String(req.body.name).trim() : '';
+
+    if (!email && !phone) { res.status(400).json({ error: 'Email or phone is required' }); return; }
+    if (email && !emailRe.test(email)) { res.status(400).json({ error: 'Invalid email address' }); return; }
+
+    // dedup against OTHER docs
+    const or: any[] = [];
+    if (email) or.push({ email });
+    if (phone) or.push({ phone });
+    if (or.length) {
+      const clash = await Newsletter.findOne({ $or: or, _id: { $ne: req.params.id } }).lean();
+      if (clash) { res.status(409).json({ error: 'Another contact already uses this email or phone' }); return; }
+    }
+
+    const updated = await Newsletter.findByIdAndUpdate(
+      req.params.id,
+      { email: email || undefined, phone: phone || undefined, name: name || undefined },
+      { new: true, runValidators: true }
+    ).lean();
+    if (!updated) { res.status(404).json({ error: 'Contact not found' }); return; }
+    res.json({ ...updated, source: updated.source || 'subscribed' });
+  } catch (err) {
+    console.error('Newsletter update error:', err);
+    res.status(500).json({ error: 'Failed to update contact' });
+  }
+});
+
+// DELETE /admin/newsletter/:id
+router.delete('/newsletter/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const deleted = await Newsletter.findByIdAndDelete(req.params.id).lean();
+    if (!deleted) { res.status(404).json({ error: 'Contact not found' }); return; }
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ error: 'Failed to delete contact' });
   }
 });
 
