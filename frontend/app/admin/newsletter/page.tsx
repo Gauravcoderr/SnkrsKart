@@ -14,6 +14,7 @@ interface Subscriber {
   name?: string;
   phone?: string;
   source: Source;
+  unsubscribed?: boolean;
   createdAt: string;
 }
 
@@ -167,11 +168,30 @@ export default function NewsletterPage() {
     }
   }
 
+  const [syncing, setSyncing] = useState(false);
+  async function handleSyncUnsubs() {
+    const headers = authHeaders();
+    if (!headers) return;
+    setSyncing(true);
+    try {
+      const res = await fetch(`${API}/admin/newsletter/sync-unsubscribes`, { method: 'POST', headers });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || `Error ${res.status}`); return; }
+      alert(`Synced. ${data.flagged} flagged, ${data.created} added, ${data.found} unsubscribed on Brevo.`);
+      await fetchSubscribers();
+    } catch (e: any) {
+      alert(e.message || 'Sync failed');
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   const counts = {
     all: subscribers.length,
     subscribed: subscribers.filter((s) => s.source === 'subscribed').length,
     uploaded: subscribers.filter((s) => s.source === 'uploaded').length,
   };
+  const unsubCount = subscribers.filter((s) => s.unsubscribed).length;
 
   const filtered = subscribers.filter((s) => {
     if (sourceFilter !== 'all' && s.source !== sourceFilter) return false;
@@ -218,9 +238,21 @@ export default function NewsletterPage() {
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-white">Newsletter</h1>
-          <p className="text-sm text-zinc-400 mt-1">Drop-alert signups and uploaded customer contacts.</p>
+          <p className="text-sm text-zinc-400 mt-1">
+            Drop-alert signups and uploaded customer contacts.
+            {unsubCount > 0 && <span className="text-zinc-500"> · {unsubCount} unsubscribed</span>}
+          </p>
         </div>
         <div className="flex gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={handleSyncUnsubs}
+            disabled={syncing}
+            className="bg-zinc-800 text-zinc-300 text-sm font-semibold rounded-lg px-4 py-2 hover:bg-zinc-700 transition disabled:opacity-50"
+            title="Pull unsubscribes from Brevo and flag them here"
+          >
+            {syncing ? 'Syncing…' : 'Sync unsubs'}
+          </button>
           <button
             type="button"
             onClick={openAdd}
@@ -294,6 +326,11 @@ export default function NewsletterPage() {
                   }`}>
                     {s.source === 'uploaded' ? 'Uploaded' : 'Subscribed'}
                   </span>
+                  {s.unsubscribed && (
+                    <span className="ml-1.5 inline-flex items-center text-xs font-medium rounded-full px-2.5 py-0.5 bg-red-500/15 text-red-400">
+                      Unsubscribed
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">{formatDate(s.createdAt)}</td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">

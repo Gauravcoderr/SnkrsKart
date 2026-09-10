@@ -26,6 +26,7 @@ import siteContentRoutes from './routes/siteContent';
 import couponRoutes from './routes/coupons';
 import scraperIngestRoutes from './routes/scraperIngest';
 import { startScraperJob } from './jobs/scraperJob';
+import { startUnsubscribeSyncJob } from './jobs/unsubscribeSyncJob';
 import { initWhatsApp } from './services/whatsapp';
 
 const app = express();
@@ -129,6 +130,7 @@ app.listen(PORT, () => {
       const del = await ScrapedProduct.deleteMany({ sourceSite: { $in: ['soleseriouss', 'nike'] } });
       if (del.deletedCount > 0) console.log(`[startup] Purged ${del.deletedCount} soleseriouss/nike products`);
       startScraperJob();
+      startUnsubscribeSyncJob();
       if (process.env.WHATSAPP_ENABLED === 'true') initWhatsApp();
     })
     .catch((err) => {

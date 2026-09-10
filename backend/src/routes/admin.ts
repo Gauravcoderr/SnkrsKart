@@ -33,6 +33,7 @@ import { SiteContent } from '../models/SiteContent';
 import { Coupon } from '../models/Coupon';
 import { sendProductLaunchBlast, sendBlogPublishBlast, sendCustomBlast } from '../lib/marketingEmails';
 import { sendMail } from '../lib/mailer';
+import { syncBrevoUnsubscribes } from '../lib/syncUnsubscribes';
 import { IOrder } from '../models/Order';
 
 const router = Router();
@@ -516,9 +517,20 @@ router.get('/users/:id', adminAuth, async (req: Request, res: Response): Promise
 router.get('/newsletter', adminAuth, async (_req: Request, res: Response): Promise<void> => {
   try {
     const subscribers = await Newsletter.find().sort({ createdAt: -1 }).lean();
-    res.json(subscribers.map((s) => ({ ...s, source: s.source || 'subscribed' })));
+    res.json(subscribers.map((s) => ({ ...s, source: s.source || 'subscribed', unsubscribed: !!s.unsubscribed })));
   } catch {
     res.status(500).json({ error: 'Failed to fetch subscribers' });
+  }
+});
+
+// POST /admin/newsletter/sync-unsubscribes — pull Brevo blacklist, flag rows
+router.post('/newsletter/sync-unsubscribes', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const result = await syncBrevoUnsubscribes();
+    res.json({ success: true, ...result });
+  } catch (err) {
+    console.error('Unsubscribe sync error:', err);
+    res.status(500).json({ error: 'Failed to sync unsubscribes' });
   }
 });
 

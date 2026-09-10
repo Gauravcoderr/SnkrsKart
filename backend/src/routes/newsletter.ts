@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { Newsletter } from '../models/Newsletter';
 import { sendMail } from '../lib/mailer';
+import { reactivateContact } from '../lib/syncUnsubscribes';
 
 const router = Router();
 
@@ -18,13 +19,21 @@ router.post('/', async (req: Request, res: Response) => {
       return;
     }
 
-    const existing = await Newsletter.findOne({ email: String(email).trim().toLowerCase() }).lean();
+    const cleanEmail = String(email).trim().toLowerCase();
+    const existing = await Newsletter.findOne({ email: cleanEmail }).lean();
     if (existing) {
+      // Previously unsubscribed but now opting back in via the form —
+      // reactivate: clear the flag here and un-blacklist on Brevo.
+      if (existing.unsubscribed) {
+        await reactivateContact(cleanEmail);
+        res.json({ success: true, resubscribed: true });
+        return;
+      }
       res.json({ success: true, alreadySubscribed: true });
       return;
     }
 
-    await Newsletter.create({ email: String(email).trim().toLowerCase() });
+    await Newsletter.create({ email: cleanEmail });
     res.status(201).json({ success: true });
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';

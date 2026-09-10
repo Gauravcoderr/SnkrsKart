@@ -5,6 +5,8 @@ export interface INewsletter extends Document {
   name?: string;
   phone?: string;
   source: 'subscribed' | 'uploaded';
+  unsubscribed: boolean;
+  unsubscribedAt?: Date;
   createdAt: Date;
 }
 
@@ -14,6 +16,8 @@ const NewsletterSchema = new Schema<INewsletter>(
     name: { type: String, trim: true },
     phone: { type: String, trim: true },
     source: { type: String, enum: ['subscribed', 'uploaded'], default: 'subscribed', index: true },
+    unsubscribed: { type: Boolean, default: false, index: true },
+    unsubscribedAt: { type: Date },
   },
   { timestamps: true }
 );

@@ -9,6 +9,7 @@ import { Loyalty, COINS_PER_100, COINS_TO_RUPEE, MAX_REDEEM_PCT, MIN_REDEEM } fr
 import { Coupon } from '../models/Coupon';
 import { Cashfree, CFEnvironment } from 'cashfree-pg';
 import Razorpay from 'razorpay';
+import { reactivateContact } from '../lib/syncUnsubscribes';
 
 // Lazy-initialised gateway instances
 let _cashfree: InstanceType<typeof Cashfree> | null = null;
@@ -487,6 +488,9 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       couponDiscount,
       ...(req.user ? { userId: req.user.id } : {}),
     });
+
+    // Ordering counts as re-opting in — clear any prior unsubscribe.
+    reactivateContact(email).catch(() => {});
 
     // Mark coupon as used by this user
     if (appliedCouponCode && req.user) {

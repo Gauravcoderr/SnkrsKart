@@ -1,7 +1,9 @@
-import { sendMail } from './mailer';
+import { sendBatchMail } from './mailer';
 import { Newsletter } from '../models/Newsletter';
 import { Review } from '../models/Review';
 import { Order } from '../models/Order';
+import { User } from '../models/User';
+import ChatLead from '../models/ChatLead';
 
 // Bare domain 308-redirects to www, which breaks ESP image mirroring — force www.
 // Vercel's *.vercel.app cert only covers one subdomain label, so www.snkrs-kart.vercel.app
@@ -20,26 +22,38 @@ function withWww(url: string): string {
 
 const SITE = withWww(process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrscart.com');
 
-async function getMarketingEmails(): Promise<string[]> {
-  const [n, r, o] = await Promise.all([
-    Newsletter.distinct('email') as Promise<string[]>,
+export type BlastAudience = 'optedIn' | 'all';
+
+async function getMarketingEmails(audience: BlastAudience = 'all'): Promise<string[]> {
+  const newsletterFilter: Record<string, unknown> = { unsubscribed: { $ne: true } };
+  if (audience !== 'all') newsletterFilter.source = { $ne: 'uploaded' };
+
+  const [n, r, o, u, c, suppressed] = await Promise.all([
+    Newsletter.distinct('email', newsletterFilter) as Promise<string[]>,
     Review.distinct('email') as Promise<string[]>,
     Order.distinct('email') as Promise<string[]>,
+    User.distinct('email') as Promise<string[]>,
+    ChatLead.distinct('email') as Promise<string[]>,
+    Newsletter.distinct('email', { unsubscribed: true }) as Promise<string[]>,
   ]);
-  // Order/Review emails aren't lowercased on save, so normalize case here —
-  // otherwise the same person with different casing across sources gets emailed twice.
+
+  const suppressedKeys = new Set(
+    suppressed.map((e) => (e || '').toLowerCase().trim()).filter(Boolean),
+  );
+
   const seen = new Map<string, string>();
-  for (const raw of [...n, ...r, ...o]) {
+  for (const raw of [...n, ...r, ...o, ...u, ...c]) {
     if (!raw) continue;
     const key = raw.toLowerCase().trim();
+    if (!key || suppressedKeys.has(key)) continue;
     if (!seen.has(key)) seen.set(key, raw.trim());
   }
   return Array.from(seen.values());
 }
 
-async function getRecipients(): Promise<string[]> {
+async function getRecipients(audience: BlastAudience = 'all'): Promise<string[]> {
   if (process.env.TEST_EMAIL) return [process.env.TEST_EMAIL];
-  return getMarketingEmails();
+  return getMarketingEmails(audience);
 }
 
 const LOGO_URL = `${SITE}/logo.jpg`;
@@ -118,7 +132,7 @@ function emailShell(preheader: string, bodyRows: string): string {
               <p style="margin:0;font-family:Inter,Arial,sans-serif;font-size:12px;color:#52525B;line-height:2.2;">
                 <a href="https://wa.me/919410903791" style="color:#52525B;text-decoration:none;">WhatsApp +91&nbsp;94109&nbsp;03791</a>
                 &nbsp;&nbsp;&middot;&nbsp;&nbsp;
-                <a href="mailto:infosnkrscart@gmail.com" style="color:#52525B;text-decoration:none;">infosnkrscart@gmail.com</a>
+                <a href="mailto:info@snkrscart.com" style="color:#52525B;text-decoration:none;">info@snkrscart.com</a>
                 &nbsp;&nbsp;&middot;&nbsp;&nbsp;
                 <a href="${SITE}" style="color:#52525B;text-decoration:none;">snkrscart.com</a>
               </p>
@@ -129,7 +143,7 @@ function emailShell(preheader: string, bodyRows: string): string {
           <tr>
             <td style="background:#F4F4F5;padding:0 32px 28px;text-align:center;">
               <p style="margin:0 0 6px;font-family:Inter,Arial,sans-serif;font-size:11px;color:#A1A1AA;letter-spacing:0.5px;"><a href="${SITE}" style="color:#71717A;text-decoration:underline;font-weight:700;">SNKRS CART</a> &mdash; Sneakers. Culture. Community.</p>
-              <p style="margin:0;font-family:Inter,Arial,sans-serif;font-size:11px;line-height:1.6;color:#A1A1AA;">You received this because you shopped, reviewed, or subscribed.<br>To stop receiving, reply STOP.</p>
+              <p style="margin:0;font-family:Inter,Arial,sans-serif;font-size:11px;line-height:1.6;color:#A1A1AA;">You received this because you shopped, reviewed, or subscribed.<br>Use the unsubscribe link below to stop receiving these emails.</p>
             </td>
           </tr>
 
@@ -285,7 +299,7 @@ export async function sendProductLaunchBlast(
   const subject = customSubject || `Just Dropped: ${product.name}`;
   const html = customHtml || productEmailHtml(product);
   console.log(`[email] product blast → ${recipients.length} recipients`);
-  await Promise.allSettled(recipients.map(email => sendMail({ to: email, subject, html })));
+  await sendBatchMail(recipients, subject, html);
 }
 
 export async function sendBlogPublishBlast(
@@ -298,7 +312,7 @@ export async function sendBlogPublishBlast(
   const subject = customSubject || `New on the Blog: ${blog.title}`;
   const html = customHtml || blogEmailHtml(blog);
   console.log(`[email] blog blast → ${recipients.length} recipients`);
-  await Promise.allSettled(recipients.map(email => sendMail({ to: email, subject, html })));
+  await sendBatchMail(recipients, subject, html);
 }
 
 export async function sendMultipleBlogBlast(
@@ -376,12 +390,12 @@ export async function sendMultipleBlogBlast(
 
   const html = emailShell(`${blogs.length} new stories just dropped on SNKRS CART`, bodyRows);
   console.log(`[email] multi-blog blast (${blogs.length} blogs) → ${recipients.length} recipients`);
-  await Promise.allSettled(recipients.map(email => sendMail({ to: email, subject, html })));
+  await sendBatchMail(recipients, subject, html);
 }
 
 export async function sendCustomBlast(subject: string, html: string): Promise<void> {
   const recipients = await getRecipients();
   if (!recipients.length) return;
   console.log(`[email] custom blast → ${recipients.length} recipients`);
-  await Promise.allSettled(recipients.map(email => sendMail({ to: email, subject, html })));
+  await sendBatchMail(recipients, subject, html);
 }
