@@ -8,7 +8,7 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
   try {
     const profiles = await SneakerProfile.find({ published: true })
       .sort({ name: 1 })
-      .select('slug name brand tagline category silhouette image')
+      .select('slug name brand tagline category silhouette image releaseYear originalRetailPrice designer')
       .lean();
     res.json(profiles);
   } catch {

@@ -3,12 +3,11 @@ import { Drop } from '../models/Drop';
 
 const router = Router();
 
-// GET /api/v1/drops — upcoming published drops sorted by release date
-router.get('/', async (_req: Request, res: Response): Promise<void> => {
+// GET /api/v1/drops?days=N — upcoming published drops plus those released in the last N days (default 7, max 90)
+router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const now = new Date();
-    // Include drops from past 7 days so recently released ones still show briefly
-    const since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const days = Math.min(90, Math.max(0, parseInt(String(req.query.days ?? '7')) || 7));
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     const drops = await Drop.find({ published: true, releaseDate: { $gte: since } })
       .sort({ releaseDate: 1 })
       .lean();

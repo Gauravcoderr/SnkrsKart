@@ -1,12 +1,22 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SneakerProfile } from '@/types';
 
 const ALL = 'All';
 const PER_PAGE = 24;
+
+type Sort = 'name' | 'year-desc' | 'year-asc' | 'brand';
+const SORT_LABELS: Record<Sort, string> = {
+  name: 'A to Z',
+  'year-desc': 'Newest first',
+  'year-asc': 'Oldest first',
+  brand: 'Brand',
+};
+
+function cap(s: string) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
 const CATEGORY_COLORS: Record<string, string> = {
   running: 'bg-blue-100 text-blue-700',
@@ -23,22 +33,43 @@ function CategoryPill({ category }: { category?: string }) {
   const cls = CATEGORY_COLORS[category.toLowerCase()] ?? 'bg-zinc-100 text-zinc-600';
   return (
     <span className={`inline-block text-[8px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${cls}`}>
-      {category}
+      {cap(category)}
     </span>
   );
 }
 
 interface Props {
   profiles: SneakerProfile[];
+  initial?: { brand?: string; category?: string; sort?: Sort; q?: string; page?: number };
 }
 
-export default function SneakersClient({ profiles }: Props) {
-  const [activeBrand, setActiveBrand] = useState(ALL);
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+export default function SneakersClient({ profiles, initial = {} }: Props) {
+  const [activeBrand, setActiveBrand] = useState(initial.brand || ALL);
+  const [activeCategory, setActiveCategory] = useState(initial.category || ALL);
+  const [sort, setSort] = useState<Sort>(initial.sort || 'name');
+  const [search, setSearch] = useState(initial.q || '');
+  const [page, setPage] = useState(initial.page || 1);
 
-  // Reset to page 1 when filters change
-  useEffect(() => { setPage(1); }, [activeBrand, search]);
+  // Reset to page 1 when filters change (not on the initial server-provided state)
+  const mounted = useRef(false);
+  useEffect(() => {
+    if (!mounted.current) { mounted.current = true; return; }
+    setPage(1);
+  }, [activeBrand, activeCategory, sort, search]);
+
+  // Keep the URL in sync so filtered views are shareable and server-renderable (no navigation, no refetch)
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return; }
+    const params = new URLSearchParams();
+    if (activeBrand !== ALL) params.set('brand', activeBrand);
+    if (activeCategory !== ALL) params.set('category', activeCategory);
+    if (sort !== 'name') params.set('sort', sort);
+    if (search.trim()) params.set('q', search.trim());
+    if (page > 1) params.set('page', String(page));
+    const qs = params.toString();
+    window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
+  }, [activeBrand, activeCategory, sort, search, page]);
 
   const brands = useMemo(() => {
     const set = new Set(profiles.map((p) => p.brand));
@@ -51,37 +82,62 @@ export default function SneakersClient({ profiles }: Props) {
     return counts;
   }, [profiles]);
 
+  // Categories scoped to the active brand so chips never lead to an empty list
+  const categories = useMemo(() => {
+    const scoped = activeBrand === ALL ? profiles : profiles.filter((p) => p.brand === activeBrand);
+    const counts: Record<string, number> = {};
+    scoped.forEach((p) => { const c = p.category?.toLowerCase(); if (c) counts[c] = (counts[c] ?? 0) + 1; });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }, [profiles, activeBrand]);
+
+  useEffect(() => {
+    if (activeCategory !== ALL && !categories.some(([c]) => c === activeCategory)) setActiveCategory(ALL);
+  }, [categories, activeCategory]);
+
   const filtered = useMemo(() => {
     let result = activeBrand === ALL ? profiles : profiles.filter((p) => p.brand === activeBrand);
+    if (activeCategory !== ALL) result = result.filter((p) => p.category?.toLowerCase() === activeCategory);
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter((p) =>
         p.name.toLowerCase().includes(q) ||
         p.brand.toLowerCase().includes(q) ||
+        p.category?.toLowerCase().includes(q) ||
         p.description?.toLowerCase().includes(q) ||
         p.designer?.toLowerCase().includes(q)
       );
     }
-    return result;
-  }, [profiles, activeBrand, search]);
+    const byName = (a: SneakerProfile, b: SneakerProfile) => a.name.localeCompare(b.name);
+    const year = (p: SneakerProfile) => p.releaseYear ?? null;
+    return [...result].sort((a, b) => {
+      if (sort === 'brand') return a.brand.localeCompare(b.brand) || byName(a, b);
+      if (sort === 'year-desc' || sort === 'year-asc') {
+        const ya = year(a), yb = year(b);
+        if (ya == null && yb == null) return byName(a, b);
+        if (ya == null) return 1;
+        if (yb == null) return -1;
+        return (sort === 'year-desc' ? yb - ya : ya - yb) || byName(a, b);
+      }
+      return byName(a, b);
+    });
+  }, [profiles, activeBrand, activeCategory, sort, search]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   // Group current page's profiles by brand (only when showing all brands without search)
+  const isFiltering = activeBrand !== ALL || activeCategory !== ALL || search.trim() !== '' || sort !== 'name';
+
   const byBrand = useMemo(() => {
-    const isPaginated = activeBrand !== ALL || search.trim();
-    if (isPaginated) {
-      const label = search.trim() ? 'Results' : activeBrand;
+    if (isFiltering) {
+      const label = activeBrand !== ALL && activeCategory === ALL && !search.trim() && sort === 'name' ? activeBrand : 'Results';
       return paginated.length > 0 ? { [label]: paginated } : {};
     }
     return paginated.reduce<Record<string, SneakerProfile[]>>((acc, p) => {
       (acc[p.brand] = acc[p.brand] || []).push(p);
       return acc;
     }, {});
-  }, [paginated, activeBrand, search]);
-
-  const isFiltering = activeBrand !== ALL || search.trim();
+  }, [paginated, activeBrand, activeCategory, search, sort, isFiltering]);
 
   return (
     <div>
@@ -106,8 +162,8 @@ export default function SneakersClient({ profiles }: Props) {
         )}
       </div>
 
-      {/* Brand tabs */}
-      <div className="flex gap-2 flex-wrap mb-8">
+      {/* Brand tabs + sort */}
+      <div className="flex flex-wrap items-center gap-2 mb-3">
         {brands.map((b) => (
           <button
             key={b}
@@ -125,12 +181,48 @@ export default function SneakersClient({ profiles }: Props) {
             )}
           </button>
         ))}
+        <label className="ml-auto inline-flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-zinc-400">
+          Sort
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as Sort)}
+            className="bg-white border border-zinc-200 text-zinc-700 text-[11px] font-bold tracking-wider uppercase px-2.5 py-1.5 focus:outline-none focus:border-zinc-400 rounded-sm"
+          >
+            {(Object.keys(SORT_LABELS) as Sort[]).map((k) => <option key={k} value={k}>{SORT_LABELS[k]}</option>)}
+          </select>
+        </label>
       </div>
+
+      {/* Category chips */}
+      {categories.length > 1 && (
+        <div className="flex gap-2 flex-wrap mb-8">
+          <button
+            type="button"
+            onClick={() => setActiveCategory(ALL)}
+            className={`px-3 py-1 text-[10px] font-bold tracking-widest uppercase rounded-full transition-colors ${activeCategory === ALL ? 'bg-zinc-900 text-white' : 'bg-white border border-zinc-200 text-zinc-500 hover:border-zinc-400'}`}
+          >
+            All types
+          </button>
+          {categories.map(([c, n]) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setActiveCategory(c)}
+              className={`px-3 py-1 text-[10px] font-bold tracking-widest uppercase rounded-full transition-colors ${
+                activeCategory === c ? 'bg-zinc-900 text-white' : `${CATEGORY_COLORS[c] ?? 'bg-zinc-100 text-zinc-600'} hover:opacity-80`
+              }`}
+            >
+              {c} <span className="opacity-60">{n}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {categories.length <= 1 && <div className="mb-5" />}
 
       {Object.keys(byBrand).length === 0 ? (
         <div className="py-20 text-center border border-dashed border-zinc-200">
-          <p className="text-sm text-zinc-400">No sneakers found for &quot;{search}&quot;.</p>
-          <button type="button" onClick={() => { setSearch(''); setActiveBrand(ALL); }} className="mt-3 text-xs text-zinc-500 underline">Clear filters</button>
+          <p className="text-sm text-zinc-400">No sneakers match{search ? ` “${search}”` : ' these filters'}.</p>
+          <button type="button" onClick={() => { setSearch(''); setActiveBrand(ALL); setActiveCategory(ALL); setSort('name'); }} className="mt-3 text-xs text-zinc-500 underline">Clear filters</button>
         </div>
       ) : (
         Object.entries(byBrand).map(([brand, brandProfiles]) => (
@@ -180,21 +272,28 @@ export default function SneakersClient({ profiles }: Props) {
                         </svg>
                       </div>
                     )}
-                    {/* Year badge on hover */}
                     {p.releaseYear && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-zinc-900/60 to-transparent py-2 px-2.5 translate-y-full group-hover:translate-y-0 transition-transform duration-200">
-                        <p className="text-[9px] font-bold text-zinc-300 tracking-widest uppercase">Est. {p.releaseYear}</p>
-                      </div>
+                      <span className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-zinc-900 text-[9px] font-black tracking-widest px-1.5 py-0.5 rounded-sm tabular-nums">
+                        {p.releaseYear}
+                      </span>
                     )}
                   </div>
                   <div className="p-3 pb-3.5">
+                    {(isFiltering || activeBrand === ALL) && (
+                      <p className="text-[8px] font-black tracking-[0.25em] uppercase text-zinc-400 mb-0.5">{p.brand}</p>
+                    )}
                     <p className="text-xs font-black text-zinc-900 leading-snug group-hover:text-zinc-600 transition-colors mb-0.5">
                       {p.name}
                     </p>
                     {p.tagline && (
-                      <p className="text-[10px] text-zinc-400 truncate mb-1.5">{p.tagline}</p>
+                      <p className="text-[10px] text-zinc-400 truncate mb-2">{p.tagline}</p>
                     )}
-                    <CategoryPill category={p.category} />
+                    <div className="flex items-center justify-between gap-2">
+                      <CategoryPill category={p.category} />
+                      {p.originalRetailPrice ? (
+                        <p className="text-[9px] font-bold text-zinc-500 tabular-nums whitespace-nowrap">${p.originalRetailPrice} <span className="text-zinc-300 font-semibold">retail</span></p>
+                      ) : null}
+                    </div>
                   </div>
                 </Link>
               ))}

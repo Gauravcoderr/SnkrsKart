@@ -144,7 +144,7 @@ export async function restockNotify(email: string, productSlug: string, size?: n
 }
 
 export async function fetchSneakerProfiles(): Promise<SneakerProfile[]> {
-  const res = await fetch(`${BASE_URL}/sneaker-profiles`, { cache: 'no-store' });
+  const res = await fetch(`${BASE_URL}/sneaker-profiles`, { next: { revalidate: 300 } });
   if (!res.ok) throw new Error('Failed to fetch sneaker profiles');
   return res.json();
 }
@@ -155,8 +155,9 @@ export async function fetchSneakerProfileBySlug(slug: string): Promise<SneakerPr
   return res.json();
 }
 
-export async function fetchDrops(): Promise<Drop[]> {
-  const res = await fetch(`${BASE_URL}/drops`, { next: { revalidate: 300 } });
+// days = how many days of already-released drops to include (backend default 7, max 90)
+export async function fetchDrops(days = 7): Promise<Drop[]> {
+  const res = await fetch(`${BASE_URL}/drops?days=${days}`, { next: { revalidate: 300 } });
   if (!res.ok) throw new Error('Failed to fetch drops');
   return res.json();
 }

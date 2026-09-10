@@ -18,11 +18,27 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 3600;
+// Fully server-rendered on every request; filters/sort/page come from the URL.
+// Profile data is cached 5 min (see fetchSneakerProfiles).
+export const dynamic = 'force-dynamic';
 
-export default async function SneakersIndexPage() {
+interface Props {
+  searchParams?: { brand?: string; category?: string; sort?: string; q?: string; page?: string };
+}
+
+const SORTS = ['name', 'year-desc', 'year-asc', 'brand'] as const;
+
+export default async function SneakersIndexPage({ searchParams = {} }: Props) {
   let profiles: Awaited<ReturnType<typeof fetchSneakerProfiles>> = [];
   try { profiles = await fetchSneakerProfiles(); } catch { /* empty state */ }
+
+  const initial = {
+    brand: typeof searchParams.brand === 'string' ? searchParams.brand : 'All',
+    category: typeof searchParams.category === 'string' ? searchParams.category.toLowerCase() : 'All',
+    sort: (SORTS as readonly string[]).includes(searchParams.sort ?? '') ? searchParams.sort as typeof SORTS[number] : 'name' as const,
+    q: typeof searchParams.q === 'string' ? searchParams.q.slice(0, 80) : '',
+    page: Math.max(1, parseInt(searchParams.page ?? '1') || 1),
+  };
 
   const totalBrands = new Set(profiles.map((p) => p.brand)).size;
 
@@ -55,7 +71,7 @@ export default async function SneakersIndexPage() {
           <p className="text-sm text-zinc-400">Sneaker profiles coming soon.</p>
         </div>
       ) : (
-        <SneakersClient profiles={profiles} />
+        <SneakersClient profiles={profiles} initial={initial} />
       )}
     </div>
   );

@@ -78,6 +78,8 @@ All prefixed `/api/v1/`. Admin routes require `Authorization: Bearer <admin_toke
 |-------|-------|
 | `GET /products` | supports `search`, `brand`, `gender`, `limit`, `page` query params |
 | `GET /products/:slug` | single product |
+| `GET /drops?days=N` | published drops: upcoming + released in last N days (default 7, max 90) |
+| `GET /sneaker-profiles` | list select includes `releaseYear originalRetailPrice designer` for cards |
 | `POST /api/v1/chat/lead` | save KickBot lead (name, email, phone, interests[]) |
 | `GET /admin/chat-leads` | admin: list chat leads |
 | `DELETE /admin/chat-leads/:id` | admin: delete chat lead |
@@ -107,6 +109,12 @@ Orders → Users → Products → Inquiries → Reviews → Banners → Sellers 
 
 ## Brands available in store
 Nike, Jordan (Air Jordan), Adidas, New Balance, Crocs
+
+## Drop calendar + Sneaker guide (SSR)
+- `/drops` and `/sneakers` are `force-dynamic`: filter/sort/view state read from `searchParams` and passed as `initial` to the client component, which mirrors state back to the URL with `history.replaceState` (no refetch). Data fetches cached 5 min.
+- `/drops` UI: next-drop strip with live `Countdown`, search, brand chips, date-range chips, list view grouped by date (sticky day headers) or month calendar view, recently released (30 days), SEO copy + FAQ (FAQPage + ItemList JSON-LD).
+- `AddToCalendar` (Google URL + .ics download) lives in `components/drops/`; date helpers in `lib/calendar.ts` (all UTC-date based, matching stored midnight-UTC release dates).
+- Header nav has a `Drops` link.
 
 ## Homepage section order
 MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → TrendingNow → WhyChooseUs → ComingSoon → NewsletterBar
