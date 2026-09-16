@@ -47,6 +47,7 @@ const blogs = [
   // comme-des-garcons-air-jordan-11-india-2026, new-balance-983-vs-1906r-india-2026, jordan-design-studio-syn-zhuang-air-jordan-1-2026 — seeded 2026-09-04
   // terror-squad-air-force-1-university-red-fat-joe-2026, air-jordan-7-tennis-day-agassi-us-open-2026, adidas-tang-jacket-india-price-2026 — seeded 2026-09-07
   // onitsuka-tiger-japanese-sneakers-boom-tourists-india-2026, justin-bieber-skylrk-matterdaddies-latte-world-cup-final-2026, nike-x2-football-culture-community-playbook-india-2026 — seeded 2026-09-10
+  // travis-scott-air-jordan-1-low-chicago-2027, air-jordan-12-bucks-idols-become-rivals-2026, mowalola-air-jordan-14-burnt-red-2026 — seeded 2026-09-16
 ];
 
 async function seed() {
