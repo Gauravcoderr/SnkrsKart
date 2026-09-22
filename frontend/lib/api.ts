@@ -171,7 +171,9 @@ export async function fetchSneakerProfiles(): Promise<SneakerProfile[]> {
 }
 
 export async function fetchSneakerProfileBySlug(slug: string): Promise<SneakerProfile> {
-  return fetchBySlug<SneakerProfile>(`/sneaker-profiles/${slug}`, 'Sneaker profile', { cache: 'no-store' });
+  // Must not be no-store: the page is ISR (revalidate 3600). A no-store fetch inside an ISR
+  // route throws "page changed from static to dynamic at runtime" and 500s every request.
+  return fetchBySlug<SneakerProfile>(`/sneaker-profiles/${slug}`, 'Sneaker profile', { next: { revalidate: 3600 } });
 }
 
 // days = how many days of already-released drops to include (backend default 7, max 90)
