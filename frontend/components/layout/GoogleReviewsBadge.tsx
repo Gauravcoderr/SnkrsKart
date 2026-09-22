@@ -3,12 +3,11 @@
 import Script from 'next/script';
 
 /**
- * Google Customer Reviews seller-rating badge. Off by default: until the store has
- * seller ratings the widget prints "no rating available", which reads as a warning on a
- * new store. Enable with NEXT_PUBLIC_GCR_BADGE=1 once ratings exist.
+ * Google Customer Reviews seller-rating badge. On by default. Until the store has seller
+ * ratings the widget prints "no rating available"; set NEXT_PUBLIC_GCR_BADGE=0 to hide it.
  */
 const MERCHANT_ID = process.env.NEXT_PUBLIC_GMC_MERCHANT_ID || '5750742430';
-const ENABLED = process.env.NEXT_PUBLIC_GCR_BADGE === '1';
+const ENABLED = process.env.NEXT_PUBLIC_GCR_BADGE !== '0';
 
 export default function GoogleReviewsBadge() {
   if (!ENABLED) return null;
