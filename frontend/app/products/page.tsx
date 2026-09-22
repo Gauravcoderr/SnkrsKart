@@ -1,8 +1,8 @@
 import { Suspense } from 'react';
 import ProductsClient from './ProductsClient';
+import { fetchAllProducts } from '@/lib/catalog';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
-const API = process.env.NEXT_PUBLIC_API_URL || 'https://snkrskart.onrender.com/api/v1';
 
 const BRAND_LABELS: Record<string, string> = {
   nike: 'Nike',
@@ -71,10 +71,8 @@ export async function generateMetadata({ searchParams }: { searchParams: { brand
 export default async function ProductsPage() {
   let catalogSchema = null;
   try {
-    const res = await fetch(`${API}/products?limit=200`, { next: { revalidate: 3600 } });
-    if (res.ok) {
-      const data = await res.json();
-      const products: any[] = data.products ?? data ?? [];
+    const products = await fetchAllProducts();
+    {
       if (products.length > 0) {
         const prices = products.map((p: any) => p.price).filter(Boolean);
         const lowPrice = prices.length ? String(Math.min(...prices)) : undefined;

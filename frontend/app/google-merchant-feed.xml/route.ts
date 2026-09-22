@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
+import { fetchAllProducts } from '@/lib/catalog';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 // Google product taxonomy paths (must be real taxonomy nodes)
 const CATEGORY_MAP: Record<string, string> = {
@@ -173,36 +173,10 @@ function productEntries(p: Product): string[] {
   return variants(p).map((v) => variantEntry(p, v));
 }
 
-/**
- * Prefer the dedicated feed endpoint (all products, full fields). Fall back to walking the
- * paginated catalogue (48 per page, card fields only) if the backend predates it.
- */
-async function loadProducts(): Promise<Product[]> {
-  try {
-    const res = await fetch(`${API}/products/feed`, { next: { revalidate: 3600 } });
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data.products) && data.products.length > 0) return data.products;
-    }
-  } catch { /* fall through */ }
-
-  const out: Product[] = [];
-  try {
-    for (let page = 1; page <= 20; page++) {
-      const res = await fetch(`${API}/products?limit=48&page=${page}`, { next: { revalidate: 3600 } });
-      if (!res.ok) break;
-      const data = await res.json();
-      out.push(...(data.products || []));
-      if (page >= (data.totalPages ?? 1)) break;
-    }
-  } catch { /* serve what we have rather than 500 */ }
-  return out;
-}
-
 export const revalidate = 3600;
 
 export async function GET() {
-  const products = await loadProducts();
+  const products = await fetchAllProducts();
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">

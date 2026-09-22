@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { fetchAllProducts } from '@/lib/catalog';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,18 +14,18 @@ interface Profile { name: string; brand: string; slug: string; releaseYear?: num
 export async function GET() {
   const [blogsRes, productsRes, dropsRes, profilesRes] = await Promise.allSettled([
     fetch(`${API}/blogs?limit=200`,           { next: { revalidate: 3600 } }),
-    fetch(`${API}/products?limit=500`,        { next: { revalidate: 3600 } }),
+    fetchAllProducts(),
     fetch(`${API}/drops`,                     { next: { revalidate: 300  } }),
     fetch(`${API}/sneaker-profiles`,          { next: { revalidate: 3600 } }),
   ]);
 
   const rawBlogs    = blogsRes.status    === 'fulfilled' && blogsRes.value.ok    ? await blogsRes.value.json()    : [];
-  const rawProducts = productsRes.status === 'fulfilled' && productsRes.value.ok ? await productsRes.value.json() : {};
+  const rawProducts = productsRes.status === 'fulfilled' ? productsRes.value : [];
   const rawDrops    = dropsRes.status    === 'fulfilled' && dropsRes.value.ok    ? await dropsRes.value.json()    : [];
   const rawProfiles = profilesRes.status === 'fulfilled' && profilesRes.value.ok ? await profilesRes.value.json() : [];
 
   const blogs:    Blog[]    = Array.isArray(rawBlogs)    ? rawBlogs    : (rawBlogs.blogs    ?? []);
-  const products: Product[] = rawProducts.products       ?? [];
+  const products: Product[] = rawProducts;
   const drops:    Drop[]    = Array.isArray(rawDrops)    ? rawDrops    : [];
   const profiles: Profile[] = Array.isArray(rawProfiles) ? rawProfiles : [];
 

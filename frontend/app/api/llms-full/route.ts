@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
+import { fetchAllProducts } from '@/lib/catalog';
+
+const API  = process.env.NEXT_PUBLIC_API_URL  || 'http://localhost:4000/api/v1';
 
 export const dynamic = 'force-dynamic';
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
-const API  = process.env.NEXT_PUBLIC_API_URL  || 'http://localhost:4000/api/v1';
 
 interface Product {
-  name: string; brand: string; slug: string; price: number; originalPrice?: number;
+  name: string; brand: string; slug: string; price: number; originalPrice?: number | null;
   description?: string; colorway?: string; colors?: string[]; availableSizes?: number[];
   category?: string; gender?: string; tags?: string[]; newArrival?: boolean; trending?: boolean; soldOut?: boolean;
 }
@@ -18,14 +20,14 @@ interface Profile {
 
 export async function GET() {
   const [productsRes, profilesRes] = await Promise.allSettled([
-    fetch(`${API}/products?limit=500`, { next: { revalidate: 3600 } }),
+    fetchAllProducts(),
     fetch(`${API}/sneaker-profiles`,   { next: { revalidate: 3600 } }),
   ]);
 
-  const rawProducts = productsRes.status === 'fulfilled' && productsRes.value.ok ? await productsRes.value.json() : {};
+  const rawProducts = productsRes.status === 'fulfilled' ? productsRes.value : [];
   const rawProfiles = profilesRes.status === 'fulfilled' && profilesRes.value.ok ? await profilesRes.value.json() : [];
 
-  const products: Product[] = rawProducts.products        ?? [];
+  const products: Product[] = rawProducts;
   const profiles: Profile[] = Array.isArray(rawProfiles)  ? rawProfiles : [];
 
   const productBlocks = products.map((p) => {

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { fetchAllProducts } from '@/lib/catalog';
 
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
@@ -85,7 +86,7 @@ export async function GET() {
     `Twitter/X: https://twitter.com/snkrs_cart`,
     `Sitemap: ${SITE_URL}/sitemap.xml`,
     `RSS: ${SITE_URL}/rss.xml`,
-    `Google Shopping Feed: ${SITE_URL}/api/feed`,
+    `Google Shopping Feed: ${SITE_URL}/google-merchant-feed.xml`,
     `OpenAPI Schema: ${SITE_URL}/chatgpt-action-schema.yaml`,
     `AI Plugin Manifest: ${SITE_URL}/.well-known/ai-plugin.json`,
     ``,
@@ -116,15 +117,14 @@ export async function GET() {
 
   try {
     const [productsRes, blogsRes] = await Promise.allSettled([
-      fetch(`${API}/products?limit=500`, { next: { revalidate: 3600 }, signal: controller.signal }),
+      fetchAllProducts({ signal: controller.signal }),
       fetch(`${API}/blogs?limit=100`, { next: { revalidate: 3600 }, signal: controller.signal }),
     ]);
 
     clearTimeout(timeout);
 
-    if (productsRes.status === 'fulfilled' && productsRes.value.ok) {
-      const data = await productsRes.value.json();
-      const products: any[] = data.products ?? data ?? [];
+    if (productsRes.status === 'fulfilled' && productsRes.value.length > 0) {
+      const products: any[] = productsRes.value;
 
       lines.push(`Total Products: ${products.length}`);
       lines.push(``);
