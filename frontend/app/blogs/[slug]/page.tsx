@@ -62,14 +62,12 @@ function getAccent(tags: string[]) {
   return DEFAULT_ACCENT;
 }
 
+/** null means the backend said 404. Any other failure throws → 500, so Googlebot retries instead of de-indexing. */
 async function fetchBlog(slug: string): Promise<Blog | null> {
-  try {
-    const res = await fetch(`${API}/blogs/${slug}`, { cache: 'no-store' });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
+  const res = await fetch(`${API}/blogs/${slug}`, { cache: 'no-store' });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Blog ${slug}: upstream ${res.status}`);
+  return res.json();
 }
 
 async function fetchRelatedBlogs(tags: string[], currentSlug: string): Promise<Blog[]> {

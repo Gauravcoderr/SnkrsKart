@@ -22,6 +22,22 @@ function buildQueryString(filters: Partial<FilterState> & { page?: number; limit
 }
 
 // Server-side fetch with ISR revalidation (for Server Components)
+/**
+ * Thrown only when the backend answered 404. Every other failure (Render cold-start
+ * timeout, 5xx, network) is a plain Error so the page can surface a 500 and let
+ * Googlebot retry, instead of a false 404 that drops a real product from the index.
+ */
+export class NotFoundError extends Error {
+  constructor(what: string) { super(`${what} not found`); this.name = 'NotFoundError'; }
+}
+
+async function fetchBySlug<T>(path: string, what: string, init: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, init);
+  if (res.status === 404) throw new NotFoundError(what);
+  if (!res.ok) throw new Error(`${what}: upstream ${res.status}`);
+  return res.json();
+}
+
 export async function fetchProducts(
   filters: Partial<FilterState> & { page?: number; limit?: number } = {},
   revalidate = 60
@@ -35,11 +51,7 @@ export async function fetchProducts(
 }
 
 export async function fetchProductBySlug(slug: string): Promise<Product> {
-  const res = await fetch(`${BASE_URL}/products/${slug}`, {
-    next: { revalidate: 300 },
-  });
-  if (!res.ok) throw new Error('Product not found');
-  return res.json();
+  return fetchBySlug<Product>(`/products/${slug}`, 'Product', { next: { revalidate: 300 } });
 }
 
 export async function fetchFeaturedProducts(): Promise<Product[]> {
@@ -89,11 +101,7 @@ export async function fetchBrands(): Promise<Brand[]> {
 }
 
 export async function fetchBrandBySlug(slug: string): Promise<Brand> {
-  const res = await fetch(`${BASE_URL}/brands/${slug}`, {
-    next: { revalidate: 3600 },
-  });
-  if (!res.ok) throw new Error('Brand not found');
-  return res.json();
+  return fetchBySlug<Brand>(`/brands/${slug}`, 'Brand', { next: { revalidate: 3600 } });
 }
 
 export async function fetchRecentReviews(): Promise<Review[]> {
@@ -150,9 +158,7 @@ export async function fetchSneakerProfiles(): Promise<SneakerProfile[]> {
 }
 
 export async function fetchSneakerProfileBySlug(slug: string): Promise<SneakerProfile> {
-  const res = await fetch(`${BASE_URL}/sneaker-profiles/${slug}`, { cache: 'no-store' });
-  if (!res.ok) throw new Error('Sneaker profile not found');
-  return res.json();
+  return fetchBySlug<SneakerProfile>(`/sneaker-profiles/${slug}`, 'Sneaker profile', { cache: 'no-store' });
 }
 
 // days = how many days of already-released drops to include (backend default 7, max 90)
@@ -163,9 +169,7 @@ export async function fetchDrops(days = 7): Promise<Drop[]> {
 }
 
 export async function fetchDropBySlug(slug: string): Promise<Drop> {
-  const res = await fetch(`${BASE_URL}/drops/${slug}`, { next: { revalidate: 300 } });
-  if (!res.ok) throw new Error('Drop not found');
-  return res.json();
+  return fetchBySlug<Drop>(`/drops/${slug}`, 'Drop', { next: { revalidate: 300 } });
 }
 
 // Client-side fetch (no cache, for filter interactions)

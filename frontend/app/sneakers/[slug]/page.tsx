@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { fetchSneakerProfiles, fetchSneakerProfileBySlug, fetchProducts } from '@/lib/api';
+import { fetchSneakerProfiles, fetchSneakerProfileBySlug, fetchProducts, NotFoundError } from '@/lib/api';
 import { cloudinaryOgImage } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils';
 import ProductCard from '@/components/products/ProductCard';
@@ -52,7 +52,7 @@ export const revalidate = 3600;
 export default async function SneakerHubPage({ params }: Props) {
   let profile;
   try { profile = await fetchSneakerProfileBySlug(params.slug); }
-  catch { notFound(); }
+  catch (e) { if (e instanceof NotFoundError) notFound(); throw e; }
 
   // Fetch matching products using searchTags or brand+name
   const searchQuery = profile.searchTags.length > 0 ? profile.searchTags[0] : profile.name;

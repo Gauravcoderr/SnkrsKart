@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { fetchDrops, fetchDropBySlug } from '@/lib/api';
+import { fetchDrops, fetchDropBySlug, NotFoundError } from '@/lib/api';
 import { cloudinaryOgImage, formatDropPrice } from '@/lib/utils';
 import { dateKey, daysUntil, formatDropDate } from '@/lib/calendar';
 import Countdown from '@/components/drops/Countdown';
@@ -102,7 +102,7 @@ function copSteps(where: string): { title: string; steps: string[] } {
 export default async function DropPage({ params }: Props) {
   let drop;
   try { drop = await fetchDropBySlug(params.slug); }
-  catch { notFound(); }
+  catch (e) { if (e instanceof NotFoundError) notFound(); throw e; }
 
   const url = `${SITE_URL}/drops/${params.slug}`;
   const days = daysUntil(drop.releaseDate);

@@ -204,6 +204,14 @@ export const maxDuration = 60;
 export async function GET() {
   const products = await fetchAllProducts();
 
+  // An empty channel would make Merchant Center expire every item. Tell it to come back.
+  if (products.length === 0) {
+    return new NextResponse('Feed source unavailable', {
+      status: 503,
+      headers: { 'Retry-After': '300', 'Cache-Control': 'no-store' },
+    });
+  }
+
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
   <channel>

@@ -37,15 +37,12 @@ function isNew(d: string) {
   return Date.now() - new Date(d).getTime() < 7 * 24 * 60 * 60 * 1000;
 }
 
+/** Empty array only when the backend answered OK with no posts. Failures throw → 500, never a false 404. */
 async function fetchByTag(tag: string): Promise<Blog[]> {
-  try {
-    const res = await fetch(`${API}/blogs?tag=${encodeURIComponent(tag)}&limit=100`, { cache: 'no-store' });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return Array.isArray(data) ? data : (data.blogs ?? []);
-  } catch {
-    return [];
-  }
+  const res = await fetch(`${API}/blogs?tag=${encodeURIComponent(tag)}&limit=100`, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Blogs for tag ${tag}: upstream ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data) ? data : (data.blogs ?? []);
 }
 
 function normalizeTag(raw: string) {

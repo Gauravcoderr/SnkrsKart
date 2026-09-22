@@ -5,7 +5,10 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com'
 const API      = process.env.NEXT_PUBLIC_API_URL   || 'http://localhost:4000/api/v1';
 
 const PAGE_SIZE  = 500;
-const TIMEOUT_MS = 8000;
+const TIMEOUT_MS = 25_000; // Render free tier cold start is 20-40s; 8s produced near-empty sitemaps
+
+// Route may wait on a cold origin. Vercel default is 10s.
+export const maxDuration = 60;
 
 interface BlogEntry { slug: string; updatedAt?: string; createdAt: string; tags?: string[] }
 interface SlugEntry { slug: string; createdAt?: string }
@@ -21,11 +24,12 @@ function pageRange(total: number): number[] {
 // ---------------------------------------------------------------------------
 // Count helpers
 // ---------------------------------------------------------------------------
+/** -1 = fetch failed. Callers must not treat that as "zero items". */
 async function fetchCount(endpoint: string, revalidate = 3600): Promise<number> {
   return fetch(`${API}/${endpoint}/count`, opts(revalidate))
     .then((r) => (r.ok ? r.json() : null))
-    .then((d: { count?: number } | null) => d?.count ?? 0)
-    .catch(() => 0);
+    .then((d: { count?: number } | null) => (d && typeof d.count === 'number' ? d.count : -1))
+    .catch(() => -1);
 }
 
 // ---------------------------------------------------------------------------
@@ -159,6 +163,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     fetchCount('sneaker-profiles'),
     fetchCount('drops', 300),
   ]);
+
+  // A cold or failing origin used to yield a sitemap of ~13 static URLs, cached for an hour,
+  // while Google believed the other ~1,300 pages had vanished. Fail the request instead:
+  // Google keeps the last good sitemap and retries.
+  if ([blogTotal, productTotal, sneakerTotal, dropTotal].some((n) => n < 0)) {
+    throw new Error('sitemap: backend unavailable, refusing to emit a truncated sitemap');
+  }
 
   const [blogChunks, productChunks, sneakerChunks, dropChunks] = await Promise.all([
     Promise.all(pageRange(blogTotal).map(fetchBlogPage)),

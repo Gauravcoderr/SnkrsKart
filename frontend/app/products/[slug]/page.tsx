@@ -1,4 +1,4 @@
-import { fetchProductBySlug, fetchTrendingProducts, fetchProductReviews } from '@/lib/api';
+import { fetchProductBySlug, fetchTrendingProducts, fetchProductReviews, NotFoundError } from '@/lib/api';
 import { cloudinaryOgImage } from '@/lib/utils';
 import { Product } from '@/types';
 import { notFound } from 'next/navigation';
@@ -100,8 +100,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
   let product;
   try {
     product = await fetchProductBySlug(params.slug);
-  } catch {
-    notFound();
+  } catch (e) {
+    // Real 404 only. A cold Render origin or 5xx must NOT become a 404, or Google
+    // drops a live product from the index. Rethrow → 500 → Googlebot retries.
+    if (e instanceof NotFoundError) notFound();
+    throw e;
   }
 
   const [related, reviewData, relatedBlogs] = await Promise.all([
