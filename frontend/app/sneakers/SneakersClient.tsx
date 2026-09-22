@@ -4,6 +4,13 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SneakerProfile } from '@/types';
+import { BRANDS } from '@/lib/constants';
+
+/** Brand landing page when we have one (canonical URL), else filtered grid. */
+const brandHref = (label: string) => {
+  const b = BRANDS.find((x) => x.label === label);
+  return b ? `/brands/${b.slug}` : `/products?brand=${encodeURIComponent(label)}`;
+};
 
 const ALL = 'All';
 const PER_PAGE = 24;
@@ -241,7 +248,7 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
               </div>
               {!isFiltering && (
                 <Link
-                  href={`/products?brand=${encodeURIComponent(brand)}`}
+                  href={brandHref(brand)}
                   className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 hover:text-zinc-900 transition-colors"
                 >
                   Shop {brand} →

@@ -16,6 +16,22 @@ function brandLabel(raw: string) {
   return BRAND_LABELS[raw.toLowerCase()] ?? raw;
 }
 
+// Every spelling of a brand that appears in links / ad URLs → its /brands/{slug} page.
+const BRAND_SLUGS: Record<string, string> = {
+  nike: 'nike',
+  jordan: 'jordan',
+  'air jordan': 'jordan',
+  'air-jordan': 'jordan',
+  adidas: 'adidas',
+  'new balance': 'new-balance',
+  'new-balance': 'new-balance',
+  crocs: 'crocs',
+};
+
+function brandSlug(raw: string): string | null {
+  return BRAND_SLUGS[raw.toLowerCase().trim()] ?? null;
+}
+
 export async function generateMetadata({ searchParams }: { searchParams: { brand?: string } }) {
   const rawBrand = searchParams?.brand?.trim();
   if (!rawBrand) {
@@ -26,10 +42,22 @@ export async function generateMetadata({ searchParams }: { searchParams: { brand
     };
   }
 
+  const slug = brandSlug(rawBrand);
+  if (!slug) {
+    // Unknown brand filter → empty grid (soft 404 for Google). Don't index; point at /products.
+    return {
+      title: { absolute: 'Buy Authentic Sneakers Online in India | Snkrs Cart' },
+      robots: { index: false, follow: true },
+      alternates: { canonical: `${SITE_URL}/products` },
+    };
+  }
+
   const brand = brandLabel(rawBrand);
   const title = `Buy Authentic ${brand} Sneakers Online in India | Snkrs Cart`;
   const description = `Shop 100% authentic ${brand} sneakers online in India. Free pan-India shipping, verified pairs, no fakes — browse the full ${brand} collection at SNKRS CART.`;
-  const url = `${SITE_URL}/products?brand=${encodeURIComponent(rawBrand)}`;
+  // /products?brand=Nike, ?brand=nike, ?brand=Nike&gender=men … all consolidate onto the
+  // dedicated brand landing page, which is the URL in the sitemap and footer.
+  const url = `${SITE_URL}/brands/${slug}`;
 
   return {
     title: { absolute: title },

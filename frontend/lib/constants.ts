@@ -94,7 +94,10 @@ export const SORT_OPTIONS = [
 export const FOOTER_SHOP_LINKS = [
   { label: 'New Arrivals', href: '/products?sort=newest' },
   { label: 'Trending', href: '/products?sort=popular' },
-  { label: 'Sale', href: '/products?sort=price_asc' },
+  { label: 'Men', href: '/category/men' },
+  { label: 'Women', href: '/category/women' },
+  { label: 'Kids', href: '/category/kids' },
+  { label: 'Sale', href: '/category/sale' },
   { label: 'Upcoming Drops', href: '/drops' },
   { label: 'Sneaker Guide', href: '/sneakers' },
 ];

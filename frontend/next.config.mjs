@@ -26,8 +26,19 @@ const SECURITY_HEADERS = [
 const nextConfig = {
   poweredByHeader: false,
   async headers() {
+    const NOINDEX = [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }];
     return [
       { source: '/:path*', headers: SECURITY_HEADERS },
+      // Private / per-user pages: never index. Header works even for client-only
+      // pages (e.g. /admin) that cannot export Next metadata.
+      { source: '/admin', headers: NOINDEX },
+      { source: '/admin/:path*', headers: NOINDEX },
+      { source: '/cart', headers: NOINDEX },
+      { source: '/checkout', headers: NOINDEX },
+      { source: '/checkout/:path*', headers: NOINDEX },
+      { source: '/account', headers: NOINDEX },
+      { source: '/account/:path*', headers: NOINDEX },
+      { source: '/wishlist', headers: NOINDEX },
     ];
   },
   async redirects() {
@@ -56,6 +67,19 @@ const nextConfig = {
         destination: '/blogs/tag/:tag',
         permanent: true,
       },
+      // Legacy / mistyped paths that otherwise 404 (seen in crawl logs and bot output).
+      // 301 so any link equity flows to the live URL.
+      { source: '/blog',              destination: '/blogs',           permanent: true },
+      { source: '/blog/:path*',       destination: '/blogs/:path*',    permanent: true },
+      { source: '/product/:path*',    destination: '/products/:path*', permanent: true },
+      { source: '/drop/:path*',       destination: '/drops/:path*',    permanent: true },
+      { source: '/sneaker/:path*',    destination: '/sneakers/:path*', permanent: true },
+      { source: '/brand/:path*',      destination: '/brands/:path*',   permanent: true },
+      { source: '/shop',              destination: '/products',        permanent: true },
+      { source: '/collections/:path*',destination: '/products',        permanent: true },
+      { source: '/home',              destination: '/',                permanent: true },
+      { source: '/index.html',        destination: '/',                permanent: true },
+      { source: '/index',             destination: '/',                permanent: true },
     ];
   },
   async rewrites() {
