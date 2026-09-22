@@ -9,6 +9,17 @@
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
+/** Grid endpoint's hard `limit` cap (backend getAllProducts). */
+const GRID_PAGE_SIZE = 48;
+
+/**
+ * Safety ceiling for the paginated fallback. The loop normally stops at `totalPages`
+ * (3 pages for ~110 products); this only guards against a missing or bogus `totalPages`
+ * turning the feed route into an infinite fetch loop. 20 × 48 = 960 products, ~9× today's
+ * catalogue. Not a business limit: the primary path (/products/feed) has no cap.
+ */
+const MAX_FALLBACK_PAGES = 20;
+
 export interface CatalogProduct {
   id: string;
   slug: string;
@@ -66,8 +77,8 @@ export async function fetchAllProducts(o: Options = {}): Promise<CatalogProduct[
 
   const out: CatalogProduct[] = [];
   try {
-    for (let page = 1; page <= 20; page++) {
-      const res = await fetch(`${API}/products?limit=48&page=${page}`, init(o));
+    for (let page = 1; page <= MAX_FALLBACK_PAGES; page++) {
+      const res = await fetch(`${API}/products?limit=${GRID_PAGE_SIZE}&page=${page}`, init(o));
       if (!res.ok) break;
       const data = await res.json();
       out.push(...(data.products || []));
