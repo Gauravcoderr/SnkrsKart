@@ -25,7 +25,7 @@ const contactPageSchema = {
     name: 'SNKRS CART',
     url: SITE_URL,
     telephone: '+91-94109-03791',
-    email: 'infosnkrscart@gmail.com',
+    email: 'info@snkrscart.com',
     address: {
       '@type': 'PostalAddress',
       streetAddress: 'House No. 4, Lingwal Bhawan, Circuit House Road',
@@ -57,7 +57,7 @@ export default function ContactPage() {
 
         <div className="grid sm:grid-cols-2 gap-4 mb-12">
           <a
-            href="mailto:infosnkrscart@gmail.com"
+            href="mailto:info@snkrscart.com"
             className="group flex items-start gap-4 border border-zinc-200 p-6 hover:border-zinc-400 transition-colors"
           >
             <svg className="w-5 h-5 text-zinc-400 group-hover:text-zinc-900 transition-colors mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -65,7 +65,7 @@ export default function ContactPage() {
             </svg>
             <div>
               <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">Email</p>
-              <p className="text-sm font-semibold text-zinc-900">infosnkrscart@gmail.com</p>
+              <p className="text-sm font-semibold text-zinc-900">info@snkrscart.com</p>
               <p className="text-xs text-zinc-500 mt-1">We reply within a few hours on business days</p>
             </div>
           </a>

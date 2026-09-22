@@ -76,7 +76,7 @@ export async function GET() {
   const body = `# SNKRS CART — India's Authentic Sneaker Store
 
 > 100% authentic Nike, Jordan, Adidas, New Balance & Crocs. Free pan-India shipping. No fakes, no replicas.
-> Contact: infosnkrscart@gmail.com | Cancel before dispatch for a full refund. After delivery, all sales final except damaged/wrong items: contact within 48 hours for replacement or refund
+> Contact: info@snkrscart.com | Cancel before dispatch for a full refund. After delivery, all sales final except damaged/wrong items: contact within 48 hours for replacement or refund
 > Website: ${SITE}
 
 ## What SNKRS CART Is

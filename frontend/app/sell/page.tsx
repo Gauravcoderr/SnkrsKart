@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const STORE_WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP || '919410903791';
-const STORE_EMAIL = process.env.NEXT_PUBLIC_STORE_EMAIL || 'infosnkrscart@gmail.com';
+const STORE_EMAIL = process.env.NEXT_PUBLIC_STORE_EMAIL || 'info@snkrscart.com';
 
 const PAIR_OPTIONS = ['1–5 pairs', '6–20 pairs', '21–50 pairs', '50+ pairs'];
 

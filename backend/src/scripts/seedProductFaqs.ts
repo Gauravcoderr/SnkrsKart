@@ -22,7 +22,7 @@ const BRAND_FAQS: Record<string, Array<{ question: string; answer: string }>> = 
     },
     {
       question: 'What is the warranty on Nike shoes?',
-      answer: 'Nike covers manufacturing defects (sole separation, stitching failures, material defects) for 2 years from purchase. Normal wear, water damage, and modifications are not covered. Contact infosnkrscart@gmail.com for warranty claims.',
+      answer: 'Nike covers manufacturing defects (sole separation, stitching failures, material defects) for 2 years from purchase. Normal wear, water damage, and modifications are not covered. Contact info@snkrscart.com for warranty claims.',
     },
   ],
 

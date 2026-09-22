@@ -94,7 +94,7 @@ export default async function ShippingInfo() {
         </section>
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Questions?</h2>
-          <p>Contact us at <a href="mailto:infosnkrscart@gmail.com" className="text-zinc-900 underline">infosnkrscart@gmail.com</a> or WhatsApp us at <a href="tel:+919410903791" className="text-zinc-900 underline">+91 94109 03791</a>.</p>
+          <p>Contact us at <a href="mailto:info@snkrscart.com" className="text-zinc-900 underline">info@snkrscart.com</a> or WhatsApp us at <a href="tel:+919410903791" className="text-zinc-900 underline">+91 94109 03791</a>.</p>
         </section>
       </div>
     </main>

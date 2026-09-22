@@ -36,7 +36,7 @@ function getRazorpay() {
 }
 
 function sendAdminNewOrderEmail(order: IOrder, siteUrl: string, paymentMode: string) {
-  const storeEmail = process.env.GMAIL_USER || 'infosnkrscart@gmail.com';
+  const storeEmail = process.env.GMAIL_USER || 'info@snkrscart.com';
   const itemsHtml = (order.items as any[]).map((it) => `
     <tr>
       <td style="padding:8px 4px;border-bottom:1px solid #f0f0f0;">
@@ -132,7 +132,7 @@ function sendPaymentConfirmedEmail(order: IOrder, siteUrl: string) {
 }
 
 function sendAdminPaymentFailedEmail(order: IOrder, siteUrl: string, paymentMode: string, reason?: string) {
-  const storeEmail = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.GMAIL_USER || 'infosnkrscart@gmail.com';
+  const storeEmail = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.GMAIL_USER || 'info@snkrscart.com';
   sendMail({
     to: storeEmail,
     subject: `⚠️ Payment Failed — ${order.orderNumber} — ₹${order.total.toLocaleString('en-IN')} — ${order.name}`,
@@ -523,7 +523,7 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       }).catch(() => {});
     }
 
-    const storeEmail = process.env.GMAIL_USER || 'infosnkrscart@gmail.com';
+    const storeEmail = process.env.GMAIL_USER || 'info@snkrscart.com';
     const storeWA = process.env.NEXT_PUBLIC_WHATSAPP || '919410903791';
     const UPI_ID = process.env.UPI_ID || 'snkrscart@upi';
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';

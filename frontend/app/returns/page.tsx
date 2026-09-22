@@ -121,7 +121,7 @@ export default async function Returns() {
             <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Contact Us</h2>
             <p className="mb-3">To raise a return request or for any query, contact us within 48 hours of delivery:</p>
             <div className="space-y-2">
-              <a href="mailto:infosnkrscart@gmail.com" className="block text-zinc-900 font-semibold underline">infosnkrscart@gmail.com</a>
+              <a href="mailto:info@snkrscart.com" className="block text-zinc-900 font-semibold underline">info@snkrscart.com</a>
               <a href="tel:+919410903791" className="block text-zinc-900 font-semibold underline">+91 94109 03791 (WhatsApp / Call)</a>
               <p className="text-xs text-zinc-500 mt-1">Available Mon–Sat, 10am–7pm IST</p>
             </div>

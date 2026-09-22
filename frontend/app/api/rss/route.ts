@@ -49,7 +49,7 @@ export async function GET() {
       <link>${url}</link>
       <guid isPermaLink="true">${url}</guid>
       <description>${escape(b.excerpt)}</description>
-      <author>infosnkrscart@gmail.com (${escape(b.author)})</author>
+      <author>info@snkrscart.com (${escape(b.author)})</author>
       <pubDate>${pubDate}</pubDate>
       ${categories}
       ${image}

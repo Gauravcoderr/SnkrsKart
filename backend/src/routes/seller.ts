@@ -24,7 +24,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     res.json({ success: true });
 
-    const storeEmail = process.env.GMAIL_USER || 'infosnkrscart@gmail.com';
+    const storeEmail = process.env.GMAIL_USER || 'info@snkrscart.com';
 
     // Notify store
     sendMail({

@@ -53,7 +53,7 @@ const organizationSchema = {
     },
     {
       '@type': 'ContactPoint',
-      email: 'infosnkrscart@gmail.com',
+      email: 'info@snkrscart.com',
       contactType: 'customer support',
     },
   ],
@@ -223,7 +223,7 @@ export default async function AboutPage() {
           <h2 className="text-3xl font-black uppercase tracking-tight mb-10">Contact Us</h2>
           <div className="grid sm:grid-cols-2 gap-6">
             <a
-              href="mailto:infosnkrscart@gmail.com"
+              href="mailto:info@snkrscart.com"
               className="group flex items-start gap-4 border border-zinc-800 p-6 hover:border-zinc-600 transition-colors"
             >
               <div className="mt-0.5 shrink-0">
@@ -233,7 +233,7 @@ export default async function AboutPage() {
               </div>
               <div>
                 <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-600 mb-1">Email</p>
-                <p className="text-sm text-white font-medium">infosnkrscart@gmail.com</p>
+                <p className="text-sm text-white font-medium">info@snkrscart.com</p>
                 <p className="text-xs text-zinc-500 mt-1">Click to send us a message</p>
               </div>
             </a>
@@ -316,7 +316,7 @@ export default async function AboutPage() {
               </div>
               <div>
                 <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Email</dt>
-                <dd className="text-zinc-300">infosnkrscart@gmail.com</dd>
+                <dd className="text-zinc-300">info@snkrscart.com</dd>
               </div>
               <div>
                 <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Phone</dt>

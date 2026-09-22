@@ -1,7 +1,7 @@
 // ─── Site identity ───────────────────────────────────────────────────────────
 export const SITE_NAME = 'SNKRS CART';
 export const SITE_TAGLINE = 'Premium sneakers. Zero compromise.';
-export const CONTACT_EMAIL = 'infosnkrscart@gmail.com';
+export const CONTACT_EMAIL = 'info@snkrscart.com';
 export const CONTACT_PHONE_DISPLAY = '+91 94109 03791';
 export const CONTACT_PHONE_TEL = '+919410903791';
 export const INSTAGRAM_URL = 'https://www.instagram.com/snkrs_cart/';

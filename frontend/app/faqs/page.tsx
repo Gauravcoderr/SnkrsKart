@@ -70,7 +70,7 @@ export default async function FAQs() {
 
         <div className="mt-12 border-t border-zinc-100 pt-8 text-center">
           <p className="text-sm text-zinc-500 mb-1">Still have questions?</p>
-          <a href="mailto:infosnkrscart@gmail.com" className="text-sm font-bold text-zinc-900 underline">infosnkrscart@gmail.com</a>
+          <a href="mailto:info@snkrscart.com" className="text-sm font-bold text-zinc-900 underline">info@snkrscart.com</a>
         </div>
       </main>
     </>

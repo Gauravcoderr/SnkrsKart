@@ -105,7 +105,7 @@ export default async function PrivacyPolicy() {
 
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Contact Us</h2>
-          <p>If you have any questions about this Privacy Policy, please contact us at <a href="mailto:infosnkrscart@gmail.com" className="text-zinc-900 underline">infosnkrscart@gmail.com</a> or call <a href="tel:+919410903791" className="text-zinc-900 underline">+91 94109 03791</a>.</p>
+          <p>If you have any questions about this Privacy Policy, please contact us at <a href="mailto:info@snkrscart.com" className="text-zinc-900 underline">info@snkrscart.com</a> or call <a href="tel:+919410903791" className="text-zinc-900 underline">+91 94109 03791</a>.</p>
         </section>
 
         <p className="text-xs text-zinc-400 pt-4 border-t border-zinc-100">Last updated: May 2026</p>

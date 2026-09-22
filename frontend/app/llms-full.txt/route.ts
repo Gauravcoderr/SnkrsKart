@@ -38,7 +38,7 @@ export async function GET() {
     `## Store Info`,
     `Name: SNKRS CART`,
     `URL: ${SITE_URL}`,
-    `Contact: infosnkrscart@gmail.com | +91-94109-03791`,
+    `Contact: info@snkrscart.com | +91-94109-03791`,
     `Location: Pauri Garhwal, Uttarakhand, India — 246001`,
     ``,
     `## Authentication Policy`,

@@ -56,7 +56,7 @@ function PaidState({ orderNumber }: { orderNumber: string }) {
             Tag us on Instagram @snkrs_cart
           </a>
           <a
-            href="mailto:infosnkrscart@gmail.com?subject=My SNKRS CART Review&body=Hi! Here is my review of my recent order:"
+            href="mailto:info@snkrscart.com?subject=My SNKRS CART Review&body=Hi! Here is my review of my recent order:"
             className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-zinc-200 text-xs font-semibold text-zinc-700 hover:border-zinc-900 hover:text-zinc-900 transition-colors"
           >
             Email us your feedback

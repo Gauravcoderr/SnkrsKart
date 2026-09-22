@@ -109,8 +109,8 @@ router.post('/submit', async (req: Request, res: Response): Promise<void> => {
     });
 
     // Notify admin
-    const senderEmail = (process.env.EMAIL_FROM || 'SNKRS CART <infosnkrscart@gmail.com>')
-      .match(/<(.+?)>/)?.[1] || 'infosnkrscart@gmail.com';
+    const senderEmail = (process.env.EMAIL_FROM || 'SNKRS CART <info@snkrscart.com>')
+      .match(/<(.+?)>/)?.[1] || 'info@snkrscart.com';
     const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || senderEmail;
 
     sendMail({

@@ -29,7 +29,7 @@ const PRIVACY_HTML = `
 </section>
 <section style="margin-bottom:2rem;">
   <h2 style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#18181b;margin-bottom:0.75rem;">Contact Us</h2>
-  <p>If you have any questions about this Privacy Policy, please contact us at <a href="mailto:infosnkrscart@gmail.com">infosnkrscart@gmail.com</a> or call <a href="tel:+919410903791">+91 94109 03791</a>.</p>
+  <p>If you have any questions about this Privacy Policy, please contact us at <a href="mailto:info@snkrscart.com">info@snkrscart.com</a> or call <a href="tel:+919410903791">+91 94109 03791</a>.</p>
 </section>
 <p style="font-size:0.75rem;color:#a1a1aa;padding-top:1rem;border-top:1px solid #f4f4f5;">Last updated: May 2026</p>
 `.trim();
@@ -62,7 +62,7 @@ const TERMS_HTML = `
 </section>
 <section style="margin-bottom:2rem;">
   <h2 style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#18181b;margin-bottom:0.75rem;">Contact</h2>
-  <p>Questions about these Terms? Reach us at <a href="mailto:infosnkrscart@gmail.com">infosnkrscart@gmail.com</a>.</p>
+  <p>Questions about these Terms? Reach us at <a href="mailto:info@snkrscart.com">info@snkrscart.com</a>.</p>
 </section>
 <p style="font-size:0.75rem;color:#a1a1aa;padding-top:1rem;border-top:1px solid #f4f4f5;">Last updated: May 2026</p>
 `.trim();
@@ -100,7 +100,7 @@ const ABOUT_HTML = `
 <section style="padding:5rem 0;">
   <p style="font-size:0.625rem;font-weight:700;letter-spacing:0.35em;text-transform:uppercase;color:#71717a;margin-bottom:1.5rem;">Get in touch</p>
   <h2 style="font-size:1.875rem;font-weight:900;text-transform:uppercase;letter-spacing:-0.025em;margin-bottom:2.5rem;">Contact Us</h2>
-  <p><strong>Email:</strong> <a href="mailto:infosnkrscart@gmail.com">infosnkrscart@gmail.com</a></p>
+  <p><strong>Email:</strong> <a href="mailto:info@snkrscart.com">info@snkrscart.com</a></p>
   <p><strong>Phone / WhatsApp:</strong> <a href="tel:+919410903791">+91 94109 03791</a> &mdash; Mon–Sat, 10am–7pm IST</p>
   <p><strong>Based in:</strong> Pauri Garhwal, Uttarakhand, India</p>
 </section>
@@ -116,7 +116,7 @@ const FAQ_ITEMS = [
   { q: 'What sizes are listed in?', a: 'All sizes on SNKRS CART are listed in UK sizing. Visit our Size Guide page to convert to your local size (US, EU, CM).' },
   { q: 'How do I know if a size is available?', a: 'Available sizes are shown on each product page. Greyed-out sizes are currently unavailable. Contact us if you need a size not listed — we may be able to source it.' },
   { q: 'Where are you based?', a: 'SNKRS CART was founded in Pauri Garhwal, Uttarakhand in 2020. We ship across India from our base in the hills.' },
-  { q: 'How can I contact you?', a: 'Email us at infosnkrscart@gmail.com or WhatsApp/call us at +91 94109 03791. We typically respond within a few hours.' },
+  { q: 'How can I contact you?', a: 'Email us at info@snkrscart.com or WhatsApp/call us at +91 94109 03791. We typically respond within a few hours.' },
 ];
 
 const PAGES = [

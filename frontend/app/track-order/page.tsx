@@ -64,8 +64,8 @@ export default async function TrackOrder() {
           <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900 mb-3">Haven&apos;t received your tracking number?</h2>
           <p className="mb-4">If it&apos;s been more than 24 hours since your order was confirmed and you haven&apos;t received a tracking update, reach out to us directly:</p>
           <div className="flex flex-col gap-2">
-            <a href="mailto:infosnkrscart@gmail.com" className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-900 underline">
-              infosnkrscart@gmail.com
+            <a href="mailto:info@snkrscart.com" className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-900 underline">
+              info@snkrscart.com
             </a>
             <a href="tel:+919410903791" className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-900 underline">
               +91 94109 03791 (WhatsApp / Call)

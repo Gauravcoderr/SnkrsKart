@@ -55,7 +55,7 @@ const SHIPPING_HTML = `
 
 <section>
   <h2 style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#18181b;margin-bottom:0.75rem;">Questions?</h2>
-  <p>Contact us at <a href="mailto:infosnkrscart@gmail.com">infosnkrscart@gmail.com</a> or WhatsApp us at <a href="tel:+919410903791">+91 94109 03791</a>.</p>
+  <p>Contact us at <a href="mailto:info@snkrscart.com">info@snkrscart.com</a> or WhatsApp us at <a href="tel:+919410903791">+91 94109 03791</a>.</p>
 </section>
 `.trim();
 
@@ -99,7 +99,7 @@ const RETURNS_HTML = `
 <section style="margin-bottom:2rem;">
   <h2 style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#18181b;margin-bottom:0.75rem;">Contact Us</h2>
   <p style="margin-bottom:0.75rem;">To raise a return request or for any query, contact us within 48 hours of delivery:</p>
-  <p><a href="mailto:infosnkrscart@gmail.com">infosnkrscart@gmail.com</a></p>
+  <p><a href="mailto:info@snkrscart.com">info@snkrscart.com</a></p>
   <p><a href="tel:+919410903791">+91 94109 03791 (WhatsApp / Call)</a></p>
   <p style="font-size:0.75rem;color:#71717a;margin-top:0.25rem;">Available Mon–Sat, 10am–7pm IST</p>
 </section>
@@ -120,7 +120,7 @@ const TRACK_ORDER_HTML = `
 <div style="background:#fafafa;border:1px solid #f4f4f5;padding:1.5rem;">
   <h2 style="font-size:0.875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#18181b;margin-bottom:0.75rem;">Haven't received your tracking number?</h2>
   <p style="margin-bottom:1rem;">If it's been more than 24 hours since your order was confirmed and you haven't received a tracking update, reach out to us directly:</p>
-  <p><a href="mailto:infosnkrscart@gmail.com">infosnkrscart@gmail.com</a></p>
+  <p><a href="mailto:info@snkrscart.com">info@snkrscart.com</a></p>
   <p><a href="tel:+919410903791">+91 94109 03791 (WhatsApp / Call)</a></p>
 </div>
 `.trim();
@@ -141,7 +141,7 @@ const PAGES = [
     pageKey: 'returns',
     label: 'Returns & Refunds',
     metaTitle: 'Return & Refund Policy | SNKRS CART',
-    metaDescription: 'SNKRS CART return policy — damaged or incorrect items eligible for replacement or full refund within 48 hours of delivery. Contact us at infosnkrscart@gmail.com.',
+    metaDescription: 'SNKRS CART return policy — damaged or incorrect items eligible for replacement or full refund within 48 hours of delivery. Contact us at info@snkrscart.com.',
     metaKeywords: 'SNKRS CART return policy, sneaker refund India',
     ogTitle: 'Return & Refund Policy | SNKRS CART',
     ogDescription: 'Damaged or incorrect items eligible for replacement or full refund within 48 hours of delivery.',

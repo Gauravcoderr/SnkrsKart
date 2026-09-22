@@ -70,7 +70,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     // Email to store
     sendMail({
-      to: process.env.GMAIL_USER || 'infosnkrscart@gmail.com',
+      to: process.env.GMAIL_USER || 'info@snkrscart.com',
       subject: `New Purchase Inquiry — ${productBrand} ${productName}`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:560px;color:#111;">

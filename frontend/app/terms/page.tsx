@@ -94,7 +94,7 @@ export default async function TermsOfService() {
 
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Contact</h2>
-          <p>Questions about these Terms? Reach us at <a href="mailto:infosnkrscart@gmail.com" className="text-zinc-900 underline">infosnkrscart@gmail.com</a>.</p>
+          <p>Questions about these Terms? Reach us at <a href="mailto:info@snkrscart.com" className="text-zinc-900 underline">info@snkrscart.com</a>.</p>
         </section>
 
         <p className="text-xs text-zinc-400 pt-4 border-t border-zinc-100">Last updated: May 2026</p>

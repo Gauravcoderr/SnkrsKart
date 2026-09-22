@@ -151,7 +151,7 @@ function buildBlastHtml(products: Product[], blogs: Blog[]): string {
         <p style="margin:0 0 4px;font-family:Inter,Arial,sans-serif;font-size:11px;color:rgba(255,255,255,0.3);">
           <a href="https://wa.me/919410903791" style="color:rgba(255,255,255,0.3);text-decoration:none;">+91 94109 03791</a>
           &nbsp;&middot;&nbsp;
-          <a href="mailto:infosnkrscart@gmail.com" style="color:rgba(255,255,255,0.3);text-decoration:none;">infosnkrscart@gmail.com</a>
+          <a href="mailto:info@snkrscart.com" style="color:rgba(255,255,255,0.3);text-decoration:none;">info@snkrscart.com</a>
           &nbsp;&middot;&nbsp;
           <a href="${SITE}" style="color:rgba(255,255,255,0.3);text-decoration:none;">snkrscart.com</a>
         </p>

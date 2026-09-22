@@ -29,7 +29,7 @@ const PRIVACY_HTML = `
 </section>
 <section style="margin-bottom:2rem;">
   <h2 style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#18181b;margin-bottom:0.75rem;">Contact Us</h2>
-  <p>If you have any questions about this Privacy Policy, please contact us at <a href="mailto:infosnkrscart@gmail.com">infosnkrscart@gmail.com</a> or call <a href="tel:+919410903791">+91 94109 03791</a>.</p>
+  <p>If you have any questions about this Privacy Policy, please contact us at <a href="mailto:info@snkrscart.com">info@snkrscart.com</a> or call <a href="tel:+919410903791">+91 94109 03791</a>.</p>
 </section>
 <p style="font-size:0.75rem;color:#a1a1aa;padding-top:1rem;border-top:1px solid #f4f4f5;">Last updated: May 2026</p>
 `.trim();
@@ -62,7 +62,7 @@ const TERMS_HTML = `
 </section>
 <section style="margin-bottom:2rem;">
   <h2 style="font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#18181b;margin-bottom:0.75rem;">Contact</h2>
-  <p>Questions about these Terms? Reach us at <a href="mailto:infosnkrscart@gmail.com">infosnkrscart@gmail.com</a>.</p>
+  <p>Questions about these Terms? Reach us at <a href="mailto:info@snkrscart.com">info@snkrscart.com</a>.</p>
 </section>
 <p style="font-size:0.75rem;color:#a1a1aa;padding-top:1rem;border-top:1px solid #f4f4f5;">Last updated: May 2026</p>
 `.trim();

@@ -116,7 +116,7 @@ const orgLd = {
     '@type': 'ContactPoint',
     telephone: '+91-94109-03791',
     contactType: 'customer service',
-    email: 'infosnkrscart@gmail.com',
+    email: 'info@snkrscart.com',
     areaServed: 'IN',
     availableLanguage: ['English', 'Hindi'],
   },
@@ -167,7 +167,7 @@ const localBusinessLd = {
   image: `${SITE_URL}/logo.png`,
   description: 'Buy 100% authentic sneakers online in India — Nike, Jordan, Adidas, New Balance & Crocs. Free pan-India shipping from Pauri Garhwal, Uttarakhand.',
   telephone: '+91-94109-03791',
-  email: 'infosnkrscart@gmail.com',
+  email: 'info@snkrscart.com',
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'House No. 4, Lingwal Bhawan, Circuit House Road',

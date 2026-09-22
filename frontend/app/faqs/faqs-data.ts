@@ -37,6 +37,6 @@ export const faqs = [
   },
   {
     q: 'How can I contact you?',
-    a: 'Email us at infosnkrscart@gmail.com or WhatsApp/call us at +91 94109 03791. We typically respond within a few hours.',
+    a: 'Email us at info@snkrscart.com or WhatsApp/call us at +91 94109 03791. We typically respond within a few hours.',
   },
 ];

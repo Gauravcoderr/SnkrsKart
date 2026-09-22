@@ -111,7 +111,7 @@ export default function SizeGuide() {
       </div>
 
       <div className="border-t border-zinc-100 pt-6 text-xs text-zinc-400">
-        Size charts are based on standard Nike/Jordan sizing. Fit may vary slightly by model. When in doubt, contact us at <a href="mailto:infosnkrscart@gmail.com" className="underline text-zinc-600">infosnkrscart@gmail.com</a>.
+        Size charts are based on standard Nike/Jordan sizing. Fit may vary slightly by model. When in doubt, contact us at <a href="mailto:info@snkrscart.com" className="underline text-zinc-600">info@snkrscart.com</a>.
       </div>
     </main>
   );
