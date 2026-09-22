@@ -48,6 +48,22 @@ router.get('/slugs', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// GET /api/v1/products/feed — Google Merchant feed source. Full public fields (incl. sku,
+// description), every product, no pagination cap. Cached upstream for 1h by the Next route.
+router.get('/feed', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const products = await Product.find({})
+      .sort({ createdAt: -1 })
+      .select('slug name brand colorway gender price originalPrice images sizes availableSizes ' +
+              'stringSizes availableStringSizes productType soldOut comingSoon releaseDate ' +
+              'description sku category createdAt')
+      .lean();
+    res.json({ products: products.map((p) => ({ ...p, id: (p._id as any).toString() })), total: products.length });
+  } catch {
+    res.status(500).json({ error: 'Failed to build product feed' });
+  }
+});
+
 router.get('/', getAllProducts);
 router.get('/:slug', getProductBySlug);
 

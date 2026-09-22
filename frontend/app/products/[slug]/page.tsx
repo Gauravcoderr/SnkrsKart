@@ -148,7 +148,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
       '@type': 'Offer',
       priceCurrency: 'INR',
       price: String(product.price),
-      ...(product.originalPrice ? { highPrice: String(product.originalPrice), lowPrice: String(product.price) } : {}),
       availability: product.soldOut ||
         (product.productType !== 'shoes'
           ? (product.availableStringSizes?.length ?? 0) === 0
