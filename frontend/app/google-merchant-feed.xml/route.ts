@@ -63,6 +63,28 @@ function plainText(html: string): string {
     .slice(0, 5000);
 }
 
+/**
+ * Google caps `g:id` and `g:item_group_id` at 50 chars. Slugs run to ~100. Keep as much of
+ * the readable slug as fits, then a stable 6-char hash of the FULL slug so two long slugs
+ * with the same prefix never collide. Short slugs pass through untouched.
+ */
+function slugHash(slug: string): string {
+  let h = 2166136261; // FNV-1a 32-bit
+  for (let i = 0; i < slug.length; i++) {
+    h ^= slug.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h.toString(36).padStart(6, '0').slice(-6);
+}
+
+function fitId(slug: string, suffix = ''): string {
+  const MAX = 50;
+  if (slug.length + suffix.length <= MAX) return `${slug}${suffix}`;
+  const hash = slugHash(slug);
+  const keep = MAX - suffix.length - hash.length - 1;
+  return `${slug.slice(0, keep).replace(/-+$/, '')}-${hash}${suffix}`;
+}
+
 function genderAttr(gender: string): string {
   if (gender === 'men') return 'male';
   if (gender === 'women') return 'female';
@@ -85,10 +107,12 @@ function productTypeAttr(p: Product): string {
 
 /** Fallback description when the product has none. Unique per product, not boilerplate. */
 function fallbackDescription(p: Product): string {
+  const isShoe = (p.productType ?? 'shoes') === 'shoes';
+  const who = p.gender === 'men' ? "Men's" : p.gender === 'women' ? "Women's" : 'Unisex';
   const bits = [
     `${p.brand} ${p.name}${p.colorway ? ` in ${p.colorway}` : ''}.`,
-    `100% authentic pair, verified before dispatch.`,
-    p.gender === 'men' ? "Men's sizing (UK)." : p.gender === 'women' ? "Women's sizing (UK)." : 'Unisex sizing (UK).',
+    `100% authentic, verified before dispatch.`,
+    isShoe ? `${who} sizing (UK).` : `${who} fit.`,
     `Free pan-India shipping from SNKRS CART.`,
   ];
   return bits.join(' ');
@@ -135,9 +159,9 @@ function variantEntry(p: Product, v: Variant): string {
   const desc = escapeXml(p.description ? plainText(p.description) || fallbackDescription(p) : fallbackDescription(p));
 
   const av = availability(p, v);
-  const id = v.size
-    ? `${p.slug}-${v.isShoe ? 'uk-' : ''}${v.size.toLowerCase().replace(/[^a-z0-9.]+/g, '-')}`
-    : p.slug;
+  const sizeKey = v.size ? `-${v.isShoe ? 'uk-' : ''}${v.size.toLowerCase().replace(/[^a-z0-9.]+/g, '-')}` : '';
+  const id = fitId(p.slug, sizeKey);
+  const groupId = fitId(p.slug);
 
   const lines = [
     `<g:id>${escapeXml(id)}</g:id>`,
@@ -155,7 +179,7 @@ function variantEntry(p: Product, v: Variant): string {
     `<g:product_type>${escapeXml(productTypeAttr(p))}</g:product_type>`,
     `<g:gender>${escapeXml(genderAttr(p.gender))}</g:gender>`,
     `<g:age_group>${ageGroup(p.gender)}</g:age_group>`,
-    `<g:item_group_id>${escapeXml(p.slug)}</g:item_group_id>`,
+    `<g:item_group_id>${escapeXml(groupId)}</g:item_group_id>`,
     p.colorway ? `<g:color>${escapeXml(p.colorway)}</g:color>` : '',
     v.size ? `<g:size>${escapeXml(v.size)}</g:size>` : '',
     v.size && v.isShoe ? `<g:size_system>UK</g:size_system>` : '',
@@ -174,6 +198,8 @@ function productEntries(p: Product): string[] {
 }
 
 export const revalidate = 3600;
+// Render free tier sleeps; first fetch after idle can take 30-50s. Vercel default is 10s.
+export const maxDuration = 60;
 
 export async function GET() {
   const products = await fetchAllProducts();

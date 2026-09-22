@@ -72,54 +72,52 @@ export default async function ProductsPage() {
   let catalogSchema = null;
   try {
     const products = await fetchAllProducts();
-    {
-      if (products.length > 0) {
-        const prices = products.map((p: any) => p.price).filter(Boolean);
-        const lowPrice = prices.length ? String(Math.min(...prices)) : undefined;
-        const highPrice = prices.length ? String(Math.max(...prices)) : undefined;
-        catalogSchema = {
-          '@context': 'https://schema.org',
-          '@type': 'CollectionPage',
-          name: 'All Sneakers — SNKRS CART',
-          description: '100% authentic Nike, Jordan, Adidas, New Balance & Crocs sneakers available in India with free pan-India shipping.',
-          url: `${SITE_URL}/products`,
-          ...(lowPrice && highPrice ? {
-            offers: {
-              '@type': 'AggregateOffer',
-              priceCurrency: 'INR',
-              lowPrice,
-              highPrice,
-              offerCount: String(products.length),
-              seller: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL },
-            },
-          } : {}),
-          mainEntity: {
-            '@type': 'ItemList',
-            name: 'All Sneakers — SNKRS CART',
-            numberOfItems: products.length,
-            itemListElement: products.map((p: any, i: number) => ({
-            '@type': 'ListItem',
-            position: i + 1,
-            item: {
-              '@type': 'Product',
-              name: `${p.brand} ${p.name}`,
-              brand: { '@type': 'Brand', name: p.brand },
-              url: `${SITE_URL}/products/${p.slug}`,
-              image: p.images?.[0] ?? '',
-              offers: {
-                '@type': 'Offer',
-                priceCurrency: 'INR',
-                price: String(p.price),
-                availability: p.soldOut || (p.availableSizes ?? []).length === 0
-                  ? 'https://schema.org/OutOfStock'
-                  : 'https://schema.org/InStock',
-                seller: { '@type': 'Organization', name: 'SNKRS CART' },
-              },
-            },
-          })),
+    if (products.length > 0) {
+      const prices = products.map((p: any) => p.price).filter(Boolean);
+      const lowPrice = prices.length ? String(Math.min(...prices)) : undefined;
+      const highPrice = prices.length ? String(Math.max(...prices)) : undefined;
+      catalogSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'All Sneakers — SNKRS CART',
+        description: '100% authentic Nike, Jordan, Adidas, New Balance & Crocs sneakers available in India with free pan-India shipping.',
+        url: `${SITE_URL}/products`,
+        ...(lowPrice && highPrice ? {
+          offers: {
+            '@type': 'AggregateOffer',
+            priceCurrency: 'INR',
+            lowPrice,
+            highPrice,
+            offerCount: String(products.length),
+            seller: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL },
           },
-        };
-      }
+        } : {}),
+        mainEntity: {
+          '@type': 'ItemList',
+          name: 'All Sneakers — SNKRS CART',
+          numberOfItems: products.length,
+          itemListElement: products.map((p: any, i: number) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          item: {
+            '@type': 'Product',
+            name: `${p.brand} ${p.name}`,
+            brand: { '@type': 'Brand', name: p.brand },
+            url: `${SITE_URL}/products/${p.slug}`,
+            image: p.images?.[0] ?? '',
+            offers: {
+              '@type': 'Offer',
+              priceCurrency: 'INR',
+              price: String(p.price),
+              availability: p.soldOut || (p.availableSizes ?? []).length === 0
+                ? 'https://schema.org/OutOfStock'
+                : 'https://schema.org/InStock',
+              seller: { '@type': 'Organization', name: 'SNKRS CART' },
+            },
+          },
+        })),
+        },
+      };
     }
   } catch { /* non-critical — page still renders */ }
 
