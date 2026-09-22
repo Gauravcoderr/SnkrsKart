@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { fetchProducts } from '@/lib/api';
+import { CATEGORY_FILTERS, type CategoryFilter } from '@/lib/categoryFilters';
 import ProductCard from '@/components/products/ProductCard';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
@@ -12,7 +13,7 @@ interface CategoryConfig {
   metaDesc: string;
   guide: string;
   faqs: { q: string; a: string }[];
-  filter: { category?: string; gender?: string; minPrice?: number };
+  filter: CategoryFilter;
 }
 
 const CATEGORIES: Record<string, CategoryConfig> = {
@@ -26,7 +27,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
       { q: 'How often should I replace running shoes?', a: 'Typically every 500–800 km. If the midsole feels flat or outsole tread is worn, it\'s time for a new pair.' },
       { q: 'Do running shoes work for the gym?', a: 'Running shoes have forward propulsion cushioning that can reduce stability during lateral gym movements. For cross-training, consider a dedicated training shoe.' },
     ],
-    filter: { category: 'Running' },
+    filter: CATEGORY_FILTERS.running,
   },
   basketball: {
     label: 'Basketball Shoes',
@@ -38,7 +39,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
       { q: 'High-top vs low-top basketball shoes — which is better?', a: 'High-tops provide more ankle support for post players and those prone to sprains. Guards and quick players often prefer low-tops for freedom of movement.' },
       { q: 'Can I wear basketball shoes casually?', a: 'Absolutely. Air Jordans, Nike Dunks, and Adidas Forum are among the most popular casual/lifestyle shoes globally.' },
     ],
-    filter: { category: 'Basketball' },
+    filter: CATEGORY_FILTERS.basketball,
   },
   lifestyle: {
     label: 'Lifestyle Sneakers',
@@ -50,7 +51,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
       { q: 'How do lifestyle sneakers fit?', a: 'Most lifestyle sneakers fit true to size. Chunky silhouettes like New Balance often benefit from going half a size down.' },
       { q: 'Which lifestyle sneaker brands are most popular in India?', a: 'Nike, Jordan, Adidas, and New Balance dominate India\'s lifestyle sneaker market. Crocs has also grown significantly as a casual lifestyle option.' },
     ],
-    filter: { category: 'Lifestyle' },
+    filter: CATEGORY_FILTERS.lifestyle,
   },
   training: {
     label: 'Training Shoes',
@@ -62,7 +63,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
       { q: 'What are the best shoes for leg day?', a: 'Flat, stiff-soled trainers like the Nike Metcon or Adidas Dropset are ideal. Some lifters prefer dedicated weightlifting shoes with an elevated heel for squats.' },
       { q: 'Are training shoes good for daily walking?', a: 'They work but aren\'t as comfortable as running or lifestyle shoes for extended walking due to minimal cushioning.' },
     ],
-    filter: { category: 'Training' },
+    filter: CATEGORY_FILTERS.training,
   },
   men: {
     label: "Men's Sneakers",
@@ -74,7 +75,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
       { q: 'How do I find my UK sneaker size?', a: 'If you wear Indian size 9, your UK size is approximately 8. Check our size guide at /size-guide for a full conversion chart.' },
       { q: 'Are men\'s and women\'s sneaker sizes the same?', a: 'No. Women\'s sizes run approximately 1.5 sizes smaller than men\'s in the same model. SNKRS KART lists sizes in UK men\'s equivalent.' },
     ],
-    filter: { gender: 'men' },
+    filter: CATEGORY_FILTERS.men,
   },
   women: {
     label: "Women's Sneakers",
@@ -86,7 +87,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
       { q: 'What are the most popular women\'s sneakers in India?', a: 'Nike Air Force 1, Adidas Samba, New Balance 9060, and Crocs Classic Clog rank among the most-worn women\'s sneakers across Indian cities.' },
       { q: 'Do Crocs qualify as sneakers?', a: 'Not technically, but they\'ve become a major part of casual footwear culture in India — we stock them because that\'s what our community wants.' },
     ],
-    filter: { gender: 'women' },
+    filter: CATEGORY_FILTERS.women,
   },
   kids: {
     label: "Kids' Sneakers",
@@ -98,7 +99,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
       { q: 'Are Jordan shoes available in kids\' sizes?', a: 'Yes — Jordan Brand releases GS (Grade School) and TD (Toddler) versions of most popular silhouettes including the Jordan 1, Jordan 4, and Jordan 11.' },
       { q: 'Are kids\' sneakers durable enough for school?', a: 'Nike and Adidas kids\' lines are built for active use. For school, look for rubber toe caps and reinforced outsoles.' },
     ],
-    filter: { gender: 'kids' },
+    filter: CATEGORY_FILTERS.kids,
   },
   sale: {
     label: 'Sneakers on Sale',
@@ -110,7 +111,7 @@ const CATEGORIES: Record<string, CategoryConfig> = {
       { q: 'Why are some sneakers discounted?', a: 'Sale items may be end-of-season stock, older colourways, or pairs with limited size runs. Quality and authenticity are never compromised.' },
       { q: 'Can I return sale sneakers?', a: 'All sales are final — sale and full-price items. If you receive a wrong or damaged pair, contact us within 48 hours for a replacement or refund.' },
     ],
-    filter: { minPrice: 0 },
+    filter: CATEGORY_FILTERS.sale,
   },
 };
 
@@ -118,13 +119,33 @@ interface Props {
   params: { slug: string };
 }
 
+/**
+ * Grid data for a category. Same call from the page body and generateMetadata; Next dedupes
+ * identical fetches within a request. Errors surface as [] (empty state + noindex), never a 404.
+ */
+async function loadCategoryProducts(slug: string) {
+  const filter = CATEGORY_FILTERS[slug];
+  if (!filter) return [];
+  try {
+    const res = await fetchProducts({ ...filter, limit: 48 });
+    let products = Array.isArray(res) ? res : res.products ?? [];
+    if (slug === 'sale') products = products.filter((p) => p.discount && p.discount > 0);
+    return products;
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const config = CATEGORIES[params.slug];
   if (!config) return { title: { absolute: 'SNKRS CART' } };
   const url = `${SITE_URL}/category/${params.slug}`;
+  // An empty grid is a soft 404 to Google. Keep the page for humans, keep it out of the index.
+  const hasProducts = (await loadCategoryProducts(params.slug)).length > 0;
   return {
     title: { absolute: config.metaTitle },
     description: config.metaDesc,
+    ...(hasProducts ? {} : { robots: { index: false, follow: true } }),
     alternates: { canonical: url },
     openGraph: { title: config.metaTitle, description: config.metaDesc, url, siteName: 'Snkrs Cart', type: 'website' },
   };
@@ -138,19 +159,7 @@ export default async function CategoryPage({ params }: Props) {
   const config = CATEGORIES[params.slug];
   if (!config) notFound();
 
-  const filterArg: Record<string, string | number> = {};
-  if (config.filter.category) filterArg.category = config.filter.category;
-  if (config.filter.gender) filterArg.gender = config.filter.gender;
-  if (params.slug === 'sale') filterArg.minPrice = 1;
-
-  let products: Awaited<ReturnType<typeof fetchProducts>>['products'] = [];
-  try {
-    const res = await fetchProducts({ ...filterArg, limit: 48 } as Parameters<typeof fetchProducts>[0]);
-    products = Array.isArray(res) ? res : res.products ?? [];
-    if (params.slug === 'sale') {
-      products = products.filter((p) => p.discount && p.discount > 0);
-    }
-  } catch { /* show empty state */ }
+  const products = await loadCategoryProducts(params.slug);
 
   const url = `${SITE_URL}/category/${params.slug}`;
 

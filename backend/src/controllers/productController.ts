@@ -36,6 +36,12 @@ function buildFilter(query: Record<string, string>): MongoFilter {
     filter.colors = { $in: colors };
   }
 
+  if (query.category) {
+    const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const cats = query.category.split(',').map((c) => c.trim()).filter(Boolean);
+    filter.category = { $in: cats.map((c) => new RegExp(`^${esc(c)}$`, 'i')) };
+  }
+
   if (query.gender) {
     const genders = query.gender.split(',').map((g) => g.trim().toLowerCase());
     filter.gender = { $in: genders };

@@ -12,6 +12,7 @@ function buildQueryString(filters: Partial<FilterState> & { page?: number; limit
   if (filters.productTypes?.length) params.set('productType', filters.productTypes.join(','));
   if (filters.colors?.length) params.set('color', filters.colors.join(','));
   if (filters.gender?.length) params.set('gender', filters.gender.join(','));
+  if (filters.category) params.set('category', filters.category);
   if (filters.minPrice) params.set('minPrice', String(filters.minPrice));
   if (filters.maxPrice) params.set('maxPrice', String(filters.maxPrice));
   if (filters.sort) params.set('sort', filters.sort);

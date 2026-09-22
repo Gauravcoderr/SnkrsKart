@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { BRANDS } from '@/lib/constants';
+import { CATEGORY_FILTERS, categoryQuery } from '@/lib/categoryFilters';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 const API      = process.env.NEXT_PUBLIC_API_URL   || 'http://localhost:4000/api/v1';
@@ -148,12 +149,22 @@ function brandPages(): MetadataRoute.Sitemap {
   }));
 }
 
-function categoryPages(): MetadataRoute.Sitemap {
-  return ['running', 'basketball', 'lifestyle', 'training', 'men', 'women', 'kids', 'sale'].map((slug) => ({
-    url: `${SITE_URL}/category/${slug}`,
-    changeFrequency: 'weekly' as const,
-    priority: 0.85,
-  }));
+/** Only categories that currently have products; an empty category page is noindexed. */
+async function categoryPages(): Promise<MetadataRoute.Sitemap> {
+  const slugs = Object.keys(CATEGORY_FILTERS);
+  const totals = await Promise.all(slugs.map((slug) =>
+    fetch(`${API}/products?${categoryQuery(slug, 1)}`, opts(3600))
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { total?: number } | null) => d?.total ?? 0)
+      .catch(() => 0),
+  ));
+  return slugs
+    .filter((_, i) => totals[i] > 0)
+    .map((slug) => ({
+      url: `${SITE_URL}/category/${slug}`,
+      changeFrequency: 'weekly' as const,
+      priority: 0.85,
+    }));
 }
 
 // ---------------------------------------------------------------------------
@@ -184,7 +195,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticPages(),
     ...brandPages(),
-    ...categoryPages(),
+    ...(await categoryPages()),
     ...blogChunks.flat(),
     ...productChunks.flat(),
     ...sneakerChunks.flat(),

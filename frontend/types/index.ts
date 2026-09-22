@@ -65,6 +65,7 @@ export interface FilterState {
   productTypes: string[];
   colors: string[];
   gender: string[];
+  category?: string;
   minPrice: number;
   maxPrice: number;
   sort: SortOption;
