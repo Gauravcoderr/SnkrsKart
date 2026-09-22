@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
+import GoogleCustomerReviewsOptIn from '@/components/checkout/GoogleCustomerReviewsOptIn';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -180,6 +181,7 @@ function FailedState({ orderNumber, total }: { orderNumber: string; total: numbe
 function ConfirmationContent() {
   const params = useSearchParams();
   const orderId   = params.get('id') || '';
+  const email     = params.get('email') || '';
   const orderNumber = params.get('order') || '';
   const totalRaw  = params.get('total') || '0';
   const total     = parseInt(totalRaw, 10);
@@ -188,6 +190,7 @@ function ConfirmationContent() {
   return (
     <div className="max-w-xl mx-auto px-4 sm:px-6 py-16 text-center">
       {paymentStatus === 'paid'    && <PaidState orderNumber={orderNumber} />}
+      {paymentStatus === 'paid'    && <GoogleCustomerReviewsOptIn orderId={orderNumber || orderId} email={email} />}
       {paymentStatus === 'pending' && <PendingState orderNumber={orderNumber} total={total} />}
       {paymentStatus === 'failed'  && <FailedState orderNumber={orderNumber} total={total} />}
 

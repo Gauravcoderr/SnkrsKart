@@ -389,12 +389,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
       </div>
 
       {/* Reviews */}
-      <ProductReviews
-        productSlug={product.slug}
-        productName={product.name}
-        initialReviews={reviews}
-        initialFitSummary={fitSummary}
-      />
+      <section id="reviews">
+        <ProductReviews
+          productSlug={product.slug}
+          productName={product.name}
+          initialReviews={reviews}
+          initialFitSummary={fitSummary}
+        />
+      </section>
 
       {/* Related products */}
       {related.length > 0 && (

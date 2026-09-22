@@ -427,6 +427,56 @@ function sendOrderCancelledEmail(order: IOrder, siteUrl: string, reason?: string
   });
 }
 
+/**
+ * Sent once, when an order first becomes "delivered". Asks for an on-site review per item
+ * (feeds product JSON-LD and the Merchant Center reviews feed) and, if GBP_REVIEW_URL is set,
+ * a Google Business Profile review. Google reviews cannot be created on the buyer's behalf;
+ * this link is the only legitimate route.
+ */
+function sendReviewRequestEmail(order: IOrder, siteUrl: string) {
+  const gbpUrl = process.env.GBP_REVIEW_URL?.trim();
+  const items = (order.items || []).filter((it) => it.slug);
+  if (items.length === 0 && !gbpUrl) return;
+
+  const itemRows = items.map((it) => `
+            <tr>
+              <td style="padding:10px 0;border-bottom:1px solid #eee;">
+                ${it.image ? `<img src="${it.image}" alt="" width="56" height="56" style="border-radius:6px;object-fit:cover;vertical-align:middle;margin-right:12px;" />` : ''}
+                <span style="font-size:14px;font-weight:bold;color:#111;vertical-align:middle;">${it.brand ? `${it.brand} ` : ''}${it.name}</span>
+              </td>
+              <td style="padding:10px 0;border-bottom:1px solid #eee;text-align:right;white-space:nowrap;">
+                <a href="${siteUrl}/products/${it.slug}#reviews" style="display:inline-block;background:#111;color:#fff;font-size:11px;font-weight:bold;letter-spacing:0.08em;text-transform:uppercase;padding:10px 14px;border-radius:4px;text-decoration:none;">Write a review</a>
+              </td>
+            </tr>`).join('');
+
+  sendMail({
+    to: order.email,
+    subject: `How are the kicks? Leave a review — ${order.orderNumber} | SNKRS CART`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
+        <div style="background:#111;padding:20px 32px;text-align:center;">
+          <img src="${siteUrl}/logo.jpg" alt="SNKRS CART" style="height:56px;width:auto;" />
+        </div>
+        <div style="padding:32px;">
+          <p style="font-size:16px;font-weight:bold;margin-top:0;">Hi ${order.name},</p>
+          <p style="color:#444;">Your order <strong>${order.orderNumber}</strong> has been delivered. Two minutes of your time helps the next buyer trust us the way you did.</p>
+          ${items.length ? `
+          <table style="width:100%;border-collapse:collapse;margin:20px 0;">${itemRows}
+          </table>` : ''}
+          ${gbpUrl ? `
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:20px 0;text-align:center;">
+            <p style="font-size:13px;color:#444;margin:0 0 10px;">Happy with SNKRS CART overall?</p>
+            <a href="${gbpUrl}" style="display:inline-block;background:#1a73e8;color:#fff;font-size:12px;font-weight:bold;letter-spacing:0.06em;text-transform:uppercase;padding:12px 18px;border-radius:4px;text-decoration:none;">Review us on Google</a>
+          </div>` : ''}
+          <p style="color:#444;">Anything wrong with the pair? Reply to this email first and we will sort it out.</p>
+          <p style="color:#888;font-size:12px;margin-top:32px;"><a href="${siteUrl}/account/orders" style="color:#888;">View your orders</a></p>
+          <p style="color:#888;font-size:12px;">— SNKRS CART Team</p>
+        </div>
+      </div>
+    `,
+  });
+}
+
 router.get('/orders', adminAuth, async (_req: Request, res: Response): Promise<void> => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 }).lean();
@@ -464,9 +514,12 @@ router.put('/orders/:id', adminAuth, async (req: Request, res: Response): Promis
     const order = await Order.findByIdAndUpdate(req.params.id, { $set: update }, { returnDocument: 'after', runValidators: true });
     if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
 
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
     if (status === 'cancelled' && existing.status !== 'cancelled') {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
       sendOrderCancelledEmail(order, siteUrl, cancelReason || order.cancelReason || undefined);
+    }
+    if (status === 'delivered' && existing.status !== 'delivered') {
+      sendReviewRequestEmail(order, siteUrl);
     }
 
     res.json(order);

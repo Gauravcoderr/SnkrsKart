@@ -293,7 +293,7 @@ export default function CheckoutPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to place order');
 
-      const confirmBase = `id=${data.orderId}&order=${data.orderNumber}&total=${data.finalTotal}`;
+      const confirmBase = `id=${data.orderId}&order=${data.orderNumber}&total=${data.finalTotal}&email=${encodeURIComponent(contact.email.trim())}`;
 
       if (data.paymentMode === 'cashfree') {
         await handleCashfreeCheckout(data.paymentSessionId, confirmBase);
