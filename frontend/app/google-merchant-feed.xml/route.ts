@@ -197,7 +197,8 @@ function productEntries(p: Product): string[] {
   return variants(p).map((v) => variantEntry(p, v));
 }
 
-export const revalidate = 3600;
+// Not prerendered at build; fetches cache 1h via lib/catalog, response carries Cache-Control.
+export const dynamic = 'force-dynamic';
 // Render free tier sleeps; first fetch after idle can take 30-50s. Vercel default is 10s.
 export const maxDuration = 60;
 

@@ -9,6 +9,9 @@ const TIMEOUT_MS = 25_000; // Render free tier cold start is 20-40s; 8s produced
 
 // Route may wait on a cold origin. Vercel default is 10s.
 export const maxDuration = 60;
+// Not prerendered at build: a cold origin during `next build` must not fail the deploy or bake
+// a truncated sitemap. Data fetches below still cache for 1h via `next.revalidate`.
+export const dynamic = 'force-dynamic';
 
 interface BlogEntry { slug: string; updatedAt?: string; createdAt: string; tags?: string[] }
 interface SlugEntry { slug: string; createdAt?: string }

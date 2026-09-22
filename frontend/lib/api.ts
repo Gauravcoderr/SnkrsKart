@@ -32,10 +32,23 @@ export class NotFoundError extends Error {
 }
 
 async function fetchBySlug<T>(path: string, what: string, init: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, init);
-  if (res.status === 404) throw new NotFoundError(what);
-  if (!res.ok) throw new Error(`${what}: upstream ${res.status}`);
-  return res.json();
+  // One retry on 5xx / network error: Render free tier returns a 502 for the first request
+  // after it has been asleep. A 404 is never retried.
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(`${BASE_URL}${path}`, init);
+      if (res.status === 404) throw new NotFoundError(what);
+      if (res.ok) return res.json();
+      lastErr = new Error(`${what}: upstream ${res.status}`);
+      if (res.status < 500) break;
+    } catch (e) {
+      if (e instanceof NotFoundError) throw e;
+      lastErr = e;
+    }
+    if (attempt === 0) await new Promise((r) => setTimeout(r, 1500));
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(`${what}: fetch failed`);
 }
 
 export async function fetchProducts(

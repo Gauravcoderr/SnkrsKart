@@ -30,7 +30,8 @@ function esc(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
-export const revalidate = 3600;
+// Not prerendered at build; fetches cache 1h, response carries Cache-Control.
+export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function GET() {

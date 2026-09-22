@@ -41,11 +41,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
+// Render on demand with ISR instead of prerendering every slug at build time. The build
+// used to fire hundreds of requests at the Render free tier; one 502 either failed the deploy
+// or, before today, baked a permanent 404 for a live page. First visit renders and caches.
 export async function generateStaticParams() {
-  try {
-    const drops = await fetchDrops();
-    return drops.map((d) => ({ slug: d.slug }));
-  } catch { return []; }
+  return [];
 }
 
 export const revalidate = 300;
