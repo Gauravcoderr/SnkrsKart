@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Review } from '@/types';
 import Link from 'next/link';
 import StarRating from '@/components/reviews/StarRating';
-import { INDIA_STATES } from '@/lib/constants';
+import { INDIA_STATES, GOOGLE_REVIEW_URL } from '@/lib/constants';
 
 const FALLBACK_REVIEWS: Review[] = [
   {
@@ -103,13 +103,23 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
             <h2 className="text-xl sm:text-2xl font-black tracking-[0.1em] uppercase text-zinc-900">What Customers Say</h2>
           </div>
           {!showForm && !submitted && (
-            <button
-              type="button"
-              onClick={() => setShowForm(true)}
-              className="self-start sm:self-auto text-xs font-bold tracking-widest uppercase border border-zinc-900 px-4 py-2 text-zinc-900 hover:bg-zinc-900 hover:text-white transition-colors"
-            >
-              Write a Review
-            </button>
+            <div className="flex flex-wrap gap-2 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setShowForm(true)}
+                className="text-xs font-bold tracking-widest uppercase border border-zinc-900 px-4 py-2 text-zinc-900 hover:bg-zinc-900 hover:text-white transition-colors"
+              >
+                Write a Review
+              </button>
+              <a
+                href={GOOGLE_REVIEW_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-bold tracking-widest uppercase border border-zinc-300 px-4 py-2 text-zinc-600 hover:border-zinc-900 hover:text-zinc-900 transition-colors"
+              >
+                Review us on Google
+              </a>
+            </div>
           )}
         </div>
 

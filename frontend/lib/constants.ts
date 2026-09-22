@@ -5,6 +5,8 @@ export const CONTACT_EMAIL = 'infosnkrscart@gmail.com';
 export const CONTACT_PHONE_DISPLAY = '+91 94109 03791';
 export const CONTACT_PHONE_TEL = '+919410903791';
 export const INSTAGRAM_URL = 'https://www.instagram.com/snkrs_cart/';
+// Google Business Profile "write a review" short link (public). Opens the rating dialog directly.
+export const GOOGLE_REVIEW_URL = 'https://g.page/r/CQyHw6Rl_xHBECE/review';
 export const MARQUEE_TEXT =
   'SNKRS CART: 100% AUTHENTIC SNEAKERS • TRUSTED SELLER • SECURE PACKAGING • PAN INDIA SHIPPING • NO FAKES • NO COMPROMISE • ';
 

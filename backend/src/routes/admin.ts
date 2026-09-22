@@ -434,7 +434,8 @@ function sendOrderCancelledEmail(order: IOrder, siteUrl: string, reason?: string
  * this link is the only legitimate route.
  */
 function sendReviewRequestEmail(order: IOrder, siteUrl: string) {
-  const gbpUrl = process.env.GBP_REVIEW_URL?.trim();
+  // Public GBP short link. Env override kept for a future profile change.
+  const gbpUrl = process.env.GBP_REVIEW_URL?.trim() || 'https://g.page/r/CQyHw6Rl_xHBECE/review';
   const items = (order.items || []).filter((it) => it.slug);
   if (items.length === 0 && !gbpUrl) return;
 
