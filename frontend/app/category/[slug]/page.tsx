@@ -119,10 +119,6 @@ interface Props {
   params: { slug: string };
 }
 
-/**
- * Grid data for a category. Same call from the page body and generateMetadata; Next dedupes
- * identical fetches within a request. Errors surface as [] (empty state + noindex), never a 404.
- */
 async function loadCategoryProducts(slug: string) {
   const filter = CATEGORY_FILTERS[slug];
   if (!filter) return [];
@@ -140,7 +136,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const config = CATEGORIES[params.slug];
   if (!config) return { title: { absolute: 'SNKRS CART' } };
   const url = `${SITE_URL}/category/${params.slug}`;
-  // An empty grid is a soft 404 to Google. Keep the page for humans, keep it out of the index.
   const hasProducts = (await loadCategoryProducts(params.slug)).length > 0;
   return {
     title: { absolute: config.metaTitle },

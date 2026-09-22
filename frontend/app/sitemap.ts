@@ -149,7 +149,6 @@ function brandPages(): MetadataRoute.Sitemap {
   }));
 }
 
-/** Only categories that currently have products; an empty category page is noindexed. */
 async function categoryPages(): Promise<MetadataRoute.Sitemap> {
   const slugs = Object.keys(CATEGORY_FILTERS);
   const totals = await Promise.all(slugs.map((slug) =>

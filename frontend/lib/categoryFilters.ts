@@ -1,10 +1,3 @@
-/**
- * Single source of truth for /category/{slug} → product query. Used by the category page
- * (grid + metadata) and by the sitemap (only non-empty categories are listed).
- *
- * Gender pages include unisex: a men's shopper expects to see unisex pairs.
- * Category values match Product.category as stored (lowercase).
- */
 export interface CategoryFilter {
   category?: string;
   gender?: string[];
@@ -22,7 +15,6 @@ export const CATEGORY_FILTERS: Record<string, CategoryFilter> = {
   sale:       { minPrice: 1 },
 };
 
-/** Query string for the backend /products endpoint. */
 export function categoryQuery(slug: string, limit = 48): string {
   const f = CATEGORY_FILTERS[slug];
   const p = new URLSearchParams();
