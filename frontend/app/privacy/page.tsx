@@ -79,6 +79,21 @@ export default async function PrivacyPolicy() {
         </section>
 
         <section>
+          <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Reviews and Google Customer Reviews</h2>
+          <p>
+            After you place an order you may be invited to opt in to Google Customer Reviews. If you opt in, we share your
+            email address, order number, delivery country and estimated delivery date with Google so it can send you a short
+            survey about your purchase. Your response and rating are handled by Google under the{' '}
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-zinc-900">Google Privacy Policy</a>.
+            Opting in is voluntary and does not affect your order.
+          </p>
+          <p className="mt-2">
+            Reviews you write on our product pages are published on the product page with the name you provide and may be
+            supplied to Google Shopping as product ratings. Your email address is never published.
+          </p>
+        </section>
+
+        <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Data Security</h2>
           <p>We implement appropriate security measures to protect your personal information. Your data is stored securely and accessed only by authorised personnel.</p>
         </section>

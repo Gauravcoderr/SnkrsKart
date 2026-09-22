@@ -9,6 +9,7 @@ import LayoutShell from '@/components/layout/LayoutShell';
 import AuthModal from '@/components/auth/AuthModal';
 import EmailCaptureModal from '@/components/layout/EmailCaptureModal';
 import WhatsAppFloat from '@/components/layout/WhatsAppFloat';
+import GoogleReviewsBadge from '@/components/layout/GoogleReviewsBadge';
 import GoogleAuthProvider from '@/components/auth/GoogleAuthProvider';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -251,6 +252,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </AuthProvider>
           </QueryProvider>
         </GoogleAuthProvider>
+        <GoogleReviewsBadge />
         <Analytics />
         <SpeedInsights />
       </body>
