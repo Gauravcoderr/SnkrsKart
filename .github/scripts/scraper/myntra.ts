@@ -1,22 +1,6 @@
 import { Browser } from 'puppeteer';
-import { jitter, sessionUA, ScrapedItem } from './utils';
-
-const JORDAN_RE = /\bjordan\b|\bair jordan\b/i;
-const NIKE_RE = /\bnike\b/i;
-
-function detectBrand(title: string): 'Nike' | 'Jordan' | null {
-  if (JORDAN_RE.test(title)) return 'Jordan';
-  if (NIKE_RE.test(title)) return 'Nike';
-  return null;
-}
-
-function inferGender(g: string): ScrapedItem['gender'] {
-  const s = g.toLowerCase();
-  if (s.includes('women') || s.includes('female') || s.includes('girl')) return 'women';
-  if (s.includes('kid') || s.includes('child') || s.includes('boy')) return 'kids';
-  if (s.includes('men') || s.includes('male')) return 'men';
-  return 'unisex';
-}
+import { stealthGet } from './http';
+import { detectBrand, extractJsonAfter, inferGender, jitter, ScrapedItem } from './utils';
 
 interface MyntraProduct {
   productId?: number;
@@ -57,7 +41,7 @@ function mapProducts(products: MyntraProduct[], seen: Set<string>): ScrapedItem[
   for (const p of products) {
     const name = p.productName ?? p.product ?? '';
     if (!name) continue;
-    const brand = detectBrand(name);
+    const brand = detectBrand(name, p.brand);
     if (!brand) continue;
     const pageUrl = buildProductUrl(p);
     if (!pageUrl || seen.has(pageUrl)) continue;
@@ -66,6 +50,7 @@ function mapProducts(products: MyntraProduct[], seen: Set<string>): ScrapedItem[
     if (!price || price <= 0) continue;
     const imgs = (p.images ?? []).map((i) => i.src ?? '').filter(Boolean);
     if (imgs.length === 0 && p.searchImage) imgs.push(p.searchImage);
+    for (let i = 0; i < imgs.length; i++) imgs[i] = imgs[i].replace(/^http:\/\//, 'https://');
     out.push({
       sourceUrl: pageUrl,
       sourceSite: 'myntra',
@@ -75,7 +60,7 @@ function mapProducts(products: MyntraProduct[], seen: Set<string>): ScrapedItem[
       originalPrice: p.mrp && p.mrp > price ? p.mrp : undefined,
       images: imgs,
       sizes: extractSizes(p),
-      gender: inferGender(p.gender ?? ''),
+      gender: inferGender(p.gender, name),
       tags: ['myntra', brand.toLowerCase()],
       sourceListedAt: p.catalogDate ? new Date(p.catalogDate) : undefined,
     });
@@ -83,38 +68,13 @@ function mapProducts(products: MyntraProduct[], seen: Set<string>): ScrapedItem[
   return out;
 }
 
-// Puppeteer got 0 items live — Myntra's WAF serves an empty window.__myx to headless/CDP
-// sessions specifically (title stayed normal, no "access denied", just empty SSR state).
-// A plain HTTPS GET (no JS engine, no CDP fingerprint) gets the real SSR payload straight
-// through — verified live: window.__myx.searchData.results.products populated (50 items).
 async function fetchSearchHtml(url: string): Promise<string> {
-  const res = await fetch(url, {
-    headers: {
-      'User-Agent': sessionUA(),
-      'Accept-Language': 'en-IN,en;q=0.9',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      'Referer': 'https://www.myntra.com',
-    },
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.text();
+  return stealthGet(url, { referer: 'https://www.myntra.com/', retries: 3 });
 }
 
 function extractMyxProducts(html: string): MyntraProduct[] {
-  const marker = 'window.__myx = ';
-  const start = html.indexOf(marker);
-  if (start === -1) return [];
-  const jsonStart = start + marker.length;
-  const end = html.indexOf('</script>', jsonStart);
-  if (end === -1) return [];
-  const blob = html.slice(jsonStart, end).replace(/;\s*$/, '');
-  try {
-    const myx = JSON.parse(blob) as Record<string, unknown>;
-    const results = (myx.searchData as Record<string, unknown>)?.results as Record<string, unknown>;
-    return (results?.products as MyntraProduct[]) ?? [];
-  } catch {
-    return [];
-  }
+  const myx = extractJsonAfter(html, 'window.__myx =') as { searchData?: { results?: { products?: MyntraProduct[] } } } | null;
+  return myx?.searchData?.results?.products ?? [];
 }
 
 export async function scrapeMyntra(_browser: Browser): Promise<ScrapedItem[]> {
@@ -124,6 +84,9 @@ export async function scrapeMyntra(_browser: Browser): Promise<ScrapedItem[]> {
   const queries = [
     { url: 'https://www.myntra.com/shoes?rawQuery=nike+shoes&sort=new', label: 'nike' },
     { url: 'https://www.myntra.com/shoes?rawQuery=jordan+shoes&sort=new', label: 'jordan' },
+    { url: 'https://www.myntra.com/shoes?rawQuery=adidas+shoes&sort=new', label: 'adidas' },
+    { url: 'https://www.myntra.com/shoes?rawQuery=new+balance+shoes&sort=new', label: 'new-balance' },
+    { url: 'https://www.myntra.com/crocs?rawQuery=crocs&sort=new', label: 'crocs' },
   ];
 
   for (const { url, label } of queries) {

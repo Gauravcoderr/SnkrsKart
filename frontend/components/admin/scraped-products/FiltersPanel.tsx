@@ -1,9 +1,7 @@
 'use client';
 
 import { Filters, FilterHandlers } from './useFilters';
-import { SourceSite, ALL_FLAGS, FLAG_STYLES, ProductFlag } from './types';
-
-const ALL_SITES: SourceSite[] = ['myntra', 'footlocker', 'vegnonveg', 'limitededt', 'superkicks', 'nike', 'crepdogcrew'];
+import { ALL_SITES, ALL_BRANDS, ALL_FLAGS, FLAG_STYLES, ProductFlag } from './types';
 
 type Props = Pick<Filters, 'filterSite' | 'filterBrand' | 'filterDateFrom' | 'filterDateTo' | 'filterPriceMin' | 'filterPriceMax' | 'filterFlag'> &
   Pick<FilterHandlers, 'onSiteChange' | 'onBrandChange' | 'onDateFromChange' | 'onDateToChange' | 'onPriceMinChange' | 'onPriceMaxChange' | 'onFlagChange' | 'onClear'>;
@@ -55,7 +53,7 @@ export default function FiltersPanel({
       <div>
         <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-3">Brand</p>
         <div className="space-y-1">
-          {['Nike', 'Jordan'].map((b) => (
+          {ALL_BRANDS.map((b) => (
             <button key={b} type="button"
               onClick={() => onBrandChange(filterBrand === b ? '' : b)}
               className={`w-full text-left text-sm px-3 py-2 rounded-lg transition ${filterBrand === b ? 'bg-white text-zinc-900 font-semibold' : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'}`}>

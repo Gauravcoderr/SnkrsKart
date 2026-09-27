@@ -1184,7 +1184,7 @@ router.post('/scraped-products/run-scraper', adminAuth, async (_req: Request, re
         });
     }
 
-    res.json({ message: 'Both scrapers triggered — GitHub Actions (Myntra/Footlocker/VegNonVeg) + Render (Shopify)' });
+    res.json({ message: 'Both scrapers triggered — GitHub Actions (Myntra/Footlocker/VegNonVeg/Superkicks/Tata CLiQ/Tata CLiQ Luxury/AJIO) + Render (Shopify)' });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to trigger scraper' });
   }

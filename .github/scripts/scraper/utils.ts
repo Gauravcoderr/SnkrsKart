@@ -3,13 +3,13 @@ import https from 'https';
 
 // Only Chrome/Edge UAs -- Firefox UAs cause TLS/JS fingerprint mismatch with Chromium
 export const UA_POOL = [
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.70 Safari/537.36',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 Edg/148.0.0.0',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0',
 ];
 
 export function randomUA(): string {
@@ -30,9 +30,17 @@ export function sessionUA(): string {
  * js=true:  JS-rendered page (10 credits) — use for SPA product listing pages
  * Returns the response body as a string. Throws if SCRAPINGANT_API_KEY is unset.
  */
+let antQueue: Promise<unknown> = Promise.resolve();
+
 export function scrapingAntFetch(url: string, js = true): Promise<string> {
+  const run = antQueue.then(() => scrapingAntRequest(url, js));
+  antQueue = run.catch(() => undefined);
+  return run;
+}
+
+function scrapingAntRequest(url: string, js: boolean): Promise<string> {
   const apiKey = process.env.SCRAPINGANT_API_KEY;
-  if (!apiKey) throw new Error('SCRAPINGANT_API_KEY not set');
+  if (!apiKey) return Promise.reject(new Error('SCRAPINGANT_API_KEY not set'));
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({ url, browser: js });
     const req = https.request(
@@ -126,11 +134,18 @@ export async function filterDeadUrls<T extends { sourceUrl: string }>(
   return results;
 }
 
+export const BRANDS = ['Nike', 'Jordan', 'Adidas', 'New Balance', 'Crocs'] as const;
+export type Brand = typeof BRANDS[number];
+
+export type SourceSite =
+  | 'myntra' | 'footlocker' | 'vegnonveg' | 'limitededt' | 'superkicks'
+  | 'nike' | 'tatacliq' | 'tatacliqluxury' | 'ajio';
+
 export interface ScrapedItem {
   sourceUrl: string;
-  sourceSite: 'myntra' | 'footlocker' | 'vegnonveg' | 'limitededt' | 'superkicks' | 'nike' | 'crepdogcrew';
+  sourceSite: SourceSite;
   name: string;
-  brand: 'Nike' | 'Jordan';
+  brand: Brand;
   price?: number;
   originalPrice?: number;
   images: string[];
@@ -141,4 +156,76 @@ export interface ScrapedItem {
   gender?: 'men' | 'women' | 'unisex' | 'kids';
   tags?: string[];
   sourceListedAt?: Date;
+}
+
+const BRAND_PATTERNS: { brand: Brand; re: RegExp }[] = [
+  { brand: 'Jordan', re: /\bjordan\b|\bjumpman\b/i },
+  { brand: 'Nike', re: /\bnike\b/i },
+  { brand: 'Adidas', re: /\badidas\b/i },
+  { brand: 'New Balance', re: /\bnew[\s-]?balance\b/i },
+  { brand: 'Crocs', re: /\bcrocs\b/i },
+];
+
+export function detectBrand(...parts: (string | undefined)[]): Brand | null {
+  const haystack = parts.filter(Boolean).join(' ');
+  for (const { brand, re } of BRAND_PATTERNS) {
+    if (re.test(haystack)) return brand;
+  }
+  return null;
+}
+
+export function inferGender(...parts: (string | undefined)[]): NonNullable<ScrapedItem['gender']> {
+  const s = parts.filter(Boolean).join(' ').toLowerCase();
+  if (/\b(women|womens|women's|wmns|female|girls?|ladies)\b/.test(s)) return 'women';
+  if (/\b(kids?|boys?|junior|children|toddler|infant|big kids|little kids|\(gs\)|\(ps\)|\(td\))/.test(s)) return 'kids';
+  if (/\b(men|mens|men's|male)\b/.test(s)) return 'men';
+  return 'unisex';
+}
+
+export function roundPrice(v: unknown): number | undefined {
+  const n = typeof v === 'number' ? v : parseFloat(String(v ?? '').replace(/[^\d.]/g, ''));
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : undefined;
+}
+
+export function absoluteUrl(href: string, base: string): string {
+  if (!href) return '';
+  if (href.startsWith('//')) return `https:${href}`;
+  if (href.startsWith('http')) return href;
+  return `${base}${href.startsWith('/') ? '' : '/'}${href}`;
+}
+
+export function extractJsonAfter(html: string, marker: string): unknown {
+  const at = html.indexOf(marker);
+  if (at === -1) return null;
+  const start = html.indexOf('{', at + marker.length);
+  if (start === -1) return null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < html.length; i++) {
+    const c = html[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (c === '\\') escaped = true;
+      else if (c === '"') inString = false;
+      continue;
+    }
+    if (c === '"') inString = true;
+    else if (c === '{') depth++;
+    else if (c === '}' && --depth === 0) {
+      try {
+        return JSON.parse(html.slice(start, i + 1));
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
+const EXCLUDED_STYLE_RE = /\bsandals?\b|\bflip[\s-]?flops?\b|\bchappals?\b|\bfloaters?\b|\bthong\b/i;
+const CLOG_RE = /\bclogs?\b/i;
+
+export function isExcludedStyle(name: string): boolean {
+  return EXCLUDED_STYLE_RE.test(name) && !CLOG_RE.test(name);
 }

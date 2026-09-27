@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { buildHeaders, jitter, withRetry, filterDeadUrls, ScrapedItem } from './utils';
+import type { ScrapedBrand } from '../../models/ScrapedProduct';
 
 interface ShopifyVariant {
   title: string;
@@ -17,6 +18,7 @@ interface ShopifyProduct {
   variants: ShopifyVariant[];
   images: { src: string }[];
   tags: string[];
+  product_type?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -25,14 +27,25 @@ interface ShopifyResponse {
   products: ShopifyProduct[];
 }
 
-const JORDAN_RE = /\bjordan\b|\bair jordan\b/i;
-const NIKE_RE = /\bnike\b/i;
+const BRAND_PATTERNS: { brand: ScrapedBrand; re: RegExp }[] = [
+  { brand: 'Jordan', re: /\bjordan\b|\bjumpman\b/i },
+  { brand: 'Nike', re: /\bnike\b/i },
+  { brand: 'Adidas', re: /\badidas\b/i },
+  { brand: 'New Balance', re: /\bnew[\s-]?balance\b/i },
+  { brand: 'Crocs', re: /\bcrocs\b/i },
+];
 
-function detectBrand(title: string, vendor: string): 'Nike' | 'Jordan' | null {
+const FOOTWEAR_TYPE_RE = /sneaker|shoe|slide|clog|boot|mule|footwear/i;
+const EXCLUDED_STYLE_RE = /\bsandals?\b|\bflip[\s-]?flops?\b|\bchappals?\b|\bfloaters?\b|\bthong\b/i;
+const CLOG_RE = /\bclogs?\b/i;
+
+function isExcludedStyle(name: string): boolean {
+  return EXCLUDED_STYLE_RE.test(name) && !CLOG_RE.test(name);
+}
+
+function detectBrand(title: string, vendor: string): ScrapedBrand | null {
   const haystack = `${title} ${vendor}`;
-  if (JORDAN_RE.test(haystack)) return 'Jordan';
-  if (NIKE_RE.test(haystack)) return 'Nike';
-  return null;
+  return BRAND_PATTERNS.find((p) => p.re.test(haystack))?.brand ?? null;
 }
 
 function parseSizes(variants: ShopifyVariant[]): string[] {
@@ -79,6 +92,8 @@ async function fetchJson(
   const results: ScrapedItem[] = [];
 
   for (const p of products) {
+    if (p.product_type && !FOOTWEAR_TYPE_RE.test(p.product_type)) continue;
+    if (isExcludedStyle(p.title)) continue;
     const brand = detectBrand(p.title, p.vendor);
     if (!brand) continue;
     if (!p.images || p.images.length === 0) continue; // skip if no images
@@ -129,6 +144,7 @@ async function fetchHtml(
       .text()
       .trim();
     if (!title) return;
+    if (isExcludedStyle(title)) return;
     const brand = detectBrand(title, '');
     if (!brand) return;
 
@@ -161,8 +177,8 @@ async function fetchHtml(
 
 const SITES: { baseUrl: string; collections: string[]; site: ScrapedItem['sourceSite'] }[] = [
   // VegNonVeg — Cloudflare-protected, handled by GitHub Actions Puppeteer
-  { baseUrl: 'https://limitededt.in',         collections: ['nike', 'jordan'],               site: 'limitededt' },
-  { baseUrl: 'https://www.superkicks.in',      collections: ['nike', 'jordan', 'air-jordan'], site: 'superkicks' },
+  { baseUrl: 'https://limitededt.in',     collections: ['nike', 'adidas-originals', 'adidas', 'new-balance'],                          site: 'limitededt' },
+  { baseUrl: 'https://www.superkicks.in', collections: ['nike', 'jordan', 'air-jordan', 'adidas-originals', 'adidas', 'new-balance', 'crocs'], site: 'superkicks' },
 ];
 
 export async function scrapeAllShopify(): Promise<ScrapedItem[]> {

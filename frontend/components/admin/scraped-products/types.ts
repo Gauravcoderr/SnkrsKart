@@ -1,4 +1,8 @@
-export type SourceSite = 'myntra' | 'footlocker' | 'vegnonveg' | 'limitededt' | 'superkicks' | 'nike' | 'crepdogcrew';
+export const ALL_SITES = ['myntra', 'footlocker', 'vegnonveg', 'limitededt', 'superkicks', 'nike', 'tatacliq', 'tatacliqluxury', 'ajio'] as const;
+export type SourceSite = typeof ALL_SITES[number];
+
+export const ALL_BRANDS = ['Nike', 'Jordan', 'Adidas', 'New Balance', 'Crocs'] as const;
+export type ScrapedBrand = typeof ALL_BRANDS[number];
 export type Status = 'draft' | 'published' | 'rejected';
 export type Gender = 'men' | 'women' | 'unisex' | 'kids';
 export type PublishProductType = 'shoes' | 'clothing' | 'accessories';
@@ -8,7 +12,7 @@ export interface ScrapedProduct {
   sourceUrl: string;
   sourceSite: SourceSite;
   name: string;
-  brand: 'Nike' | 'Jordan';
+  brand: ScrapedBrand;
   price?: number;
   originalPrice?: number;
   images: string[];
@@ -33,7 +37,9 @@ export const SITE_COLORS: Record<SourceSite, string> = {
   limitededt:   'bg-blue-900/40 text-blue-300 border-blue-800',
   superkicks:   'bg-orange-900/40 text-orange-300 border-orange-800',
   nike:         'bg-zinc-800/60 text-zinc-300 border-zinc-700',
-  crepdogcrew:  'bg-red-900/40 text-red-300 border-red-800',
+  tatacliq:       'bg-rose-900/40 text-rose-300 border-rose-800',
+  tatacliqluxury: 'bg-yellow-900/40 text-yellow-300 border-yellow-800',
+  ajio:           'bg-cyan-900/40 text-cyan-300 border-cyan-800',
 };
 
 export const STATUS_TABS: Status[] = ['draft', 'published'];

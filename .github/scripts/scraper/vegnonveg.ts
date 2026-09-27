@@ -1,6 +1,7 @@
 import { Browser } from 'puppeteer';
 import * as cheerio from 'cheerio';
-import { jitter, sessionUA, ScrapedItem } from './utils';
+import { stealthGetJson } from './http';
+import { Brand, detectBrand, inferGender, jitter, ScrapedItem } from './utils';
 
 const BASE = 'https://www.vegnonveg.com';
 
@@ -9,27 +10,16 @@ interface VNVListingResponse {
   nextPage?: boolean;
 }
 
-// VegNonVeg migrated off default Shopify collection routing (no more /collections/*/products.json —
-// confirmed 404, custom headless storefront now). Its listing pages page via AJAX at
-// GET /footwear/{brand}?page=N with X-Requested-With: XMLHttpRequest, returning
-// {"html": "<product card markup>", "nextPage": bool} — no proxy/browser rendering needed at all.
 async function fetchListingPage(brandPath: string, page: number): Promise<string> {
-  const res = await fetch(`${BASE}/${brandPath}?page=${page}`, {
-    headers: {
-      'User-Agent': sessionUA(),
-      'Accept-Language': 'en-IN,en;q=0.9',
-      'Accept': 'application/json, text/javascript, */*; q=0.01',
-      'X-Requested-With': 'XMLHttpRequest',
-      'Referer': `${BASE}/${brandPath}`,
-    },
+  const data = await stealthGetJson<VNVListingResponse>(`${BASE}/${brandPath}?page=${page}`, {
+    referer: `${BASE}/${brandPath}`,
+    headers: { 'x-requested-with': 'XMLHttpRequest' },
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = (await res.json()) as VNVListingResponse;
   if (typeof data.html !== 'string') throw new Error('Response missing html field');
   return data.html;
 }
 
-function parseListingCards(html: string, brand: 'Nike' | 'Jordan', seen: Set<string>): ScrapedItem[] {
+function parseListingCards(html: string, fallbackBrand: Brand, seen: Set<string>): ScrapedItem[] {
   const $ = cheerio.load(html);
   const out: ScrapedItem[] = [];
 
@@ -49,6 +39,7 @@ function parseListingCards(html: string, brand: 'Nike' | 'Jordan', seen: Set<str
     name = name || card.find('.p-name').first().text().trim();
     if (!name || !price || price <= 0) return;
 
+    const brand = detectBrand(name) ?? fallbackBrand;
     seen.add(href);
     const imgNormal = card.find('img.img-normal').attr('data-src') ?? card.find('img.img-normal').attr('src') ?? '';
     const imgHover = card.find('img.img-hover').attr('data-src') ?? '';
@@ -62,7 +53,7 @@ function parseListingCards(html: string, brand: 'Nike' | 'Jordan', seen: Set<str
       images: [imgNormal, imgHover].filter(Boolean),
       sizes: [],
       tags: ['vegnonveg', brand.toLowerCase()],
-      gender: 'unisex',
+      gender: inferGender(name),
     });
   });
 
@@ -72,9 +63,13 @@ function parseListingCards(html: string, brand: 'Nike' | 'Jordan', seen: Set<str
 export async function scrapeVegNonVeg(_browser: Browser): Promise<ScrapedItem[]> {
   const seen = new Set<string>();
   const results: ScrapedItem[] = [];
-  const brandPaths: { path: string; brand: 'Nike' | 'Jordan' }[] = [
+  const brandPaths: { path: string; brand: Brand }[] = [
     { path: 'footwear/nike', brand: 'Nike' },
     { path: 'footwear/jordan', brand: 'Jordan' },
+    { path: 'footwear/adidas-originals', brand: 'Adidas' },
+    { path: 'footwear/adidas', brand: 'Adidas' },
+    { path: 'footwear/new-balance', brand: 'New Balance' },
+    { path: 'brand/crocs', brand: 'Crocs' },
   ];
 
   for (const { path, brand } of brandPaths) {

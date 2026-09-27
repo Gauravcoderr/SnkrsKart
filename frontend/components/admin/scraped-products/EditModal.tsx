@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ScrapedProduct, Gender, API } from './types';
+import { ScrapedProduct, Gender, API, ALL_BRANDS, ScrapedBrand } from './types';
 
 interface EditModalProps {
   item: ScrapedProduct;
@@ -69,11 +69,12 @@ export default function EditModal({ item, onClose, onSuccess, getToken }: EditMo
             <select
               aria-label="Brand"
               value={editItem.brand}
-              onChange={(e) => setEditItem({ ...editItem, brand: e.target.value as 'Nike' | 'Jordan' })}
+              onChange={(e) => setEditItem({ ...editItem, brand: e.target.value as ScrapedBrand })}
               className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-zinc-500"
             >
-              <option value="Nike">Nike</option>
-              <option value="Jordan">Jordan</option>
+              {ALL_BRANDS.map((b) => (
+                <option key={b} value={b}>{b}</option>
+              ))}
             </select>
           </div>
 

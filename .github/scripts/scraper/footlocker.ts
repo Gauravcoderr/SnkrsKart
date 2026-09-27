@@ -1,6 +1,7 @@
 import { Browser } from 'puppeteer';
 import * as cheerio from 'cheerio';
-import { jitter, sessionUA, scrapingAntFetch, ScrapedItem } from './utils';
+import { stealthGet } from './http';
+import { absoluteUrl, detectBrand, extractJsonAfter, inferGender, jitter, roundPrice, sessionUA, scrapingAntFetch, ScrapedItem } from './utils';
 
 const BASE = 'https://www.footlocker.co.in';
 
@@ -17,16 +18,10 @@ const CATEGORY_QUERIES = [
   { url: `${BASE}/jordan-picks/c/68782?root=nav_3&ptype=listing%2Call-brands%2Cjordan%2C1%2Cjordan`, label: 'jordan' },
   { url: `${BASE}/designers/nike/c/11784?root=nav_3&ptype=listing%2Call-brands%2Cnike%2C1%2Cnike&f=category_filter%3D6864_`, label: 'nike-shoes' },
   { url: `${BASE}/jordan-picks/c/68782?root=nav_3&ptype=listing%2Call-brands%2Cjordan%2C1%2Cjordan&f=gender_filter%3D5197_%3Bcategory_filter%3D6864_`, label: 'jordan-shoes' },
+  { url: `${BASE}/designers/adidas-originals/c/7200?f=category_filter%3D6864_`, label: 'adidas-shoes' },
+  { url: `${BASE}/designers/new-balance/c/11328?f=category_filter%3D6864_`, label: 'new-balance-shoes' },
+  { url: `${BASE}/designers/crocs/c/6497`, label: 'crocs' },
 ];
-
-const JORDAN_RE = /\bjordan\b|\bair jordan\b/i;
-const NIKE_RE = /\bnike\b/i;
-
-function detectBrand(title: string): 'Nike' | 'Jordan' | null {
-  if (JORDAN_RE.test(title)) return 'Jordan';
-  if (NIKE_RE.test(title)) return 'Nike';
-  return null;
-}
 
 interface FLProduct {
   name?: string;
@@ -83,6 +78,68 @@ function extractImages(p: FLProduct): string[] {
   if (typeof p.image === 'string') return [p.image];
   if (Array.isArray(p.image)) return p.image as string[];
   return [];
+}
+
+interface FLListingProduct {
+  id?: string;
+  sku?: string;
+  title?: string;
+  subTitle?: string;
+  price?: number;
+  discountedPrice?: number;
+  imageUrl?: string;
+  actionUrl?: string;
+  isOutOfStock?: number;
+  sizeVariation?: { title?: string }[];
+  plp_pdp_bridge?: { images?: { url?: string }[] };
+}
+
+async function scrapeViaSsr(seen: Set<string>): Promise<ScrapedItem[]> {
+  const results: ScrapedItem[] = [];
+
+  for (const { url, label } of CATEGORY_QUERIES) {
+    try {
+      const html = await stealthGet(url, { referer: `${BASE}/`, retries: 2 });
+      const state = extractJsonAfter(html, 'id="__PRELOADED_STATE__"') as { listingV2?: { products?: FLListingProduct[] } } | null;
+      let count = 0;
+      for (const p of state?.listingV2?.products ?? []) {
+        if (!p.actionUrl || p.isOutOfStock) continue;
+        const brandLabel = p.title ?? '';
+        const sub = p.subTitle ?? '';
+        const name = sub.toLowerCase().startsWith(brandLabel.toLowerCase()) ? sub : `${brandLabel} ${sub}`.trim();
+        const brand = detectBrand(name, brandLabel);
+        if (!brand) continue;
+        const sourceUrl = absoluteUrl(p.actionUrl, BASE);
+        if (seen.has(sourceUrl)) continue;
+        const price = roundPrice(p.discountedPrice) ?? roundPrice(p.price);
+        if (!price) continue;
+        const mrp = roundPrice(p.price);
+        const images = (p.plp_pdp_bridge?.images ?? []).map((i) => i.url ?? '').filter(Boolean);
+        if (images.length === 0 && p.imageUrl) images.push(p.imageUrl);
+        if (images.length === 0) continue;
+        seen.add(sourceUrl);
+        results.push({
+          sourceUrl,
+          sourceSite: 'footlocker',
+          name,
+          brand,
+          price,
+          originalPrice: mrp && mrp > price ? mrp : undefined,
+          images: images.slice(0, 6),
+          sizes: (p.sizeVariation ?? []).map((v) => v.title ?? '').filter(Boolean),
+          sku: p.sku,
+          tags: ['footlocker', brand.toLowerCase()],
+          gender: inferGender(name),
+        });
+        count++;
+      }
+      console.log(`[footlocker] ${label} via SSR state: ${count} items`);
+    } catch (err) {
+      console.warn(`[footlocker] ${label} SSR fetch failed:`, (err as Error).message);
+    }
+    await jitter(1500, 3000);
+  }
+  return results;
 }
 
 // ── Primary: ScrapingAnt JS rendering (10 credits each, handles Akamai) ────────
@@ -216,7 +273,12 @@ async function scrapeViaPuppeteer(browser: Browser, seen: Set<string>): Promise<
     await warmPage.close();
   }
 
+  let consecutiveBlocks = 0;
   for (const { url, label } of CATEGORY_QUERIES) {
+    if (consecutiveBlocks >= 2) {
+      console.warn(`[footlocker] ${label}: skipped — Puppeteer session blocked twice in a row`);
+      continue;
+    }
     const page = await browser.newPage();
     let intercepted: FLProduct[] = [];
 
@@ -262,9 +324,11 @@ async function scrapeViaPuppeteer(browser: Browser, seen: Set<string>): Promise<
         bodyText.toLowerCase().includes('robot') ||
         bodyText.trim().length < 100;
       if (blocked) {
+        consecutiveBlocks++;
         console.warn(`[footlocker] ${label}: blocked or empty page`);
         continue;
       }
+      consecutiveBlocks = 0;
 
       let pageResults = 0;
 
@@ -415,6 +479,10 @@ async function scrapeViaPuppeteer(browser: Browser, seen: Set<string>): Promise<
 
 export async function scrapeFootlocker(browser: Browser): Promise<ScrapedItem[]> {
   const seen = new Set<string>();
+  const ssrItems = await scrapeViaSsr(seen);
+  if (ssrItems.length > 0) return ssrItems;
+  console.warn('[footlocker] SSR path returned 0 items -- trying ScrapingAnt / Puppeteer');
+  seen.clear();
   if (process.env.SCRAPINGANT_API_KEY) {
     console.log('[footlocker] using ScrapingAnt residential proxy');
     const items = await scrapeViaApi(seen);

@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { ScrapedProduct } from '../models/ScrapedProduct';
+import { ScrapedProduct, SCRAPED_BRANDS, SCRAPED_SITES } from '../models/ScrapedProduct';
 import { RejectedUrl } from '../models/RejectedUrl';
 import { ScrapedItem } from '../services/scraper/utils';
 
@@ -42,6 +42,10 @@ router.post('/ingest', scraperAuth, async (req: Request, res: Response): Promise
   for (const p of products) {
     if (!p.sourceUrl || !p.name || !p.brand) {
       errors.push(`Skipped invalid item: ${p.name ?? 'unnamed'}`);
+      continue;
+    }
+    if (!(SCRAPED_BRANDS as readonly string[]).includes(p.brand) || !(SCRAPED_SITES as readonly string[]).includes(p.sourceSite)) {
+      errors.push(`Skipped unsupported brand/site: ${p.brand}/${p.sourceSite} — ${p.sourceUrl}`);
       continue;
     }
     if (rejectedUrls.has(p.sourceUrl) || (p.sku && rejectedSkus.has(p.sku))) {

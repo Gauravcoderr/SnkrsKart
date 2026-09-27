@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import axios from 'axios';
+import type { ScrapedBrand, ScrapedSite } from '../../models/ScrapedProduct';
 
 // Larger UA pool: Chrome (Win/Mac/Linux), Edge, Firefox, Chrome Mobile
 export const UA_POOL = [
@@ -80,9 +81,9 @@ export async function withRetry<T>(
 
 export interface ScrapedItem {
   sourceUrl: string;
-  sourceSite: 'myntra' | 'footlocker' | 'vegnonveg' | 'limitededt' | 'superkicks' | 'nike' | 'crepdogcrew';
+  sourceSite: ScrapedSite;
   name: string;
-  brand: 'Nike' | 'Jordan';
+  brand: ScrapedBrand;
   price?: number;
   originalPrice?: number;
   images: string[];

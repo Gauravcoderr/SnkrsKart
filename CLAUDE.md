@@ -127,6 +127,15 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Admin receives email on new submission, emails user verdict when marked real/fake/inconclusive
 - Screenshot path: `deal-screenshots/{timestamp}-{random}.{ext}` in Vercel Blob
 
+## Product scraper
+- Two runners, same schedule (01:17 + 04:43 IST): Render cron (`backend/src/services/scraper/shopify.ts`, LimitedEdt + Superkicks JSON) and GitHub Actions (`.github/scripts/scraper/run.ts`) → `POST /api/v1/scraper/ingest` (Bearer `SCRAPER_SECRET`, batched 40/request because `express.json()` caps bodies at 100kb)
+- Brands: Nike, Jordan, Adidas, New Balance, Crocs (`SCRAPED_BRANDS` in `models/ScrapedProduct.ts`). Sites: myntra, footlocker, vegnonveg, limitededt, superkicks, nike, tatacliq, tatacliqluxury, ajio (`SCRAPED_SITES`)
+- Transport: `http.ts` `stealthGet` = got-scraping (real Chrome TLS/HTTP2 fingerprint + generated headers, per-host cookie jar) → backoff retries → per-host circuit breaker after 3 blocks → ScrapingAnt fallback (1 credit raw, serialised). Optional `SCRAPER_PROXY_URL` secret routes direct requests through a proxy
+- Tata CLiQ: `searchbff.tatacliq.com/products/mpl/search` (plain fetch; do NOT send a `mode` header, it returns 0 results). Luxury: search API broken, scrape SSR `window.initialData` on brand category pages (`?page=N` paginates, 24/page); Jordan comes from the Nike category; no Crocs on Luxury
+- Footwear only, no sandals/flip-flops/chappals/floaters (`isExcludedStyle`, name-based and clog names always kept, since AJIO/Myntra file Crocs clogs under "Sandals"). Slides + clogs stay
+- AJIO: Akamai; `/api/search` via got-scraping works, fallback = stealth Puppeteer on ajio.com then in-page `fetch`. Use `relevance` sort for Nike/Adidas/Jordan (newest sort is mostly socks/bags)
+- Footlocker: SSR `__PRELOADED_STATE__.listingV2.products` first (0 credits), then ScrapingAnt JS render, then Puppeteer. Akamai flags an IP after heavy probing (403 on everything for a while)
+
 ## Important decisions / gotchas
 - Render free tier sleeps after 15 min inactivity → UptimeRobot pings `/health` every 5 min
 - `trust proxy 1` set on Express for correct IP in rate-limiter behind Render/Vercel
