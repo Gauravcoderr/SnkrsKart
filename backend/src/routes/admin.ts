@@ -559,10 +559,61 @@ router.get('/users/:id', adminAuth, async (req: Request, res: Response): Promise
       .select('-otp -otpExpiry -otpAttempts -lastOtpSent -refreshToken')
       .lean();
     if (!user) { res.status(404).json({ error: 'User not found' }); return; }
-    const orders = await Order.find({ email: user.email }).sort({ createdAt: -1 }).lean();
-    res.json({ ...user, id: user._id.toString(), orders });
+    const [orders, assigned] = await Promise.all([
+      Order.find({ email: user.email }).sort({ createdAt: -1 }).lean(),
+      Coupon.find({ 'assignedUsers.user': user._id }).sort({ createdAt: -1 }).lean(),
+    ]);
+    const coupons = assigned.map(({ assignedUsers, usedBy: _usedBy, ...c }) => {
+      const a = assignedUsers.find((x) => String(x.user) === String(user._id))!;
+      return { ...c, maxUses: a.maxUses, usedCount: a.usedCount };
+    });
+    res.json({ ...user, id: user._id.toString(), orders, coupons });
   } catch {
     res.status(500).json({ error: 'Failed to fetch user' });
+  }
+});
+
+router.post('/users/:id/coupons', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { couponId } = req.body;
+    const maxUses = Math.floor(Number(req.body.maxUses));
+    if (!couponId || !Number.isFinite(maxUses) || maxUses < 1) {
+      res.status(400).json({ error: 'couponId and maxUses (>= 1) are required' });
+      return;
+    }
+    const user = await User.findById(req.params.id).select('_id').lean();
+    if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+
+    const updated = await Coupon.findOneAndUpdate(
+      { _id: couponId, 'assignedUsers.user': user._id },
+      { $set: { 'assignedUsers.$.maxUses': maxUses } },
+      { new: true },
+    );
+    if (updated) { res.json({ coupon: updated }); return; }
+
+    const coupon = await Coupon.findByIdAndUpdate(
+      couponId,
+      { $push: { assignedUsers: { user: user._id, maxUses, usedCount: 0 } } },
+      { new: true },
+    );
+    if (!coupon) { res.status(404).json({ error: 'Coupon not found' }); return; }
+    res.status(201).json({ coupon });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to assign coupon' });
+  }
+});
+
+router.delete('/users/:id/coupons/:couponId', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const coupon = await Coupon.findByIdAndUpdate(
+      req.params.couponId,
+      { $pull: { assignedUsers: { user: req.params.id } } },
+      { new: true },
+    );
+    if (!coupon) { res.status(404).json({ error: 'Coupon not found' }); return; }
+    res.json({ message: 'Coupon unassigned' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to unassign coupon' });
   }
 });
 
@@ -957,8 +1008,15 @@ router.put('/site-content/:pageKey', adminAuth, async (req: Request, res: Respon
 
 router.get('/coupons', adminAuth, async (_req: Request, res: Response): Promise<void> => {
   try {
-    const coupons = await Coupon.find().sort({ createdAt: -1 }).lean();
-    res.json({ coupons });
+    const [coupons, usage] = await Promise.all([
+      Coupon.find().sort({ createdAt: -1 }).lean(),
+      Order.aggregate([
+        { $match: { couponCode: { $ne: '' } } },
+        { $group: { _id: '$couponCode', count: { $sum: 1 } } },
+      ]),
+    ]);
+    const usageMap = new Map(usage.map((u) => [u._id, u.count]));
+    res.json({ coupons: coupons.map((c) => ({ ...c, useCount: usageMap.get(c.code) ?? 0 })) });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to fetch coupons' });
   }
@@ -966,7 +1024,7 @@ router.get('/coupons', adminAuth, async (_req: Request, res: Response): Promise<
 
 router.post('/coupons', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { code, discountType, discountValue, minOrderValue, maxDiscountAmount, appliesTo, active, expiresAt } = req.body;
+    const { code, discountType, discountValue, minOrderValue, maxDiscountAmount, appliesTo, active, expiresAt, restricted } = req.body;
     if (!code || !discountType || discountValue == null) {
       res.status(400).json({ error: 'code, discountType, and discountValue are required' });
       return;
@@ -980,6 +1038,7 @@ router.post('/coupons', adminAuth, async (req: Request, res: Response): Promise<
       appliesTo: appliesTo || 'all',
       active: active !== false,
       expiresAt: expiresAt || null,
+      restricted: restricted === true,
     });
     res.status(201).json({ coupon });
   } catch (err: any) {
@@ -993,8 +1052,8 @@ router.post('/coupons', adminAuth, async (req: Request, res: Response): Promise<
 
 router.put('/coupons/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    // Explicitly exclude usedBy to prevent admin from wiping usage history
-    const { usedBy: _usedBy, ...updates } = req.body;
+    // Explicitly exclude usedBy/assignedUsers to prevent admin from wiping usage history
+    const { usedBy: _usedBy, assignedUsers: _assignedUsers, useCount: _useCount, ...updates } = req.body;
     if (updates.code) updates.code = String(updates.code).trim().toUpperCase();
     if (updates.discountValue != null) updates.discountValue = Number(updates.discountValue);
     if (updates.minOrderValue != null) updates.minOrderValue = Number(updates.minOrderValue);

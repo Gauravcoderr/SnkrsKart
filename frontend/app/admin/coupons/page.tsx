@@ -15,6 +15,7 @@ type CouponForm = {
   appliesTo: 'all' | 'shoes' | 'clothing' | 'accessories';
   expiresAt: string;
   active: boolean;
+  restricted: boolean;
 };
 
 const EMPTY_FORM: CouponForm = {
@@ -26,6 +27,7 @@ const EMPTY_FORM: CouponForm = {
   appliesTo: 'all',
   expiresAt: '',
   active: true,
+  restricted: false,
 };
 
 function couponToForm(c: Coupon): CouponForm {
@@ -38,6 +40,7 @@ function couponToForm(c: Coupon): CouponForm {
     appliesTo: c.appliesTo,
     expiresAt: c.expiresAt ? c.expiresAt.slice(0, 10) : '',
     active: c.active,
+    restricted: !!c.restricted,
   };
 }
 
@@ -93,7 +96,7 @@ export default function CouponsPage() {
     setSaving(true);
     setSaveError('');
 
-    const { code, discountType, discountValue, minOrderValue, maxDiscountAmount, appliesTo, expiresAt, active } = modal.form;
+    const { code, discountType, discountValue, minOrderValue, maxDiscountAmount, appliesTo, expiresAt, active, restricted } = modal.form;
     if (!code.trim()) { setSaveError('Code is required'); setSaving(false); return; }
     if (!discountValue || isNaN(Number(discountValue)) || Number(discountValue) <= 0) {
       setSaveError('Discount value must be a positive number'); setSaving(false); return;
@@ -108,6 +111,7 @@ export default function CouponsPage() {
       appliesTo,
       expiresAt: expiresAt || null,
       active,
+      restricted,
     };
 
     try {
@@ -210,6 +214,11 @@ export default function CouponsPage() {
                 <tr key={c._id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
                   <td className="px-4 py-3">
                     <span className="font-mono font-bold text-white tracking-widest text-xs">{c.code}</span>
+                    {c.restricted && (
+                      <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-violet-900/40 text-violet-300 font-bold uppercase tracking-wider">
+                        Private · {c.assignedUsers?.length ?? 0}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-zinc-300">{formatDiscount(c)}</td>
                   <td className="px-4 py-3">
@@ -227,7 +236,7 @@ export default function CouponsPage() {
                   <td className="px-4 py-3 text-zinc-400 text-xs">
                     {c.expiresAt ? new Date(c.expiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'}
                   </td>
-                  <td className="px-4 py-3 text-zinc-300 text-xs font-medium">{c.usedBy.length}</td>
+                  <td className="px-4 py-3 text-zinc-300 text-xs font-medium">{c.useCount ?? c.usedBy.length}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                       c.active ? 'bg-emerald-900/40 text-emerald-400' : 'bg-zinc-700 text-zinc-400'
@@ -367,17 +376,13 @@ export default function CouponsPage() {
                 />
               </div>
 
-              {/* Active toggle */}
-              <div className="flex items-center justify-between py-1">
-                <span className="text-xs text-zinc-400 font-medium">Active</span>
-                <button
-                  type="button"
-                  onClick={() => setField('active', !modal.form.active)}
-                  className={`relative w-10 h-5 rounded-full transition-colors ${modal.form.active ? 'bg-amber-400' : 'bg-zinc-700'}`}
-                >
-                  <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${modal.form.active ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                </button>
-              </div>
+              <Toggle label="Active" checked={modal.form.active} onChange={(v) => setField('active', v)} />
+              <Toggle
+                label="Private"
+                hint="Only users assigned from their user page can redeem"
+                checked={modal.form.restricted}
+                onChange={(v) => setField('restricted', v)}
+              />
             </div>
 
             {saveError && <p className="text-xs text-red-500">{saveError}</p>}
@@ -431,6 +436,27 @@ export default function CouponsPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function Toggle({ label, hint, checked, onChange }: { label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-1">
+      <div>
+        <span className="text-xs text-zinc-400 font-medium">{label}</span>
+        {hint && <p className="text-[11px] text-zinc-500 mt-0.5">{hint}</p>}
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        onClick={() => onChange(!checked)}
+        className={`relative inline-flex shrink-0 w-10 h-6 rounded-full transition-colors ${checked ? 'bg-emerald-500' : 'bg-zinc-700'}`}
+      >
+        <span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${checked ? 'translate-x-4' : 'translate-x-0'}`} />
+      </button>
     </div>
   );
 }

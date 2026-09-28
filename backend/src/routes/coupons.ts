@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { Coupon } from '../models/Coupon';
+import { Coupon, couponUserError } from '../models/Coupon';
 import { customerAuth, AuthRequest } from '../middleware/customerAuth';
 
 const router = Router();
@@ -29,10 +29,9 @@ router.post('/validate', customerAuth, async (req: AuthRequest, res: Response) =
       return;
     }
 
-    const userId = req.user!.id;
-    const alreadyUsed = coupon.usedBy.some((id) => String(id) === String(userId));
-    if (alreadyUsed) {
-      res.status(200).json({ valid: false, error: 'You have already used this coupon' });
+    const userError = couponUserError(coupon, req.user!.id);
+    if (userError) {
+      res.status(200).json({ valid: false, error: userError });
       return;
     }
 

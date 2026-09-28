@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import UserCoupons, { AssignedCoupon } from './UserCoupons';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -34,6 +35,8 @@ interface Order {
   createdAt: string;
   city: string;
   state: string;
+  couponCode?: string;
+  couponDiscount?: number;
 }
 
 interface UserDetail {
@@ -44,6 +47,7 @@ interface UserDetail {
   phone: string;
   addresses: Address[];
   orders: Order[];
+  coupons: AssignedCoupon[];
   createdAt: string;
 }
 
@@ -53,24 +57,24 @@ export default function AdminUserDetailPage() {
   const [user, setUser] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const token = localStorage.getItem('admin_token');
-        const res = await fetch(`${BASE_URL}/admin/users/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.status === 401) { router.push('/admin/login'); return; }
-        if (res.status === 404) { router.push('/admin/users'); return; }
-        if (!res.ok) { console.error('Failed to fetch user', res.status); return; }
-        setUser(await res.json());
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    })();
+  const load = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('admin_token');
+      const res = await fetch(`${BASE_URL}/admin/users/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 401) { router.push('/admin/login'); return; }
+      if (res.status === 404) { router.push('/admin/users'); return; }
+      if (!res.ok) { console.error('Failed to fetch user', res.status); return; }
+      setUser(await res.json());
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, [id, router]);
+
+  useEffect(() => { load(); }, [load]);
 
   if (loading) {
     return (
@@ -131,6 +135,8 @@ export default function AdminUserDetailPage() {
         </div>
       </div>
 
+      <UserCoupons userId={user._id} assigned={user.coupons ?? []} orders={orders} onChange={load} />
+
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
         {/* Orders */}
         <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
@@ -164,6 +170,11 @@ export default function AdminUserDetailPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-sm font-bold text-white">₹{order.total.toLocaleString('en-IN')}</p>
+                      {order.couponCode && (
+                        <p className="text-[10px] text-emerald-400 mt-0.5">
+                          {order.couponCode} −₹{(order.couponDiscount ?? 0).toLocaleString('en-IN')}
+                        </p>
+                      )}
                       <p className="text-[10px] text-zinc-500 mt-1">
                         {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}
                       </p>

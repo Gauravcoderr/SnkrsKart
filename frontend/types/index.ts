@@ -202,6 +202,9 @@ export interface Coupon {
   active: boolean;
   expiresAt: string | null;
   usedBy: string[];
+  restricted: boolean;
+  assignedUsers: { user: string; maxUses: number; usedCount: number }[];
+  useCount?: number;
   createdAt: string;
   updatedAt: string;
 }

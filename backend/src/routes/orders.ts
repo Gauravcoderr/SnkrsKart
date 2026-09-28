@@ -6,7 +6,7 @@ import { User } from '../models/User';
 import { Product } from '../models/Product';
 import { sendMail } from '../lib/mailer';
 import { Loyalty, COINS_PER_100, COINS_TO_RUPEE, MAX_REDEEM_PCT, MIN_REDEEM } from '../models/Loyalty';
-import { Coupon } from '../models/Coupon';
+import { Coupon, couponUserError } from '../models/Coupon';
 import { Cashfree, CFEnvironment } from 'cashfree-pg';
 import Razorpay from 'razorpay';
 import { reactivateContact } from '../lib/syncUnsubscribes';
@@ -397,6 +397,7 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
     // Coupon validation (server-side, logged-in users only)
     let couponDiscount = 0;
     let appliedCouponCode = '';
+    let reservedAssignment: { couponId: string; user: string } | null = null;
 
     const trimmedCouponCode = String(rawCouponCode || '').trim().toUpperCase();
     if (trimmedCouponCode && req.user) {
@@ -410,9 +411,9 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
         res.status(400).json({ error: 'This coupon has expired' });
         return;
       }
-      const alreadyUsed = coupon.usedBy.some((id) => String(id) === String(req.user!.id));
-      if (alreadyUsed) {
-        res.status(400).json({ error: 'You have already used this coupon' });
+      const userError = couponUserError(coupon, req.user!.id);
+      if (userError) {
+        res.status(400).json({ error: userError });
         return;
       }
 
@@ -440,6 +441,19 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
           : raw;
       } else {
         couponDiscount = Math.min(coupon.discountValue, eligibleSubtotal);
+      }
+
+      const assignment = coupon.assignedUsers.find((a) => String(a.user) === String(req.user!.id));
+      if (assignment) {
+        const reserved = await Coupon.updateOne(
+          { _id: coupon._id, assignedUsers: { $elemMatch: { user: assignment.user, usedCount: { $lt: assignment.maxUses } } } },
+          { $inc: { 'assignedUsers.$.usedCount': 1 } },
+        );
+        if (reserved.modifiedCount === 0) {
+          res.status(400).json({ error: `You have used this coupon the maximum number of times (${assignment.maxUses})` });
+          return;
+        }
+        reservedAssignment = { couponId: String(coupon._id), user: String(assignment.user) };
       }
 
       appliedCouponCode = coupon.code;
@@ -480,14 +494,25 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
     }));
 
     const orderNumber = generateOrderNumber();
-    const order = await Order.create({
-      orderNumber, name, email, phone, addressLine, city, state, pincode,
-      items: enrichedItems, subtotal, shipping, total: finalTotal, status: 'pending',
-      coinsEarned, coinsRedeemed,
-      couponCode: appliedCouponCode,
-      couponDiscount,
-      ...(req.user ? { userId: req.user.id } : {}),
-    });
+    let order;
+    try {
+      order = await Order.create({
+        orderNumber, name, email, phone, addressLine, city, state, pincode,
+        items: enrichedItems, subtotal, shipping, total: finalTotal, status: 'pending',
+        coinsEarned, coinsRedeemed,
+        couponCode: appliedCouponCode,
+        couponDiscount,
+        ...(req.user ? { userId: req.user.id } : {}),
+      });
+    } catch (createErr) {
+      if (reservedAssignment) {
+        Coupon.updateOne(
+          { _id: reservedAssignment.couponId, 'assignedUsers.user': reservedAssignment.user },
+          { $inc: { 'assignedUsers.$.usedCount': -1 } },
+        ).catch(() => {});
+      }
+      throw createErr;
+    }
 
     // Ordering counts as re-opting in — clear any prior unsubscribe.
     reactivateContact(email).catch(() => {});
