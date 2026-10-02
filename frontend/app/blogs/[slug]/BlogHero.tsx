@@ -169,14 +169,24 @@ function Cover({ blog, accent, aspect, sizes }: { blog: Blog; accent: HeroAccent
   return (
     <div className={`relative w-full ${aspect} overflow-hidden rounded-2xl sm:rounded-3xl bg-white border ${accent.border}`}>
       {blog.coverImage ? (
-        <Image
-          src={blog.coverImage}
-          alt={blog.title}
-          fill
-          priority
-          sizes={sizes}
-          className="object-contain"
-        />
+        <>
+          <Image
+            src={blog.coverImage}
+            alt=""
+            aria-hidden
+            fill
+            sizes="64px"
+            className="object-cover scale-110 blur-2xl opacity-60"
+          />
+          <Image
+            src={blog.coverImage}
+            alt={blog.title}
+            fill
+            priority
+            sizes={sizes}
+            className="object-contain"
+          />
+        </>
       ) : (
         <div className={`absolute inset-0 bg-gradient-to-br ${accent.heroGrad}`} />
       )}
