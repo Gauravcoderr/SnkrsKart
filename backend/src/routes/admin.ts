@@ -9,6 +9,7 @@ import { uploadToCloudinary } from '../services/scraper/utils';
 import { runRenderScraper, ScraperRunResult } from '../services/scraper/index';
 import { Brand } from '../models/Brand';
 import { pingIndexNow } from '../lib/indexNow';
+import { toSlug, buildProductSlug, cascadeProductSlug } from '../lib/productSlug';
 
 // In-memory Render scraper state (resets on Render restart — intentional)
 type RenderScraperState =
@@ -70,25 +71,6 @@ router.get('/me', adminAuth, (req: AdminRequest, res: Response) => {
 
 // ─── Products CRUD ─────────────────────────────────────────────────────────
 
-function toSlug(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-}
-
-// Collapses adjacent duplicate words (e.g. scraped titles already starting with
-// the brand name turn "jordan-jordan-nike-..." into "jordan-nike-...").
-function dedupeSlugWords(slug: string): string {
-  const parts = slug.split('-');
-  const out: string[] = [];
-  for (const p of parts) {
-    if (out[out.length - 1] !== p) out.push(p);
-  }
-  return out.join('-');
-}
-
-function buildProductSlug(text: string): string {
-  return dedupeSlugWords(toSlug(text));
-}
-
 // List all products (admin view - no pagination limit)
 router.get('/products', adminAuth, async (_req: Request, res: Response): Promise<void> => {
   try {
@@ -109,8 +91,8 @@ router.post('/products', adminAuth, async (req: Request, res: Response): Promise
     }
 
     data.slug = data.slug
-      ? buildProductSlug(data.slug)
-      : buildProductSlug(`${data.brand}-${data.name}-${data.colorway || ''}`);
+      ? buildProductSlug(data.slug, data.brand)
+      : buildProductSlug(`${data.brand}-${data.name}-${data.colorway || ''}`, data.brand);
 
     const existing = await Product.findOne({ slug: data.slug }).lean();
     if (existing) {
@@ -145,8 +127,10 @@ router.post('/products', adminAuth, async (req: Request, res: Response): Promise
 router.put('/products/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const update = { ...req.body };
+    delete update.previousSlugs;
+    const before = await Product.findById(req.params.id).select('slug brand').lean();
     if (update.slug) {
-      update.slug = buildProductSlug(update.slug);
+      update.slug = buildProductSlug(update.slug, update.brand ?? before?.brand);
       const dup = await Product.findOne({ slug: update.slug, _id: { $ne: req.params.id } }).lean();
       if (dup) {
         res.status(409).json({ error: 'Product with this slug already exists' });
@@ -169,6 +153,10 @@ router.put('/products/:id', adminAuth, async (req: Request, res: Response): Prom
     if (!product) {
       res.status(404).json({ error: 'Product not found' });
       return;
+    }
+    if (before && before.slug !== product.slug) {
+      await cascadeProductSlug(before.slug, product.slug);
+      pingIndexNow([`/products/${before.slug}`, `/products/${product.slug}`]);
     }
     await syncBrandCounts();
     res.json(product);
@@ -1331,7 +1319,7 @@ router.post('/scraped-products/:id/publish', adminAuth, async (req: Request, res
     }
 
     // Generate unique slug
-    let slug = buildProductSlug(`${scraped.brand}-${scraped.name}${scraped.colorway ? `-${scraped.colorway}` : ''}`);
+    let slug = buildProductSlug(`${scraped.brand}-${scraped.name}${scraped.colorway ? `-${scraped.colorway}` : ''}`, scraped.brand);
     const baseSlug = slug;
     let suffix = 2;
     while (await Product.exists({ slug })) {

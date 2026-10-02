@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { Product } from '../models/Product';
+import { buildProductSlug } from '../lib/productSlug';
 
 type MongoFilter = Record<string, any>;
 
@@ -117,10 +118,20 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
 export const getProductBySlug = async (req: Request, res: Response): Promise<void> => {
   try {
     // sourceUrl is admin-only (where the listing was resold from) — never expose it publicly
-    const product: any = await Product.findOne({ slug: req.params.slug })
-      .select('-sourceUrl')
+    const find = (filter: Record<string, unknown>) => Product.findOne(filter)
+      .select('-sourceUrl -previousSlugs')
       .populate({ path: 'relatedProducts', select: CARD_FIELDS })
       .lean();
+    const slug = req.params.slug;
+    let product: any = (await find({ slug })) ?? (await find({ previousSlugs: slug }));
+    if (!product) {
+      const brands: string[] = await Product.distinct('brand');
+      const candidates = [...new Set([buildProductSlug(slug), ...brands.map((b) => buildProductSlug(slug, b))])]
+        .filter((c) => c && c !== slug);
+      if (candidates.length) {
+        product = await find({ $or: [{ slug: { $in: candidates } }, { previousSlugs: { $in: candidates } }] });
+      }
+    }
     if (!product) { res.status(404).json({ error: 'Product not found' }); return; }
     if (product.relatedProducts?.length) {
       product.relatedProducts = product.relatedProducts

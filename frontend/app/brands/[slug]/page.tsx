@@ -2,7 +2,7 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { fetchBrandBySlug, fetchProducts } from '@/lib/api';
+import { fetchBrandBySlug, fetchProducts, NotFoundError } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
 import { BRANDS } from '@/lib/constants';
 import ProductCard from '@/components/products/ProductCard';
@@ -57,7 +57,11 @@ export default async function BrandPage({ params, searchParams }: Props) {
   if (rawSlug !== slug) permanentRedirect(`/brands/${slug}`);
 
   const meta = BRANDS.find((b) => b.slug === slug);
-  if (!meta) notFound();
+  if (!meta) {
+    const other = await fetchBrandBySlug(slug).catch((e) => { if (e instanceof NotFoundError) return null; throw e; });
+    if (other?.name) permanentRedirect(`/products?brand=${encodeURIComponent(other.name)}`);
+    notFound();
+  }
 
   const [brandResult, productsResult] = await Promise.allSettled([
     fetchBrandBySlug(slug),

@@ -55,7 +55,7 @@ async function fetchBlogPage(page: number): Promise<MetadataRoute.Sitemap> {
 
     if (page === 0) {
       const allTags = new Set<string>();
-      blogs.forEach((b) => (b.tags ?? []).forEach((t) => allTags.add(t.toLowerCase())));
+      blogs.forEach((b) => (b.tags ?? []).forEach((t) => allTags.add(t.toLowerCase().replace(/\s+/g, '-'))));
       allTags.forEach((tag) => entries.push({
         url: `${SITE_URL}/blogs/tag/${encodeURIComponent(tag)}`,
         changeFrequency: 'weekly' as const,

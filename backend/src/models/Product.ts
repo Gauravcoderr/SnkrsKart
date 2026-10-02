@@ -10,6 +10,7 @@ export interface IVariant {
 export interface IProduct extends Document {
   id: string;
   slug: string;
+  previousSlugs: string[];
   name: string;
   brand: string;
   colorway: string;
@@ -50,6 +51,7 @@ export interface IProduct extends Document {
 const ProductSchema = new Schema<IProduct>(
   {
     slug:          { type: String, required: true, unique: true, index: true },
+    previousSlugs: { type: [String], default: [], index: true },
     name:          { type: String, required: true },
     brand:         { type: String, required: true, index: true },
     colorway:      { type: String, required: true },

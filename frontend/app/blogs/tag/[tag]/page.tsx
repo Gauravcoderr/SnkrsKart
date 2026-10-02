@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import type { Blog } from '@/types';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: { params: { tag: string } }) 
   const label = tag.replace(/-/g, ' ');
   const title = `${label.charAt(0).toUpperCase() + label.slice(1)} Sneaker Blog | Snkrs Cart`;
   const description = `Browse all SNKRS CART blog posts tagged "${label}" — release guides, news, and style tips.`;
-  const url = `${SITE_URL}/blogs/tag/${params.tag}`;
+  const url = `${SITE_URL}/blogs/tag/${encodeURIComponent(tag)}`;
   return {
     title: { absolute: title },
     description,
@@ -66,6 +66,7 @@ export async function generateMetadata({ params }: { params: { tag: string } }) 
 
 export default async function TagPage({ params }: { params: { tag: string } }) {
   const tag = normalizeTag(params.tag);
+  if (decodeURIComponent(params.tag) !== tag) permanentRedirect(`/blogs/tag/${encodeURIComponent(tag)}`);
   const blogs = await fetchByTag(tag);
 
   if (blogs.length === 0) notFound();

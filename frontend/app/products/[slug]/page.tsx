@@ -1,7 +1,7 @@
 import { fetchProductBySlug, fetchTrendingProducts, fetchProductReviews, NotFoundError } from '@/lib/api';
 import { cloudinaryOgImage } from '@/lib/utils';
 import { Product } from '@/types';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import ImageGallery from '@/components/product-detail/ImageGallery';
 import ProductDetailClient from './ProductDetailClient';
 import ProductCard from '@/components/products/ProductCard';
@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: PageProps) {
     const title = product.metaTitle?.trim() || `${product.brand} ${product.name} | Buy in India | Snkrs Cart`;
     const description = product.metaDescription?.trim()
       || `Buy ${product.brand} ${product.name} for ₹${product.price.toLocaleString('en-IN')} (${discountNote}). 100% authentic ${product.brand} shoes in India — pan-India shipping. | Snkrs Cart`;
-    const url = `${SITE_URL}/products/${params.slug}`;
+    const url = `${SITE_URL}/products/${product.slug}`;
     const ogImage = cloudinaryOgImage(product.images?.[0] || '');
 
     return {
@@ -106,6 +106,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     if (e instanceof NotFoundError) notFound();
     throw e;
   }
+  if (product.slug !== params.slug) permanentRedirect(`/products/${product.slug}`);
 
   const [related, reviewData, relatedBlogs] = await Promise.all([
     fetchTrendingProducts().then((p) => p.filter((p) => p.id !== product.id && p.brand === product.brand).slice(0, 4)),

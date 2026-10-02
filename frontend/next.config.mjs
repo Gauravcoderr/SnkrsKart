@@ -69,6 +69,8 @@ const nextConfig = {
       },
       // Legacy / mistyped paths that otherwise 404 (seen in crawl logs and bot output).
       // 301 so any link equity flows to the live URL.
+      { source: '/news',              destination: '/blogs',           permanent: true },
+      { source: '/sneaker-news',      destination: '/blogs',           permanent: true },
       { source: '/blog',              destination: '/blogs',           permanent: true },
       { source: '/blog/:path*',       destination: '/blogs/:path*',    permanent: true },
       { source: '/product/:path*',    destination: '/products/:path*', permanent: true },
@@ -77,6 +79,7 @@ const nextConfig = {
       { source: '/brand/:path*',      destination: '/brands/:path*',   permanent: true },
       { source: '/shop',              destination: '/products',        permanent: true },
       { source: '/collections/:path*',destination: '/products',        permanent: true },
+      { source: '/\\$',               destination: '/',                permanent: true },
       { source: '/home',              destination: '/',                permanent: true },
       { source: '/index.html',        destination: '/',                permanent: true },
       { source: '/index',             destination: '/',                permanent: true },
