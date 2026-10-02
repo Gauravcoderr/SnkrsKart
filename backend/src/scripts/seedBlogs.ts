@@ -51,6 +51,7 @@ const blogs = [
   // air-jordan-16-black-pack-2026, jordan-son-of-mars-low-black-cat-comeback-2026, nike-gt-force-high-top-basketball-reveal-2026 — seeded 2026-09-22
   // pokemon-adidas-launch-store-list-resale-india-2026 — seeded 2026-09-22
   // air-jordan-1-low-og-last-dance-at-the-garden-india-2026 — seeded 2026-09-24
+  // nike-jordan-retro-supply-cut-2027-india-impact, nike-kobe-10-protro-5am-flight-india-2026, nike-halloween-sneakers-2026-air-jordan-5-dunk-shibuya-kd-19 — seeded 2026-10-02
 ];
 
 async function seed() {
