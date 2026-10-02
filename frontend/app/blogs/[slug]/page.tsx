@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { cloudinaryOgImage } from '@/lib/utils';
+import { cloudinaryFill, cloudinaryOgImage } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import type { Blog, Product } from '@/types';
 // Simple server-safe sanitizer — strips <script> tags, inline event handlers,
@@ -18,6 +18,7 @@ import ListenButton from './ListenButton';
 import ReadingProgress from './ReadingProgress';
 import ShareBar from './ShareBar';
 import MobileBar from './MobileBar';
+import BlogHero from './BlogHero';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
@@ -106,7 +107,9 @@ function injectHeadingIds(html: string): string {
   if (!html) return '';
   const clean = serverSanitize(html);
   let idx = 0;
-  return clean.replace(/<h([23])([^>]*)>/gi, (_m, level, attrs) => `<h${level}${attrs} id="heading-${idx++}">`);
+  return clean
+    .replace(/<h([23])([^>]*)>/gi, (_m, level, attrs) => `<h${level}${attrs} id="heading-${idx++}">`)
+    .replace(/<img\b(?![^>]*\bloading=)/gi, '<img loading="lazy" decoding="async"');
 }
 
 const TAG_TO_BRAND: Record<string, string> = {
@@ -115,6 +118,11 @@ const TAG_TO_BRAND: Record<string, string> = {
   dunk: 'Nike', 'air-force-1': 'Nike', 'air-max': 'Nike',
   samba: 'Adidas', '550': 'New Balance', 'jordan-4': 'Jordan', 'air-jordan-1': 'Jordan',
 };
+
+const NEWS_TAGS = new Set([
+  'new-release', 'drops', 'drop', 'news', 'sneaker-news', 'restock', 'release', 'releases',
+  '2026-release', 'sneaker-drop-india', 'leak', 'leaks', 'collaboration', 'collab',
+]);
 
 async function fetchProductsByTags(tags: string[]): Promise<Product[]> {
   try {
@@ -162,6 +170,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
   const contentWithIds = injectHeadingIds(safeContent);
   const minutes = readingTime(safeContent);
   const postUrl = `${SITE_URL}/blogs/${blog.slug}`;
+  const template = blog.template === 'v2' || blog.template === 'v3' ? blog.template : 'v1';
 
   const [relatedBlogs, tagProducts] = await Promise.all([
     fetchRelatedBlogs(blog.tags, blog.slug),
@@ -191,9 +200,12 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
     sameAs: BRAND_SAME_AS[brandName] ?? [],
   }));
 
+  const isNews = safeTags.some((t) => NEWS_TAGS.has(t.toLowerCase()));
+
   const articleJsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
+    '@type': isNews ? 'NewsArticle' : 'BlogPosting',
+    isAccessibleForFree: true,
     mainEntityOfPage: { '@type': 'WebPage', '@id': postUrl },
     headline: blog.title,
     description: blog.metaDescription || blog.excerpt,
@@ -229,7 +241,15 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
         'https://www.facebook.com/snkrscart',
       ],
     },
-    ...(blog.coverImage ? { image: { '@type': 'ImageObject', url: blog.coverImage, width: 1200, height: 630 } } : {}),
+    ...(blog.coverImage ? {
+      image: blog.coverImage.includes('cloudinary.com')
+        ? [
+            { '@type': 'ImageObject', url: cloudinaryFill(blog.coverImage, 1200, 675), width: 1200, height: 675 },
+            { '@type': 'ImageObject', url: cloudinaryFill(blog.coverImage, 1200, 900), width: 1200, height: 900 },
+            { '@type': 'ImageObject', url: cloudinaryFill(blog.coverImage, 1200, 1200), width: 1200, height: 1200 },
+          ]
+        : { '@type': 'ImageObject', url: blog.coverImage, width: 1200, height: 630 },
+    } : {}),
     // Speakable: tells Google Assistant / voice AI which CSS selectors hold the key content
     speakable: {
       '@type': 'SpeakableSpecification',
@@ -265,84 +285,14 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
       {/* Reading progress — fixed top bar */}
       <ReadingProgress accentColor={accent.progressColor} />
 
-      {/* ── Cinematic Hero ─────────────────────────────────────────── */}
-      <div className="relative min-h-[70vh] sm:min-h-[80vh] flex flex-col justify-end overflow-hidden bg-black">
-        {/* Background: cover image OR gradient */}
-        {blog.coverImage ? (
-          <Image
-            src={blog.coverImage}
-            alt={blog.title}
-            fill
-            unoptimized
-            className="object-cover opacity-60"
-            sizes="100vw"
-            priority
-          />
-        ) : (
-          <div className={`absolute inset-0 bg-gradient-to-br ${accent.heroGrad}`} />
-        )}
-
-        {/* Dark gradient overlay for text legibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/10" />
-
-        {/* Content on top of hero */}
-        <div className="relative z-10 max-w-4xl mx-auto w-full px-4 sm:px-6 pb-10 pt-20">
-          {/* Back link */}
-          <Link
-            href="/blogs"
-            className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.2em] uppercase text-white/60 hover:text-white transition-colors mb-6"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            SNKRS CART Blog
-          </Link>
-
-          {/* Tags */}
-          {safeTags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-5">
-              {safeTags.slice(0, 4).map((tag) => (
-                <Link
-                  key={tag}
-                  href={`/blogs/tag/${encodeURIComponent(tag.toLowerCase().replace(/\s+/g, '-'))}`}
-                  className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${accent.tagBg} ${accent.tagText} hover:opacity-75 transition-opacity`}
-                >
-                  {tag}
-                </Link>
-              ))}
-            </div>
-          )}
-
-          {/* Title */}
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.1] mb-5 max-w-3xl drop-shadow-lg">
-            {blog.title}
-          </h1>
-
-          {/* Excerpt */}
-          {blog.excerpt && (
-            <p className="text-base sm:text-lg text-white/75 leading-relaxed mb-6 max-w-2xl">
-              {blog.excerpt}
-            </p>
-          )}
-
-          {/* Meta row */}
-          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-sm text-white/60 mb-6">
-            <span className="font-semibold text-white/90">{blog.author}</span>
-            <span>&middot;</span>
-            <span>{formatDate(blog.createdAt)}</span>
-            <span>&middot;</span>
-            <span className="flex items-center gap-1">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {minutes} min read
-            </span>
-          </div>
-
-          {/* Share bar in hero */}
-          <ShareBar title={blog.title} url={postUrl} accentBg={accent.tagBg} accentText={accent.tagText} />
-        </div>
-      </div>
+      <BlogHero
+        blog={blog}
+        template={template}
+        accent={accent}
+        dateLabel={formatDate(blog.createdAt)}
+        minutes={minutes}
+        postUrl={postUrl}
+      />
 
       {/* ── Main content layout ─────────────────────────────────────── */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 lg:py-14">

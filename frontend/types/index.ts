@@ -140,10 +140,13 @@ export interface Blog {
   metaDescription?: string;
   metaKeywords?: string;
   published: boolean;
+  template?: BlogTemplate;
   wordCount?: number;
   createdAt: string;
   updatedAt: string;
 }
+
+export type BlogTemplate = 'v1' | 'v2' | 'v3';
 
 export interface SneakerProfile {
   _id: string;

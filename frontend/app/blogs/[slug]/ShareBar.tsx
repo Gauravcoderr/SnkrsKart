@@ -7,9 +7,10 @@ interface ShareBarProps {
   url: string;
   accentBg: string;
   accentText: string;
+  labelClass?: string;
 }
 
-export default function ShareBar({ title, url, accentBg, accentText }: ShareBarProps) {
+export default function ShareBar({ title, url, accentBg, accentText, labelClass = 'text-zinc-400' }: ShareBarProps) {
   const [copied, setCopied] = useState(false);
 
   function copy() {
@@ -25,7 +26,7 @@ export default function ShareBar({ title, url, accentBg, accentText }: ShareBarP
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <span className="text-xs font-bold tracking-widest uppercase text-zinc-400">Share</span>
+      <span className={`text-xs font-bold tracking-widest uppercase ${labelClass}`}>Share</span>
 
       {/* WhatsApp */}
       <a

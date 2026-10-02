@@ -29,6 +29,14 @@ export function getDiscountPercent(price: number, originalPrice: number): number
 // Transforms any Cloudinary URL to serve a 1200x630 JPEG crop — safe for WhatsApp/Facebook OG previews.
 // WhatsApp's scraper doesn't handle WebP (f_auto), and mismatched dimensions drop the preview.
 // Only strips Cloudinary transform segments (key_value pattern like c_fill,w_1200) — preserves version + folder paths.
+export function cloudinaryFill(url: string, width: number, height: number): string {
+  if (!url || !url.includes('cloudinary.com')) return url;
+  return url.replace(
+    /\/upload\/((?:[a-z]+_[^,/]+(,[a-z]+_[^,/]+)*\/)*)/,
+    `/upload/c_fill,g_auto,w_${width},h_${height},q_auto,f_jpg/`
+  );
+}
+
 export function cloudinaryOgImage(url: string): string {
   if (!url || !url.includes('cloudinary.com')) return url;
   const TRANSFORM = 'c_fill,w_1200,h_630,q_auto,f_jpg';

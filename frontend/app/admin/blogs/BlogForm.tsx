@@ -19,6 +19,12 @@ interface BlogFormProps {
   blogId?: string; // if editing
 }
 
+const TEMPLATES = [
+  { value: 'v1', label: 'V1 · Cinematic', hint: 'Full-bleed image, title over dark overlay' },
+  { value: 'v2', label: 'V2 · Editorial', hint: 'Title first, full cover image below' },
+  { value: 'v3', label: 'V3 · Split', hint: 'Text panel beside cover, image first on mobile' },
+];
+
 export default function BlogForm({ blogId }: BlogFormProps) {
   const router = useRouter();
   const isEdit = !!blogId;
@@ -35,6 +41,7 @@ export default function BlogForm({ blogId }: BlogFormProps) {
     metaDescription: '',
     metaKeywords: '',
     published: false,
+    template: 'v2',
   });
   const [emailOpts, setEmailOpts] = useState({ triggerEmail: true, emailSubject: '', emailHtml: '' });
   const [loading, setLoading] = useState(false);
@@ -77,6 +84,7 @@ export default function BlogForm({ blogId }: BlogFormProps) {
           metaDescription: data.metaDescription || '',
           metaKeywords: data.metaKeywords || '',
           published: data.published || false,
+          template: data.template || 'v1',
         });
         setSlugManual(true);
       })
@@ -200,6 +208,31 @@ export default function BlogForm({ blogId }: BlogFormProps) {
                 {form.published ? 'Published' : 'Draft'}
               </span>
             </label>
+          </div>
+
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <p className="text-xs font-bold tracking-widest uppercase text-zinc-400 mb-3">Layout</p>
+            <div className="space-y-2">
+              {TEMPLATES.map((t) => (
+                <label
+                  key={t.value}
+                  className={`flex items-start gap-3 rounded-lg border px-3 py-2 cursor-pointer transition ${form.template === t.value ? 'border-indigo-400 bg-indigo-500/10' : 'border-zinc-700 hover:border-zinc-500'}`}
+                >
+                  <input
+                    type="radio"
+                    name="template"
+                    value={t.value}
+                    checked={form.template === t.value}
+                    onChange={() => set('template', t.value)}
+                    className="mt-1 accent-indigo-400"
+                  />
+                  <span>
+                    <span className="block text-sm font-semibold text-zinc-200">{t.label}</span>
+                    <span className="block text-[11px] text-zinc-500">{t.hint}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
 
           {/* Cover image */}
