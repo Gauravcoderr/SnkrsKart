@@ -8,9 +8,8 @@ import { Blog } from '../models/Blog';
 async function main() {
   await mongoose.connect(process.env.MONGODB_URI as string);
   const slugs = [
-    'nike-jordan-retro-supply-cut-2027-india-impact',
-    'nike-kobe-10-protro-5am-flight-india-2026',
-    'nike-halloween-sneakers-2026-air-jordan-5-dunk-shibuya-kd-19',
+    'lisa-blackpink-nike-moon-shoe-tough-red-campaign-india-2026',
+    'puma-rcb-dhruv-kapoor-milan-fashion-week-jackets-india-2026',
   ];
   const blogs = await Blog.find({ slug: { $in: slugs }, published: true }).lean();
   if (!blogs.length) { console.log('No published blogs found'); process.exit(0); }
