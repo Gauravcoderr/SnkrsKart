@@ -167,26 +167,16 @@ function HeroMeta({ blog, accent, dateLabel, minutes, postUrl, titleClass, excer
 
 function Cover({ blog, accent, aspect, sizes }: { blog: Blog; accent: HeroAccent; aspect: string; sizes: string }) {
   return (
-    <div className={`relative w-full ${aspect} overflow-hidden rounded-2xl sm:rounded-3xl bg-white border ${accent.border}`}>
+    <div className={`relative w-full ${aspect} overflow-hidden rounded-2xl sm:rounded-3xl bg-zinc-100 border ${accent.border}`}>
       {blog.coverImage ? (
-        <>
-          <Image
-            src={blog.coverImage}
-            alt=""
-            aria-hidden
-            fill
-            sizes="64px"
-            className="object-cover scale-110 blur-2xl opacity-60"
-          />
-          <Image
-            src={blog.coverImage}
-            alt={blog.title}
-            fill
-            priority
-            sizes={sizes}
-            className="object-contain"
-          />
-        </>
+        <Image
+          src={blog.coverImage}
+          alt={blog.title}
+          fill
+          priority
+          sizes={sizes}
+          className="object-cover object-center"
+        />
       ) : (
         <div className={`absolute inset-0 bg-gradient-to-br ${accent.heroGrad}`} />
       )}
