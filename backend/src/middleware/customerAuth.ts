@@ -8,40 +8,45 @@ export interface AuthRequest extends Request {
   user?: { id: string; email: string };
 }
 
-/** Extract token from Authorization header or cookie */
-function extractToken(req: AuthRequest): string | null {
+type Decoded = { id: string; email: string; type?: string };
+
+function candidateTokens(req: AuthRequest): string[] {
+  const tokens: string[] = [];
   const authHeader = req.headers.authorization;
-  if (authHeader?.startsWith('Bearer ')) return authHeader.slice(7);
-  return req.cookies?.access_token || null;
+  if (authHeader?.startsWith('Bearer ')) tokens.push(authHeader.slice(7));
+  if (req.cookies?.access_token) tokens.push(req.cookies.access_token);
+  return tokens;
 }
 
-/** Requires valid access token — rejects with 401 if missing/invalid */
+function verifyAny(tokens: string[]): Decoded | null {
+  for (const token of tokens) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as Decoded;
+      if (decoded.type !== 'refresh') return decoded;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
 export function customerAuth(req: AuthRequest, res: Response, next: NextFunction): void {
-  const token = extractToken(req);
-  if (!token) {
+  const tokens = candidateTokens(req);
+  if (tokens.length === 0) {
     res.status(401).json({ error: 'Not authenticated' });
     return;
   }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
-    req.user = decoded;
-    next();
-  } catch {
+  const decoded = verifyAny(tokens);
+  if (!decoded) {
     res.status(401).json({ error: 'Invalid or expired token' });
+    return;
   }
+  req.user = { id: decoded.id, email: decoded.email };
+  next();
 }
 
-/** Attaches user if token present, but does NOT reject — for optional auth routes */
 export function optionalAuth(req: AuthRequest, _res: Response, next: NextFunction): void {
-  const token = extractToken(req);
-  if (!token) { next(); return; }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
-    req.user = decoded;
-  } catch {
-    // Token invalid — proceed without user
-  }
+  const decoded = verifyAny(candidateTokens(req));
+  if (decoded) req.user = { id: decoded.id, email: decoded.email };
   next();
 }

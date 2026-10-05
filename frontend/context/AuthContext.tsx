@@ -2,27 +2,11 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getStoredToken, saveToken, clearToken, authHeaders, refreshSession, TOKEN_KEY } from '@/lib/session';
+
+export { getStoredToken, saveToken, clearToken, authHeaders };
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-const TOKEN_KEY = 'snkrs_token';
-
-export function getStoredToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(TOKEN_KEY);
-}
-
-export function saveToken(token: string) {
-  if (typeof window !== 'undefined') localStorage.setItem(TOKEN_KEY, token);
-}
-
-export function clearToken() {
-  if (typeof window !== 'undefined') localStorage.removeItem(TOKEN_KEY);
-}
-
-export function authHeaders(): HeadersInit {
-  const token = getStoredToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 export interface UserProfile {
   id: string;
@@ -63,27 +47,29 @@ const AuthContext = createContext<AuthState>({
   logout: () => {},
 });
 
+function getMe(token: string | null): Promise<Response> {
+  return fetch(`${API}/auth/me`, {
+    credentials: 'include',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+}
+
 async function fetchMe(): Promise<UserProfile | null> {
-  const token = getStoredToken();
-  if (!token) return null;
-
-  const res = await fetch(`${API}/auth/me`, { credentials: 'include', headers: { Authorization: `Bearer ${token}` } });
+  const res = await getMe(getStoredToken());
   if (res.ok) return res.json();
+  if (res.status !== 401) throw new Error(`auth/me ${res.status}`);
 
-  if (res.status === 401) {
-    const refreshRes = await fetch(`${API}/auth/refresh`, { method: 'POST', credentials: 'include' });
-    if (refreshRes.ok) {
-      const refreshData = await refreshRes.json();
-      if (refreshData.accessToken) saveToken(refreshData.accessToken);
-      const newHeaders: HeadersInit = refreshData.accessToken
-        ? { Authorization: `Bearer ${refreshData.accessToken}` }
-        : {};
-      const retry = await fetch(`${API}/auth/me`, { credentials: 'include', headers: newHeaders });
-      if (retry.ok) return retry.json();
-    }
+  const refreshed = await refreshSession();
+  if (refreshed.status === 'unauthenticated') return null;
+  if (refreshed.status === 'unavailable') throw new Error('auth/refresh unavailable');
+
+  const retry = await getMe(refreshed.token);
+  if (retry.ok) return retry.json();
+  if (retry.status === 401) {
     clearToken();
+    return null;
   }
-  return null;
+  throw new Error(`auth/me ${retry.status}`);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -94,7 +80,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ['auth', 'me'],
     queryFn: fetchMe,
     staleTime: 5 * 60 * 1000,
-    retry: false,
+    retry: 3,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 15000),
     refetchOnWindowFocus: true,
   });
 
@@ -106,9 +93,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await fetch(`${API}/auth/logout`, { method: 'POST', credentials: 'include', headers: authHeaders() });
+      await fetch(`${API}/auth/logout`, { method: 'POST', credentials: 'include', headers: authHeaders() }).catch(() => {});
     },
-    onSuccess: () => {
+    onSettled: () => {
       clearToken();
       queryClient.setQueryData(['auth', 'me'], null);
       queryClient.invalidateQueries({ queryKey: ['orders', 'my'] });
@@ -120,8 +107,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.invalidateQueries({ queryKey: ['orders', 'my'] });
   }, [queryClient]);
 
-  // Sync login/logout across tabs — when another tab writes or removes the token,
-  // refetch auth state so all tabs stay consistent.
   useEffect(() => {
     function onStorage(e: StorageEvent) {
       if (e.key !== TOKEN_KEY) return;

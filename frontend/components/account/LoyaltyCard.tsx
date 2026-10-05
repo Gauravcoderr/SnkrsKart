@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { LoyaltyAccount } from '@/types';
-import { getStoredToken } from '@/context/AuthContext';
+import { fetchWithAuth } from '@/lib/fetchWithAuth';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -42,13 +42,7 @@ export default function LoyaltyCard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = getStoredToken();
-    if (!token) { setLoading(false); return; }
-    fetch(`${BASE_URL}/loyalty/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-      credentials: 'include',
-      cache: 'no-store',
-    } as RequestInit)
+    fetchWithAuth(`${BASE_URL}/loyalty/me`, { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => { if (data) setLoyalty(data); })
       .catch(() => {})

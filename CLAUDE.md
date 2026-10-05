@@ -4,7 +4,7 @@
 - **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS → Vercel at `https://snkrs-kart.vercel.app`
 - **Backend**: Express + TypeScript + MongoDB (Mongoose) → Render at `https://snkrskart.onrender.com`
 - **AI Chatbot**: Gemini 2.0 Flash (primary) → Groq llama-3.3-70b (fallback)
-- **Auth**: OTP via email, JWT access/refresh tokens in httpOnly cookies
+- **Auth**: OTP via email/phone or Google, JWT access (15m) + refresh (30d) in httpOnly cookies. Refresh tokens are per-device: `User.refreshTokens[]` (sha256 hashes, max 10, legacy `refreshToken` still honoured on first refresh). Frontend session restore is cookie-first (`lib/session.ts` single shared refresh lock, `fetchWithAuth` retries once). Only a 401 from `/auth/refresh` logs out; network/5xx keep the session and retry.
 - **Admin auth**: username/password → JWT in `localStorage` as `admin_token`
 - **Images**: Cloudinary (`NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dadulg5bs`)
 - **No PostgreSQL** — everything is MongoDB. Supabase keys exist in .env but are unused for main data.
@@ -139,6 +139,7 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 ## Important decisions / gotchas
 - Render free tier sleeps after 15 min inactivity → UptimeRobot pings `/health` every 5 min
 - `trust proxy 1` set on Express for correct IP in rate-limiter behind Render/Vercel
+- Auth cookies are `SameSite=None; Secure` in prod because frontend (`www.snkrscart.com`) and backend (`snkrskart.onrender.com`) are cross-site. Safari/iOS/Incognito block that cookie, so persistent login needs the API on `api.snkrscart.com` (CNAME → Render custom domain), then set `COOKIE_SAMESITE=lax` on Render and `NEXT_PUBLIC_API_URL=https://api.snkrscart.com/api/v1` on Vercel. CSP `connect-src` already allows it.
 - Brand grid uses `brand.slug` (NOT `brand.id`) for brandMeta lookup
 - Next.js Image: allowed domains in `next.config.mjs` include Supabase + Cloudinary
 - Admin token stored in `localStorage` (not httpOnly cookie) — separate from customer auth

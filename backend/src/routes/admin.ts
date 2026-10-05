@@ -522,7 +522,7 @@ router.put('/orders/:id', adminAuth, async (req: Request, res: Response): Promis
 router.get('/users', adminAuth, async (_req: Request, res: Response): Promise<void> => {
   try {
     const users = await User.find()
-      .select('-otp -otpExpiry -otpAttempts -lastOtpSent -refreshToken')
+      .select('-otp -otpExpiry -otpAttempts -lastOtpSent -refreshToken -refreshTokens')
       .sort({ createdAt: -1 })
       .lean();
     const result = await Promise.all(users.map(async (u) => {
@@ -544,7 +544,7 @@ router.get('/users', adminAuth, async (_req: Request, res: Response): Promise<vo
 router.get('/users/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const user = await User.findById(req.params.id)
-      .select('-otp -otpExpiry -otpAttempts -lastOtpSent -refreshToken')
+      .select('-otp -otpExpiry -otpAttempts -lastOtpSent -refreshToken -refreshTokens')
       .lean();
     if (!user) { res.status(404).json({ error: 'User not found' }); return; }
     const [orders, assigned] = await Promise.all([

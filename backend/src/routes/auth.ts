@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Types } from 'mongoose';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
@@ -21,21 +22,40 @@ function hashOtp(otp: string): string {
 
 function generateTokens(userId: string, email: string) {
   const accessToken = jwt.sign({ id: userId, email }, JWT_SECRET, { expiresIn: '15m' });
-  const refreshToken = jwt.sign({ id: userId, email, type: 'refresh' }, JWT_SECRET, { expiresIn: '30d' });
+  const refreshToken = jwt.sign({ id: userId, email, type: 'refresh' }, JWT_SECRET, { expiresIn: '30d', jwtid: crypto.randomUUID() });
   return { accessToken, refreshToken };
 }
 
-function setTokenCookies(res: Response, accessToken: string, refreshToken: string) {
-  // Production (Render + Vercel = cross-origin) needs SameSite=None; Secure
-  // NODE_ENV is set to 'production' by Render automatically
+const MAX_SESSIONS = 10;
+
+function cookieOptions() {
   const isProd = process.env.NODE_ENV === 'production';
-  const cookieBase = {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax',
-  };
-  res.cookie('access_token', accessToken, { ...cookieBase, maxAge: 15 * 60 * 1000 });
-  res.cookie('refresh_token', refreshToken, { ...cookieBase, maxAge: 30 * 24 * 60 * 60 * 1000 });
+  const sameSite = (process.env.COOKIE_SAMESITE || (isProd ? 'none' : 'lax')) as 'none' | 'lax' | 'strict';
+  return { httpOnly: true, secure: isProd, sameSite };
+}
+
+function setTokenCookies(res: Response, accessToken: string, refreshToken: string) {
+  const base = cookieOptions();
+  res.cookie('access_token', accessToken, { ...base, maxAge: 15 * 60 * 1000 });
+  res.cookie('refresh_token', refreshToken, { ...base, maxAge: 30 * 24 * 60 * 60 * 1000 });
+}
+
+async function storeSession(userId: Types.ObjectId | string, newRefreshToken: string, replacedRefreshToken?: string) {
+  if (replacedRefreshToken) {
+    await User.updateOne({ _id: userId }, { $pull: { refreshTokens: hashOtp(replacedRefreshToken) } });
+  }
+  await User.updateOne(
+    { _id: userId },
+    {
+      $push: { refreshTokens: { $each: [hashOtp(newRefreshToken)], $slice: -MAX_SESSIONS } },
+      $set: { refreshToken: null },
+    }
+  );
+}
+
+function sessionKnown(user: { refreshTokens?: string[]; refreshToken?: string | null }, refreshToken: string): boolean {
+  const hash = hashOtp(refreshToken);
+  return (user.refreshTokens ?? []).includes(hash) || user.refreshToken === hash;
 }
 
 // ─── Send OTP ──────────────────────────────────────────────────────────────
@@ -225,9 +245,9 @@ router.post('/verify-otp', async (req: Request, res: Response): Promise<void> =>
 
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(user._id.toString(), resolvedEmail);
-    updates.refreshToken = hashOtp(refreshToken);
 
     await User.updateOne({ _id: user._id }, { $set: updates });
+    await storeSession(user._id, refreshToken);
 
     if (resolvedEmail) {
       Order.updateMany(
@@ -262,23 +282,26 @@ router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
     const token = req.cookies?.refresh_token;
     if (!token) { res.status(401).json({ error: 'No refresh token' }); return; }
 
-    let decoded: { id: string; email: string };
+    let decoded: { id: string; email: string; type?: string };
     try {
       decoded = jwt.verify(token, JWT_SECRET) as any;
     } catch {
       res.status(401).json({ error: 'Invalid refresh token' });
       return;
     }
+    if (decoded.type !== 'refresh') {
+      res.status(401).json({ error: 'Invalid refresh token' });
+      return;
+    }
 
-    const user = await User.findById(decoded.id);
-    if (!user || user.refreshToken !== hashOtp(token)) {
+    const user = await User.findById(decoded.id).select('email refreshToken refreshTokens').lean();
+    if (!user || !sessionKnown(user, token)) {
       res.status(401).json({ error: 'Token revoked' });
       return;
     }
 
-    // Rotate tokens
     const { accessToken, refreshToken } = generateTokens(user._id.toString(), user.email);
-    await User.updateOne({ _id: user._id }, { $set: { refreshToken: hashOtp(refreshToken) } });
+    await storeSession(user._id, refreshToken, token);
 
     setTokenCookies(res, accessToken, refreshToken);
     res.json({ message: 'Refreshed', accessToken });
@@ -310,7 +333,7 @@ router.post('/google', async (req: Request, res: Response): Promise<void> => {
     );
 
     const { accessToken, refreshToken } = generateTokens(user!._id.toString(), cleanEmail);
-    await User.updateOne({ _id: user!._id }, { $set: { refreshToken: hashOtp(refreshToken) } });
+    await storeSession(user!._id, refreshToken);
 
     Order.updateMany({ email: cleanEmail, userId: null }, { $set: { userId: user!._id } }).catch(() => {});
 
@@ -335,18 +358,17 @@ router.post('/google', async (req: Request, res: Response): Promise<void> => {
 // ─── Logout ────────────────────────────────────────────────────────────────
 
 router.post('/logout', async (req: Request, res: Response): Promise<void> => {
-  const token = req.cookies?.access_token;
-  if (token) {
+  const refreshToken = req.cookies?.refresh_token;
+  if (refreshToken) {
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
-      await User.updateOne({ _id: decoded.id }, { $set: { refreshToken: null } });
+      const decoded = jwt.verify(refreshToken, JWT_SECRET) as { id: string };
+      await User.updateOne({ _id: decoded.id }, { $pull: { refreshTokens: hashOtp(refreshToken) } });
     } catch { /* ignore */ }
   }
 
-  const isProd = process.env.NODE_ENV === 'production';
-  const cookieBase = { httpOnly: true, secure: isProd, sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax' };
-  res.clearCookie('access_token', cookieBase);
-  res.clearCookie('refresh_token', cookieBase);
+  const base = cookieOptions();
+  res.clearCookie('access_token', base);
+  res.clearCookie('refresh_token', base);
   res.json({ message: 'Logged out' });
 });
 
@@ -354,7 +376,7 @@ router.post('/logout', async (req: Request, res: Response): Promise<void> => {
 
 router.get('/me', customerAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const user = await User.findById(req.user!.id).select('-otp -otpExpiry -otpAttempts -lastOtpSent -refreshToken -__v').lean();
+    const user = await User.findById(req.user!.id).select('-otp -otpExpiry -otpAttempts -lastOtpSent -refreshToken -refreshTokens -__v').lean();
     if (!user) { res.status(404).json({ error: 'User not found' }); return; }
     res.json({ ...user, id: user._id.toString() });
   } catch {
@@ -372,7 +394,7 @@ router.put('/me', customerAuth, async (req: AuthRequest, res: Response): Promise
     if (phone !== undefined) updates.phone = phone.trim();
 
     const user = await User.findByIdAndUpdate(req.user!.id, { $set: updates }, { returnDocument: 'after' })
-      .select('-otp -otpExpiry -otpAttempts -lastOtpSent -refreshToken -__v').lean();
+      .select('-otp -otpExpiry -otpAttempts -lastOtpSent -refreshToken -refreshTokens -__v').lean();
     if (!user) { res.status(404).json({ error: 'User not found' }); return; }
     res.json({ ...user, id: user._id.toString() });
   } catch {

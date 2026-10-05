@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useMutation } from '@tanstack/react-query';
-import { useAuth, authHeaders } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
+import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import LoyaltyCard from '@/components/account/LoyaltyCard';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -17,10 +18,9 @@ export default function AccountPage() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`${API}/auth/me`, {
+      const res = await fetchWithAuth(`${API}/auth/me`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name.trim(), phone: phone.trim() }),
       });
       if (!res.ok) throw new Error('Failed to save');
