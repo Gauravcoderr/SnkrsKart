@@ -474,14 +474,12 @@ export async function POST(req: NextRequest) {
 
     // Fallback 2: NVIDIA NIM — cycle through free models until one responds
     if (!rawText && process.env.NVIDIA_API_KEY) {
-      const NVIDIA_MODELS = [
-        'meta/llama-4-maverick-17b-128e-instruct',
-        'nvidia/llama-3.1-nemotron-70b-instruct',
-        'meta/llama-3.1-405b-instruct',
-        'mistralai/mistral-large-2-instruct',
-        'google/gemma-2-27b-it',
+      const NVIDIA_MODELS: Array<{ model: string; extra: Record<string, unknown> }> = [
+        { model: 'nvidia/nemotron-3-super-120b-a12b', extra: { chat_template_kwargs: { enable_thinking: false } } },
+        { model: 'nvidia/nemotron-3.5-lightning-30b-a3b', extra: { chat_template_kwargs: { enable_thinking: false } } },
+        { model: 'openai/gpt-oss-20b', extra: { reasoning_effort: 'low' } },
       ];
-      for (const model of NVIDIA_MODELS) {
+      for (const { model, extra } of NVIDIA_MODELS) {
         if (rawText) break;
         try {
           const res = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
@@ -497,14 +495,29 @@ export async function POST(req: NextRequest) {
                 ...historyMessages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
               ],
               max_tokens: 512,
+              temperature: 0.4,
+              ...extra,
             }),
+            signal: AbortSignal.timeout(20_000),
           });
           const data = await res.json();
+          if (!res.ok) {
+            console.warn(`NVIDIA NIM [${model}] HTTP ${res.status}:`, JSON.stringify(data).slice(0, 200));
+            continue;
+          }
           rawText = data.choices?.[0]?.message?.content ?? '';
         } catch (nvidiaErr: any) {
           console.warn(`NVIDIA NIM [${model}] failed:`, nvidiaErr?.message);
         }
       }
+    }
+
+    if (!rawText) {
+      console.error('KickBot: every provider returned empty text');
+      return NextResponse.json(
+        { text: "I'm having trouble connecting right now. Try again in a minute, or WhatsApp us from the green button.", products: [], blogs: [] },
+        { status: 503 },
+      );
     }
 
     // Parse compact TOON tags: [S:slug-1,slug-2] and [BS:slug-1]
