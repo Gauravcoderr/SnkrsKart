@@ -4,6 +4,8 @@ import { buildProductSlug } from '../lib/productSlug';
 
 type MongoFilter = Record<string, any>;
 
+const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 function buildFilter(query: Record<string, string>): MongoFilter {
   const filter: MongoFilter = {};
 
@@ -38,7 +40,6 @@ function buildFilter(query: Record<string, string>): MongoFilter {
   }
 
   if (query.category) {
-    const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const cats = query.category.split(',').map((c) => c.trim()).filter(Boolean);
     filter.category = { $in: cats.map((c) => new RegExp(`^${esc(c)}$`, 'i')) };
   }
@@ -54,12 +55,12 @@ function buildFilter(query: Record<string, string>): MongoFilter {
   if (query.search) {
     // AND-of-OR: every search word must appear in at least one product field.
     // "black cat" → product must contain "black" AND "cat" → Black Cat found, not just any black shoe.
-    const words = query.search.trim().split(/\s+/).filter((w) => w.length > 1);
+    const words = query.search.trim().split(/\s+/).filter((w) => w.length > 1 || /^\d$/.test(w));
     if (words.length > 0) {
       (filter as any).$and = [
         ...((filter as any).$and ?? []),
         ...words.map((w) => {
-          const re = new RegExp(w, 'i');
+          const re = /^\d+$/.test(w) ? new RegExp(`\\b${w}\\b`, 'i') : new RegExp(esc(w), 'i');
           return { $or: [{ name: re }, { brand: re }, { colorway: re }, { tags: re }] };
         }),
       ];

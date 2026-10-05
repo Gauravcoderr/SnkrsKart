@@ -99,7 +99,7 @@ function detectCategory(q: string): string | null {
 
 // Detect shoe size from query
 function detectSize(q: string): number | null {
-  const m = q.match(/\b(?:size\s*)?(?:uk\s*|us\s*|eu\s*)?(\d{1,2}(?:\.\d)?)\s*(?:uk|us|eu)?\b/);
+  const m = q.match(/\b(?:size|uk|us|eu)\s*(\d{1,2}(?:\.\d)?)\b/) ?? q.match(/\b(\d{1,2}(?:\.\d)?)\s*(?:uk|us|eu)\b/);
   if (!m) return null;
   const n = parseFloat(m[1]);
   return n >= 4 && n <= 15 ? n : null;
@@ -127,11 +127,11 @@ function resolveProductUrl(entityQuery: string, searchQuery: string = entityQuer
     return `${BACKEND_URL}/products/trending`;
   if (/coming soon|drop soon/.test(sq))
     return `${BACKEND_URL}/products/coming-soon`;
-  if (/gift|present|surprise/.test(sq))
+  if (/gift|present|surprise/.test(sq) && !detectBrand(q) && !detectCategory(q))
     return `${BACKEND_URL}/products/featured`;
 
   // Entity detection uses cumulative query (carries forward brand/size/gender from earlier turns)
-  const params = new URLSearchParams({ limit: '20' });
+  const params = new URLSearchParams({ limit: '40' });
 
   const brand = detectBrand(q);
   if (brand) params.set('brand', brand);
@@ -145,16 +145,61 @@ function resolveProductUrl(entityQuery: string, searchQuery: string = entityQuer
   const maxPrice = detectMaxPrice(q);
   if (maxPrice) { params.set('maxPrice', String(maxPrice)); params.set('sort', 'price_asc'); }
 
-  const gender = /\bwomen\b|\bfemale\b|\bgirl\b/.test(q) ? 'women'
-    : /\bmen\b|\bmale\b|\bguy\b|\bboy\b/.test(q) && !/women/.test(q) ? 'men'
+  const gender = /\bwomen\b|\bfemale\b|\bgirl\b|\bher\b|\bwife\b|\bgirlfriend\b/.test(q) ? 'women'
+    : /\bmen\b|\bmale\b|\bguy\b|\bboy\b|\bhim\b|\bhusband\b|\bboyfriend\b/.test(q) && !/women/.test(q) ? 'men'
     : null;
   if (gender) params.set('gender', gender);
 
+  if (!/\b(t-?shirt|tee|hoodie|jacket|shorts|trousers|pants|cap|socks|apparel|clothing)\b/.test(q)) {
+    params.set('productType', 'shoes');
+  }
+
   // Keyword search uses last message only — avoids polluting specific product searches with history
-  const terms = extractProductTerms(searchQuery) || searchQuery;
+  const terms = extractSearchTerms(searchQuery, { size, maxPrice });
   if (terms) params.set('search', terms);
 
   return `${BACKEND_URL}/products?${params}`;
+}
+
+const FILTER_WORDS = new Set([
+  'under', 'below', 'above', 'over', 'budget', 'max', 'upto', 'around', 'within', 'between', 'rs', 'inr',
+  'size', 'sizes', 'uk', 'us', 'eu', 'women', 'womens', 'woman', 'men', 'mens', 'man', 'ladies', 'girl', 'girls', 'boy', 'boys',
+  'which', 'that', 'this', 'these', 'those', 'some', 'something', 'anything', 'available', 'stock', 'instock',
+  'gift', 'gifting', 'present', 'her', 'him', 'wife', 'husband', 'girlfriend', 'boyfriend', 'friend',
+  'shoe', 'shoes', 'sneaker', 'sneakers', 'kicks', 'pair', 'pairs', 'option', 'options', 'please', 'pls',
+]);
+
+function extractSearchTerms(text: string, used: { size: number | null; maxPrice: number | null }): string {
+  const consumed = new Set<string>();
+  if (used.size) consumed.add(String(used.size));
+  if (used.maxPrice) { consumed.add(String(used.maxPrice)); consumed.add(String(used.maxPrice / 1000)); }
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length > 1 || /^\d$/.test(w))
+    .filter((w) => !STOP_WORDS.has(w) && !FILTER_WORDS.has(w) && !consumed.has(w))
+    .filter((w) => !/^\d{4,}$/.test(w))
+    .join(' ')
+    .trim();
+}
+
+function productUrlFallbacks(url: string): string[] {
+  const u = new URL(url);
+  if (!u.pathname.endsWith('/products')) return [url];
+  const out = [url];
+  const drop = (key: string) => {
+    const last = new URL(out[out.length - 1]);
+    if (!last.searchParams.has(key)) return;
+    last.searchParams.delete(key);
+    if (key === 'maxPrice') last.searchParams.delete('sort');
+    out.push(last.toString());
+  };
+  drop('search');
+  drop('category');
+  drop('size');
+  drop('maxPrice');
+  return out;
 }
 
 // Extract persistent user preferences from full conversation history
@@ -187,11 +232,20 @@ function extractPreferences(messages: Message[]): string {
 
 async function fetchProductContext(entityQuery: string, searchQuery?: string): Promise<string> {
   try {
-    const res = await fetch(resolveProductUrl(entityQuery, searchQuery ?? entityQuery), { cache: 'no-store' });
-    if (!res.ok) return '';
-    const data = await res.json();
-    const products: any[] = Array.isArray(data) ? data : (data.products ?? []);
+    let products: any[] = [];
+    for (const url of productUrlFallbacks(resolveProductUrl(entityQuery, searchQuery ?? entityQuery))) {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) continue;
+      const data = await res.json();
+      products = Array.isArray(data) ? data : (data.products ?? []);
+      if (Array.isArray(products) && products.length > 0) break;
+    }
     if (!Array.isArray(products) || products.length === 0) return '';
+    const modelNumbers = (searchQuery ?? entityQuery).match(/\b\d{1,4}\b/g)?.filter((n) => n.length <= 2 || /^(550|574|990|991|992|993|1906|2002|9060|327|530|740|1000|95|97|90|270|720)$/.test(n)) ?? [];
+    if (modelNumbers.length) {
+      const matched = products.filter((p: any) => modelNumbers.some((n) => new RegExp(`\\b${n}\\b`).test(String(p.name))));
+      if (matched.length) products = matched;
+    }
     // TOON format: one header + pipe-separated rows — saves ~40% tokens vs key:value per row
     const header = 'name|brand|price|origPrice|inStock|category|gender|sizes|rating|tags|slug';
     const rows = products.map((p: any) => {
@@ -210,6 +264,69 @@ async function fetchProductContext(entityQuery: string, searchQuery?: string): P
     return '';
   }
 }
+
+interface CatalogEntry { name: string; prices: string[]; slug: string }
+
+function parseCatalog(context: string): CatalogEntry[] {
+  if (!context) return [];
+  return context
+    .split('\n')
+    .slice(1)
+    .map((row) => row.split('|'))
+    .filter((cols) => cols.length >= 11)
+    .map((cols) => ({
+      name: cols[0].trim(),
+      prices: [cols[2].split('(')[0], cols[3]].map((p) => p.replace(/[^\d]/g, '')).filter(Boolean),
+      slug: cols[cols.length - 1].trim(),
+    }));
+}
+
+function normalizeName(s: string): string {
+  return s.toLowerCase().replace(/[‘’'"`’]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+const PRODUCT_LIKE = /\b(nike|jordan|adidas|new balance|crocs|air|dunk|yeezy|samba|retro|force|max|puma|asics|reebok|vans|converse)\b/i;
+
+function findUngroundedClaims(text: string, catalog: CatalogEntry[], userText: string): string[] {
+  const names = catalog.map((c) => normalizeName(c.name));
+  const prices = new Set(catalog.flatMap((c) => c.prices));
+  for (const m of userText.matchAll(/(\d[\d,]{2,})\s*(k)?/gi)) {
+    const n = m[1].replace(/,/g, '');
+    prices.add(m[2] ? String(parseInt(n) * 1000) : n);
+  }
+  const flagged: string[] = [];
+  for (const bold of text.matchAll(/\*\*([^*\n]{4,80})\*\*/g)) {
+    if (!PRODUCT_LIKE.test(bold[1])) continue;
+    const claim = normalizeName(bold[1].replace(/\s[—–-]\s.*$/, ''));
+    if (claim.length < 6) continue;
+    const grounded = names.some((n) => n.includes(claim) || claim.includes(n) || sharesHead(n, claim));
+    if (!grounded) flagged.push(bold[1]);
+  }
+  for (const m of text.matchAll(/₹\s?([\d,]{4,})/g)) {
+    const p = m[1].replace(/,/g, '');
+    if (!prices.has(p)) flagged.push(`₹${m[1]}`);
+  }
+  return flagged;
+}
+
+function sharesHead(a: string, b: string): boolean {
+  const wa = a.split(' ').slice(0, 4).join(' ');
+  const wb = b.split(' ').slice(0, 4).join(' ');
+  return wa.length >= 12 && wa === wb;
+}
+
+const NVIDIA_SCHEMA = {
+  type: 'object',
+  properties: {
+    reply: { type: 'string' },
+    product_slugs: { type: 'array', items: { type: 'string' } },
+    blog_slugs: { type: 'array', items: { type: 'string' } },
+  },
+  required: ['reply', 'product_slugs', 'blog_slugs'],
+  additionalProperties: false,
+};
+
+const STRUCTURED_NOTE = `\n\n━━━ OUTPUT FORMAT ━━━\nRespond with a JSON object: "reply" is the conversational message for the user (no [S:] or [BS:] tags inside it), "product_slugs" lists the exact catalog slugs of every product you mention or recommend, "blog_slugs" lists exact blog slugs from the blog context. Use only slugs that appear in the context above. Empty arrays when nothing applies.`;
 
 async function lookupOrder(text: string): Promise<any | null> {
   const orderMatch = text.match(/SC-[A-Z0-9]+-[A-Z0-9]+/i);
@@ -405,16 +522,19 @@ export async function POST(req: NextRequest) {
       extractPreferences(messages),
     ].join(' ').trim();
 
-    const [productContext, blogContext, dropContext] = skipContext
-      ? ['', '', '']
-      : await Promise.all([
-          fetchProductContext(cumulativeQuery, lastUserMessage),
-          fetchBlogContext(lastUserMessage),
-          fetchDropContext(cumulativeQuery),
-        ]);
+    const [productContext, blogContext, dropContext] = await Promise.all([
+      fetchProductContext(cumulativeQuery, lastUserMessage),
+      skipContext ? '' : fetchBlogContext(lastUserMessage),
+      skipContext ? '' : fetchDropContext(cumulativeQuery),
+    ]);
+
+    const catalog = parseCatalog(productContext);
+    const allowedBlogSlugs = new Set(blogContext.split('\n').slice(1).map((row) => row.split('|').pop() ?? '').filter(Boolean));
 
     let systemWithContext = SYSTEM_PROMPT;
-    if (productContext) systemWithContext += `\n\n--- AVAILABLE PRODUCTS ---\n${productContext}\n--- END PRODUCTS ---`;
+    systemWithContext += productContext
+      ? `\n\n--- AVAILABLE PRODUCTS ---\n${productContext}\n--- END PRODUCTS ---`
+      : `\n\n--- AVAILABLE PRODUCTS ---\n(none matched this query. Do not name, describe or price any product. Say nothing matched and point to https://www.snkrscart.com/products)\n--- END PRODUCTS ---`;
     if (blogContext) systemWithContext += `\n\n--- RELEVANT BLOG ARTICLES ---\n${blogContext}\n--- END BLOGS ---`;
     if (dropContext) systemWithContext += `\n\n--- UPCOMING DROPS (release calendar) ---\n${dropContext}\n--- END DROPS ---`;
 
@@ -472,11 +592,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    let structured: { reply: string; product_slugs: string[]; blog_slugs: string[] } | null = null;
+
     // Fallback 2: NVIDIA NIM — cycle through free models until one responds
     if (!rawText && process.env.NVIDIA_API_KEY) {
       const NVIDIA_MODELS: Array<{ model: string; extra: Record<string, unknown> }> = [
         { model: 'nvidia/nemotron-3-super-120b-a12b', extra: { chat_template_kwargs: { enable_thinking: false } } },
-        { model: 'nvidia/nemotron-3.5-lightning-30b-a3b', extra: { chat_template_kwargs: { enable_thinking: false } } },
         { model: 'openai/gpt-oss-20b', extra: { reasoning_effort: 'low' } },
       ];
       for (const { model, extra } of NVIDIA_MODELS) {
@@ -491,11 +612,12 @@ export async function POST(req: NextRequest) {
             body: JSON.stringify({
               model,
               messages: [
-                { role: 'system', content: systemWithContext },
+                { role: 'system', content: systemWithContext + STRUCTURED_NOTE },
                 ...historyMessages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
               ],
-              max_tokens: 512,
-              temperature: 0.4,
+              max_tokens: 600,
+              temperature: 0.3,
+              response_format: { type: 'json_schema', json_schema: { name: 'kickbot_reply', strict: true, schema: NVIDIA_SCHEMA } },
               ...extra,
             }),
             signal: AbortSignal.timeout(20_000),
@@ -505,7 +627,20 @@ export async function POST(req: NextRequest) {
             console.warn(`NVIDIA NIM [${model}] HTTP ${res.status}:`, JSON.stringify(data).slice(0, 200));
             continue;
           }
-          rawText = data.choices?.[0]?.message?.content ?? '';
+          const content: string = data.choices?.[0]?.message?.content ?? '';
+          try {
+            const parsed = JSON.parse(content);
+            if (parsed && typeof parsed.reply === 'string') {
+              structured = {
+                reply: parsed.reply,
+                product_slugs: Array.isArray(parsed.product_slugs) ? parsed.product_slugs.map(String) : [],
+                blog_slugs: Array.isArray(parsed.blog_slugs) ? parsed.blog_slugs.map(String) : [],
+              };
+              rawText = parsed.reply;
+            }
+          } catch {
+            rawText = content;
+          }
         } catch (nvidiaErr: any) {
           console.warn(`NVIDIA NIM [${model}] failed:`, nvidiaErr?.message);
         }
@@ -527,13 +662,14 @@ export async function POST(req: NextRequest) {
     let suggestedProducts: any[] = [];
     let suggestedBlogs: any[] = [];
     let displayText = rawText;
+    let productSlugs: string[] = structured?.product_slugs ?? [];
+    let blogSlugs: string[] = structured?.blog_slugs ?? [];
 
     if (suggestionMatch) {
       displayText = displayText.replace(suggestionMatch[0], '').trim();
       try {
         const matched = suggestionMatch[1];
-        const slugs = matched.startsWith('{') ? JSON.parse(matched).slugs : matched.split(',').map((s: string) => s.trim()).filter(Boolean);
-        suggestedProducts = await fetchSuggestedProducts(slugs);
+        productSlugs = matched.startsWith('{') ? JSON.parse(matched).slugs : matched.split(',').map((s: string) => s.trim()).filter(Boolean);
       } catch {}
     }
 
@@ -541,9 +677,22 @@ export async function POST(req: NextRequest) {
       displayText = displayText.replace(blogMatch[0], '').trim();
       try {
         const matched = blogMatch[1];
-        const slugs = matched.startsWith('{') ? JSON.parse(matched).slugs : matched.split(',').map((s: string) => s.trim()).filter(Boolean);
-        suggestedBlogs = await fetchSuggestedBlogs(slugs);
+        blogSlugs = matched.startsWith('{') ? JSON.parse(matched).slugs : matched.split(',').map((s: string) => s.trim()).filter(Boolean);
       } catch {}
+    }
+
+    const allowedProductSlugs = new Set(catalog.map((c) => c.slug));
+    const droppedProducts = productSlugs.filter((s) => !allowedProductSlugs.has(s));
+    const droppedBlogs = blogSlugs.filter((s) => !allowedBlogSlugs.has(s));
+    productSlugs = productSlugs.filter((s) => allowedProductSlugs.has(s)).slice(0, 6);
+    blogSlugs = blogSlugs.filter((s) => allowedBlogSlugs.has(s)).slice(0, 3);
+    if (droppedProducts.length || droppedBlogs.length) {
+      console.warn('KickBot dropped ungrounded slugs:', { products: droppedProducts, blogs: droppedBlogs });
+    }
+    let forcedGrounding = false;
+    if (!productSlugs.length && droppedProducts.length && catalog.length) {
+      productSlugs = catalog.slice(0, 3).map((c) => c.slug);
+      forcedGrounding = true;
     }
 
     // Safety net: strip any leftover tags
@@ -554,6 +703,21 @@ export async function POST(req: NextRequest) {
       .replace(/\[BLOG_SUGGESTIONS:[\s\S]*/g, '')
       .replace(/["}\]]+\s*$/, '')
       .trim();
+
+    const ungrounded = findUngroundedClaims(displayText, catalog, cumulativeQuery);
+    if (ungrounded.length || forcedGrounding) {
+      if (ungrounded.length) console.warn('KickBot ungrounded claims:', ungrounded);
+      displayText = productSlugs.length
+        ? "Here's what we actually have in stock that matches — tap a card for sizes and the exact price:"
+        : catalog.length
+          ? "I couldn't find an exact match for that in our current stock. Browse everything at https://www.snkrscart.com/products or tell me a brand, budget or size and I'll narrow it down. 👟"
+          : "Nothing matched that right now. Browse at https://www.snkrscart.com/products or give me a brand, budget or size to search. 👟";
+    }
+
+    [suggestedProducts, suggestedBlogs] = await Promise.all([
+      fetchSuggestedProducts(productSlugs),
+      fetchSuggestedBlogs(blogSlugs),
+    ]);
 
     return NextResponse.json({ text: displayText, products: suggestedProducts, blogs: suggestedBlogs });
   } catch (err: any) {
