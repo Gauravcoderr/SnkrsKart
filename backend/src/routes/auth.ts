@@ -28,14 +28,29 @@ function generateTokens(userId: string, email: string) {
 
 const MAX_SESSIONS = 10;
 
-function cookieOptions() {
-  const isProd = process.env.NODE_ENV === 'production';
-  const sameSite = (process.env.COOKIE_SAMESITE || (isProd ? 'none' : 'lax')) as 'none' | 'lax' | 'strict';
-  return { httpOnly: true, secure: isProd, sameSite };
+const FIRST_PARTY_SUFFIX = '.snkrscart.com';
+
+function isFirstParty(host: string): boolean {
+  return host === FIRST_PARTY_SUFFIX.slice(1) || host.endsWith(FIRST_PARTY_SUFFIX);
 }
 
-function setTokenCookies(res: Response, accessToken: string, refreshToken: string) {
-  const base = cookieOptions();
+function sameSiteFor(req: Request): 'none' | 'lax' | 'strict' {
+  const override = process.env.COOKIE_SAMESITE as 'none' | 'lax' | 'strict' | undefined;
+  if (override) return override;
+  if (process.env.NODE_ENV !== 'production') return 'lax';
+  let originHost = '';
+  try {
+    originHost = new URL(req.get('origin') || '').hostname;
+  } catch {}
+  return isFirstParty(req.hostname) && isFirstParty(originHost) ? 'lax' : 'none';
+}
+
+function cookieOptions(req: Request) {
+  return { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: sameSiteFor(req) };
+}
+
+function setTokenCookies(req: Request, res: Response, accessToken: string, refreshToken: string) {
+  const base = cookieOptions(req);
   res.cookie('access_token', accessToken, { ...base, maxAge: 15 * 60 * 1000 });
   res.cookie('refresh_token', refreshToken, { ...base, maxAge: 30 * 24 * 60 * 60 * 1000 });
 }
@@ -256,7 +271,7 @@ router.post('/verify-otp', async (req: Request, res: Response): Promise<void> =>
       ).catch(() => {});
     }
 
-    setTokenCookies(res, accessToken, refreshToken);
+    setTokenCookies(req, res, accessToken, refreshToken);
 
     res.json({
       accessToken,
@@ -303,7 +318,7 @@ router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
     const { accessToken, refreshToken } = generateTokens(user._id.toString(), user.email);
     await storeSession(user._id, refreshToken, token);
 
-    setTokenCookies(res, accessToken, refreshToken);
+    setTokenCookies(req, res, accessToken, refreshToken);
     res.json({ message: 'Refreshed', accessToken });
   } catch {
     res.status(500).json({ error: 'Failed to refresh token' });
@@ -337,7 +352,7 @@ router.post('/google', async (req: Request, res: Response): Promise<void> => {
 
     Order.updateMany({ email: cleanEmail, userId: null }, { $set: { userId: user!._id } }).catch(() => {});
 
-    setTokenCookies(res, accessToken, refreshToken);
+    setTokenCookies(req, res, accessToken, refreshToken);
     res.json({
       accessToken,
       user: {
@@ -366,7 +381,7 @@ router.post('/logout', async (req: Request, res: Response): Promise<void> => {
     } catch { /* ignore */ }
   }
 
-  const base = cookieOptions();
+  const base = cookieOptions(req);
   res.clearCookie('access_token', base);
   res.clearCookie('refresh_token', base);
   res.json({ message: 'Logged out' });
