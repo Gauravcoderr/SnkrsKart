@@ -53,6 +53,7 @@ const blogs = [
   // air-jordan-1-low-og-last-dance-at-the-garden-india-2026 — seeded 2026-09-24
   // nike-jordan-retro-supply-cut-2027-india-impact, nike-kobe-10-protro-5am-flight-india-2026, nike-halloween-sneakers-2026-air-jordan-5-dunk-shibuya-kd-19 — seeded 2026-10-02
   // lisa-blackpink-nike-moon-shoe-tough-red-campaign-india-2026, puma-rcb-dhruv-kapoor-milan-fashion-week-jackets-india-2026 — seeded 2026-10-04
+  // thums-up-gully-labs-gully-number-001-toofani-sneaker-india-2026 — seeded 2026-10-05
 ];
 
 async function seed() {

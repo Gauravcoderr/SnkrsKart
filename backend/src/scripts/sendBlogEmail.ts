@@ -7,10 +7,7 @@ import { Blog } from '../models/Blog';
 
 async function main() {
   await mongoose.connect(process.env.MONGODB_URI as string);
-  const slugs = [
-    'lisa-blackpink-nike-moon-shoe-tough-red-campaign-india-2026',
-    'puma-rcb-dhruv-kapoor-milan-fashion-week-jackets-india-2026',
-  ];
+  const slugs = ['thums-up-gully-labs-gully-number-001-toofani-sneaker-india-2026'];
   const blogs = await Blog.find({ slug: { $in: slugs }, published: true }).lean();
   if (!blogs.length) { console.log('No published blogs found'); process.exit(0); }
   console.log(`→ Sending combined email for ${blogs.length} blog(s)`);
