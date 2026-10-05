@@ -139,7 +139,7 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 ## Important decisions / gotchas
 - Render free tier sleeps after 15 min inactivity → UptimeRobot pings `/health` every 5 min
 - `trust proxy 1` set on Express for correct IP in rate-limiter behind Render/Vercel
-- Auth cookies are `SameSite=None; Secure` in prod because frontend (`www.snkrscart.com`) and backend (`snkrskart.onrender.com`) are cross-site. Safari/iOS/Incognito block that cookie, so persistent login needs the API on `api.snkrscart.com` (CNAME → Render custom domain), then set `COOKIE_SAMESITE=lax` on Render and `NEXT_PUBLIC_API_URL=https://api.snkrscart.com/api/v1` on Vercel. CSP `connect-src` already allows it.
+- Backend is reachable on both `snkrskart.onrender.com` and `api.snkrscart.com` (Hostinger CNAME → Render custom domain). `sameSiteFor()` in `routes/auth.ts` picks `SameSite=Lax` only when request host AND Origin are under `snkrscart.com` (Safari/iOS keep the refresh cookie), else `SameSite=None` (old host, localhost dev). `COOKIE_SAMESITE` env overrides. Frontend must use `NEXT_PUBLIC_API_URL=https://api.snkrscart.com/api/v1` for first-party cookies. `http://localhost:3000` is always CORS-allowed.
 - Brand grid uses `brand.slug` (NOT `brand.id`) for brandMeta lookup
 - Next.js Image: allowed domains in `next.config.mjs` include Supabase + Cloudinary
 - Admin token stored in `localStorage` (not httpOnly cookie) — separate from customer auth
