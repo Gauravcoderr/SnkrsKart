@@ -8,6 +8,7 @@ import ConfirmModal from '../_components/ConfirmModal';
 import { BASE_URL } from '../_lib/config';
 import type { SellerStatus } from '@/types/seller';
 import AdminLoader from '@/app/admin/_components/AdminLoader';
+import ActionsMenu from '../_components/ActionsMenu';
 
 interface AdminSeller {
   _id: string;
@@ -378,48 +379,24 @@ export default function SellersPage() {
                     <td className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">{timeAgo(s.lastLoginAt)}</td>
                     <td className="px-4 py-3"><StatusPill status={s.status} /></td>
                     <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1 flex-wrap">
+                      <div className="flex items-center justify-end gap-2">
                         <Link
                           href={`/admin/sellers/${s._id}`}
                           className="text-xs text-zinc-300 hover:text-white px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition"
                         >
                           View
                         </Link>
-                        <button
-                          type="button"
-                          onClick={() => handleReset(s)}
-                          disabled={busy}
-                          className="text-xs text-zinc-400 hover:text-white px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition disabled:opacity-40"
-                        >
-                          Reset password
-                        </button>
-                        {s.status === 'active' ? (
-                          <button
-                            type="button"
-                            onClick={() => handleStatus(s, 'suspended')}
-                            disabled={busy}
-                            className="text-xs text-amber-400 hover:text-amber-300 px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition disabled:opacity-40"
-                          >
-                            Suspend
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleStatus(s, 'active')}
-                            disabled={busy}
-                            className="text-xs text-emerald-400 hover:text-emerald-300 px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition disabled:opacity-40"
-                          >
-                            Reactivate
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => setConfirmId(s._id)}
-                          disabled={busy}
-                          className="text-xs text-red-500 hover:text-red-400 px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition disabled:opacity-40"
-                        >
-                          Delete
-                        </button>
+                        <ActionsMenu
+                          busy={busy}
+                          items={[
+                            { label: 'Reset password', onClick: () => handleReset(s) },
+                            { label: 'Suspend seller', onClick: () => handleStatus(s, 'suspended'), tone: 'danger', hidden: s.status !== 'active' },
+                            { label: 'Reactivate seller', onClick: () => handleStatus(s, 'active'), tone: 'success', hidden: s.status === 'active' },
+                            { label: 'WhatsApp', href: `https://wa.me/${(s.whatsapp || s.phone).replace(/\D/g, '')}`, external: true },
+                            { label: 'Email', href: `mailto:${s.email}`, external: true },
+                            { label: 'Delete seller', onClick: () => setConfirmId(s._id), tone: 'danger' },
+                          ]}
+                        />
                       </div>
                     </td>
                   </tr>
@@ -470,37 +447,23 @@ export default function SellersPage() {
                     </td>
                     <td className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">{timeAgo(s.createdAt)}</td>
                     <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1 flex-wrap">
+                      <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
                           onClick={() => handleActivate(s)}
                           disabled={busy}
-                          className="text-xs font-semibold text-zinc-900 bg-white hover:bg-zinc-200 px-2.5 py-1.5 rounded-md transition disabled:opacity-40"
+                          className="text-xs font-semibold text-zinc-900 bg-white hover:bg-zinc-200 px-2.5 py-1.5 rounded-md transition disabled:opacity-40 whitespace-nowrap"
                         >
                           {busy ? 'Working' : 'Activate account'}
                         </button>
-                        <a
-                          href={`https://wa.me/${s.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${s.name}, thanks for reaching out to SNKRS CART!`)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-emerald-400 hover:text-emerald-300 px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition"
-                        >
-                          WhatsApp
-                        </a>
-                        <a
-                          href={`mailto:${s.email}?subject=${encodeURIComponent('Re: Seller Application, SNKRS CART')}`}
-                          className="text-xs text-zinc-400 hover:text-white px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition"
-                        >
-                          Email
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => setConfirmId(s._id)}
-                          disabled={busy}
-                          className="text-xs text-red-500 hover:text-red-400 px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition disabled:opacity-40"
-                        >
-                          Delete
-                        </button>
+                        <ActionsMenu
+                          busy={busy}
+                          items={[
+                            { label: 'WhatsApp', href: `https://wa.me/${s.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${s.name}, thanks for reaching out to SNKRS CART!`)}`, external: true, tone: 'success' },
+                            { label: 'Email', href: `mailto:${s.email}?subject=${encodeURIComponent('Re: Seller Application, SNKRS CART')}`, external: true },
+                            { label: 'Delete application', onClick: () => setConfirmId(s._id), tone: 'danger' },
+                          ]}
+                        />
                       </div>
                     </td>
                   </tr>
