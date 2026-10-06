@@ -20,6 +20,7 @@ interface Drop {
   retailPrice: number | null;
   currency: 'INR' | 'USD';
   image: string;
+  images?: string[];
   description: string;
   where: string;
   availableAtStore: boolean;
@@ -29,7 +30,7 @@ interface Drop {
 
 const EMPTY_FORM = {
   name: '', brand: '', colorway: '', releaseDate: '', retailPrice: '',
-  image: '', description: '', where: '', availableAtStore: false, productSlug: '', published: false,
+  image: '', images: [] as string[], description: '', where: '', availableAtStore: false, productSlug: '', published: false,
 };
 
 async function uploadImage(file: File): Promise<string> {
@@ -56,6 +57,7 @@ export default function AdminDropsPage() {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
+  const [galleryUploading, setGalleryUploading] = useState(false);
 
   const fetchDrops = useCallback(async (p = page, limit = pageSize) => {
     const token = localStorage.getItem('admin_token');
@@ -91,7 +93,7 @@ export default function AdminDropsPage() {
       name: d.name, brand: d.brand, colorway: d.colorway,
       releaseDate: d.releaseDate ? d.releaseDate.slice(0, 10) : '',
       retailPrice: d.retailPrice ? String(d.retailPrice) : '',
-      image: d.image, description: d.description, where: d.where,
+      image: d.image, images: d.images ?? [], description: d.description, where: d.where,
       availableAtStore: d.availableAtStore, productSlug: d.productSlug, published: d.published,
     });
     setShowForm(true);
@@ -104,6 +106,32 @@ export default function AdminDropsPage() {
     try { setF('image', await uploadImage(file)); }
     catch { setError('Image upload failed'); }
     finally { setImageUploading(false); }
+  }
+
+  async function handleGalleryFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = '';
+    if (files.length === 0) return;
+    setGalleryUploading(true);
+    try {
+      const urls = await Promise.all(files.map(uploadImage));
+      setForm((p) => ({ ...p, images: [...p.images, ...urls] }));
+    } catch { setError('Gallery upload failed'); }
+    finally { setGalleryUploading(false); }
+  }
+
+  function removeGalleryImage(i: number) {
+    setForm((p) => ({ ...p, images: p.images.filter((_, idx) => idx !== i) }));
+  }
+
+  function moveGalleryImage(i: number, dir: -1 | 1) {
+    setForm((p) => {
+      const j = i + dir;
+      if (j < 0 || j >= p.images.length) return p;
+      const next = [...p.images];
+      [next[i], next[j]] = [next[j], next[i]];
+      return { ...p, images: next };
+    });
   }
 
   async function handleSave() {
@@ -291,6 +319,29 @@ export default function AdminDropsPage() {
                   <input type="file" accept="image/*" className="hidden" onChange={handleImageFile} />
                 </label>
               </div>
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1">Gallery Images (optional, shown as slider after cover)</label>
+              {form.images.length > 0 && (
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-2">
+                  {form.images.map((src, i) => (
+                    <div key={`${src}-${i}`} className="relative group aspect-square bg-zinc-800 border border-zinc-700 overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt="" className="w-full h-full object-contain" />
+                      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/70 px-1 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button type="button" onClick={() => moveGalleryImage(i, -1)} disabled={i === 0} className="text-[10px] text-zinc-300 hover:text-white disabled:opacity-30 px-1">◀</button>
+                        <button type="button" onClick={() => removeGalleryImage(i)} className="text-[10px] text-red-400 hover:text-red-300 px-1">✕</button>
+                        <button type="button" onClick={() => moveGalleryImage(i, 1)} disabled={i === form.images.length - 1} className="text-[10px] text-zinc-300 hover:text-white disabled:opacity-30 px-1">▶</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <label className="inline-block cursor-pointer bg-zinc-700 hover:bg-zinc-600 text-zinc-100 px-3 py-2 text-xs font-bold transition-colors">
+                {galleryUploading ? 'Uploading…' : '+ Add Images'}
+                <input type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryFiles} disabled={galleryUploading} />
+              </label>
             </div>
 
             <div className="flex items-center gap-6 mt-4">

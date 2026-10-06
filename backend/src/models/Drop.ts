@@ -9,6 +9,7 @@ export interface IDrop extends Document {
   retailPrice: number | null;
   currency: 'INR' | 'USD';
   image: string;
+  images: string[];
   description: string;
   where: string;
   availableAtStore: boolean;
@@ -28,6 +29,7 @@ const DropSchema = new Schema<IDrop>(
     retailPrice: { type: Number, default: null },
     currency: { type: String, enum: ['INR', 'USD'], default: 'INR' },
     image: { type: String, default: '' },
+    images: { type: [String], default: [] },
     description: { type: String, default: '' },
     where: { type: String, default: '' },
     availableAtStore: { type: Boolean, default: false },

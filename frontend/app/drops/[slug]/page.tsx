@@ -7,6 +7,7 @@ import { cloudinaryOgImage, formatDropPrice } from '@/lib/utils';
 import { dateKey, daysUntil, formatDropDate } from '@/lib/calendar';
 import Countdown from '@/components/drops/Countdown';
 import AddToCalendar from '@/components/drops/AddToCalendar';
+import DropGallery from '@/components/drops/DropGallery';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
@@ -107,6 +108,7 @@ export default async function DropPage({ params }: Props) {
   const url = `${SITE_URL}/drops/${params.slug}`;
   const days = daysUntil(drop.releaseDate);
   const released = days < 0;
+  const gallery = Array.from(new Set([drop.image, ...(drop.images ?? [])].filter(Boolean)));
 
   // Related: other upcoming drops, same brand first
   let related: Awaited<ReturnType<typeof fetchDrops>> = [];
@@ -155,7 +157,7 @@ export default async function DropPage({ params }: Props) {
     },
     description: drop.description || `${drop.name} — official ${drop.brand} release`,
     url,
-    image: drop.image || undefined,
+    image: gallery.length > 1 ? gallery : gallery[0],
     organizer: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL },
     offers: drop.retailPrice ? {
       '@type': 'Offer',
@@ -206,42 +208,32 @@ export default async function DropPage({ params }: Props) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
           {/* ── Image ── */}
-          <div className="relative aspect-square bg-zinc-50 border border-zinc-100 overflow-hidden rounded-sm">
-            {drop.image ? (
-              <Image
-                src={drop.image}
-                alt={drop.name}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <p className="text-zinc-300 text-xs font-bold tracking-widest uppercase">{drop.brand}</p>
-              </div>
+          <DropGallery
+            images={gallery}
+            name={drop.name}
+            brand={drop.brand}
+            overlay={(
+              <>
+                {!released && (
+                  <div className="absolute top-3 right-3 pointer-events-none">
+                    <div className={`px-3 py-1.5 rounded-sm font-black text-[11px] tracking-widest uppercase shadow-lg ${
+                      urgency === 'today' ? 'bg-red-500 text-white' :
+                      urgency === 'tomorrow' ? 'bg-orange-500 text-white' :
+                      urgency === 'soon' ? 'bg-amber-400 text-zinc-900' :
+                      'bg-zinc-900/80 backdrop-blur text-white'
+                    }`}>
+                      {urgency === 'today' ? 'TODAY' : urgency === 'tomorrow' ? 'TOMORROW' : `${days}D`}
+                    </div>
+                  </div>
+                )}
+                {drop.availableAtStore && (
+                  <div className="absolute top-3 left-3 bg-zinc-900 text-white text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-sm pointer-events-none">
+                    In Store
+                  </div>
+                )}
+              </>
             )}
-
-            {/* Countdown overlay */}
-            {!released && (
-              <div className="absolute top-3 right-3">
-                <div className={`px-3 py-1.5 rounded-sm font-black text-[11px] tracking-widest uppercase shadow-lg ${
-                  urgency === 'today' ? 'bg-red-500 text-white' :
-                  urgency === 'tomorrow' ? 'bg-orange-500 text-white' :
-                  urgency === 'soon' ? 'bg-amber-400 text-zinc-900' :
-                  'bg-zinc-900/80 backdrop-blur text-white'
-                }`}>
-                  {urgency === 'today' ? 'TODAY' : urgency === 'tomorrow' ? 'TOMORROW' : `${days}D`}
-                </div>
-              </div>
-            )}
-
-            {drop.availableAtStore && (
-              <div className="absolute top-3 left-3 bg-zinc-900 text-white text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-sm">
-                In Store
-              </div>
-            )}
-          </div>
+          />
 
           {/* ── Details ── */}
           <div className="flex flex-col">

@@ -115,6 +115,7 @@ Nike, Jordan (Air Jordan), Adidas, New Balance, Crocs
 - `/drops` UI: next-drop strip with live `Countdown`, search, brand chips, date-range chips, list view grouped by date (sticky day headers) or month calendar view, recently released (30 days), SEO copy + FAQ (FAQPage + ItemList JSON-LD).
 - `AddToCalendar` (Google URL + .ics download) lives in `components/drops/`; date helpers in `lib/calendar.ts` (all UTC-date based, matching stored midnight-UTC release dates).
 - Header nav has a `Drops` link.
+- Drop detail hero is `components/drops/DropGallery.tsx` (client): 4:3 stage, `object-contain` (never crop), slides = `[image, ...images]` deduped. Slider chrome (thumbs, arrows, counter, swipe, arrow keys, lightbox) only when 2+ images. `Drop.images: string[]` optional; admin form has multi-upload + reorder.
 
 ## Homepage section order
 MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → TrendingNow → WhyChooseUs → ComingSoon → NewsletterBar

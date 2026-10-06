@@ -178,6 +178,7 @@ export interface Drop {
   retailPrice: number | null;
   currency: 'INR' | 'USD';
   image: string;
+  images?: string[];
   description: string;
   where: string;
   availableAtStore: boolean;
