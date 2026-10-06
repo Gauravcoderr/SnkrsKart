@@ -175,7 +175,7 @@ export default function CouponsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-white">Coupons</h1>
           <p className="text-xs text-zinc-500 mt-0.5">{coupons.length} coupon{coupons.length !== 1 ? 's' : ''}</p>
@@ -189,8 +189,8 @@ export default function CouponsPage() {
         </button>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden overflow-x-auto">
+        <table className="admin-table w-full text-sm">
           <thead>
             <tr className="border-b border-zinc-800 text-zinc-400 text-xs uppercase tracking-wider">
               <th className="text-left px-4 py-3 font-medium">Code</th>
@@ -221,8 +221,8 @@ export default function CouponsPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-zinc-300">{formatDiscount(c)}</td>
-                  <td className="px-4 py-3">
+                  <td data-label="Discount" className="px-4 py-3 text-zinc-300">{formatDiscount(c)}</td>
+                  <td data-label="Category" className="px-4 py-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                       c.appliesTo === 'all'
                         ? 'bg-zinc-700 text-zinc-300'
@@ -231,14 +231,14 @@ export default function CouponsPage() {
                       {APPLIES_LABELS[c.appliesTo]}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-zinc-400 text-xs">
+                  <td data-label="Min order" className="px-4 py-3 text-zinc-400 text-xs">
                     {c.minOrderValue > 0 ? `₹${c.minOrderValue}` : '—'}
                   </td>
-                  <td className="px-4 py-3 text-zinc-400 text-xs">
+                  <td data-label="Expiry" className="px-4 py-3 text-zinc-400 text-xs">
                     {c.expiresAt ? new Date(c.expiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'}
                   </td>
-                  <td className="px-4 py-3 text-zinc-300 text-xs font-medium">{c.useCount ?? c.usedBy.length}</td>
-                  <td className="px-4 py-3">
+                  <td data-label="Uses" className="px-4 py-3 text-zinc-300 text-xs font-medium">{c.useCount ?? c.usedBy.length}</td>
+                  <td data-label="Status" className="px-4 py-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                       c.active ? 'bg-emerald-900/40 text-emerald-400' : 'bg-zinc-700 text-zinc-400'
                     }`}>

@@ -216,7 +216,7 @@ export default function AdminPayoutsPage() {
                       {paid && row.payout?.reference ? <> · Ref <span className="font-mono text-zinc-300">{row.payout.reference}</span></> : null}
                     </p>
                   </div>
-                  <div className="flex items-center gap-4 shrink-0">
+                  <div className="flex flex-wrap items-center gap-4 shrink-0">
                     {paid && row.payout?.screenshotUrl && (
                       <button type="button" onClick={() => setLightbox(row.payout!.screenshotUrl)} className="block">
                         <Image src={row.payout.screenshotUrl} alt="Payment screenshot" width={56} height={56} unoptimized className="w-14 h-14 object-cover rounded border border-zinc-700 hover:opacity-80" />

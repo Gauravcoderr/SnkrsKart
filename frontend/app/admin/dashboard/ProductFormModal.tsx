@@ -397,14 +397,14 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-zinc-800">
           <h2 className="text-lg font-semibold text-white">
             {isEdit ? 'Edit Product' : 'Add Product'}
           </h2>
           <button type="button" onClick={onClose} className="text-zinc-400 hover:text-white text-xl leading-none">&times;</button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 max-h-[80vh] overflow-y-auto">
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-2.5 rounded-lg">
               {error}
@@ -433,13 +433,13 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
           </div>
 
           {/* Name + Brand */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Name *" value={form.name} onChange={(v) => set('name', v)} required />
             <Field label="Brand *" value={form.brand} onChange={(v) => set('brand', v)} required />
           </div>
 
           {/* Slug + SKU */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Slug" value={form.slug} onChange={(v) => set('slug', v)} placeholder="Auto-generated if empty" />
             <Field label="SKU *" value={form.sku} onChange={(v) => set('sku', v)} required />
           </div>
@@ -453,7 +453,7 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
           />
 
           {/* Colorway + Category */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Colorway" value={form.colorway} onChange={(v) => set('colorway', v)} />
             <div>
               <label className="block text-sm font-medium text-zinc-400 mb-1.5">Category</label>
@@ -481,7 +481,7 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
           )}
 
           {/* Gender */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="col-span-1">
               <label className="block text-sm font-medium text-zinc-400 mb-1.5">Gender</label>
               <select aria-label="Gender"
@@ -607,7 +607,7 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
 
           {/* ── Pricing per size ─────────────────────────────────────────── */}
           <div className="border border-zinc-700 rounded-lg p-4 space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-sm font-semibold text-white">Pricing per Size</span>
               <label className="flex items-center gap-2 cursor-pointer text-sm text-zinc-300">
                 <input
@@ -621,7 +621,7 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
             </div>
 
             {samePriceForAll ? (
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-zinc-400 mb-1.5">Price (₹) *</label>
                   <input
@@ -661,14 +661,14 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
                   <p className="text-xs text-zinc-500 italic">Select sizes above to set per-size prices.</p>
                 ) : (
                   <>
-                    <div className="grid grid-cols-[80px_1fr_1fr_80px] gap-3 text-xs font-medium text-zinc-500 pb-1 border-b border-zinc-800">
+                    <div className="grid grid-cols-[56px_1fr_1fr_64px] sm:grid-cols-[80px_1fr_1fr_80px] gap-2 sm:gap-3 text-xs font-medium text-zinc-500 pb-1 border-b border-zinc-800">
                       <span>{productType === 'shoes' ? 'UK Size' : 'Size'}</span>
                       <span>Price (₹) *</span>
                       <span>Original (₹)</span>
                       <span>Max Qty</span>
                     </div>
                     {activeSizeKeys.map((key) => (
-                      <div key={key} className="grid grid-cols-[80px_1fr_1fr_80px] gap-3 items-center">
+                      <div key={key} className="grid grid-cols-[56px_1fr_1fr_64px] sm:grid-cols-[80px_1fr_1fr_80px] gap-2 sm:gap-3 items-center">
                         <span className="text-sm font-semibold text-zinc-300">
                           {productType === 'shoes' ? `UK ${key}` : key}
                         </span>
@@ -705,7 +705,7 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
           {/* ───────────────────────────────────────────────────────────────── */}
 
           {/* Colors + Tags */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Colors (comma-separated)" value={form.colors} onChange={(v) => set('colors', v)} placeholder="black, white" />
             <Field label="Tags (comma-separated)" value={form.tags} onChange={(v) => set('tags', v)} placeholder="jordan, retro" />
           </div>

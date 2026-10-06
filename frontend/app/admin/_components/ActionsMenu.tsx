@@ -73,7 +73,7 @@ export default function ActionsMenu({ items, label = 'Actions', busy = false }: 
         aria-expanded={open}
         disabled={busy}
         onClick={() => setOpen((v) => !v)}
-        className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border transition ${open ? 'bg-zinc-800 border-zinc-600 text-white' : 'border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 hover:border-zinc-700'} disabled:opacity-40`}
+        className={`inline-flex items-center justify-center w-9 h-9 md:w-8 md:h-8 rounded-lg border transition ${open ? 'bg-zinc-800 border-zinc-600 text-white' : 'border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 hover:border-zinc-700'} disabled:opacity-40`}
       >
         {busy ? (
           <span className="w-3.5 h-3.5 border-2 border-zinc-600 border-t-zinc-200 rounded-full animate-spin" />

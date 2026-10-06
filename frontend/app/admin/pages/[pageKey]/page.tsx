@@ -125,7 +125,7 @@ export default function EditPageContent() {
   return (
     <div className="max-w-3xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
         <div>
           <button
             onClick={() => router.push('/admin/pages')}

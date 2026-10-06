@@ -73,7 +73,7 @@ export default function ProductsTable({ items, loading, status, onEdit, onPublis
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="admin-table w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-zinc-500 border-b border-zinc-800">
               <th className="pb-2 pr-2 w-8">
@@ -150,25 +150,25 @@ export default function ProductsTable({ items, loading, status, onEdit, onPublis
                     return null;
                   })()}
                 </td>
-                <td className="py-3 pr-3 text-zinc-300 text-xs">{item.brand}</td>
-                <td className="py-3 pr-3">
+                <td data-label="Brand" className="py-3 pr-3 text-zinc-300 text-xs">{item.brand}</td>
+                <td data-label="Site" className="py-3 pr-3">
                   <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${SITE_COLORS[item.sourceSite]}`}>
                     {item.sourceSite}
                   </span>
                 </td>
-                <td className="py-3 pr-3 text-zinc-300 text-xs whitespace-nowrap">
+                <td data-label="Price" className="py-3 pr-3 text-zinc-300 text-xs whitespace-nowrap">
                   {item.price ? `₹${item.price.toLocaleString('en-IN')}` : '—'}
                   {item.originalPrice && item.originalPrice > (item.price ?? 0) && (
                     <span className="text-zinc-600 line-through ml-1">₹{item.originalPrice.toLocaleString('en-IN')}</span>
                   )}
                 </td>
-                <td className="py-3 pr-3 text-zinc-500 text-xs">
+                <td data-label="Sizes" className="py-3 pr-3 text-zinc-500 text-xs">
                   {item.sizes.length > 0 ? `${item.sizes.length} sizes` : '—'}
                 </td>
-                <td className="py-3 pr-3 text-zinc-500 text-xs whitespace-nowrap">
+                <td data-label="Scraped" className="py-3 pr-3 text-zinc-500 text-xs whitespace-nowrap">
                   {new Date(item.scrapedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
                 </td>
-                <td className="py-3 pr-3 text-zinc-500 text-xs whitespace-nowrap">
+                <td data-label="Listed on site" className="py-3 pr-3 text-zinc-500 text-xs whitespace-nowrap">
                   {(item.sourceListedAt ?? item.sourceUpdatedAt)
                     ? new Date((item.sourceListedAt ?? item.sourceUpdatedAt)!).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
                     : '—'}
@@ -207,7 +207,7 @@ export default function ProductsTable({ items, loading, status, onEdit, onPublis
 
       {/* Floating bulk action bar */}
       {someSelected && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 bg-zinc-800 border border-zinc-700 rounded-xl px-5 py-3 shadow-2xl">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-wrap items-center justify-center gap-3 sm:gap-4 max-w-[calc(100vw-2rem)] bg-zinc-800 border border-zinc-700 rounded-xl px-4 sm:px-5 py-3 shadow-2xl">
           <span className="text-sm text-zinc-300 font-medium">{selected.size} selected</span>
           <button type="button" onClick={() => setSelected(new Set())}
             className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">

@@ -157,7 +157,7 @@ export default function AdminDashboard() {
             )}
           </button>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
           <span className="text-sm text-zinc-500">{filtered.length}/{products.length} products</span>
           <button type="button" onClick={handleAdd} className="bg-white text-zinc-900 font-semibold text-sm px-5 py-2 rounded-lg hover:bg-zinc-200 transition shrink-0">
             + Add Product
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-zinc-800">
-        <table className="w-full text-sm">
+        <table className="admin-table w-full text-sm">
           <thead>
             <tr className="bg-zinc-900 text-zinc-400 text-left">
               <th className="px-4 py-3 font-medium">Image</th>
@@ -194,24 +194,24 @@ export default function AdminDashboard() {
                   <div className="font-medium text-white max-w-[200px] truncate">{p.name}</div>
                   <div className="text-xs text-zinc-500 truncate max-w-[200px]">{p.colorway}</div>
                 </td>
-                <td className="px-4 py-3 text-zinc-300">{p.brand}</td>
-                <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">&#8377;{p.price.toLocaleString('en-IN')}</td>
-                <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">{p.originalPrice ? `₹${p.originalPrice.toLocaleString('en-IN')}` : '-'}</td>
-                <td className="px-4 py-3 capitalize text-zinc-400">{p.gender}</td>
-                <td className="px-4 py-3">
+                <td data-label="Brand" className="px-4 py-3 text-zinc-300">{p.brand}</td>
+                <td data-label="Price" className="px-4 py-3 text-zinc-300 whitespace-nowrap">&#8377;{p.price.toLocaleString('en-IN')}</td>
+                <td data-label="MRP" className="px-4 py-3 text-zinc-500 whitespace-nowrap">{p.originalPrice ? `₹${p.originalPrice.toLocaleString('en-IN')}` : '-'}</td>
+                <td data-label="Gender" className="px-4 py-3 capitalize text-zinc-400">{p.gender}</td>
+                <td data-label="Sizes" className="px-4 py-3">
                   <div className="text-xs text-zinc-400 max-w-[120px] truncate">
                     {p.productType !== 'shoes' && p.availableStringSizes?.length ? p.availableStringSizes.join(', ') : p.availableSizes.join(', ')}
                   </div>
                 </td>
-                <td className="px-4 py-3">
-                  <div className="flex gap-1 flex-wrap">
+                <td data-label="Flags" className="px-4 py-3">
+                  <div className="flex gap-1 flex-wrap justify-end md:justify-start">
                     {p.featured && <span className="text-[10px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded">Featured</span>}
                     {p.trending && <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded">Trending</span>}
                     {p.newArrival && <span className="text-[10px] bg-green-500/10 text-green-400 px-1.5 py-0.5 rounded">New</span>}
                     {p.soldOut && <span className="text-[10px] bg-red-500/10 text-red-400 px-1.5 py-0.5 rounded">Sold Out</span>}
                   </div>
                 </td>
-                <td className="px-4 py-3">
+                <td data-label="Source" className="px-4 py-3">
                   {p.sourceUrl ? (
                     <a
                       href={p.sourceUrl}

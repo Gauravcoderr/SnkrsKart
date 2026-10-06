@@ -51,7 +51,7 @@ export default function Paginator({ page, totalPages, onPage, pageSize, onPageSi
 
       {/* Right: page buttons */}
       {totalPages > 1 && (
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center justify-center gap-1">
           <button
             type="button"
             onClick={() => onPage(page - 1)}

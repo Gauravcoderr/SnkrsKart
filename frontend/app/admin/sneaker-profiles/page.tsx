@@ -179,8 +179,8 @@ export default function AdminSneakerProfilesPage() {
   const paginated = filtered.slice((page - 1) * SP_PAGE_SIZE, page * SP_PAGE_SIZE);
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div>
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
         <div>
           <h1 className="text-xl font-bold text-zinc-100">Sneaker Profiles</h1>
           <p className="text-xs text-zinc-500 mt-0.5">{profiles.length} profiles · powers /sneakers/* pages</p>
@@ -201,7 +201,7 @@ export default function AdminSneakerProfilesPage() {
         <AdminLoader />
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="admin-table w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-700 text-left text-[10px] font-bold tracking-widest uppercase text-zinc-500">
                 <th className="pb-3 pr-4">Name</th>
@@ -221,10 +221,10 @@ export default function AdminSneakerProfilesPage() {
                       /sneakers/{p.slug}
                     </a>
                   </td>
-                  <td className="py-3 pr-4 text-zinc-300">{p.brand}</td>
-                  <td className="py-3 pr-4 text-zinc-400 capitalize">{p.category || '—'}</td>
-                  <td className="py-3 pr-4 text-zinc-400">{p.releaseYear || '—'}</td>
-                  <td className="py-3 pr-4">
+                  <td data-label="Brand" className="py-3 pr-4 text-zinc-300">{p.brand}</td>
+                  <td data-label="Category" className="py-3 pr-4 text-zinc-400 capitalize">{p.category || '—'}</td>
+                  <td data-label="Year" className="py-3 pr-4 text-zinc-400">{p.releaseYear || '—'}</td>
+                  <td data-label="Status" className="py-3 pr-4">
                     <button type="button" onClick={() => handleToggle(p)} className={`text-[10px] font-bold px-2 py-0.5 rounded ${p.published ? 'bg-emerald-900 text-emerald-300' : 'bg-zinc-700 text-zinc-400'}`}>
                       {p.published ? 'Published' : 'Draft'}
                     </button>
@@ -255,7 +255,7 @@ export default function AdminSneakerProfilesPage() {
               <button type="button" onClick={() => setShowForm(false)} className="text-zinc-500 hover:text-zinc-300 text-xs">✕ Close</button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 ['Name *', 'name', 'text', 'e.g. Nike Air Force 1'],
                 ['Brand *', 'brand', 'text', 'e.g. Nike'],
@@ -295,7 +295,7 @@ export default function AdminSneakerProfilesPage() {
               <textarea value={form.description} onChange={(e) => setF('description', e.target.value)} rows={5} placeholder="Write from official brand sources, Wikipedia, or your own research…" className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:border-zinc-500 resize-none" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
               <div>
                 <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1">Search Tags (comma-separated)</label>
                 <input type="text" value={form.searchTags} onChange={(e) => setF('searchTags', e.target.value)} placeholder="air force 1, af1, force 1" className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:border-zinc-500" />

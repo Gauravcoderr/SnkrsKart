@@ -74,8 +74,8 @@ export default function InquiryDetailPage() {
       </Link>
 
       {/* Header card */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-4">
-        <div className="flex items-start justify-between mb-4">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 sm:p-6 mb-4">
+        <div className="flex flex-wrap items-start justify-between gap-2 mb-4">
           <div>
             <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1">Purchase Inquiry</p>
             <h1 className="text-xl font-bold text-white">{inquiry.name}</h1>
@@ -98,7 +98,7 @@ export default function InquiryDetailPage() {
       </div>
 
       {/* Product card */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 sm:p-6">
         <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-4">Product Details</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Brand">{inquiry.productBrand}</Field>

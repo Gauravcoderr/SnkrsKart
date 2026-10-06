@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import Paginator from '../_components/Paginator';
+import DetailPane from '../_components/DetailPane';
 import { BASE_URL } from '../_lib/config';
 import { DELIVERY_SERVICES } from '@/lib/couriers';
 import { getTrackingUrl, shipmentHeadline, shipmentTone, formatCheckpointTime } from '@/lib/tracking';
@@ -416,8 +417,8 @@ function SellerOrdersInner() {
         </div>
 
         {selectedId && (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden self-start min-w-0">
-            <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between gap-3">
+          <DetailPane onClose={() => select(null)} label={detail?.orderNumber ? `Seller order ${detail.orderNumber}` : 'Seller order'}>
+            <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between gap-3 sticky top-0 bg-zinc-900 z-10 xl:static">
               <div className="min-w-0">
                 <p className="text-xs text-zinc-500">{detail?.orderNumber ?? 'Seller order'}</p>
                 <p className="text-sm font-bold text-white truncate">{detailSeller?.name ?? 'Loading'}</p>
@@ -438,7 +439,7 @@ function SellerOrdersInner() {
                   </div>
                 )}
               </div>
-              <button type="button" onClick={() => select(null)} className="text-zinc-500 hover:text-white transition-colors shrink-0" aria-label="Close">
+              <button type="button" onClick={() => select(null)} className="w-10 h-10 -mr-2 inline-flex items-center justify-center rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors shrink-0" aria-label="Close">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -698,7 +699,7 @@ function SellerOrdersInner() {
                 )}
               </div>
             )}
-          </div>
+          </DetailPane>
         )}
       </div>
 
@@ -707,7 +708,7 @@ function SellerOrdersInner() {
           <div className="relative w-full max-w-4xl flex-1 min-h-0" onClick={(e) => e.stopPropagation()}>
             <Image src={sortedPhotos[lightbox].url} alt={ANGLE_LABEL[sortedPhotos[lightbox].angle] ?? sortedPhotos[lightbox].angle} fill sizes="100vw" className="object-contain" unoptimized />
           </div>
-          <div className="flex items-center gap-4 mt-4" onClick={(e) => e.stopPropagation()}>
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mt-4" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
               onClick={() => setLightbox((i) => (i === null ? null : (i - 1 + sortedPhotos.length) % sortedPhotos.length))}

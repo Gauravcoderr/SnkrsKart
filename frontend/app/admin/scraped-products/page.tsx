@@ -216,7 +216,7 @@ export default function ScrapedProductsPage() {
       )}
 
       {/* Tab bar */}
-      <div className="flex gap-1 border-b border-zinc-800">
+      <div className="flex gap-1 border-b border-zinc-800 overflow-x-auto">
         {STATUS_TABS.map((s) => (
           <button key={s} type="button" onClick={() => setTab(s)}
             className={`px-4 py-2 text-xs font-semibold capitalize transition-colors border-b-2 -mb-px ${tab === s ? 'border-white text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>
@@ -247,7 +247,7 @@ export default function ScrapedProductsPage() {
           ) : rejectedItems.length === 0 ? (
             <div className="text-center py-20 text-zinc-600 text-sm">No blacklisted URLs yet.</div>
           ) : (
-            <table className="w-full text-sm">
+            <table className="admin-table w-full text-sm">
               <thead>
                 <tr className="text-left text-xs text-zinc-500 border-b border-zinc-800">
                   <th className="pb-2 pr-4 font-medium">Source URL</th>
@@ -265,8 +265,8 @@ export default function ScrapedProductsPage() {
                         {r.sourceUrl}
                       </a>
                     </td>
-                    <td className="py-3 pr-4 text-zinc-500 text-xs">{r.sku ?? '—'}</td>
-                    <td className="py-3 pr-4 text-zinc-500 text-xs whitespace-nowrap">
+                    <td data-label="SKU" className="py-3 pr-4 text-zinc-500 text-xs">{r.sku ?? '—'}</td>
+                    <td data-label="Rejected on" className="py-3 pr-4 text-zinc-500 text-xs whitespace-nowrap">
                       {new Date(r.rejectedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
                     </td>
                     <td className="py-3">
@@ -308,7 +308,7 @@ export default function ScrapedProductsPage() {
       </AdminFilterDrawer>
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-zinc-800 border border-zinc-700 text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-xl">
+        <div className="fixed bottom-6 right-4 sm:right-6 z-50 max-w-[calc(100vw-2rem)] bg-zinc-800 border border-zinc-700 text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-xl">
           {toast}
         </div>
       )}

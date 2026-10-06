@@ -188,8 +188,8 @@ export default function AdminDropsPage() {
   const past = drops.filter((d) => new Date(d.releaseDate) < now);
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div>
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
         <div>
           <h1 className="text-xl font-bold text-zinc-100">Drop Calendar</h1>
           <p className="text-xs text-zinc-500 mt-0.5">{total} total drops · {upcoming.length} upcoming this page · powers /drops/* pages</p>
@@ -204,7 +204,7 @@ export default function AdminDropsPage() {
         <AdminLoader className="h-40" />
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="admin-table w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-700 text-left text-[10px] font-bold tracking-widest uppercase text-zinc-500">
                 <th className="pb-3 pr-4">Name</th>
@@ -225,12 +225,12 @@ export default function AdminDropsPage() {
                       /drops/{d.slug}
                     </a>
                   </td>
-                  <td className="py-3 pr-4 text-zinc-300">{d.brand}</td>
-                  <td className="py-3 pr-4 text-zinc-300">{formatDate(d.releaseDate)}</td>
-                  <td className="py-3 pr-4 text-zinc-400">{d.retailPrice ? (d.currency === 'USD' ? `$${d.retailPrice.toLocaleString('en-US')}` : `₹${d.retailPrice.toLocaleString('en-IN')}`) : '—'}</td>
-                  <td className="py-3 pr-4 text-zinc-400 text-xs">{d.where || '—'}</td>
-                  <td className="py-3 pr-4">
-                    <div className="flex flex-col gap-1">
+                  <td data-label="Brand" className="py-3 pr-4 text-zinc-300">{d.brand}</td>
+                  <td data-label="Release date" className="py-3 pr-4 text-zinc-300">{formatDate(d.releaseDate)}</td>
+                  <td data-label="Price" className="py-3 pr-4 text-zinc-400">{d.retailPrice ? (d.currency === 'USD' ? `$${d.retailPrice.toLocaleString('en-US')}` : `₹${d.retailPrice.toLocaleString('en-IN')}`) : '—'}</td>
+                  <td data-label="Where" className="py-3 pr-4 text-zinc-400 text-xs">{d.where || '—'}</td>
+                  <td data-label="Status" className="py-3 pr-4">
+                    <div className="flex flex-col items-end md:items-start gap-1">
                       <button type="button" onClick={() => handleToggle(d)} className={`text-[10px] font-bold px-2 py-0.5 rounded ${d.published ? 'bg-emerald-900 text-emerald-300' : 'bg-zinc-700 text-zinc-400'}`}>
                         {d.published ? 'Published' : 'Draft'}
                       </button>
@@ -271,7 +271,7 @@ export default function AdminDropsPage() {
               <button type="button" onClick={() => setShowForm(false)} className="text-zinc-500 hover:text-zinc-300 text-xs">✕ Close</button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 ['Name *', 'name', 'text', 'e.g. Nike Dunk Low Panda 2025'],
                 ['Brand *', 'brand', 'text', 'e.g. Nike'],
@@ -345,7 +345,7 @@ export default function AdminDropsPage() {
               </label>
             </div>
 
-            <div className="flex items-center gap-6 mt-4">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-4">
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="drop-store" checked={form.availableAtStore} onChange={(e) => setF('availableAtStore', e.target.checked)} className="w-4 h-4 accent-amber-500" />
                 <label htmlFor="drop-store" className="text-sm text-zinc-300">Available at SNKRS CART</label>

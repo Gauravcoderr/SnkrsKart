@@ -145,7 +145,7 @@ export default function ReviewsPage() {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-zinc-800">
-        <table className="w-full text-sm">
+        <table className="admin-table w-full text-sm">
           <thead>
             <tr className="bg-zinc-900 text-zinc-400 text-left">
               <th className="px-4 py-3 font-medium">Reviewer</th>
@@ -160,18 +160,18 @@ export default function ReviewsPage() {
             {paginated.map((r) => (
               <tr key={r._id} className="hover:bg-zinc-900/50 transition">
                 <td className="px-4 py-3 font-medium text-white whitespace-nowrap">{r.name}</td>
-                <td className="px-4 py-3">
+                <td data-label="Product" className="px-4 py-3">
                   <div className="text-white max-w-[160px] truncate">{r.productName}</div>
                   <div className="text-xs text-zinc-500 font-mono truncate max-w-[160px]">{r.productSlug}</div>
                 </td>
-                <td className="px-4 py-3">
+                <td data-label="Rating" className="px-4 py-3">
                   <Stars value={r.rating} />
                   <span className="text-xs text-zinc-500 mt-0.5 block">{r.rating}/5</span>
                 </td>
-                <td className="px-4 py-3 text-zinc-400 max-w-[240px]">
+                <td data-label="Comment" className="px-4 py-3 text-zinc-400 max-w-[240px]">
                   <p className="line-clamp-2 text-xs leading-relaxed">{r.comment}</p>
                 </td>
-                <td className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">
+                <td data-label="Date" className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">
                   {new Date(r.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </td>
                 <td className="px-4 py-3">

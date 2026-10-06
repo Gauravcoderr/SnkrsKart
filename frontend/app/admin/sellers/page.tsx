@@ -344,7 +344,7 @@ export default function SellersPage() {
 
       <div className="overflow-x-auto rounded-xl border border-zinc-800">
         {tab === 'accounts' ? (
-          <table className="w-full text-sm">
+          <table className="admin-table w-full text-sm">
             <thead>
               <tr className="bg-zinc-900 text-zinc-400 text-left">
                 <th className="px-4 py-3 font-medium">Seller</th>
@@ -368,16 +368,16 @@ export default function SellersPage() {
                         <div className="text-xs text-zinc-500">{[s.businessName, s.city].filter(Boolean).join(' / ')}</div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">
+                    <td data-label="Phone / WhatsApp" className="px-4 py-3 text-zinc-300 whitespace-nowrap">
                       <a href={`tel:${s.phone}`} className="hover:text-white transition">{s.phone}</a>
                       {s.whatsapp && s.whatsapp !== s.phone.replace(/[^\d+]/g, '') && (
                         <div className="text-xs text-zinc-500">WA {s.whatsapp}</div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-center text-zinc-300">{s.listingCount}</td>
-                    <td className="px-4 py-3 text-center text-zinc-300">{s.orderCount}</td>
-                    <td className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">{timeAgo(s.lastLoginAt)}</td>
-                    <td className="px-4 py-3"><StatusPill status={s.status} /></td>
+                    <td data-label="Listings" className="px-4 py-3 text-center text-zinc-300">{s.listingCount}</td>
+                    <td data-label="Orders" className="px-4 py-3 text-center text-zinc-300">{s.orderCount}</td>
+                    <td data-label="Last login" className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">{timeAgo(s.lastLoginAt)}</td>
+                    <td data-label="Status" className="px-4 py-3"><StatusPill status={s.status} /></td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link
@@ -412,7 +412,7 @@ export default function SellersPage() {
             </tbody>
           </table>
         ) : (
-          <table className="w-full text-sm">
+          <table className="admin-table w-full text-sm">
             <thead>
               <tr className="bg-zinc-900 text-zinc-400 text-left">
                 <th className="px-4 py-3 font-medium">Seller</th>
@@ -433,19 +433,19 @@ export default function SellersPage() {
                       <div className="font-medium text-white">{s.name}</div>
                       <div className="text-xs text-zinc-500">{s.email}</div>
                     </td>
-                    <td className="px-4 py-3 text-zinc-300">
+                    <td data-label="Phone" className="px-4 py-3 text-zinc-300">
                       <a href={`tel:${s.phone}`} className="hover:text-white transition">{s.phone}</a>
                     </td>
-                    <td className="px-4 py-3 text-zinc-300">
+                    <td data-label="Brands" className="px-4 py-3 text-zinc-300">
                       {s.brandsSell || <span className="text-zinc-600">-</span>}
                     </td>
-                    <td className="px-4 py-3 text-zinc-300">
+                    <td data-label="Pairs/month" className="px-4 py-3 text-zinc-300">
                       {s.pairsCount || <span className="text-zinc-600">-</span>}
                     </td>
-                    <td className="px-4 py-3 text-zinc-400 text-xs max-w-[200px]">
+                    <td data-label="Message" className="px-4 py-3 text-zinc-400 text-xs max-w-[200px]">
                       {s.message ? <span className="line-clamp-2">{s.message}</span> : <span className="text-zinc-600">-</span>}
                     </td>
-                    <td className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">{timeAgo(s.createdAt)}</td>
+                    <td data-label="Received" className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">{timeAgo(s.createdAt)}</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
@@ -510,7 +510,7 @@ export default function SellersPage() {
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !creating && setShowCreate(false)} />
-          <form onSubmit={handleCreate} className="relative bg-zinc-900 border border-zinc-800 rounded-xl p-6 w-full max-w-lg">
+          <form onSubmit={handleCreate} className="relative bg-zinc-900 border border-zinc-800 rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold text-white mb-1">New seller</h3>
             <p className="text-sm text-zinc-400 mb-5">Creates an active account and emails a temporary password.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

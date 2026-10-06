@@ -108,7 +108,7 @@ export default function ChatLeadsPage() {
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-zinc-800">
-        <table className="w-full text-sm">
+        <table className="admin-table w-full text-sm">
           <thead>
             <tr className="bg-zinc-900 text-zinc-400 text-left">
               <th className="px-4 py-3 font-medium">Customer</th>
@@ -125,10 +125,10 @@ export default function ChatLeadsPage() {
                   <div className="font-medium text-white">{lead.name}</div>
                   <div className="text-xs text-zinc-500">{lead.email}</div>
                 </td>
-                <td className="px-4 py-3 text-zinc-300 text-xs">
+                <td data-label="Phone" className="px-4 py-3 text-zinc-300 text-xs">
                   {lead.phone || <span className="text-zinc-600">—</span>}
                 </td>
-                <td className="px-4 py-3">
+                <td data-label="Interested in" className="px-4 py-3">
                   {lead.interests.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
                       {lead.interests.map((interest, i) => (
@@ -141,7 +141,7 @@ export default function ChatLeadsPage() {
                     <span className="text-zinc-600">—</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">
+                <td data-label="Captured" className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">
                   {timeAgo(lead.capturedAt)}
                 </td>
                 <td className="px-4 py-3 text-right">

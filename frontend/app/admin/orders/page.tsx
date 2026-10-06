@@ -8,6 +8,7 @@ import type { Shipment } from '@/types/seller';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 import Paginator from '../_components/Paginator';
+import DetailPane from '../_components/DetailPane';
 import AdminLoader from '@/app/admin/_components/AdminLoader';
 
 interface OrderItem {
@@ -242,7 +243,7 @@ export default function AdminOrdersPage() {
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
                         <p className="text-xs font-bold text-zinc-300">{order.orderNumber}</p>
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${STATUS_COLORS[order.status]}`}>
                           {order.status.toUpperCase()}
@@ -317,9 +318,9 @@ export default function AdminOrdersPage() {
 
         {/* Detail panel */}
         {selected && (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden self-start">
-            <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
-              <div>
+          <DetailPane onClose={() => setSelected(null)} label={`Order ${selected.orderNumber}`}>
+            <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between gap-3 sticky top-0 bg-zinc-900 z-10 xl:static">
+              <div className="min-w-0">
                 <p className="text-xs text-zinc-500">{selected.orderNumber}</p>
                 {selected.userId ? (
                   <Link href={`/admin/users/${selected.userId}`} className="text-sm font-bold text-white hover:underline">
@@ -362,7 +363,7 @@ export default function AdminOrdersPage() {
                   )}
                 </div>
               </div>
-              <button onClick={() => setSelected(null)} className="text-zinc-500 hover:text-white transition-colors">
+              <button onClick={() => setSelected(null)} aria-label="Close" className="w-10 h-10 -mr-2 inline-flex items-center justify-center rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors shrink-0">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -553,7 +554,7 @@ export default function AdminOrdersPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </DetailPane>
         )}
       </div>
 

@@ -100,7 +100,7 @@ function ApproveModal({
           Pick the catalog product that <span className="text-white">{request.brand} {request.name}</span> was added as. The seller gets a link to list on it.
         </p>
 
-        <div className="flex items-center justify-between gap-3 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 mb-4">
           <p className="text-xs text-zinc-400">Not in the catalog yet? Create it first, then approve and pick it here.</p>
           <a
             href="/admin/dashboard"

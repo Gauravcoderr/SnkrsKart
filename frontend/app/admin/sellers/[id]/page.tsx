@@ -436,7 +436,7 @@ export default function AdminSellerDetailPage() {
               <div className="py-12 text-center text-zinc-500 text-sm">No listings yet.</div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="admin-table w-full text-sm">
                   <thead>
                     <tr className="text-zinc-400 text-left text-xs">
                       <th className="px-4 py-2.5 font-medium">Product</th>
@@ -477,18 +477,18 @@ export default function AdminSellerDetailPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-2.5 text-zinc-300 whitespace-nowrap">UK {l.size}</td>
-                          <td className="px-4 py-2.5 text-right text-zinc-300 whitespace-nowrap">&#8377;{l.sellerPrice.toLocaleString('en-IN')}</td>
-                          <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                          <td data-label="Size" className="px-4 py-2.5 text-zinc-300 whitespace-nowrap">UK {l.size}</td>
+                          <td data-label="Seller price" className="px-4 py-2.5 text-right text-zinc-300 whitespace-nowrap">&#8377;{l.sellerPrice.toLocaleString('en-IN')}</td>
+                          <td data-label="Public price" className="px-4 py-2.5 text-right whitespace-nowrap">
                             <span className="text-white">&#8377;{l.listPrice.toLocaleString('en-IN')}</span>
                             {p && <span className="block text-[10px] text-zinc-500">store &#8377;{p.price.toLocaleString('en-IN')}</span>}
                           </td>
-                          <td className="px-4 py-2.5">
+                          <td data-label="Availability" className="px-4 py-2.5">
                             <Pill text={AVAILABILITY_META[l.availability]?.label ?? l.availability} cls={AVAILABILITY_PILL[l.availability] ?? 'bg-zinc-800 text-zinc-400'} />
                           </td>
-                          <td className="px-4 py-2.5 text-center text-zinc-300">{l.qty}</td>
-                          <td className="px-4 py-2.5 text-center text-zinc-300">{l.soldCount}</td>
-                          <td className="px-4 py-2.5"><Pill text={label(l.status)} cls={LISTING_STATUS_PILL[l.status]} /></td>
+                          <td data-label="Qty" className="px-4 py-2.5 text-center text-zinc-300">{l.qty}</td>
+                          <td data-label="Sold" className="px-4 py-2.5 text-center text-zinc-300">{l.soldCount}</td>
+                          <td data-label="Status" className="px-4 py-2.5"><Pill text={label(l.status)} cls={LISTING_STATUS_PILL[l.status]} /></td>
                           <td className="px-4 py-2.5 text-right">
                             <div className="flex items-center justify-end gap-1">
                               {l.status !== 'sold_out' && (

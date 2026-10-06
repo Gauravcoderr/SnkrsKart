@@ -124,13 +124,19 @@ export default function AdminUsersPage() {
                     <p className="text-sm font-semibold text-white truncate">{user.name || <span className="text-zinc-500 italic">No name</span>}</p>
                     <p className="text-xs text-zinc-400 truncate">{user.email}</p>
                   </div>
-                  <p className="text-xs text-zinc-400 sm:block">{user.phone || <span className="text-zinc-600">—</span>}</p>
-                  <p className="text-xs font-semibold text-white">{user.orderCount}</p>
-                  <p className="text-xs font-semibold text-white">
+                  <p className="hidden sm:block text-xs text-zinc-400">{user.phone || <span className="text-zinc-600">—</span>}</p>
+                  <p className="hidden sm:block text-xs font-semibold text-white">{user.orderCount}</p>
+                  <p className="hidden sm:block text-xs font-semibold text-white">
                     {user.totalSpend > 0 ? `₹${user.totalSpend.toLocaleString('en-IN')}` : <span className="text-zinc-600">—</span>}
                   </p>
-                  <p className="text-xs text-zinc-500">
+                  <p className="hidden sm:block text-xs text-zinc-500">
                     {new Date(user.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}
+                  </p>
+                  <p className="sm:hidden text-[11px] text-zinc-500 mt-1 flex flex-wrap gap-x-2">
+                    {user.phone && <span>{user.phone}</span>}
+                    <span><span className="text-white font-semibold">{user.orderCount}</span> order{user.orderCount === 1 ? '' : 's'}</span>
+                    {user.totalSpend > 0 && <span className="text-white font-semibold">₹{user.totalSpend.toLocaleString('en-IN')}</span>}
+                    <span>Joined {new Date(user.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
                   </p>
                 </Link>
               ))}

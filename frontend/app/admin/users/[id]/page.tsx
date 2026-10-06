@@ -102,8 +102,8 @@ export default function AdminUserDetailPage() {
       </Link>
 
       {/* Header card */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
-        <div className="flex items-start justify-between gap-4">
+      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-white font-black text-lg uppercase">
               {(user.name || user.email || user.phone || '?')[0]}
@@ -114,7 +114,7 @@ export default function AdminUserDetailPage() {
               {user.phone && <p className="text-sm text-zinc-400">{user.phone}</p>}
             </div>
           </div>
-          <p className="text-[10px] text-zinc-500 text-right shrink-0">
+          <p className="text-[10px] text-zinc-500 sm:text-right shrink-0">
             Joined {new Date(user.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
           </p>
         </div>

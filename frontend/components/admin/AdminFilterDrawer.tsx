@@ -29,7 +29,7 @@ export default function AdminFilterDrawer({ open, onClose, title = 'Filters', ch
       />
 
       {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 z-50 w-72 bg-zinc-950 border-l border-zinc-800 overflow-y-auto flex flex-col animate-slide-in-right">
+      <div className="fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] bg-zinc-950 border-l border-zinc-800 overflow-y-auto flex flex-col animate-slide-in-right">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800 shrink-0">
           <span className="text-sm font-bold text-white tracking-wide">{title}</span>

@@ -182,6 +182,12 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - AJIO: Akamai; `/api/search` via got-scraping works, fallback = stealth Puppeteer on ajio.com then in-page `fetch`. Use `relevance` sort for Nike/Adidas/Jordan (newest sort is mostly socks/bags)
 - Footlocker: SSR `__PRELOADED_STATE__.listingV2.products` first (0 credits), then ScrapingAnt JS render, then Puppeteer. Akamai flags an IP after heavy probing (403 on everything for a while)
 
+## Admin panel mobile patterns
+- `app/admin/layout.tsx`: desktop sidebar is `hidden md:flex`; below `md` a sticky top bar with a hamburger opens a slide-in drawer (same NAV, Escape + backdrop + route change close, body scroll lock).
+- Tables: every admin `<table>` has `className="admin-table"` and each non-title cell carries `data-label="..."`. `app/globals.css` stacks rows into labelled cards below `md` (thead hidden, `td[data-label]` becomes a 2-col grid with the label on the left). First cell = card title (no label), last cell without a label = actions (right-aligned). Wrap tables in `overflow-x-auto` for tablet widths.
+- List + detail pages (orders, seller-orders) wrap the detail panel in `_components/DetailPane.tsx`: inline grid column at `xl`, right slide-over sheet with backdrop below `xl`.
+- Form grids use `grid-cols-1 sm:grid-cols-N`; tall modals need `max-h-[90vh] overflow-y-auto`.
+
 ## Important decisions / gotchas
 - Render free tier sleeps after 15 min inactivity → UptimeRobot pings `/health` every 5 min
 - `trust proxy 1` set on Express for correct IP in rate-limiter behind Render/Vercel

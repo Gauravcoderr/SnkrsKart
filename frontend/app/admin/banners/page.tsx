@@ -184,7 +184,7 @@ export default function BannersPage() {
   return (
     <div className="text-white">
       {/* Toolbar */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <span className="text-sm text-zinc-500">{banners.length} banners</span>
         <button
           type="button"
@@ -197,7 +197,7 @@ export default function BannersPage() {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-zinc-800">
-        <table className="w-full text-sm">
+        <table className="admin-table w-full text-sm">
           <thead>
             <tr className="bg-zinc-900 text-zinc-400 text-left">
               <th className="px-4 py-3 font-medium">Preview</th>
@@ -230,15 +230,15 @@ export default function BannersPage() {
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-3">
+                <td data-label="Brand / Tag" className="px-4 py-3">
                   <div className="font-medium text-white">{b.brand}</div>
                   <div className="text-xs text-zinc-500">{b.tag}</div>
                 </td>
-                <td className="px-4 py-3 max-w-[200px]">
+                <td data-label="Headline" className="px-4 py-3 max-w-[200px]">
                   <p className="text-white truncate">{b.headline.join(' ')}</p>
                   <p className="text-xs text-zinc-500 truncate">{b.sub}</p>
                 </td>
-                <td className="px-4 py-3">
+                <td data-label="CTA" className="px-4 py-3">
                   <span
                     className="text-xs font-semibold px-2 py-1 rounded"
                     style={{ color: b.accent, background: `${b.accent}22` }}
@@ -246,15 +246,15 @@ export default function BannersPage() {
                     {b.cta}
                   </span>
                 </td>
-                <td className="px-4 py-3">
+                <td data-label="Colors" className="px-4 py-3">
                   <div className="flex gap-1.5">
                     <ColorDot color={b.accent} title="Accent" />
                     <ColorDot color={b.bg} title="Background" />
                     <ColorDot color={b.imgBg} title="Image BG" />
                   </div>
                 </td>
-                <td className="px-4 py-3 text-zinc-400">{b.order}</td>
-                <td className="px-4 py-3">
+                <td data-label="Order" className="px-4 py-3 text-zinc-400">{b.order}</td>
+                <td data-label="Status" className="px-4 py-3">
                   {b.active
                     ? <span className="text-[11px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-medium">Active</span>
                     : <span className="text-[11px] bg-zinc-700/40 text-zinc-500 px-2 py-0.5 rounded-full font-medium">Inactive</span>}
@@ -313,7 +313,7 @@ export default function BannersPage() {
 
             {/* Body */}
             <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="Brand">
                   <input id="b-brand" type="text" value={modal.form.brand} onChange={(e) => setField('brand', e.target.value)}
                     className={inputCls} placeholder="e.g. Nike" />
@@ -354,7 +354,7 @@ export default function BannersPage() {
                 </div>
               </Field>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="Hero Word Size (rem)">
                   <input id="b-font-size" type="number" min={2} max={12} step={0.5}
                     value={modal.form.headlineFontSize}
@@ -381,7 +381,7 @@ export default function BannersPage() {
                   className={inputCls} placeholder="Short sub-heading text" />
               </Field>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="CTA Button Text">
                   <input id="b-cta" type="text" value={modal.form.cta} onChange={(e) => setField('cta', e.target.value)}
                     className={inputCls} placeholder="e.g. Shop Now" />
@@ -454,7 +454,7 @@ export default function BannersPage() {
               {/* Colors */}
               <div>
                 <p className="text-xs font-semibold text-zinc-400 mb-3 uppercase tracking-widest">Colors</p>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <ColorField label="Accent (text/button)" value={modal.form.accent} onChange={(v) => setField('accent', v)} />
                   <ColorField label="Background" value={modal.form.bg} onChange={(v) => setField('bg', v)} />
                   <ColorField label="Image Background" value={modal.form.imgBg} onChange={(v) => setField('imgBg', v)} />
@@ -489,7 +489,7 @@ export default function BannersPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="Order (sort position)">
                   <input id="b-order" type="number" value={modal.form.order} onChange={(e) => setField('order', Number(e.target.value))}
                     className={inputCls} />

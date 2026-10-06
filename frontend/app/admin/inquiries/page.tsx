@@ -110,7 +110,7 @@ export default function InquiriesPage() {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-zinc-800">
-        <table className="w-full text-sm">
+        <table className="admin-table w-full text-sm">
           <thead>
             <tr className="bg-zinc-900 text-zinc-400 text-left">
               <th className="px-4 py-3 font-medium">Customer</th>
@@ -128,17 +128,17 @@ export default function InquiriesPage() {
                   <div className="font-medium text-white">{inq.name}</div>
                   <div className="text-xs text-zinc-500">{inq.email}</div>
                 </td>
-                <td className="px-4 py-3">
+                <td data-label="Product" className="px-4 py-3">
                   <div className="font-medium text-white max-w-[200px] truncate">{inq.productName}</div>
                   <div className="text-xs text-zinc-500">{inq.productBrand}</div>
                 </td>
-                <td className="px-4 py-3 text-zinc-300">
+                <td data-label="Size" className="px-4 py-3 text-zinc-300">
                   {inq.selectedSize ? (typeof inq.selectedSize === 'number' ? `UK ${inq.selectedSize}` : String(inq.selectedSize)) : <span className="text-zinc-600">—</span>}
                 </td>
-                <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">
+                <td data-label="Price" className="px-4 py-3 text-zinc-300 whitespace-nowrap">
                   ₹{inq.price.toLocaleString('en-IN')}
                 </td>
-                <td className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">
+                <td data-label="Received" className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">
                   {timeAgo(inq.createdAt)}
                 </td>
                 <td className="px-4 py-3 text-right">

@@ -374,7 +374,7 @@ export default function PublishModal({ item, onClose, onSuccess, getToken }: Pub
             </div>
 
             {publishSamePriceForAll ? (
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-zinc-400 mb-1.5">Price (₹) *</label>
                   <input
@@ -413,14 +413,14 @@ export default function PublishModal({ item, onClose, onSuccess, getToken }: Pub
                   <p className="text-xs text-zinc-500 italic">Select sizes above to set per-size prices.</p>
                 ) : (
                   <>
-                    <div className="grid grid-cols-[80px_1fr_1fr_80px] gap-3 text-xs font-medium text-zinc-500 pb-1 border-b border-zinc-800">
+                    <div className="grid grid-cols-[56px_1fr_1fr_64px] sm:grid-cols-[80px_1fr_1fr_80px] gap-2 sm:gap-3 text-xs font-medium text-zinc-500 pb-1 border-b border-zinc-800">
                       <span>{publishProductType === 'shoes' ? 'UK Size' : 'Size'}</span>
                       <span>Price (₹) *</span>
                       <span>Original (₹)</span>
                       <span>Max Qty</span>
                     </div>
                     {publishActiveSizeKeys.map((key) => (
-                      <div key={key} className="grid grid-cols-[80px_1fr_1fr_80px] gap-3 items-center">
+                      <div key={key} className="grid grid-cols-[56px_1fr_1fr_64px] sm:grid-cols-[80px_1fr_1fr_80px] gap-2 sm:gap-3 items-center">
                         <span className="text-sm font-semibold text-zinc-300">
                           {publishProductType === 'shoes' ? `UK ${key}` : key}
                         </span>

@@ -265,7 +265,7 @@ export default function NewsletterPage() {
 
   return (
     <div className="text-white">
-      <div className="mb-4 flex items-start justify-between gap-3">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-white">Newsletter</h1>
           <p className="text-sm text-zinc-400 mt-1">
@@ -274,7 +274,7 @@ export default function NewsletterPage() {
             {bouncedCount > 0 && <span className="text-zinc-500"> · {bouncedCount} bounced</span>}
           </p>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex flex-wrap gap-2 shrink-0">
           <button
             type="button"
             onClick={handleSyncUnsubs}
@@ -358,7 +358,7 @@ export default function NewsletterPage() {
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-zinc-800">
-        <table className="w-full text-sm">
+        <table className="admin-table w-full text-sm">
           <thead>
             <tr className="bg-zinc-900 text-zinc-400 text-left">
               <th className="px-4 py-3 font-medium">Contact</th>
@@ -375,8 +375,8 @@ export default function NewsletterPage() {
                   {s.email || <span className="text-zinc-600">— no email —</span>}
                   {s.name && <div className="text-xs text-zinc-500">{s.name}</div>}
                 </td>
-                <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">{s.phone || <span className="text-zinc-600">—</span>}</td>
-                <td className="px-4 py-3">
+                <td data-label="Phone" className="px-4 py-3 text-zinc-300 whitespace-nowrap">{s.phone || <span className="text-zinc-600">—</span>}</td>
+                <td data-label="Source" className="px-4 py-3">
                   <span className={`inline-flex items-center text-xs font-medium rounded-full px-2.5 py-0.5 ${
                     s.source === 'uploaded'
                       ? 'bg-amber-500/15 text-amber-400'
@@ -395,7 +395,7 @@ export default function NewsletterPage() {
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">{formatDate(s.createdAt)}</td>
+                <td data-label="Added" className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">{formatDate(s.createdAt)}</td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
                   <button type="button" onClick={() => openEdit(s)} className="text-xs text-zinc-400 hover:text-white underline mr-3">Edit</button>
                   <button type="button" onClick={() => setDeleteTarget(s)} className="text-xs text-red-400/80 hover:text-red-400 underline">Delete</button>
@@ -496,7 +496,7 @@ export default function NewsletterPage() {
 
       {/* toast */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 z-[60] px-4 py-3 rounded-lg text-sm font-medium shadow-lg border ${
+        <div className={`fixed bottom-6 right-4 sm:right-6 z-[60] max-w-[calc(100vw-2rem)] px-4 py-3 rounded-lg text-sm font-medium shadow-lg border ${
           toast.kind === 'err'
             ? 'bg-red-950 border-red-800 text-red-200'
             : 'bg-zinc-900 border-zinc-700 text-white'

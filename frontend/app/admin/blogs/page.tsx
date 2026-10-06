@@ -133,7 +133,7 @@ export default function AdminBlogsPage() {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-zinc-800">
-        <table className="w-full text-sm">
+        <table className="admin-table w-full text-sm">
           <thead>
             <tr className="bg-zinc-900 text-zinc-400 text-left">
               <th className="px-4 py-3 font-medium">Title</th>
@@ -151,8 +151,8 @@ export default function AdminBlogsPage() {
                   <div className="font-medium text-white max-w-[220px] truncate">{blog.title}</div>
                   <div className="text-xs text-zinc-500 mt-0.5">/blogs/{blog.slug}</div>
                 </td>
-                <td className="px-4 py-3 text-zinc-300">{blog.author}</td>
-                <td className="px-4 py-3">
+                <td data-label="Author" className="px-4 py-3 text-zinc-300">{blog.author}</td>
+                <td data-label="Tags" className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">
                     {blog.tags.slice(0, 2).map((t) => (
                       <span key={t} className="text-[10px] font-semibold uppercase tracking-wide bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded">
@@ -163,7 +163,7 @@ export default function AdminBlogsPage() {
                     {blog.tags.length === 0 && <span className="text-zinc-600">—</span>}
                   </div>
                 </td>
-                <td className="px-4 py-3">
+                <td data-label="Status" className="px-4 py-3">
                   <button
                     type="button"
                     onClick={() => handleTogglePublish(blog)}
@@ -176,7 +176,7 @@ export default function AdminBlogsPage() {
                     {blog.published ? 'Published' : 'Draft'}
                   </button>
                 </td>
-                <td className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">{timeAgo(blog.createdAt)}</td>
+                <td data-label="Created" className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">{timeAgo(blog.createdAt)}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-1">
                     {blog.published && (
