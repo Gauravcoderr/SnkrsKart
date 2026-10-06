@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { sellerApi } from '@/lib/sellerApi';
+import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue';
+import LoadMoreSentinel from '@/components/seller/LoadMoreSentinel';
 import type { SellerListing, ListingStatus } from '@/types/seller';
 import type { Availability } from '@/types';
-import { AVAILABILITY_META, AVAILABILITY_ORDER, computeListPrice } from '@/lib/availability';
+import { AVAILABILITY_META, AVAILABILITY_ORDER } from '@/lib/availability';
 import { formatPrice, cn } from '@/lib/utils';
 import AddListingModal from '@/components/seller/AddListingModal';
 import RequestProductModal from '@/components/seller/RequestProductModal';
@@ -75,7 +77,7 @@ function EditFields({ draft, onChange, compact }: { draft: Draft; onChange: (pat
           />
         </div>
         <p className="text-[11px] text-zinc-500 mt-1">
-          {priceValid ? <>Public price <span className="font-bold text-zinc-900">{formatPrice(computeListPrice(price))}</span></> : 'Minimum ₹500'}
+          {priceValid ? <>You receive <span className="font-bold text-zinc-900">{formatPrice(price)}</span> per pair</> : 'Minimum ₹500'}
         </p>
       </div>
       <div>
@@ -99,9 +101,16 @@ export default function SellerListingsPage() {
   const { toast, show } = useToast();
   const [listings, setListings] = useState<SellerListing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search.trim(), 400);
   const [filter, setFilter] = useState<Filter>('all');
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [counts, setCounts] = useState<Record<Filter, number>>({ all: 0, active: 0, paused: 0, sold_out: 0 });
+  const [hasAny, setHasAny] = useState<boolean | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>({ sellerPrice: '', availability: 'inhand', qty: '1' });
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -109,40 +118,68 @@ export default function SellerListingsPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [requestOpen, setRequestOpen] = useState(false);
 
+  const applyCounts = useCallback((c: Record<string, number>) => {
+    setCounts({ all: c.all ?? 0, active: c.active ?? 0, paused: c.paused ?? 0, sold_out: c.sold_out ?? 0 });
+  }, []);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      setListings(await sellerApi.listings());
+      const res = await sellerApi.listings({ search: debouncedSearch, status: filter, page: 1 });
+      setListings(res.items);
+      setPage(1);
+      setHasMore(res.hasMore);
+      setTotal(res.total);
+      applyCounts(res.counts);
+      if (!debouncedSearch && filter === 'all') setHasAny(res.total > 0);
+      else if (res.counts.all > 0) setHasAny(true);
     } catch (err) {
       setError(handleError(err));
     } finally {
       setLoading(false);
     }
-  }, [handleError]);
+  }, [debouncedSearch, filter, handleError, applyCounts]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const counts = useMemo(() => {
-    const c: Record<Filter, number> = { all: listings.length, active: 0, paused: 0, sold_out: 0 };
-    for (const l of listings) c[l.status] += 1;
-    return c;
-  }, [listings]);
+  const loadMore = useCallback(async () => {
+    if (loadingMore || loading || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const next = page + 1;
+      const res = await sellerApi.listings({ search: debouncedSearch, status: filter, page: next });
+      setListings((prev) => {
+        const seen = new Set(prev.map((l) => l.id));
+        return [...prev, ...res.items.filter((l) => !seen.has(l.id))];
+      });
+      setPage(next);
+      setHasMore(res.hasMore);
+      setTotal(res.total);
+      applyCounts(res.counts);
+    } catch (err) {
+      show(handleError(err), 'error');
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, loading, hasMore, page, debouncedSearch, filter, handleError, applyCounts, show]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return listings.filter((l) => {
-      if (filter !== 'all' && l.status !== filter) return false;
-      if (!q) return true;
-      const hay = [l.product?.name, l.product?.brand, l.product?.colorway, sizeLabel(l.size), String(l.size)].filter(Boolean).join(' ').toLowerCase();
-      return hay.includes(q);
-    });
-  }, [listings, search, filter]);
+  const refreshCounts = useCallback(async () => {
+    try {
+      const res = await sellerApi.listings({ search: debouncedSearch, status: filter, page: 1, limit: 1 });
+      applyCounts(res.counts);
+      setTotal(res.total);
+      if (res.counts.all > 0) setHasAny(true);
+    } catch {}
+  }, [debouncedSearch, filter, applyCounts]);
+
+  const filtered = listings;
 
   function replaceListing(updated: SellerListing) {
     setListings((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
+    refreshCounts();
   }
 
   function startEdit(l: SellerListing) {
@@ -170,7 +207,7 @@ export default function SellerListingsPage() {
       const updated = await sellerApi.updateListing(l.id, { sellerPrice: price, availability: draft.availability, qty });
       replaceListing(updated);
       setEditingId(null);
-      show(`Saved ${sizeLabel(updated.size)}, customers now see ${formatPrice(updated.listPrice)}`);
+      show(`Saved ${sizeLabel(updated.size)}`);
     } catch (err) {
       show(handleError(err), 'error');
     } finally {
@@ -230,7 +267,7 @@ export default function SellerListingsPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Inventory" title="Listings" description="Your price is what you get paid. Customers see your price plus 10%." actions={actions} />
+      <PageHeader eyebrow="Inventory" title="Listings" description="Your price is exactly what you get paid when a pair sells." actions={actions} />
 
       {loading && <LoadingBlock label="Loading listings" />}
       {!loading && error && <ErrorBlock message={error} onRetry={load} />}
@@ -268,7 +305,7 @@ export default function SellerListingsPage() {
             </div>
           </div>
 
-          {listings.length === 0 ? (
+          {hasAny === false && listings.length === 0 ? (
             <EmptyBlock
               title="No listings yet"
               body="Add your first listing from the SNKRS CART catalog. Pick the sizes you have, set your price, and customers can buy right away."
@@ -284,7 +321,6 @@ export default function SellerListingsPage() {
                     <tr className="border-b border-zinc-200 bg-zinc-50 text-left">
                       <th className="px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-zinc-500">Product</th>
                       <th className="px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-zinc-500">Your price</th>
-                      <th className="px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-zinc-500">Public price</th>
                       <th className="px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-zinc-500">Availability</th>
                       <th className="px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-zinc-500">Qty</th>
                       <th className="px-4 py-3 text-[10px] font-bold tracking-widest uppercase text-zinc-500">Status</th>
@@ -311,16 +347,12 @@ export default function SellerListingsPage() {
                             </div>
                           </td>
                           {editing ? (
-                            <td className="px-4 py-3" colSpan={4}>
+                            <td className="px-4 py-3" colSpan={3}>
                               <EditFields draft={draft} onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))} />
                             </td>
                           ) : (
                             <>
                               <td className="px-4 py-3 font-black text-zinc-900 whitespace-nowrap">{formatPrice(l.sellerPrice)}</td>
-                              <td className="px-4 py-3 whitespace-nowrap">
-                                <p className="font-bold text-zinc-700">{formatPrice(l.listPrice)}</p>
-                                <p className="text-[10px] text-zinc-400">+10%</p>
-                              </td>
                               <td className="px-4 py-3">
                                 <AvailabilityBadge availability={l.availability} showDescription />
                               </td>
@@ -389,14 +421,10 @@ export default function SellerListingsPage() {
                         </div>
                       ) : (
                         <>
-                          <div className="grid grid-cols-3 gap-2 mt-4 border-t border-zinc-100 pt-3">
+                          <div className="grid grid-cols-2 gap-2 mt-4 border-t border-zinc-100 pt-3">
                             <div>
                               <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-400">Your price</p>
                               <p className="text-sm font-black text-zinc-900 mt-0.5">{formatPrice(l.sellerPrice)}</p>
-                            </div>
-                            <div>
-                              <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-400">Public +10%</p>
-                              <p className="text-sm font-bold text-zinc-700 mt-0.5">{formatPrice(l.listPrice)}</p>
                             </div>
                             <div>
                               <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-400">Qty</p>
@@ -423,6 +451,7 @@ export default function SellerListingsPage() {
                   );
                 })}
               </div>
+              <LoadMoreSentinel hasMore={hasMore} loading={loadingMore} onLoadMore={loadMore} label={`Load more (${Math.max(0, total - listings.length)} left)`} />
             </>
           )}
         </>

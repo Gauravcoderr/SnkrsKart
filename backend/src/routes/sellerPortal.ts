@@ -77,7 +77,6 @@ function catalogSummary(p: LeanProduct) {
     brand: p.brand,
     colorway: p.colorway,
     image: p.images?.[0] || p.hoverImage || '',
-    price: p.price,
     productType: p.productType,
     sizes: isStringSized(p) ? p.stringSizes : p.sizes,
     allowedSizes: isStringSized(p) ? p.stringSizes : UK_SHOE_SIZES,
@@ -250,8 +249,16 @@ router.get('/catalog', sellerAuth, async (req: Request, res: Response): Promise<
         return { $or: [{ name: re }, { brand: re }, { colorway: re }, { sku: re }, { tags: re }] };
       });
     }
-    const products = await Product.find(filter).sort({ reviewCount: -1, createdAt: -1 }).limit(24).select(CATALOG_FIELDS).lean();
-    res.json((products as unknown as LeanProduct[]).map(catalogSummary));
+    const page = Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1);
+    const limit = Math.min(24, Math.max(1, parseInt(String(req.query.limit || '10'), 10) || 10));
+    const products = await Product.find(filter)
+      .sort({ reviewCount: -1, createdAt: -1, _id: 1 })
+      .skip((page - 1) * limit)
+      .limit(limit + 1)
+      .select(CATALOG_FIELDS)
+      .lean();
+    const hasMore = products.length > limit;
+    res.json({ products: (products.slice(0, limit) as unknown as LeanProduct[]).map(catalogSummary), page, hasMore });
   } catch {
     res.status(500).json({ error: 'Failed to search catalog' });
   }
@@ -268,8 +275,8 @@ router.get('/catalog/:id', sellerAuth, async (req: SellerRequest, res: Response)
     for (const offer of withOffers.offers) beat[String(offer.size)] = maxSellerPriceToBeat(offer.price);
     res.json({
       product: catalogSummary(product),
-      offers: withOffers.offers.map((o) => ({ size: o.size, price: o.price, availability: o.availability, source: o.source, isMine: o.listingId ? mine.some((m) => String(m._id) === o.listingId) : false })),
-      mine: mine.map((m) => ({ id: String(m._id), size: m.size, sellerPrice: m.sellerPrice, listPrice: m.listPrice, availability: m.availability, qty: m.qty, status: m.status })),
+      offers: withOffers.offers.map((o) => ({ size: o.size, availability: o.availability, source: o.source, isMine: o.listingId ? mine.some((m) => String(m._id) === o.listingId) : false })),
+      mine: mine.map((m) => ({ id: String(m._id), size: m.size, sellerPrice: m.sellerPrice, availability: m.availability, qty: m.qty, status: m.status })),
       beat,
       commissionPct: SELLER_COMMISSION_PCT,
     });
@@ -288,10 +295,9 @@ function shapeListing(l: any) {
   return {
     id: String(l._id),
     productId: p ? String(p._id) : String(l.product),
-    product: p ? { id: String(p._id), slug: p.slug, name: p.name, brand: p.brand, colorway: p.colorway, image: p.images?.[0] || p.hoverImage || '', storePrice: p.price } : null,
+    product: p ? { id: String(p._id), slug: p.slug, name: p.name, brand: p.brand, colorway: p.colorway, image: p.images?.[0] || p.hoverImage || '' } : null,
     size: l.size,
     sellerPrice: l.sellerPrice,
-    listPrice: l.listPrice,
     availability: l.availability,
     qty: l.qty,
     status: l.status,
@@ -301,14 +307,47 @@ function shapeListing(l: any) {
   };
 }
 
+function pageParams(req: Request, defaultLimit = 10, maxLimit = 50) {
+  const page = Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1);
+  const limit = Math.min(maxLimit, Math.max(1, parseInt(String(req.query.limit || String(defaultLimit)), 10) || defaultLimit));
+  return { page, limit, skip: (page - 1) * limit };
+}
+
 router.get('/listings', sellerAuth, async (req: SellerRequest, res: Response): Promise<void> => {
   try {
-    const listings = await SellerListing.find({ seller: req.seller!.id })
-      .sort({ updatedAt: -1 })
-      .populate({ path: 'product', select: LISTING_PRODUCT_FIELDS })
-      .lean();
-    res.json(listings.map(shapeListing));
-  } catch {
+    const sellerId = new mongoose.Types.ObjectId(req.seller!.id);
+    const { page, limit, skip } = pageParams(req);
+    const status = String(req.query.status || 'all');
+    const search = String(req.query.search || '').trim();
+
+    const base: Record<string, unknown> = { seller: sellerId };
+    if (search) {
+      const words = search.split(/\s+/).filter(Boolean).slice(0, 6);
+      const productFilter = { $and: words.map((w) => {
+        const re = new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+        return { $or: [{ name: re }, { brand: re }, { colorway: re }, { sku: re }] };
+      }) };
+      const ids = await Product.find(productFilter).select('_id').limit(500).lean();
+      const or: Record<string, unknown>[] = [{ product: { $in: ids.map((p) => p._id) } }];
+      const n = Number(search.replace(/^uk\s*/i, ''));
+      if (isFinite(n) && n > 0) or.push({ size: n });
+      if (!isFinite(n)) or.push({ size: search.toUpperCase() });
+      base.$or = or;
+    }
+
+    const filter: Record<string, unknown> = { ...base };
+    if (['active', 'paused', 'sold_out'].includes(status)) filter.status = status;
+
+    const [items, total, countRows] = await Promise.all([
+      SellerListing.find(filter).sort({ updatedAt: -1, _id: 1 }).skip(skip).limit(limit + 1).populate({ path: 'product', select: LISTING_PRODUCT_FIELDS }).lean(),
+      SellerListing.countDocuments(filter),
+      SellerListing.aggregate([{ $match: base }, { $group: { _id: '$status', n: { $sum: 1 } } }]),
+    ]);
+    const counts: Record<string, number> = { all: 0, active: 0, paused: 0, sold_out: 0 };
+    for (const row of countRows) { counts[row._id] = row.n; counts.all += row.n; }
+    res.json({ items: items.slice(0, limit).map(shapeListing), page, hasMore: items.length > limit, total, counts });
+  } catch (err) {
+    console.error('[seller-portal/listings GET]', err);
     res.status(500).json({ error: 'Failed to load listings' });
   }
 });
@@ -415,14 +454,36 @@ function forSeller<T extends { items?: any[]; toObject?: () => any }>(doc: T): a
   return { ...o, items: (o.items || []).map(({ listPrice, ...rest }: any) => rest) };
 }
 
+const ORDER_TABS: Record<string, Record<string, unknown>> = {
+  all: {},
+  action: { status: 'confirmed', $or: [{ 'verification.status': { $in: ['none', 'rejected'] } }, { 'verification.status': 'approved', trackingNumber: '' }] },
+  review: { status: 'confirmed', 'verification.status': 'pending' },
+  pending_payment: { status: 'pending_payment' },
+  shipped: { status: 'shipped' },
+  delivered: { status: 'delivered' },
+  cancelled: { status: 'cancelled' },
+};
+
 router.get('/orders', sellerAuth, async (req: SellerRequest, res: Response): Promise<void> => {
   try {
-    const filter: Record<string, unknown> = { seller: req.seller!.id };
-    const status = String(req.query.status || '');
-    if (['pending_payment', 'confirmed', 'shipped', 'delivered', 'cancelled'].includes(status)) filter.status = status;
-    const orders = await SellerOrder.find(filter).sort({ createdAt: -1 }).lean();
-    res.json(orders.map(forSeller));
-  } catch {
+    const sellerId = new mongoose.Types.ObjectId(req.seller!.id);
+    const { page, limit, skip } = pageParams(req);
+    const legacyStatus = String(req.query.status || '');
+    const tab = String(req.query.tab || (ORDER_TABS[legacyStatus] ? legacyStatus : 'all'));
+    const tabFilter = ORDER_TABS[tab] ?? ORDER_TABS.all;
+    const filter = { seller: sellerId, ...tabFilter };
+
+    const tabNames = Object.keys(ORDER_TABS);
+    const [items, total, ...countList] = await Promise.all([
+      SellerOrder.find(filter).sort({ createdAt: -1, _id: 1 }).skip(skip).limit(limit + 1).lean(),
+      SellerOrder.countDocuments(filter),
+      ...tabNames.map((t) => SellerOrder.countDocuments({ seller: sellerId, ...ORDER_TABS[t] })),
+    ]);
+    const counts: Record<string, number> = {};
+    tabNames.forEach((t, i) => { counts[t] = countList[i] as number; });
+    res.json({ items: items.slice(0, limit).map(forSeller), page, hasMore: items.length > limit, total, counts });
+  } catch (err) {
+    console.error('[seller-portal/orders GET]', err);
     res.status(500).json({ error: 'Failed to load orders' });
   }
 });

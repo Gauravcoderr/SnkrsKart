@@ -1,9 +1,10 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { sellerApi } from '@/lib/sellerApi';
+import LoadMoreSentinel from '@/components/seller/LoadMoreSentinel';
 import type { SellerOrder } from '@/types/seller';
 import { formatPrice, cn } from '@/lib/utils';
 import {
@@ -37,17 +38,6 @@ const TABS: Array<{ value: Tab; label: string }> = [
   { value: 'cancelled', label: 'Cancelled' },
 ];
 
-function matchesTab(order: SellerOrder, tab: Tab): boolean {
-  switch (tab) {
-    case 'all': return true;
-    case 'action': return needsAction(order) !== null;
-    case 'review': return order.status === 'confirmed' && order.verification.status === 'pending';
-    case 'shipped': return order.status === 'shipped';
-    case 'delivered': return order.status === 'delivered';
-    case 'cancelled': return order.status === 'cancelled';
-  }
-}
-
 function isTab(v: string | null): v is Tab {
   return TABS.some((t) => t.value === v);
 }
@@ -60,31 +50,62 @@ function OrdersInner() {
   const tab: Tab = isTab(tabParam) ? tabParam : 'all';
   const [orders, setOrders] = useState<SellerOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [counts, setCounts] = useState<Record<Tab, number>>({ all: 0, action: 0, review: 0, shipped: 0, delivered: 0, cancelled: 0 });
+  const [hasAny, setHasAny] = useState<boolean | null>(null);
+
+  const applyCounts = useCallback((c: Record<string, number>) => {
+    setCounts({ all: c.all ?? 0, action: c.action ?? 0, review: c.review ?? 0, shipped: c.shipped ?? 0, delivered: c.delivered ?? 0, cancelled: c.cancelled ?? 0 });
+    setHasAny((c.all ?? 0) > 0);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      setOrders(await sellerApi.orders());
+      const res = await sellerApi.orders({ tab, page: 1 });
+      setOrders(res.items);
+      setPage(1);
+      setHasMore(res.hasMore);
+      setTotal(res.total);
+      applyCounts(res.counts);
     } catch (err) {
       setError(handleError(err));
     } finally {
       setLoading(false);
     }
-  }, [handleError]);
+  }, [tab, handleError, applyCounts]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const counts = useMemo(() => {
-    const c = {} as Record<Tab, number>;
-    for (const t of TABS) c[t.value] = orders.filter((o) => matchesTab(o, t.value)).length;
-    return c;
-  }, [orders]);
+  const loadMore = useCallback(async () => {
+    if (loadingMore || loading || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const next = page + 1;
+      const res = await sellerApi.orders({ tab, page: next });
+      setOrders((prev) => {
+        const seen = new Set(prev.map((o) => o._id));
+        return [...prev, ...res.items.filter((o) => !seen.has(o._id))];
+      });
+      setPage(next);
+      setHasMore(res.hasMore);
+      setTotal(res.total);
+      applyCounts(res.counts);
+    } catch (err) {
+      setError(handleError(err));
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, loading, hasMore, page, tab, handleError, applyCounts]);
 
-  const visible = useMemo(() => orders.filter((o) => matchesTab(o, tab)), [orders, tab]);
+  const visible = orders;
 
   function setTab(next: Tab) {
     router.replace(next === 'all' ? '/sellers/orders' : `/sellers/orders?tab=${next}`, { scroll: false });
@@ -116,7 +137,7 @@ function OrdersInner() {
             ))}
           </div>
 
-          {orders.length === 0 ? (
+          {hasAny === false ? (
             <EmptyBlock
               title="No orders yet"
               body="When a customer buys one of your listings it shows up here with the steps to ship it."
@@ -183,6 +204,7 @@ function OrdersInner() {
               })}
             </div>
           )}
+          <LoadMoreSentinel hasMore={hasMore} loading={loadingMore} onLoadMore={loadMore} label={`Load more (${Math.max(0, total - orders.length)} left)`} />
         </>
       )}
     </div>

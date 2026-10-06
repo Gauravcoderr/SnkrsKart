@@ -52,7 +52,6 @@ export interface CatalogProduct {
   brand: string;
   colorway: string;
   image: string;
-  price: number;
   productType: string;
   sizes: Array<number | string>;
   allowedSizes: Array<number | string>;
@@ -61,7 +60,6 @@ export interface CatalogProduct {
 
 export interface CatalogOffer {
   size: number | string;
-  price: number;
   availability: Availability;
   source: 'store' | 'seller';
   isMine: boolean;
@@ -70,18 +68,25 @@ export interface CatalogOffer {
 export interface CatalogDetail {
   product: CatalogProduct;
   offers: CatalogOffer[];
-  mine: Array<{ id: string; size: number | string; sellerPrice: number; listPrice: number; availability: Availability; qty: number; status: ListingStatus }>;
+  mine: Array<{ id: string; size: number | string; sellerPrice: number; availability: Availability; qty: number; status: ListingStatus }>;
   beat: Record<string, number>;
   commissionPct: number;
+}
+
+export interface PagedResponse<T> {
+  items: T[];
+  page: number;
+  hasMore: boolean;
+  total: number;
+  counts: Record<string, number>;
 }
 
 export interface SellerListing {
   id: string;
   productId: string;
-  product: { id: string; slug: string; name: string; brand: string; colorway: string; image: string; storePrice: number } | null;
+  product: { id: string; slug: string; name: string; brand: string; colorway: string; image: string } | null;
   size: number | string;
   sellerPrice: number;
-  listPrice: number;
   availability: Availability;
   qty: number;
   status: ListingStatus;

@@ -1,5 +1,5 @@
 import type {
-  SellerProfile, SellerDashboard, CatalogProduct, CatalogDetail, SellerListing, SellerOrder, ProductRequest, VerificationAngle,
+  SellerProfile, SellerDashboard, CatalogProduct, CatalogDetail, SellerListing, SellerOrder, ProductRequest, VerificationAngle, PagedResponse,
 } from '@/types/seller';
 import type { Availability } from '@/types';
 
@@ -52,15 +52,29 @@ export const sellerApi = {
     request<{ success: true; seller: SellerProfile }>('/auth/change-password', { method: 'POST', body: JSON.stringify({ currentPassword, newPassword }) }),
   config: () => request<{ commissionPct: number; angles: VerificationAngle[]; shipDays: Record<Availability, number> }>('/config', {}, false),
   dashboard: () => request<SellerDashboard>('/dashboard'),
-  catalogSearch: (search: string) => request<CatalogProduct[]>(`/catalog?search=${encodeURIComponent(search)}`),
+  catalogSearch: (search: string, page = 1, limit = 10) =>
+    request<{ products: CatalogProduct[]; page: number; hasMore: boolean }>(`/catalog?search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`),
   catalogProduct: (id: string) => request<CatalogDetail>(`/catalog/${id}`),
-  listings: () => request<SellerListing[]>('/listings'),
+  listings: (params: { search?: string; status?: string; page?: number; limit?: number } = {}) => {
+    const q = new URLSearchParams();
+    if (params.search) q.set('search', params.search);
+    if (params.status && params.status !== 'all') q.set('status', params.status);
+    q.set('page', String(params.page ?? 1));
+    q.set('limit', String(params.limit ?? 10));
+    return request<PagedResponse<SellerListing>>(`/listings?${q.toString()}`);
+  },
   createListings: (productId: string, entries: Array<{ size: number | string; sellerPrice: number; availability: Availability; qty: number }>) =>
     request<SellerListing[]>('/listings', { method: 'POST', body: JSON.stringify({ productId, entries }) }),
   updateListing: (id: string, body: Partial<{ sellerPrice: number; availability: Availability; qty: number; status: 'active' | 'paused' }>) =>
     request<SellerListing>(`/listings/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteListing: (id: string) => request<{ success: true }>(`/listings/${id}`, { method: 'DELETE' }),
-  orders: (status?: string) => request<SellerOrder[]>(`/orders${status ? `?status=${status}` : ''}`),
+  orders: (params: { tab?: string; page?: number; limit?: number } = {}) => {
+    const q = new URLSearchParams();
+    if (params.tab && params.tab !== 'all') q.set('tab', params.tab);
+    q.set('page', String(params.page ?? 1));
+    q.set('limit', String(params.limit ?? 10));
+    return request<PagedResponse<SellerOrder>>(`/orders?${q.toString()}`);
+  },
   order: (id: string) => request<SellerOrder>(`/orders/${id}`),
   submitVerification: (id: string, photos: Array<{ angle: string; url: string }>) =>
     request<SellerOrder>(`/orders/${id}/verification`, { method: 'POST', body: JSON.stringify({ photos }) }),

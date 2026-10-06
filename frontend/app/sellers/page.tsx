@@ -112,7 +112,7 @@ export default function SellerDashboardPage() {
               </div>
             </div>
             <p className="text-[11px] text-zinc-400 mt-4 border-t border-zinc-100 pt-3">
-              Paid at your listed price, SNKRS CART adds 10% on top for the customer. Payouts are released about {data.earnings.payoutDelayDays} days after delivery to your UPI ID{seller.upiId ? ` (${seller.upiId})` : ', add it in Settings'}. You get an email with the payment screenshot each time.
+              You are paid exactly your listed price. Payouts are released about {data.earnings.payoutDelayDays} days after delivery to your UPI ID{seller.upiId ? ` (${seller.upiId})` : ', add it in Settings'}. You get an email with the payment screenshot each time.
             </p>
           </Panel>
 

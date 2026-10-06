@@ -5,7 +5,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { sellerApi } from '@/lib/sellerApi';
 import type { CatalogDetail, CatalogOffer, CatalogProduct, SellerListing } from '@/types/seller';
 import type { Availability } from '@/types';
-import { AVAILABILITY_META, AVAILABILITY_ORDER, computeListPrice } from '@/lib/availability';
+import { AVAILABILITY_META, AVAILABILITY_ORDER } from '@/lib/availability';
 import { formatPrice, cn } from '@/lib/utils';
 import {
   ProductThumb,
@@ -72,13 +72,21 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
   }, [open, initialProductId]);
 
   const debouncedQuery = useDebouncedValue(query.trim(), 400);
-  const searchCache = useRef(new Map<string, CatalogProduct[]>());
+  type SearchPage = { products: CatalogProduct[]; page: number; hasMore: boolean };
+  const searchCache = useRef(new Map<string, SearchPage>());
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const pageRef = useRef(1);
+  const sentinelRef = useRef<HTMLLIElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open || productId) return;
     const cached = searchCache.current.get(debouncedQuery);
     if (cached) {
-      setResults(cached);
+      setResults(cached.products);
+      setHasMore(cached.hasMore);
+      pageRef.current = cached.page;
       setSearching(false);
       setSearchError('');
       return;
@@ -86,16 +94,52 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
     let cancelled = false;
     setSearching(true);
     setSearchError('');
-    sellerApi.catalogSearch(debouncedQuery)
-      .then((found) => {
+    sellerApi.catalogSearch(debouncedQuery, 1)
+      .then((res) => {
         if (cancelled) return;
-        searchCache.current.set(debouncedQuery, found);
-        setResults(found);
+        searchCache.current.set(debouncedQuery, res);
+        setResults(res.products);
+        setHasMore(res.hasMore);
+        pageRef.current = 1;
+        listRef.current?.scrollTo({ top: 0 });
       })
       .catch((err) => { if (!cancelled) setSearchError(handleError(err)); })
       .finally(() => { if (!cancelled) setSearching(false); });
     return () => { cancelled = true; };
   }, [open, productId, debouncedQuery, handleError]);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || searching || !hasMore) return;
+    setLoadingMore(true);
+    const nextPage = pageRef.current + 1;
+    const q = debouncedQuery;
+    try {
+      const res = await sellerApi.catalogSearch(q, nextPage);
+      if (q !== debouncedQuery) return;
+      pageRef.current = nextPage;
+      setResults((prev) => {
+        const seen = new Set(prev.map((p) => p.id));
+        const merged = [...prev, ...res.products.filter((p) => !seen.has(p.id))];
+        searchCache.current.set(q, { products: merged, page: nextPage, hasMore: res.hasMore });
+        return merged;
+      });
+      setHasMore(res.hasMore);
+    } catch (err) {
+      setSearchError(handleError(err));
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, searching, hasMore, debouncedQuery, handleError]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasMore || productId) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) loadMore();
+    }, { root: listRef.current, rootMargin: '120px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, loadMore, productId, results.length]);
 
   useEffect(() => {
     if (!open) searchCache.current.clear();
@@ -264,7 +308,7 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
                   </div>
                 </div>
               </div>
-              <div className="flex-1 min-h-0 overflow-y-auto">
+              <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto">
                 {searchError ? (
                   <p className="px-5 py-8 text-sm text-red-600 text-center">{searchError}</p>
                 ) : results.length === 0 && !searching ? (
@@ -288,11 +332,21 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
                           </div>
                           <div className="text-right shrink-0">
                             <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400">Store</p>
-                            <p className="text-sm font-black text-zinc-900">{formatPrice(p.price)}</p>
                           </div>
                         </button>
                       </li>
                     ))}
+                    {hasMore && (
+                      <li ref={sentinelRef} className="px-5 py-4 flex justify-center">
+                        {loadingMore ? (
+                          <Spinner className="w-4 h-4" />
+                        ) : (
+                          <button type="button" onClick={loadMore} className="text-[11px] font-bold tracking-widest uppercase text-zinc-500 hover:text-zinc-900">
+                            Load more
+                          </button>
+                        )}
+                      </li>
+                    )}
                   </ul>
                 )}
               </div>
@@ -336,7 +390,6 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
                         <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400">{detail.product.brand}</p>
                         <p className="text-sm font-bold text-zinc-900 leading-tight">{detail.product.name}</p>
                         {detail.product.colorway && <p className="text-xs text-zinc-500 truncate">{detail.product.colorway}</p>}
-                        <p className="text-xs text-zinc-500 mt-0.5">Store price {formatPrice(detail.product.price)}</p>
                       </div>
                       {!initialProductId && (
                         <button
@@ -382,8 +435,7 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
                                 <p className="text-sm font-black leading-none">{sizeLabel(size)}</p>
                                 {offer ? (
                                   <>
-                                    <p className={cn('text-[11px] font-bold mt-1.5', selected ? 'text-white' : 'text-zinc-700')}>{formatPrice(offer.price)}</p>
-                                    <p className={cn('text-[10px]', selected ? 'text-zinc-300' : 'text-zinc-400')}>{AVAILABILITY_META[offer.availability]?.short ?? ''}</p>
+                                    <p className={cn('text-[10px] mt-1.5', selected ? 'text-zinc-300' : 'text-zinc-500')}>Offer exists · {AVAILABILITY_META[offer.availability]?.short ?? ''}</p>
                                   </>
                                 ) : (
                                   <p className={cn('text-[10px] mt-1.5', selected ? 'text-zinc-300' : 'text-zinc-400')}>No offers yet</p>
@@ -484,19 +536,19 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
                               <div className="mt-3 space-y-1">
                                 {priceValid ? (
                                   <p className="text-xs text-zinc-600">
-                                    Customer pays <span className="font-bold text-zinc-900">{formatPrice(computeListPrice(price))}</span>
+                                    You receive <span className="font-bold text-zinc-900">{formatPrice(price)}</span> per pair when it sells.
                                   </p>
                                 ) : (
-                                  <p className="text-xs text-zinc-400">Minimum {formatPrice(MIN_PRICE)}. Customer pays your price plus 10%.</p>
+                                  <p className="text-xs text-zinc-400">Minimum {formatPrice(MIN_PRICE)}. You are paid exactly the price you enter.</p>
                                 )}
                                 {offer ? (
                                   offer.isMine ? (
-                                    <p className="text-xs font-bold text-emerald-700">You hold the top offer at {formatPrice(offer.price)}</p>
+                                    <p className="text-xs font-bold text-emerald-700">You hold the top offer for this size</p>
                                   ) : priceValid && beat !== undefined && price <= beat ? (
                                     <p className="text-xs font-bold text-emerald-700">You&apos;ll be the top offer</p>
                                   ) : (
                                     <p className="text-xs text-zinc-600">
-                                      Lowest now {formatPrice(offer.price)}.
+                                      Another seller or the store already offers this size.
                                       {beat !== undefined && <> Enter {formatPrice(beat)} or less to become the top offer</>}
                                     </p>
                                   )
