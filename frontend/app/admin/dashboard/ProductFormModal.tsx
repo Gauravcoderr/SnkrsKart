@@ -5,6 +5,7 @@ import { Product } from '@/types';
 import { compressImage } from '@/lib/compressImage';
 import { uploadImage } from '@/lib/uploadImage';
 import { SHOE_SIZES, CLOTHING_SIZES, ACCESSORY_SIZES, CATEGORIES_BY_TYPE } from '@/lib/constants';
+import { useAdminToast } from '@/app/admin/_components/AdminToast';
 
 interface Props {
   product: Product | null;
@@ -240,7 +241,7 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
   }
 
   // ── Form helpers ─────────────────────────────────────────────────────────
-  const [error, setError] = useState('');
+  const toast = useAdminToast();
   const [saving, setSaving] = useState(false);
   const [uploadingIdx, setUploadingIdx] = useState<number | 'hover' | null>(null);
   const [uploadError, setUploadError] = useState('');
@@ -307,7 +308,6 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError('');
     setSaving(true);
 
     try {
@@ -382,7 +382,7 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
       }
       await onSave(payload);
     } catch (err: any) {
-      setError(err.message);
+      toast(err.message || 'Failed to save product', 'error');
     } finally {
       setSaving(false);
     }
@@ -405,12 +405,6 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 max-h-[80vh] overflow-y-auto">
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-2.5 rounded-lg">
-              {error}
-            </div>
-          )}
-
           {/* Product Type selector */}
           <div>
             <label className="block text-sm font-medium text-zinc-400 mb-2">Product Type *</label>
@@ -661,15 +655,15 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
                   <p className="text-xs text-zinc-500 italic">Select sizes above to set per-size prices.</p>
                 ) : (
                   <>
-                    <div className="grid grid-cols-[56px_1fr_1fr_64px] sm:grid-cols-[80px_1fr_1fr_80px] gap-2 sm:gap-3 text-xs font-medium text-zinc-500 pb-1 border-b border-zinc-800">
+                    <div className="grid grid-cols-[56px_minmax(0,1fr)_minmax(0,1fr)_48px] sm:grid-cols-[80px_1fr_1fr_80px] gap-1.5 sm:gap-3 text-xs font-medium text-zinc-500 pb-1 border-b border-zinc-800">
                       <span>{productType === 'shoes' ? 'UK Size' : 'Size'}</span>
                       <span>Price (₹) *</span>
                       <span>Original (₹)</span>
                       <span>Max Qty</span>
                     </div>
                     {activeSizeKeys.map((key) => (
-                      <div key={key} className="grid grid-cols-[56px_1fr_1fr_64px] sm:grid-cols-[80px_1fr_1fr_80px] gap-2 sm:gap-3 items-center">
-                        <span className="text-sm font-semibold text-zinc-300">
+                      <div key={key} className="grid grid-cols-[56px_minmax(0,1fr)_minmax(0,1fr)_48px] sm:grid-cols-[80px_1fr_1fr_80px] gap-1.5 sm:gap-3 items-center">
+                        <span className="text-xs sm:text-sm font-semibold text-zinc-300 whitespace-nowrap truncate">
                           {productType === 'shoes' ? `UK ${key}` : key}
                         </span>
                         <input
@@ -678,14 +672,14 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
                           onChange={(e) => setVariantField(key, 'price', e.target.value)}
                           placeholder="Price"
                           required
-                          className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                          className="w-full min-w-0 bg-zinc-800 border border-zinc-700 rounded-lg px-2 sm:px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
                         />
                         <input
                           type="number"
                           value={variantPrices[key]?.originalPrice ?? ''}
                           onChange={(e) => setVariantField(key, 'originalPrice', e.target.value)}
                           placeholder="Optional"
-                          className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                          className="w-full min-w-0 bg-zinc-800 border border-zinc-700 rounded-lg px-2 sm:px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
                         />
                         <input
                           type="number"
@@ -693,7 +687,7 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
                           value={variantPrices[key]?.maxQty ?? '1'}
                           onChange={(e) => setVariantField(key, 'maxQty', e.target.value)}
                           placeholder="1"
-                          className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                          className="w-full min-w-0 bg-zinc-800 border border-zinc-700 rounded-lg px-2 sm:px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
                         />
                       </div>
                     ))}
@@ -767,7 +761,7 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
                         set('imageList', updated);
                       }}
                       placeholder={`Image URL ${i + 1} or upload →`}
-                      className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 font-mono"
+                      className="flex-1 min-w-0 bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 font-mono"
                     />
                     <input
                       type="file"
@@ -834,7 +828,7 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
                 value={form.hoverImage}
                 onChange={(e) => set('hoverImage', e.target.value)}
                 placeholder="URL for hover state image or upload →"
-                className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 font-mono"
+                className="flex-1 min-w-0 bg-zinc-800 border border-zinc-700 rounded-lg px-3.5 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20 font-mono"
               />
               <input
                 type="file"

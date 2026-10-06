@@ -413,15 +413,15 @@ export default function PublishModal({ item, onClose, onSuccess, getToken }: Pub
                   <p className="text-xs text-zinc-500 italic">Select sizes above to set per-size prices.</p>
                 ) : (
                   <>
-                    <div className="grid grid-cols-[56px_1fr_1fr_64px] sm:grid-cols-[80px_1fr_1fr_80px] gap-2 sm:gap-3 text-xs font-medium text-zinc-500 pb-1 border-b border-zinc-800">
+                    <div className="grid grid-cols-[56px_minmax(0,1fr)_minmax(0,1fr)_48px] sm:grid-cols-[80px_1fr_1fr_80px] gap-1.5 sm:gap-3 text-xs font-medium text-zinc-500 pb-1 border-b border-zinc-800">
                       <span>{publishProductType === 'shoes' ? 'UK Size' : 'Size'}</span>
                       <span>Price (₹) *</span>
                       <span>Original (₹)</span>
                       <span>Max Qty</span>
                     </div>
                     {publishActiveSizeKeys.map((key) => (
-                      <div key={key} className="grid grid-cols-[56px_1fr_1fr_64px] sm:grid-cols-[80px_1fr_1fr_80px] gap-2 sm:gap-3 items-center">
-                        <span className="text-sm font-semibold text-zinc-300">
+                      <div key={key} className="grid grid-cols-[56px_minmax(0,1fr)_minmax(0,1fr)_48px] sm:grid-cols-[80px_1fr_1fr_80px] gap-1.5 sm:gap-3 items-center">
+                        <span className="text-xs sm:text-sm font-semibold text-zinc-300 whitespace-nowrap truncate">
                           {publishProductType === 'shoes' ? `UK ${key}` : key}
                         </span>
                         <input
@@ -429,14 +429,14 @@ export default function PublishModal({ item, onClose, onSuccess, getToken }: Pub
                           value={publishVariantPrices[key]?.price ?? ''}
                           onChange={(e) => setPublishVariantField(key, 'price', e.target.value)}
                           placeholder="Price"
-                          className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                          className="w-full min-w-0 bg-zinc-800 border border-zinc-700 rounded-lg px-2 sm:px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
                         />
                         <input
                           type="number"
                           value={publishVariantPrices[key]?.originalPrice ?? ''}
                           onChange={(e) => setPublishVariantField(key, 'originalPrice', e.target.value)}
                           placeholder="Optional"
-                          className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                          className="w-full min-w-0 bg-zinc-800 border border-zinc-700 rounded-lg px-2 sm:px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
                         />
                         <input
                           type="number"
@@ -444,7 +444,7 @@ export default function PublishModal({ item, onClose, onSuccess, getToken }: Pub
                           value={publishVariantPrices[key]?.maxQty ?? '1'}
                           onChange={(e) => setPublishVariantField(key, 'maxQty', e.target.value)}
                           placeholder="1"
-                          className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                          className="w-full min-w-0 bg-zinc-800 border border-zinc-700 rounded-lg px-2 sm:px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
                         />
                       </div>
                     ))}
