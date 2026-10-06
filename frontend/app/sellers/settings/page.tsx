@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState, FormEvent } from 'react';
+import { Suspense, useEffect, useRef, useState, FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { sellerApi } from '@/lib/sellerApi';
 import {
@@ -46,6 +46,37 @@ function SettingsInner() {
   const [showPasswords, setShowPasswords] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
+
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
+  const [otpNotice, setOtpNotice] = useState('');
+  const otpRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
+
+  async function sendVerifyOtp() {
+    setPasswordError('');
+    setOtpNotice('');
+    setSendingOtp(true);
+    try {
+      const { email } = await sellerApi.sendVerifyOtp();
+      setOtpSent(true);
+      setOtp('');
+      setResendIn(60);
+      setOtpNotice(`Code sent to ${email}. Check spam if it does not arrive in a minute.`);
+      setTimeout(() => otpRef.current?.focus(), 50);
+    } catch (err) {
+      setPasswordError(handleError(err));
+    } finally {
+      setSendingOtp(false);
+    }
+  }
 
   useEffect(() => {
     setProfile({
@@ -110,14 +141,19 @@ function SettingsInner() {
       setPasswordError('Passwords do not match');
       return;
     }
-    if (newPassword === currentPassword) {
+    if (!forceReset && newPassword === currentPassword) {
       setPasswordError('Choose a password different from your current one');
+      return;
+    }
+    if (forceReset && otp.length !== 6) {
+      setPasswordError('Enter the 6-digit code we emailed you');
       return;
     }
     setSavingPassword(true);
     try {
-      await sellerApi.changePassword(currentPassword, newPassword);
+      await sellerApi.changePassword(forceReset ? { newPassword, otp } : { currentPassword, newPassword });
       setCurrentPassword('');
+      setOtp('');
       setNewPassword('');
       setConfirmPassword('');
       await refresh();
@@ -140,8 +176,8 @@ function SettingsInner() {
       {forceReset && (
         <div className="border border-amber-300 bg-amber-50 px-5 py-4 mb-6">
           <p className="text-[10px] font-bold tracking-widest uppercase text-amber-700 mb-1">Action required</p>
-          <p className="text-base font-black tracking-tight text-amber-900">Set a new password to continue</p>
-          <p className="text-sm text-amber-800 mt-1">You are using a temporary password from SNKRS CART. Choose your own to unlock the portal.</p>
+          <p className="text-base font-black tracking-tight text-amber-900">Verify your email and set a new password</p>
+          <p className="text-sm text-amber-800 mt-1">You are using a temporary password from SNKRS CART. Confirm the code we email you, then choose your own password to unlock the portal.</p>
         </div>
       )}
 
@@ -221,18 +257,58 @@ function SettingsInner() {
                 <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500">{forceReset ? 'New password' : 'Change password'}</p>
               </div>
               <div className="px-5 py-5 space-y-4">
-                <div>
-                  <label htmlFor="pw-current" className={labelClass}>{forceReset ? 'Temporary password' : 'Current password'}</label>
-                  <input
-                    id="pw-current"
-                    type={showPasswords ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    value={currentPassword}
-                    onChange={(e) => { setPasswordError(''); setCurrentPassword(e.target.value); }}
-                    required
-                    className={inputClass}
-                  />
-                </div>
+                {forceReset ? (
+                  <div className="border border-zinc-200 p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-900">Step 1: verify your email</p>
+                        <p className="text-[11px] text-zinc-400 mt-0.5 break-all">We send a 6-digit code to {seller.email}.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={sendVerifyOtp}
+                        disabled={sendingOtp || resendIn > 0}
+                        className={`${btnSecondary} min-h-[40px] px-3 shrink-0`}
+                      >
+                        {sendingOtp ? 'Sending...' : resendIn > 0 ? `Resend in ${resendIn}s` : otpSent ? 'Resend code' : 'Send code'}
+                      </button>
+                    </div>
+                    {otpSent && (
+                      <div>
+                        <label htmlFor="pw-otp" className={labelClass}>Verification code</label>
+                        <input
+                          id="pw-otp"
+                          ref={otpRef}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          autoComplete="one-time-code"
+                          maxLength={6}
+                          required
+                          value={otp}
+                          onChange={(e) => { setPasswordError(''); setOtp(e.target.value.replace(/\D/g, '').slice(0, 6)); }}
+                          placeholder="6-digit code"
+                          className={`${inputClass} text-center text-lg font-black tracking-[0.5em]`}
+                        />
+                      </div>
+                    )}
+                    {otpNotice && !passwordError && <p className="text-xs text-emerald-700 font-medium">{otpNotice}</p>}
+                  </div>
+                ) : (
+                  <div>
+                    <label htmlFor="pw-current" className={labelClass}>Current password</label>
+                    <input
+                      id="pw-current"
+                      type={showPasswords ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      value={currentPassword}
+                      onChange={(e) => { setPasswordError(''); setCurrentPassword(e.target.value); }}
+                      required
+                      className={inputClass}
+                    />
+                  </div>
+                )}
+                {forceReset && <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-900">Step 2: choose your password</p>}
                 <div>
                   <label htmlFor="pw-new" className={labelClass}>New password</label>
                   <input
@@ -267,8 +343,8 @@ function SettingsInner() {
                 {passwordError && <p className="text-xs text-red-600 font-medium">{passwordError}</p>}
               </div>
               <div className="px-5 py-4 border-t border-zinc-100 flex justify-end">
-                <button type="submit" disabled={savingPassword} className={`${btnPrimary} ${forceReset ? 'w-full' : ''}`}>
-                  {savingPassword ? 'Saving...' : forceReset ? 'Set password and continue' : 'Update password'}
+                <button type="submit" disabled={savingPassword || (forceReset && otp.length !== 6)} className={`${btnPrimary} ${forceReset ? 'w-full' : ''}`}>
+                  {savingPassword ? 'Saving...' : forceReset ? 'Verify and set password' : 'Update password'}
                 </button>
               </div>
             </form>

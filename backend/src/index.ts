@@ -114,7 +114,7 @@ app.use('/api/v1/site-content', siteContentRoutes);
 app.use('/api/v1/coupons', postLimiter);
 app.use('/api/v1/coupons', couponRoutes);
 app.use('/api/v1/scraper', scraperIngestRoutes);
-app.use('/api/v1/seller-portal/auth/login', sellerLoginLimiter);
+app.use(['/api/v1/seller-portal/auth/login', '/api/v1/seller-portal/auth/send-otp', '/api/v1/seller-portal/auth/verify-otp', '/api/v1/seller-portal/auth/send-verify-otp'], sellerLoginLimiter);
 app.use('/api/v1/seller-portal', sellerPortalRoutes);
 app.use('/api/v1/tracking', trackingRoutes);
 

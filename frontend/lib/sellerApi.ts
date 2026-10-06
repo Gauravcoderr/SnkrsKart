@@ -33,7 +33,7 @@ async function request<T>(path: string, init: RequestInit = {}, auth = true): Pr
     headers.set('Authorization', `Bearer ${token}`);
   }
   const res = await fetch(`${PORTAL}${path}`, { ...init, headers, cache: 'no-store' });
-  if (res.status === 401) {
+  if (res.status === 401 && auth) {
     setSellerToken(null);
     throw new SellerAuthError();
   }
@@ -45,11 +45,17 @@ async function request<T>(path: string, init: RequestInit = {}, auth = true): Pr
 export const sellerApi = {
   login: (email: string, password: string) =>
     request<{ token: string; seller: SellerProfile }>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }, false),
+  sendLoginOtp: (email: string) =>
+    request<{ message: string; expiresIn: number }>('/auth/send-otp', { method: 'POST', body: JSON.stringify({ email }) }, false),
+  verifyLoginOtp: (email: string, otp: string) =>
+    request<{ token: string; seller: SellerProfile }>('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ email, otp }) }, false),
   me: () => request<SellerProfile>('/me'),
   updateMe: (body: Partial<Pick<SellerProfile, 'name' | 'phone' | 'businessName' | 'addressLine' | 'city' | 'state' | 'pincode' | 'whatsapp' | 'upiId'>>) =>
     request<SellerProfile>('/me', { method: 'PUT', body: JSON.stringify(body) }),
-  changePassword: (currentPassword: string, newPassword: string) =>
-    request<{ success: true; seller: SellerProfile }>('/auth/change-password', { method: 'POST', body: JSON.stringify({ currentPassword, newPassword }) }),
+  sendVerifyOtp: () =>
+    request<{ message: string; email: string; expiresIn: number }>('/auth/send-verify-otp', { method: 'POST' }),
+  changePassword: (body: { currentPassword?: string; newPassword: string; otp?: string }) =>
+    request<{ success: true; seller: SellerProfile }>('/auth/change-password', { method: 'POST', body: JSON.stringify(body) }),
   config: () => request<{ commissionPct: number; angles: VerificationAngle[]; shipDays: Record<Availability, number> }>('/config', {}, false),
   dashboard: () => request<SellerDashboard>('/dashboard'),
   catalogSearch: (search: string, page = 1, limit = 10) =>

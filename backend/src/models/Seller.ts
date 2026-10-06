@@ -20,6 +20,11 @@ export interface ISeller extends Document {
   whatsapp: string;
   upiId: string;
   lastLoginAt: Date | null;
+  emailVerifiedAt: Date | null;
+  loginOtp: string | null;
+  loginOtpExpiry: Date | null;
+  loginOtpAttempts: number;
+  lastLoginOtpSent: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,6 +48,11 @@ const SellerSchema = new Schema<ISeller>(
     whatsapp: { type: String, default: '' },
     upiId: { type: String, default: '' },
     lastLoginAt: { type: Date, default: null },
+    emailVerifiedAt: { type: Date, default: null },
+    loginOtp: { type: String, default: null, select: false },
+    loginOtpExpiry: { type: Date, default: null, select: false },
+    loginOtpAttempts: { type: Number, default: 0, select: false },
+    lastLoginOtpSent: { type: Date, default: null, select: false },
   },
   { timestamps: true }
 );

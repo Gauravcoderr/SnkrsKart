@@ -41,6 +41,7 @@ export interface SellerProfile {
   whatsapp: string;
   upiId: string;
   mustChangePassword: boolean;
+  emailVerifiedAt: string | null;
   lastLoginAt: string | null;
   createdAt: string;
 }
@@ -81,6 +82,10 @@ export interface PagedResponse<T> {
   counts: Record<string, number>;
 }
 
+export type ListingCompetition =
+  | { lowest: true }
+  | { lowest: false; beat: number; by: 'store' | 'seller'; tie: boolean };
+
 export interface SellerListing {
   id: string;
   productId: string;
@@ -91,6 +96,7 @@ export interface SellerListing {
   qty: number;
   status: ListingStatus;
   soldCount: number;
+  competition: ListingCompetition | null;
   createdAt: string;
   updatedAt: string;
 }

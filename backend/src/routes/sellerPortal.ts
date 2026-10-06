@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import mongoose from 'mongoose';
 import { Seller, ISeller } from '../models/Seller';
 import {
@@ -14,9 +15,11 @@ import { SellerOrder, VERIFICATION_ANGLES, PAYOUT_DELAY_DAYS, LATE_PENALTY_TEXT 
 import { ProductRequest } from '../models/ProductRequest';
 import { Product } from '../models/Product';
 import { sellerAuth, SellerRequest, signSellerToken } from '../middleware/sellerAuth';
-import { attachSellerOffers } from '../lib/sellerOffers';
+import { attachSellerOffers, loadActiveListings, buildOffers, Offer } from '../lib/sellerOffers';
 import { applySellerTrackingToOrder } from '../lib/sellerOrders';
 import { sendAdminVerificationSubmittedEmail, sendAdminProductRequestEmail } from '../lib/sellerEmails';
+import { sendMail } from '../lib/mailer';
+import { transactionalShell, EMAIL_REASON } from '../lib/emailLayout';
 
 const router = Router();
 
@@ -37,6 +40,7 @@ function publicSeller(s: ISeller) {
     whatsapp: s.whatsapp,
     upiId: s.upiId,
     mustChangePassword: s.mustChangePassword,
+    emailVerifiedAt: s.emailVerifiedAt ?? null,
     lastLoginAt: s.lastLoginAt,
     createdAt: s.createdAt,
   };
@@ -112,6 +116,140 @@ router.post('/auth/login', async (req: Request, res: Response): Promise<void> =>
   }
 });
 
+const OTP_TTL_MS = 5 * 60 * 1000;
+const OTP_RESEND_MS = 60 * 1000;
+const OTP_MAX_ATTEMPTS = 5;
+const OTP_FIELDS = '+loginOtp +loginOtpExpiry +loginOtpAttempts +lastLoginOtpSent';
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function hashOtp(otp: string): string {
+  return crypto.createHash('sha256').update(otp).digest('hex');
+}
+
+function clearOtp(seller: ISeller) {
+  seller.loginOtp = null;
+  seller.loginOtpExpiry = null;
+  seller.loginOtpAttempts = 0;
+}
+
+function otpCooldown(seller: ISeller): number {
+  if (!seller.lastLoginOtpSent) return 0;
+  const since = Date.now() - new Date(seller.lastLoginOtpSent).getTime();
+  return since < OTP_RESEND_MS ? Math.ceil((OTP_RESEND_MS - since) / 1000) : 0;
+}
+
+async function issueOtp(seller: ISeller, purpose: 'login' | 'verify'): Promise<void> {
+  const otp = String(crypto.randomInt(100000, 999999));
+  seller.loginOtp = hashOtp(otp);
+  seller.loginOtpExpiry = new Date(Date.now() + OTP_TTL_MS);
+  seller.loginOtpAttempts = 0;
+  seller.lastLoginOtpSent = new Date();
+  await seller.save();
+  const intro = purpose === 'login' ? 'Your seller portal login code is' : 'Your email verification code for the SNKRS CART seller portal is';
+  const subject = purpose === 'login' ? `${otp} is your SNKRS CART seller login code` : `${otp} is your SNKRS CART email verification code`;
+  await sendMail({
+    to: seller.email,
+    subject,
+    html: transactionalShell(`
+      <div style="text-align:center;padding:8px 0;">
+        <p style="color:#666;font-size:14px;margin:0 0 16px;">${intro}</p>
+        <p style="font-size:36px;font-weight:900;letter-spacing:8px;color:#111;margin:0 0 16px;font-family:monospace;">${otp}</p>
+        <p style="color:#999;font-size:12px;margin:0;">Expires in 5 minutes. Do not share this code. If this was not you, you can ignore this email.</p>
+      </div>
+    `, EMAIL_REASON.otp),
+  });
+}
+
+function checkOtp(seller: ISeller, otp: string): { ok: true } | { ok: false; status: number; error: string; attemptsLeft?: number; clear?: boolean } {
+  if (!seller.loginOtp || !seller.loginOtpExpiry) return { ok: false, status: 400, error: 'No code was requested. Request a new one.' };
+  if (Date.now() > new Date(seller.loginOtpExpiry).getTime()) return { ok: false, status: 400, error: 'That code has expired. Request a new one.', clear: true };
+  if (seller.loginOtpAttempts >= OTP_MAX_ATTEMPTS) return { ok: false, status: 400, error: 'Too many attempts. Request a new code.', clear: true };
+  if (hashOtp(otp) !== seller.loginOtp) return { ok: false, status: 400, error: 'Incorrect code. Try again.', attemptsLeft: OTP_MAX_ATTEMPTS - seller.loginOtpAttempts - 1 };
+  return { ok: true };
+}
+
+async function rejectOtp(seller: ISeller, result: { clear?: boolean }): Promise<void> {
+  if (result.clear) clearOtp(seller);
+  else seller.loginOtpAttempts += 1;
+  await seller.save();
+}
+
+router.post('/auth/send-otp', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const email = String(req.body.email || '').trim().toLowerCase();
+    if (!EMAIL_RE.test(email)) {
+      res.status(400).json({ error: 'Enter a valid email address' });
+      return;
+    }
+    const seller = await Seller.findOne({ email }).select(OTP_FIELDS);
+    if (!seller || seller.status !== 'active') {
+      res.status(404).json({ error: 'No active seller account uses this email. Apply at /sell or message us on WhatsApp.' });
+      return;
+    }
+    const wait = otpCooldown(seller);
+    if (wait > 0) {
+      res.status(429).json({ error: 'Please wait before requesting another code', retryAfter: wait });
+      return;
+    }
+    await issueOtp(seller, 'login');
+    res.json({ message: 'Code sent', expiresIn: OTP_TTL_MS / 1000 });
+  } catch (err) {
+    console.error('[seller-portal/send-otp]', err);
+    res.status(500).json({ error: 'Could not send the code. Try again in a moment.' });
+  }
+});
+
+router.post('/auth/send-verify-otp', sellerAuth, async (req: SellerRequest, res: Response): Promise<void> => {
+  try {
+    const seller = await Seller.findById(req.seller!.id).select(OTP_FIELDS);
+    if (!seller) { res.status(404).json({ error: 'Not found' }); return; }
+    const wait = otpCooldown(seller);
+    if (wait > 0) {
+      res.status(429).json({ error: 'Please wait before requesting another code', retryAfter: wait });
+      return;
+    }
+    await issueOtp(seller, 'verify');
+    res.json({ message: 'Code sent', email: seller.email, expiresIn: OTP_TTL_MS / 1000 });
+  } catch (err) {
+    console.error('[seller-portal/send-verify-otp]', err);
+    res.status(500).json({ error: 'Could not send the code. Try again in a moment.' });
+  }
+});
+
+router.post('/auth/verify-otp', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const otp = String(req.body.otp || '').replace(/\D/g, '');
+    if (!EMAIL_RE.test(email) || otp.length !== 6) {
+      res.status(400).json({ error: 'Email and the 6-digit code are required' });
+      return;
+    }
+    const seller = await Seller.findOne({ email }).select(OTP_FIELDS);
+    if (!seller) {
+      res.status(400).json({ error: 'No code was requested for this email. Request a new one.' });
+      return;
+    }
+    const check = checkOtp(seller, otp);
+    if (!check.ok) {
+      await rejectOtp(seller, check);
+      res.status(check.status).json({ error: check.error, ...(check.attemptsLeft !== undefined ? { attemptsLeft: check.attemptsLeft } : {}) });
+      return;
+    }
+    if (seller.status !== 'active') {
+      res.status(403).json({ error: 'Your seller account is not active. Contact SNKRS CART on WhatsApp.' });
+      return;
+    }
+    clearOtp(seller);
+    seller.emailVerifiedAt = seller.emailVerifiedAt ?? new Date();
+    seller.lastLoginAt = new Date();
+    await seller.save();
+    res.json({ token: signSellerToken(String(seller._id), seller.email), seller: publicSeller(seller) });
+  } catch (err) {
+    console.error('[seller-portal/verify-otp]', err);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
 router.get('/me', sellerAuth, async (req: SellerRequest, res: Response): Promise<void> => {
   const seller = await Seller.findById(req.seller!.id);
   if (!seller) { res.status(404).json({ error: 'Not found' }); return; }
@@ -147,14 +285,32 @@ router.post('/auth/change-password', sellerAuth, async (req: SellerRequest, res:
   try {
     const currentPassword = String(req.body.currentPassword || '');
     const newPassword = String(req.body.newPassword || '');
+    const otp = String(req.body.otp || '').replace(/\D/g, '');
     if (newPassword.length < 8) {
       res.status(400).json({ error: 'New password must be at least 8 characters' });
       return;
     }
-    const seller = await Seller.findById(req.seller!.id);
+    const seller = await Seller.findById(req.seller!.id).select(OTP_FIELDS);
     if (!seller || !seller.passwordHash) { res.status(404).json({ error: 'Not found' }); return; }
-    if (!(await bcrypt.compare(currentPassword, seller.passwordHash))) {
+    if (seller.mustChangePassword) {
+      if (otp.length !== 6) {
+        res.status(400).json({ error: 'Enter the 6-digit code we emailed you to verify your email first' });
+        return;
+      }
+      const check = checkOtp(seller, otp);
+      if (!check.ok) {
+        await rejectOtp(seller, check);
+        res.status(check.status).json({ error: check.error, ...(check.attemptsLeft !== undefined ? { attemptsLeft: check.attemptsLeft } : {}) });
+        return;
+      }
+      clearOtp(seller);
+      seller.emailVerifiedAt = seller.emailVerifiedAt ?? new Date();
+    } else if (!(await bcrypt.compare(currentPassword, seller.passwordHash))) {
       res.status(400).json({ error: 'Current password is incorrect' });
+      return;
+    }
+    if (await bcrypt.compare(newPassword, seller.passwordHash)) {
+      res.status(400).json({ error: 'Choose a password different from your current one' });
       return;
     }
     seller.passwordHash = await bcrypt.hash(newPassword, 10);
@@ -288,7 +444,34 @@ router.get('/catalog/:id', sellerAuth, async (req: SellerRequest, res: Response)
 
 // ─── Listings ──────────────────────────────────────────────────────────────
 
-const LISTING_PRODUCT_FIELDS = 'slug name brand colorway images hoverImage price productType';
+const LISTING_PRODUCT_FIELDS = CATALOG_FIELDS;
+
+type ListingCompetition = { lowest: true } | { lowest: false; beat: number; by: 'store' | 'seller'; tie: boolean };
+
+function competitionFor(l: any, offers: Offer[] | undefined): ListingCompetition | null {
+  if (!offers || l.status !== 'active' || !(l.qty > 0)) return null;
+  const best = offers.find((o) => String(o.size) === String(l.size));
+  if (!best) return null;
+  if (best.listingId === String(l._id)) return { lowest: true };
+  return { lowest: false, beat: maxSellerPriceToBeat(best.price), by: best.source, tie: best.price === l.listPrice };
+}
+
+async function shapeListings(docs: any[]) {
+  const products = new Map<string, any>();
+  for (const d of docs) {
+    if (d?.product && typeof d.product === 'object') products.set(String(d.product._id), d.product);
+  }
+  const active = await loadActiveListings([...products.values()].map((p) => p._id));
+  const grouped = new Map<string, typeof active>();
+  for (const l of active) {
+    const key = String(l.product);
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key)!.push(l);
+  }
+  const offers = new Map<string, Offer[]>();
+  for (const [id, p] of products) offers.set(id, buildOffers(p, grouped.get(id) ?? []));
+  return docs.map((d) => ({ ...shapeListing(d), competition: competitionFor(d, offers.get(String(d.product?._id ?? d.product))) }));
+}
 
 function shapeListing(l: any) {
   const p = l.product && typeof l.product === 'object' ? l.product : null;
@@ -345,7 +528,7 @@ router.get('/listings', sellerAuth, async (req: SellerRequest, res: Response): P
     ]);
     const counts: Record<string, number> = { all: 0, active: 0, paused: 0, sold_out: 0 };
     for (const row of countRows) { counts[row._id] = row.n; counts.all += row.n; }
-    res.json({ items: items.slice(0, limit).map(shapeListing), page, hasMore: items.length > limit, total, counts });
+    res.json({ items: await shapeListings(items.slice(0, limit)), page, hasMore: items.length > limit, total, counts });
   } catch (err) {
     console.error('[seller-portal/listings GET]', err);
     res.status(500).json({ error: 'Failed to load listings' });
@@ -390,9 +573,9 @@ router.post('/listings', sellerAuth, async (req: SellerRequest, res: Response): 
         { $set: { sellerPrice: p.sellerPrice, listPrice: computeListPrice(p.sellerPrice), availability: p.availability, qty: p.qty, status: 'active' } },
         { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
       ).populate({ path: 'product', select: LISTING_PRODUCT_FIELDS }).lean();
-      saved.push(shapeListing(doc));
+      saved.push(doc);
     }
-    res.status(201).json(saved);
+    res.status(201).json(await shapeListings(saved));
   } catch (err) {
     console.error('[seller-portal/listings POST]', err);
     res.status(500).json({ error: 'Failed to save listings' });
@@ -429,7 +612,7 @@ router.put('/listings/:id', sellerAuth, async (req: SellerRequest, res: Response
     else if (listing.status === 'sold_out') listing.status = 'active';
     await listing.save();
     const populated = await SellerListing.findById(listing._id).populate({ path: 'product', select: LISTING_PRODUCT_FIELDS }).lean();
-    res.json(shapeListing(populated));
+    res.json((await shapeListings([populated]))[0]);
   } catch (err) {
     console.error('[seller-portal/listings PUT]', err);
     res.status(500).json({ error: 'Failed to update listing' });

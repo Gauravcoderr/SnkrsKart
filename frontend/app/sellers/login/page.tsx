@@ -1,39 +1,125 @@
 'use client';
 
-import { useEffect, useState, FormEvent } from 'react';
+import { useEffect, useRef, useState, FormEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { sellerApi, getSellerToken, setSellerToken } from '@/lib/sellerApi';
-import { WHATSAPP_NUMBER, inputClass, labelClass, btnPrimary } from '@/components/seller/SellerShell';
+import { WHATSAPP_NUMBER, inputClass, labelClass, btnPrimary, btnGhost } from '@/components/seller/SellerShell';
+import type { SellerProfile } from '@/types/seller';
+import { cn } from '@/lib/utils';
 
 const HELP_TEXT = encodeURIComponent('Hi SNKRS CART, I need help logging in to the seller portal.');
+const RESEND_SECONDS = 60;
+
+type Mode = 'otp' | 'password';
 
 export default function SellerLoginPage() {
   const router = useRouter();
+  const [mode, setMode] = useState<Mode>('otp');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const otpRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (getSellerToken()) router.replace('/sellers');
   }, [router]);
 
-  async function handleSubmit(e: FormEvent) {
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
+
+  useEffect(() => {
+    if (otpSent) otpRef.current?.focus();
+  }, [otpSent]);
+
+  function finishLogin(token: string, seller: SellerProfile) {
+    setSellerToken(token);
+    router.replace(seller.mustChangePassword ? '/sellers/settings?reset=1' : '/sellers');
+  }
+
+  function switchMode(next: Mode) {
+    setMode(next);
+    setError('');
+    setNotice('');
+  }
+
+  async function handlePasswordLogin(e: FormEvent) {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
       const { token, seller } = await sellerApi.login(email.trim(), password);
-      setSellerToken(token);
-      router.replace(seller.mustChangePassword ? '/sellers/settings?reset=1' : '/sellers');
+      finishLogin(token, seller);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
       setLoading(false);
     }
   }
+
+  async function handleSendOtp(e?: FormEvent) {
+    e?.preventDefault();
+    setError('');
+    setNotice('');
+    setLoading(true);
+    try {
+      await sellerApi.sendLoginOtp(email.trim());
+      setOtpSent(true);
+      setOtp('');
+      setResendIn(RESEND_SECONDS);
+      setNotice(`Code sent to ${email.trim()}. Check spam if it does not arrive in a minute.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not send the code');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleVerifyOtp(e: FormEvent) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const { token, seller } = await sellerApi.verifyLoginOtp(email.trim(), otp);
+      finishLogin(token, seller);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+      setLoading(false);
+    }
+  }
+
+  function changeEmail() {
+    setOtpSent(false);
+    setOtp('');
+    setError('');
+    setNotice('');
+  }
+
+  const emailField = (
+    <div>
+      <label htmlFor="seller-email" className={labelClass}>Email</label>
+      <input
+        id="seller-email"
+        type="email"
+        required
+        autoComplete="email"
+        inputMode="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="you@example.com"
+        className={inputClass}
+      />
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center px-4 py-12">
@@ -48,52 +134,121 @@ export default function SellerLoginPage() {
 
         <div className="bg-white border border-zinc-200 p-6 sm:p-8">
           <h1 className="text-lg font-black tracking-tight text-zinc-900 mb-1">Log in</h1>
-          <p className="text-sm text-zinc-500 mb-6">Use the email and password SNKRS CART shared with you.</p>
+          <p className="text-sm text-zinc-500 mb-5">
+            Get a one-time code on your registered email, or use the password SNKRS CART shared with you.
+          </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="seller-email" className={labelClass}>Email</label>
-              <input
-                id="seller-email"
-                type="email"
-                required
-                autoComplete="email"
-                inputMode="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label htmlFor="seller-password" className={labelClass}>Password</label>
-              <div className="relative">
+          <div className="grid grid-cols-2 border border-zinc-200 mb-6" role="tablist" aria-label="Login method">
+            {([
+              { key: 'otp', label: 'Email code' },
+              { key: 'password', label: 'Password' },
+            ] as Array<{ key: Mode; label: string }>).map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                role="tab"
+                aria-selected={mode === t.key}
+                onClick={() => switchMode(t.key)}
+                className={cn(
+                  'min-h-[40px] text-[11px] font-bold tracking-widest uppercase transition-colors',
+                  mode === t.key ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-500 hover:text-zinc-900',
+                )}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {mode === 'otp' && !otpSent && (
+            <form onSubmit={handleSendOtp} className="space-y-4">
+              {emailField}
+              {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
+              <button type="submit" disabled={loading || !email.trim()} className={`${btnPrimary} w-full`}>
+                {loading ? 'Sending...' : 'Send login code'}
+              </button>
+              <p className="text-[11px] text-zinc-400 text-center">We email a 6-digit code that works for 5 minutes.</p>
+            </form>
+          )}
+
+          {mode === 'otp' && otpSent && (
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <label htmlFor="seller-otp" className={cn(labelClass, 'mb-0')}>Login code</label>
+                  <button type="button" onClick={changeEmail} className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 hover:text-zinc-900">
+                    Change email
+                  </button>
+                </div>
                 <input
-                  id="seller-password"
-                  type={showPassword ? 'text' : 'password'}
+                  id="seller-otp"
+                  ref={otpRef}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="one-time-code"
+                  maxLength={6}
                   required
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Your password"
-                  className={`${inputClass} pr-16`}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="6-digit code"
+                  className={`${inputClass} text-center text-lg font-black tracking-[0.5em]`}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-0 top-0 h-full px-3 text-[10px] font-bold tracking-widest uppercase text-zinc-500 hover:text-zinc-900"
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
+                <p className="text-[11px] text-zinc-500 mt-1.5 break-all">Sent to {email.trim()}</p>
               </div>
-            </div>
 
-            {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
+              {notice && !error && <p className="text-xs text-emerald-700 font-medium">{notice}</p>}
+              {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
 
-            <button type="submit" disabled={loading} className={`${btnPrimary} w-full`}>
-              {loading ? 'Logging in...' : 'Log in'}
-            </button>
-          </form>
+              <button type="submit" disabled={loading || otp.length !== 6} className={`${btnPrimary} w-full`}>
+                {loading ? 'Verifying...' : 'Log in'}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendOtp()}
+                disabled={loading || resendIn > 0}
+                className={cn(btnGhost, 'w-full')}
+              >
+                {resendIn > 0 ? `Resend code in ${resendIn}s` : 'Resend code'}
+              </button>
+            </form>
+          )}
+
+          {mode === 'password' && (
+            <form onSubmit={handlePasswordLogin} className="space-y-4">
+              {emailField}
+              <div>
+                <label htmlFor="seller-password" className={labelClass}>Password</label>
+                <div className="relative">
+                  <input
+                    id="seller-password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Your password"
+                    className={`${inputClass} pr-16`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-0 top-0 h-full px-3 text-[10px] font-bold tracking-widest uppercase text-zinc-500 hover:text-zinc-900"
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+              </div>
+
+              {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
+
+              <button type="submit" disabled={loading} className={`${btnPrimary} w-full`}>
+                {loading ? 'Logging in...' : 'Log in'}
+              </button>
+              <button type="button" onClick={() => switchMode('otp')} className={cn(btnGhost, 'w-full')}>
+                Forgot password? Log in with an email code
+              </button>
+            </form>
+          )}
         </div>
 
         <div className="mt-6 text-center space-y-3">
