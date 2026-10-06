@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -43,6 +44,9 @@ export default function AdminLoginPage() {
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
+          <span className="inline-flex items-center justify-center w-[72px] h-[72px] rounded-2xl bg-white p-1.5 mb-4">
+            <Image src="/logo.png" alt="SNKRS CART" width={72} height={72} className="w-full h-full object-contain" priority />
+          </span>
           <h1 className="text-3xl font-bold text-white tracking-tight">SNKRS CART</h1>
           <p className="text-zinc-500 mt-1 text-sm">Admin Panel</p>
         </div>
