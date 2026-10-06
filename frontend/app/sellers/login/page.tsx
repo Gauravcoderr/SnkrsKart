@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, FormEvent } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { sellerApi, getSellerToken, setSellerToken } from '@/lib/sellerApi';
@@ -38,6 +39,9 @@ export default function SellerLoginPage() {
     <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
+          <Link href="/" aria-label="SNKRS CART home" className="inline-block mb-4">
+            <Image src="/logo.png" alt="SNKRS CART" width={72} height={72} className="w-[72px] h-[72px] object-contain mx-auto" priority />
+          </Link>
           <p className="text-2xl font-black tracking-tight text-zinc-900 leading-none">SNKRS CART</p>
           <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mt-2">Seller Portal</p>
         </div>
