@@ -1,5 +1,26 @@
 const BREVO_API = 'https://api.brevo.com/v3/smtp/email';
 
+const ADMIN_INBOX = 'info@snkrscart.com';
+const DEFAULT_ADMIN_CC = 'infosnkrscart@gmail.com,gauravrauthan12112@gmail.com';
+
+function adminCcFor(to: string): string[] {
+  const recipient = to.trim().toLowerCase();
+  const adminInboxes = new Set(
+    [ADMIN_INBOX, process.env.ADMIN_NOTIFICATION_EMAIL]
+      .filter((e): e is string => Boolean(e))
+      .map((e) => e.trim().toLowerCase()),
+  );
+  if (!adminInboxes.has(recipient)) return [];
+  return Array.from(
+    new Set(
+      (process.env.ADMIN_CC_EMAILS ?? DEFAULT_ADMIN_CC)
+        .split(',')
+        .map((e) => e.trim().toLowerCase())
+        .filter((e) => e && e !== recipient),
+    ),
+  );
+}
+
 export async function sendMail(options: { to: string; subject: string; html: string }) {
   if (!process.env.BREVO_API_KEY) {
     console.warn('[mailer] BREVO_API_KEY not set — email skipped');
@@ -11,7 +32,11 @@ export async function sendMail(options: { to: string; subject: string; html: str
   const senderEmail = (process.env.EMAIL_FROM || 'SNKRS CART <info@snkrscart.com>')
     .match(/<(.+?)>/) ?.[1] || 'info@snkrscart.com';
 
-  console.log(`[mailer] Sending to ${options.to} | ${options.subject}`);
+  const cc = adminCcFor(options.to);
+
+  console.log(
+    `[mailer] Sending to ${options.to}${cc.length ? ` cc ${cc.join(', ')}` : ''} | ${options.subject}`,
+  );
 
   try {
     const res = await fetch(BREVO_API, {
@@ -23,6 +48,7 @@ export async function sendMail(options: { to: string; subject: string; html: str
       body: JSON.stringify({
         sender: { name: senderName, email: senderEmail },
         to: [{ email: options.to }],
+        ...(cc.length ? { cc: cc.map((email) => ({ email })) } : {}),
         subject: options.subject,
         htmlContent: options.html,
       }),
