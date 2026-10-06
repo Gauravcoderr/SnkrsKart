@@ -46,7 +46,7 @@ frontend/
       chat-leads/page.tsx     Chat leads from KickBot
     deal-verifications/page.tsx  Deal verification submissions + verdict UI
   app/sellers/              Seller portal (login, dashboard, listings, orders/[id], requests, settings)
-  components/seller/        SellerShell (auth guard + nav), AddListingModal, RequestProductModal, VerificationCapture
+  components/seller/        SellerShell (auth guard + nav: logo sidebar collapsible to icon rail w/ tooltips, persisted in localStorage seller_sidebar_collapsed; mobile = hamburger drawer + bottom tab bar), AddListingModal, RequestProductModal, VerificationCapture
   lib/sellerApi.ts          Seller portal client (seller_token)
   lib/availability.ts       Availability labels, delivery windows, computeListPrice
   components/
@@ -81,6 +81,7 @@ backend/src/
   lib/sellerOffers.ts       attachSellerOffers(): merge store stock + seller listings into product.offers
   lib/sellerOrders.ts       createSellerOrders / syncSellerOrdersWithOrder / applySellerTrackingToOrder
   lib/sellerEmails.ts       seller + admin + customer-shipped email templates
+  lib/emailLayout.ts        shared email chrome: transactionalShell(body, reason) + emailFooterRows (blog-style footer: socials, Connect With Us, brand line) + EMAIL_REASON per audience; every transactional + marketing email goes through it
   config/database.ts          MongoDB connect (MONGODB_URI → dbName: snkrs-cart)
   index.ts                    Express app entry, all routes registered, /health endpoint
 ```
