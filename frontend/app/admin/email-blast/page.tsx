@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLoader from '@/app/admin/_components/AdminLoader';
+import { useAdminToast } from '@/app/admin/_components/AdminToast';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -176,7 +177,7 @@ export default function EmailBlastPage() {
   const [preview, setPreview] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState('');
+  const toast = useAdminToast();
   const [loadingData, setLoadingData] = useState(true);
 
   const getToken = useCallback(() => {
@@ -214,8 +215,7 @@ export default function EmailBlastPage() {
   function generate() {
     const selProds = products.filter(p => selectedProducts.has(p.id));
     const selBlgs = blogs.filter(b => selectedBlogs.has(b._id));
-    if (!selProds.length && !selBlgs.length) { setError('Select at least one item.'); return; }
-    setError('');
+    if (!selProds.length && !selBlgs.length) { toast('Select at least one item.', 'error'); return; }
     const autoSubject = selProds.length && selBlgs.length
       ? `What's New at SNKRS CART`
       : selProds.length === 1 ? `Just Dropped: ${selProds[0].name}`
@@ -228,8 +228,7 @@ export default function EmailBlastPage() {
   }
 
   async function handleSend() {
-    if (!subject.trim() || !html.trim()) { setError('Generate or write subject + HTML first.'); return; }
-    setError('');
+    if (!subject.trim() || !html.trim()) { toast('Generate or write subject + HTML first.', 'error'); return; }
     setSending(true);
     const token = getToken();
     if (!token) return;
@@ -243,7 +242,7 @@ export default function EmailBlastPage() {
       if (!res.ok) throw new Error(data.error || 'Failed');
       setSent(true);
     } catch (err: any) {
-      setError(err.message);
+      toast(err.message || 'Failed to send', 'error');
     } finally {
       setSending(false);
     }
@@ -383,9 +382,6 @@ export default function EmailBlastPage() {
           )}
         </div>
       </div>
-
-      {error && <p className="text-sm text-red-400 font-medium">{error}</p>}
-
       <div className="flex items-center gap-4 pb-8">
         <button
           type="button"

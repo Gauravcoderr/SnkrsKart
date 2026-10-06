@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Paginator from '../_components/Paginator';
 import ConfirmModal from '../_components/ConfirmModal';
 import AdminLoader from '@/app/admin/_components/AdminLoader';
+import { useAdminToast } from '@/app/admin/_components/AdminToast';
 
 const SP_PAGE_SIZE = 20;
 
@@ -55,6 +56,7 @@ export default function AdminSneakerProfilesPage() {
   const [profiles, setProfiles] = useState<SneakerProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const toast = useAdminToast();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
@@ -110,7 +112,7 @@ export default function AdminSneakerProfilesPage() {
       const url = await uploadImage(file);
       setF('image', url);
     } catch {
-      setError('Image upload failed');
+      toast('Image upload failed', 'error');
     } finally {
       setImageUploading(false);
     }
@@ -135,11 +137,11 @@ export default function AdminSneakerProfilesPage() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error || 'Save failed'); return; }
+      if (!res.ok) { const d = await res.json().catch(() => ({})); toast(d.error || 'Save failed', 'error'); return; }
       setShowForm(false);
       fetchProfiles();
     } catch {
-      setError('Save failed');
+      toast('Save failed', 'error');
     } finally {
       setSaving(false);
     }
@@ -322,9 +324,6 @@ export default function AdminSneakerProfilesPage() {
               <input type="checkbox" id="sp-published" checked={form.published} onChange={(e) => setF('published', e.target.checked)} className="w-4 h-4 accent-emerald-500" />
               <label htmlFor="sp-published" className="text-sm text-zinc-300">Published (visible on /sneakers/)</label>
             </div>
-
-            {error && <p className="text-xs text-red-400 mt-3">{error}</p>}
-
             <div className="flex gap-3 mt-5">
               <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-2.5 border border-zinc-700 text-sm font-bold text-zinc-400 hover:border-zinc-500 transition-colors">Cancel</button>
               <button type="button" onClick={handleSave} disabled={saving} className="flex-[2] py-2.5 bg-zinc-100 text-zinc-900 text-sm font-bold hover:bg-white disabled:opacity-50 transition-colors">

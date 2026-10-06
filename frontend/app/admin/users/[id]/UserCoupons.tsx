@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Coupon } from '@/types';
+import { useAdminToast } from '@/app/admin/_components/AdminToast';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -67,7 +68,7 @@ export default function UserCoupons({
   const [maxUses, setMaxUses] = useState('1');
   const [newForm, setNewForm] = useState<NewCouponForm>(EMPTY_NEW);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const toast = useAdminToast();
   const [editing, setEditing] = useState<{ id: string; value: string } | null>(null);
 
   useEffect(() => {
@@ -95,10 +96,9 @@ export default function UserCoupons({
   }
 
   async function handleAssign() {
-    setError('');
     const uses = Math.floor(Number(maxUses));
-    if (!selected) { setError('Pick a coupon'); return; }
-    if (!Number.isFinite(uses) || uses < 1) { setError('Uses must be 1 or more'); return; }
+    if (!selected) { toast('Pick a coupon', 'error'); return; }
+    if (!Number.isFinite(uses) || uses < 1) { toast('Uses must be 1 or more', 'error'); return; }
     setSaving(true);
     try {
       let couponId = selected;
@@ -131,7 +131,7 @@ export default function UserCoupons({
       setNewForm(EMPTY_NEW);
       onChange();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      toast(err instanceof Error ? err.message : 'Something went wrong', 'error');
     } finally {
       setSaving(false);
     }
@@ -140,24 +140,22 @@ export default function UserCoupons({
   async function handleUpdateUses() {
     if (!editing) return;
     const uses = Math.floor(Number(editing.value));
-    if (!Number.isFinite(uses) || uses < 1) { setError('Uses must be 1 or more'); return; }
-    setError('');
+    if (!Number.isFinite(uses) || uses < 1) { toast('Uses must be 1 or more', 'error'); return; }
     try {
       await assign(editing.id, uses);
       setEditing(null);
       onChange();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Update failed');
+      toast(err instanceof Error ? err.message : 'Update failed', 'error');
     }
   }
 
   async function handleRemove(couponId: string) {
-    setError('');
     const res = await fetch(`${BASE_URL}/admin/users/${userId}/coupons/${couponId}`, {
       method: 'DELETE',
       headers: authHeaders(),
     });
-    if (!res.ok) { setError('Remove failed'); return; }
+    if (!res.ok) { toast('Remove failed', 'error'); return; }
     onChange();
   }
 
@@ -284,8 +282,6 @@ export default function UserCoupons({
             )}
           </div>
         )}
-
-        {error && <p className="text-xs text-red-500">{error}</p>}
       </div>
 
       {assigned.length === 0 ? (

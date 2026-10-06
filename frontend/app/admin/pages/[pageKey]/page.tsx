@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Spinner } from '@/app/admin/_components/AdminLoader';
+import { useAdminToast } from '@/app/admin/_components/AdminToast';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -41,6 +42,7 @@ export default function EditPageContent() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const toast = useAdminToast();
   const [tab, setTab] = useState<Tab>('meta');
 
   const hasContent = CONTENT_PAGES.has(pageKey);
@@ -78,7 +80,7 @@ export default function EditPageContent() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch {
-      setError('Failed to save. Try again.');
+      toast('Failed to save. Try again.', 'error');
     } finally {
       setSaving(false);
     }

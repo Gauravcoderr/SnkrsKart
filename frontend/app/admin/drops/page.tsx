@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Paginator from '../_components/Paginator';
 import ConfirmModal from '../_components/ConfirmModal';
 import AdminLoader from '@/app/admin/_components/AdminLoader';
+import { useAdminToast } from '@/app/admin/_components/AdminToast';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
@@ -53,6 +54,7 @@ export default function AdminDropsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const toast = useAdminToast();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
@@ -105,7 +107,7 @@ export default function AdminDropsPage() {
     if (!file) return;
     setImageUploading(true);
     try { setF('image', await uploadImage(file)); }
-    catch { setError('Image upload failed'); }
+    catch { toast('Image upload failed', 'error'); }
     finally { setImageUploading(false); }
   }
 
@@ -117,7 +119,7 @@ export default function AdminDropsPage() {
     try {
       const urls = await Promise.all(files.map(uploadImage));
       setForm((p) => ({ ...p, images: [...p.images, ...urls] }));
-    } catch { setError('Gallery upload failed'); }
+    } catch { toast('Gallery upload failed', 'error'); }
     finally { setGalleryUploading(false); }
   }
 
@@ -146,10 +148,10 @@ export default function AdminDropsPage() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error || 'Save failed'); return; }
+      if (!res.ok) { const d = await res.json().catch(() => ({})); toast(d.error || 'Save failed', 'error'); return; }
       setShowForm(false);
       fetchDrops(page, pageSize);
-    } catch { setError('Save failed'); }
+    } catch { toast('Save failed', 'error'); }
     finally { setSaving(false); }
   }
 
@@ -355,9 +357,6 @@ export default function AdminDropsPage() {
                 <label htmlFor="drop-published" className="text-sm text-zinc-300">Published</label>
               </div>
             </div>
-
-            {error && <p className="text-xs text-red-400 mt-3">{error}</p>}
-
             <div className="flex gap-3 mt-5">
               <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-2.5 border border-zinc-700 text-sm font-bold text-zinc-400 hover:border-zinc-500">Cancel</button>
               <button type="button" onClick={handleSave} disabled={saving} className="flex-[2] py-2.5 bg-zinc-100 text-zinc-900 text-sm font-bold hover:bg-white disabled:opacity-50">

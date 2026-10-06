@@ -9,6 +9,7 @@ import { compressImage } from '@/lib/compressImage';
 import { uploadImage } from '@/lib/uploadImage';
 import type { SellerOrder } from '@/types/seller';
 import AdminLoader from '@/app/admin/_components/AdminLoader';
+import { useAdminToast } from '@/app/admin/_components/AdminToast';
 
 interface PayoutSeller {
   _id: string;
@@ -268,27 +269,25 @@ function MarkPaidModal({ row, onClose, onSaved, onUnauthorized }: { row: PayoutR
   const [screenshotUrl, setScreenshotUrl] = useState(row.payout?.screenshotUrl || '');
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const toast = useAdminToast();
 
   async function onFile(file: File | undefined) {
     if (!file) return;
     setUploading(true);
-    setError('');
     try {
       const compressed = await compressImage(file);
       setScreenshotUrl(await uploadImage(compressed, 'payouts'));
     } catch (e: any) {
-      setError(e.message || 'Upload failed');
+      toast(e.message || 'Upload failed', 'error');
     } finally {
       setUploading(false);
     }
   }
 
   async function submit() {
-    setError('');
-    if (!screenshotUrl) { setError('Attach the payment screenshot first'); return; }
+    if (!screenshotUrl) { toast('Attach the payment screenshot first', 'error'); return; }
     const amt = Math.round(Number(amount));
-    if (!isFinite(amt) || amt <= 0) { setError('Enter a valid amount'); return; }
+    if (!isFinite(amt) || amt <= 0) { toast('Enter a valid amount', 'error'); return; }
     setSaving(true);
     try {
       const t = localStorage.getItem('admin_token');
@@ -299,10 +298,10 @@ function MarkPaidModal({ row, onClose, onSaved, onUnauthorized }: { row: PayoutR
       });
       if (res.status === 401) { onUnauthorized(); return; }
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) { setError(data.error || `Request failed (${res.status})`); return; }
+      if (!res.ok) { toast(data.error || `Request failed (${res.status})`, 'error'); return; }
       onSaved(data);
     } catch (e: any) {
-      setError(e.message || 'Failed to save');
+      toast(e.message || 'Failed to save', 'error');
     } finally {
       setSaving(false);
     }
@@ -357,7 +356,6 @@ function MarkPaidModal({ row, onClose, onSaved, onUnauthorized }: { row: PayoutR
             <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} className={`${inputClass} resize-none`} placeholder="e.g. Paid via GPay from store account" />
           </div>
           <p className="text-[11px] text-zinc-500">{paid ? 'Saving updates the record. The seller was already emailed when first marked paid.' : 'Saving marks this payout as paid and emails the seller the amount, reference and screenshot link.'}</p>
-          {error && <p className="text-sm text-red-400">{error}</p>}
         </div>
         <div className="px-6 pb-6 flex justify-end gap-3">
           <button type="button" onClick={onClose} disabled={saving} className="text-sm px-4 py-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition disabled:opacity-50">Cancel</button>

@@ -22,6 +22,7 @@ import {
   MailIcon,
 } from '@/components/ui/Icons';
 import { Spinner } from '@/app/admin/_components/AdminLoader';
+import { AdminToastProvider } from '@/app/admin/_components/AdminToast';
 
 const NAV = [
   { href: '/admin/orders',    label: 'Orders',    Icon: OrdersIcon },
@@ -141,6 +142,14 @@ function NavLinks({
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AdminToastProvider>
+      <AdminLayoutInner>{children}</AdminLayoutInner>
+    </AdminToastProvider>
+  );
+}
+
+function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [ready, setReady] = useState(false);

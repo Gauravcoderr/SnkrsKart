@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { compressImage } from '@/lib/compressImage';
 import { uploadImage } from '@/lib/uploadImage';
 import { Spinner } from '@/app/admin/_components/AdminLoader';
+import { useAdminToast } from '@/app/admin/_components/AdminToast';
 
 const RichTextEditor = dynamic(() => import('@/components/blog/RichTextEditor'), { ssr: false, loading: () => <div className="h-[400px] bg-zinc-900 border border-zinc-700 rounded-lg animate-pulse" /> });
 
@@ -47,7 +48,7 @@ export default function BlogForm({ blogId }: BlogFormProps) {
   const [emailOpts, setEmailOpts] = useState({ triggerEmail: true, emailSubject: '', emailHtml: '' });
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(isEdit);
-  const [error, setError] = useState('');
+  const toast = useAdminToast();
   const [slugManual, setSlugManual] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadError, setUploadError] = useState('');
@@ -89,7 +90,7 @@ export default function BlogForm({ blogId }: BlogFormProps) {
         });
         setSlugManual(true);
       })
-      .catch(() => setError('Failed to load post'))
+      .catch(() => toast('Failed to load post', 'error'))
       .finally(() => setFetchLoading(false));
   }, [blogId, isEdit]);
 
@@ -104,7 +105,6 @@ export default function BlogForm({ blogId }: BlogFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError('');
     setLoading(true);
     const token = localStorage.getItem('admin_token');
     const payload: Record<string, any> = {
@@ -129,7 +129,7 @@ export default function BlogForm({ blogId }: BlogFormProps) {
       if (!res.ok) throw new Error(data.error || 'Failed to save');
       router.push('/admin/blogs');
     } catch (err: any) {
-      setError(err.message);
+      toast(err.message || 'Failed to save', 'error');
     } finally {
       setLoading(false);
     }
@@ -390,9 +390,6 @@ export default function BlogForm({ blogId }: BlogFormProps) {
           )}
         </div>
       )}
-
-      {error && <p className="text-sm text-red-400 font-medium">{error}</p>}
-
       <div className="flex items-center gap-3 pt-2">
         <button
           type="submit"

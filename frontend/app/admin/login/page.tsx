@@ -3,6 +3,7 @@
 import { useState, FormEvent } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useAdminToast } from '@/app/admin/_components/AdminToast';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -10,12 +11,11 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const toast = useAdminToast();
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
       localStorage.setItem('admin_token', token);
       router.push('/admin/dashboard');
     } catch (err: any) {
-      setError(err.message);
+      toast(err.message || 'Login failed', 'error');
     } finally {
       setLoading(false);
     }
@@ -52,12 +52,6 @@ export default function AdminLoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4">
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-2.5 rounded-lg">
-              {error}
-            </div>
-          )}
-
           <div>
             <label className="block text-sm font-medium text-zinc-400 mb-1.5">Username</label>
             <input

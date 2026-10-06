@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { BASE_URL } from '../_lib/config';
 import type { ProductRequest, ProductRequestStatus } from '@/types/seller';
 import AdminLoader, { Spinner } from '@/app/admin/_components/AdminLoader';
+import { useAdminToast } from '@/app/admin/_components/AdminToast';
 
 interface AdminProduct {
   id: string;
@@ -61,7 +62,6 @@ function ApproveModal({
   onSubmit,
   onClose,
   busy,
-  error,
 }: {
   request: ProductRequest;
   products: AdminProduct[];
@@ -71,7 +71,6 @@ function ApproveModal({
   onSubmit: (productId: string, note: string) => void;
   onClose: () => void;
   busy: boolean;
-  error: string;
 }) {
   const [query, setQuery] = useState(`${request.brand} ${request.name}`.trim());
   const [picked, setPicked] = useState<AdminProduct | null>(request.product ? { id: request.product._id, slug: request.product.slug, name: request.product.name, brand: request.product.brand, images: request.product.images } : null);
@@ -180,8 +179,6 @@ function ApproveModal({
           className={`${inputClass} resize-none`}
         />
 
-        {error && <p className="text-sm text-red-400 mt-3">{error}</p>}
-
         <div className="flex gap-3 justify-end mt-5">
           <button
             type="button"
@@ -210,13 +207,11 @@ function RejectModal({
   onSubmit,
   onClose,
   busy,
-  error,
 }: {
   request: ProductRequest;
   onSubmit: (note: string) => void;
   onClose: () => void;
   busy: boolean;
-  error: string;
 }) {
   const [note, setNote] = useState('');
   const valid = note.trim().length > 0;
@@ -237,7 +232,6 @@ function RejectModal({
           placeholder="Reason (required)"
           className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 resize-none"
         />
-        {error && <p className="text-sm text-red-400 mt-3">{error}</p>}
         <div className="flex gap-3 justify-end mt-5">
           <button
             type="button"
@@ -266,6 +260,7 @@ export default function ProductRequestsPage() {
   const [requests, setRequests] = useState<ProductRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const toast = useAdminToast();
   const [filter, setFilter] = useState<Filter>('pending');
 
   const [products, setProducts] = useState<AdminProduct[]>([]);
@@ -276,7 +271,6 @@ export default function ProductRequestsPage() {
   const [approving, setApproving] = useState<ProductRequest | null>(null);
   const [rejecting, setRejecting] = useState<ProductRequest | null>(null);
   const [busy, setBusy] = useState(false);
-  const [modalError, setModalError] = useState('');
 
   const handle401 = useCallback(() => {
     localStorage.removeItem('admin_token');
@@ -320,14 +314,12 @@ export default function ProductRequestsPage() {
   }, [router, handle401]);
 
   function openApprove(r: ProductRequest) {
-    setModalError('');
     setApproving(r);
     if (!productsLoaded && !productsLoading) fetchProducts();
   }
 
   async function update(id: string, body: { status: ProductRequestStatus; adminNote: string; productId?: string }) {
     setBusy(true);
-    setModalError('');
     const token = localStorage.getItem('admin_token');
     try {
       const res = await fetch(`${BASE_URL}/admin/product-requests/${id}`, {
@@ -337,12 +329,12 @@ export default function ProductRequestsPage() {
       });
       if (res.status === 401) { handle401(); return; }
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) { setModalError(json.error || `Request failed (${res.status})`); return; }
+      if (!res.ok) { toast(json.error || `Request failed (${res.status})`, 'error'); return; }
       setRequests((prev) => prev.map((r) => (r._id === id ? (json as ProductRequest) : r)));
       setApproving(null);
       setRejecting(null);
     } catch (e: any) {
-      setModalError(e.message || 'Network error');
+      toast(e.message || 'Network error', 'error');
     } finally {
       setBusy(false);
     }
@@ -491,7 +483,7 @@ export default function ProductRequestsPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => { setModalError(''); setRejecting(r); }}
+                        onClick={() => setRejecting(r)}
                         className="py-2 rounded-lg border border-red-900/60 text-red-400 text-xs font-bold tracking-widest uppercase hover:bg-red-950/40 transition"
                       >
                         Reject
@@ -517,7 +509,6 @@ export default function ProductRequestsPage() {
           productsError={productsError}
           onRetryProducts={fetchProducts}
           busy={busy}
-          error={modalError}
           onClose={() => setApproving(null)}
           onSubmit={(productId, note) => update(approving._id, { status: 'approved', adminNote: note, productId })}
         />
@@ -527,7 +518,6 @@ export default function ProductRequestsPage() {
         <RejectModal
           request={rejecting}
           busy={busy}
-          error={modalError}
           onClose={() => setRejecting(null)}
           onSubmit={(note) => update(rejecting._id, { status: 'rejected', adminNote: note })}
         />
