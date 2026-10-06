@@ -177,8 +177,38 @@ export interface ProductRequest {
   createdAt: string;
 }
 
+export interface TatStat {
+  avgDays: number | null;
+  targetDays: number;
+  samples: number;
+}
+
+export interface SellerRank {
+  position: number | null;
+  ranked: number;
+  monthSales: number;
+  monthOrders: number;
+}
+
 export interface SellerDashboard {
-  listings: { active: number; paused: number; sold_out: number; units: number };
+  profile: {
+    displayName: string;
+    score: number | null;
+    scoreLabel: string | null;
+    ratingMinOrders: number;
+    shippedOrders: number;
+    rank: SellerRank;
+  };
+  health: {
+    tat: Record<Availability, TatStat>;
+    onTimeRate: number | null;
+    cancellationRate: number | null;
+    photoApprovalRate: number | null;
+    lowestOffers: { lowest: number | null; total: number };
+  };
+  inventory: { activeListings: number; pausedListings: number; soldOutListings: number; units: number; listingValue: number };
+  sales: { allTime: number; orders: number; last7Days: number; last30Days: number; avgOrder: number };
+  listings: { active: number; paused: number; sold_out: number; units: number; value: number };
   orders: {
     total: number;
     needsVerification: number;
@@ -186,8 +216,10 @@ export interface SellerDashboard {
     needsTracking: number;
     shipped: number;
     delivered: number;
+    cancelled: number;
     pendingPayment: number;
     overdue: number;
+    payoutDue: number;
   };
   latePenaltyText?: string;
   earnings: { inProgress: number; due: number; paid: number; thisMonth: number; nextPayoutAt: string | null; payoutDelayDays: number };

@@ -308,42 +308,46 @@ export default function SellerListingsPage() {
     <div>
       <PageHeader eyebrow="Inventory" title="Listings" description="Your price is exactly what you get paid when a pair sells." actions={actions} />
 
+      {hasAny !== false && (
+        <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
+          <div className="relative flex-1">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by product, brand, colorway or size"
+              className={`${inputClass} pl-10`}
+              aria-label="Search listings"
+            />
+            <svg className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <circle cx="11" cy="11" r="7" />
+              <path strokeLinecap="round" d="M20 20l-3.5-3.5" />
+            </svg>
+          </div>
+          <div className="flex gap-2 overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 pb-1" role="tablist" aria-label="Listing filters">
+            {FILTERS.map((f) => (
+              <button
+                key={f.value}
+                type="button"
+                role="tab"
+                aria-selected={filter === f.value}
+                onClick={() => setFilter(f.value)}
+                className={cn(
+                  'shrink-0 min-h-[40px] px-3.5 border text-[11px] font-bold tracking-widest uppercase transition-colors',
+                  filter === f.value ? 'bg-zinc-900 border-zinc-900 text-white' : 'bg-white border-zinc-200 text-zinc-600 hover:border-zinc-900',
+                )}
+              >
+                {f.label} {hasAny !== null && <span className="text-zinc-400">{counts[f.value]}</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {loading && <LoadingBlock label="Loading listings" />}
       {!loading && error && <ErrorBlock message={error} onRetry={load} />}
 
       {!loading && !error && (
         <>
-          <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
-            <div className="relative flex-1">
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by product, brand, colorway or size"
-                className={`${inputClass} pl-10`}
-                aria-label="Search listings"
-              />
-              <svg className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <circle cx="11" cy="11" r="7" />
-                <path strokeLinecap="round" d="M20 20l-3.5-3.5" />
-              </svg>
-            </div>
-            <div className="flex gap-2 overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 pb-1">
-              {FILTERS.map((f) => (
-                <button
-                  key={f.value}
-                  type="button"
-                  onClick={() => setFilter(f.value)}
-                  className={cn(
-                    'shrink-0 min-h-[40px] px-3.5 border text-[11px] font-bold tracking-widest uppercase transition-colors',
-                    filter === f.value ? 'bg-zinc-900 border-zinc-900 text-white' : 'bg-white border-zinc-200 text-zinc-600 hover:border-zinc-900',
-                  )}
-                >
-                  {f.label} <span className={filter === f.value ? 'text-zinc-400' : 'text-zinc-400'}>{counts[f.value]}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
           {hasAny === false && listings.length === 0 ? (
             <EmptyBlock
               title="No listings yet"

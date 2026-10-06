@@ -10,6 +10,7 @@ import {
   maxSellerPriceToBeat,
   SELLER_COMMISSION_PCT,
   AVAILABILITY_SHIP_DAYS,
+  ListingAvailability,
 } from '../models/SellerListing';
 import { SellerOrder, VERIFICATION_ANGLES, PAYOUT_DELAY_DAYS, LATE_PENALTY_TEXT } from '../models/SellerOrder';
 import { ProductRequest } from '../models/ProductRequest';
@@ -328,26 +329,162 @@ router.get('/config', (_req: Request, res: Response) => {
 
 // ─── Dashboard ─────────────────────────────────────────────────────────────
 
+const RATING_MIN_ORDERS = 3;
+const SOLD_STATUSES = ['confirmed', 'shipped', 'delivered'];
+const DAY_MS = 86400000;
+
+type DashboardOrder = {
+  status: string;
+  items: Array<{ availability: ListingAvailability }>;
+  verification: { status: string; attempts?: number };
+  confirmedAt?: Date | null;
+  shipBy?: Date | null;
+  trackingLockedAt?: Date | null;
+  trackingAddedAt?: Date | null;
+  createdAt: Date;
+  sellerTotal: number;
+};
+
+function governingAvailability(items: Array<{ availability: ListingAvailability }>): ListingAvailability {
+  let slowest: ListingAvailability = 'instant';
+  for (const it of items) {
+    if ((AVAILABILITY_SHIP_DAYS[it.availability] ?? 0) > AVAILABILITY_SHIP_DAYS[slowest]) slowest = it.availability;
+  }
+  return slowest;
+}
+
+function pct(num: number, den: number): number | null {
+  return den > 0 ? Math.round((num / den) * 1000) / 10 : null;
+}
+
+function round1(n: number): number {
+  return Math.round(n * 10) / 10;
+}
+
+function ratingLabel(score: number | null): string | null {
+  if (score === null) return null;
+  if (score >= 4.5) return 'Excellent';
+  if (score >= 4) return 'Good';
+  if (score >= 3) return 'Fair';
+  return 'Needs work';
+}
+
+function buildHealth(orders: DashboardOrder[]) {
+  const live = orders.filter((o) => o.status !== 'pending_payment');
+  const shippedOrders = live.filter((o) => (o.status === 'shipped' || o.status === 'delivered') && o.confirmedAt && (o.trackingLockedAt || o.trackingAddedAt));
+  const tat: Record<ListingAvailability, { avgDays: number | null; targetDays: number; samples: number }> = {
+    instant: { avgDays: null, targetDays: AVAILABILITY_SHIP_DAYS.instant, samples: 0 },
+    inhand: { avgDays: null, targetDays: AVAILABILITY_SHIP_DAYS.inhand, samples: 0 },
+    eta: { avgDays: null, targetDays: AVAILABILITY_SHIP_DAYS.eta, samples: 0 },
+  };
+  const sums: Record<ListingAvailability, number> = { instant: 0, inhand: 0, eta: 0 };
+  let onTime = 0;
+  for (const o of shippedOrders) {
+    const shippedAt = new Date((o.trackingLockedAt || o.trackingAddedAt) as Date).getTime();
+    const days = Math.max(0, (shippedAt - new Date(o.confirmedAt as Date).getTime()) / DAY_MS);
+    const key = governingAvailability(o.items);
+    sums[key] += days;
+    tat[key].samples += 1;
+    if (!o.shipBy || shippedAt <= new Date(o.shipBy).getTime()) onTime += 1;
+  }
+  for (const key of Object.keys(tat) as ListingAvailability[]) {
+    if (tat[key].samples > 0) tat[key].avgDays = round1(sums[key] / tat[key].samples);
+  }
+  const cancelled = live.filter((o) => o.status === 'cancelled').length;
+  const approved = live.filter((o) => o.verification.status === 'approved');
+  const firstTry = approved.filter((o) => (o.verification.attempts ?? 1) <= 1).length;
+
+  const onTimeRate = pct(onTime, shippedOrders.length);
+  const cancellationRate = pct(cancelled, live.length);
+  const photoApprovalRate = pct(firstTry, approved.length);
+
+  let score: number | null = null;
+  if (shippedOrders.length >= RATING_MIN_ORDERS) {
+    const onTimeC = (onTimeRate ?? 100) / 100;
+    const cancelC = 1 - Math.min(((cancellationRate ?? 0) / 100) * 4, 1);
+    const approvalC = (photoApprovalRate ?? 100) / 100;
+    score = round1(5 * (0.5 * onTimeC + 0.3 * cancelC + 0.2 * approvalC));
+  }
+
+  return {
+    tat,
+    onTimeRate,
+    cancellationRate,
+    photoApprovalRate,
+    shippedOrders: shippedOrders.length,
+    score,
+    scoreLabel: ratingLabel(score),
+    ratingMinOrders: RATING_MIN_ORDERS,
+  };
+}
+
+async function monthlyRank(sellerId: mongoose.Types.ObjectId, monthStart: Date) {
+  const rows = await SellerOrder.aggregate([
+    { $match: { status: { $in: SOLD_STATUSES }, createdAt: { $gte: monthStart } } },
+    { $group: { _id: '$seller', total: { $sum: '$sellerTotal' }, orders: { $sum: 1 } } },
+    { $sort: { total: -1, orders: -1 } },
+  ]);
+  const idx = rows.findIndex((r) => String(r._id) === String(sellerId));
+  return {
+    position: idx >= 0 ? idx + 1 : null,
+    ranked: rows.length,
+    monthSales: idx >= 0 ? rows[idx].total : 0,
+    monthOrders: idx >= 0 ? rows[idx].orders : 0,
+  };
+}
+
+async function lowestOfferShare(sellerId: mongoose.Types.ObjectId) {
+  const active = await SellerListing.find({ seller: sellerId, status: 'active', qty: { $gt: 0 } }).select('product').lean();
+  if (active.length === 0) return { lowest: 0, total: 0 };
+  if (active.length > 300) return { lowest: null, total: active.length };
+  const mine = new Set(active.map((l) => String(l._id)));
+  const productIds = [...new Set(active.map((l) => String(l.product)))].map((id) => new mongoose.Types.ObjectId(id));
+  const products = await Product.find({ _id: { $in: productIds } }).select(CATALOG_FIELDS).lean() as unknown as LeanProduct[];
+  const all = await loadActiveListings(products.map((p) => p._id));
+  const grouped = new Map<string, typeof all>();
+  for (const l of all) {
+    const key = String(l.product);
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key)!.push(l);
+  }
+  let lowest = 0;
+  for (const p of products) {
+    for (const offer of buildOffers(p, grouped.get(String(p._id)) ?? [])) {
+      if (offer.listingId && mine.has(offer.listingId)) lowest += 1;
+    }
+  }
+  return { lowest, total: active.length };
+}
+
 router.get('/dashboard', sellerAuth, async (req: SellerRequest, res: Response): Promise<void> => {
   try {
     const sellerId = new mongoose.Types.ObjectId(req.seller!.id);
     const monthStart = new Date();
     monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
 
-    const [listingStats, orders, requestsPending] = await Promise.all([
+    const [listingStats, orders, requestsPending, sellerDoc, rank, lowestShare] = await Promise.all([
       SellerListing.aggregate([
         { $match: { seller: sellerId } },
-        { $group: { _id: '$status', count: { $sum: 1 }, units: { $sum: '$qty' } } },
+        { $group: { _id: '$status', count: { $sum: 1 }, units: { $sum: '$qty' }, value: { $sum: { $multiply: ['$sellerPrice', '$qty'] } } } },
       ]),
       SellerOrder.find({ seller: sellerId }).sort({ createdAt: -1 }).lean(),
       ProductRequest.countDocuments({ seller: sellerId, status: 'pending' }),
+      Seller.findById(sellerId).select('name businessName').lean(),
+      monthlyRank(sellerId, monthStart),
+      lowestOfferShare(sellerId),
     ]);
 
-    const listings = { active: 0, paused: 0, sold_out: 0, units: 0 };
+    const listings = { active: 0, paused: 0, sold_out: 0, units: 0, value: 0 };
     for (const row of listingStats) {
       (listings as any)[row._id] = row.count;
-      if (row._id === 'active') listings.units = row.units;
+      if (row._id === 'active') { listings.units = row.units; listings.value = row.value; }
     }
+
+    const health = buildHealth(orders as unknown as DashboardOrder[]);
+    const sold = orders.filter((o) => SOLD_STATUSES.includes(o.status));
+    const since = (days: number) => Date.now() - days * DAY_MS;
+    const soldSince = (days: number) => sold.filter((o) => new Date(o.createdAt).getTime() >= since(days));
+    const cancelled = orders.filter((o) => o.status === 'cancelled');
 
     const needsVerification = orders.filter((o) => o.status === 'confirmed' && (o.verification.status === 'none' || o.verification.status === 'rejected'));
     const awaitingReview = orders.filter((o) => o.status === 'confirmed' && o.verification.status === 'pending');
@@ -362,6 +499,35 @@ router.get('/dashboard', sellerAuth, async (req: SellerRequest, res: Response): 
     const sumPaid = (list: typeof orders) => list.reduce((a, o) => a + (o.payout?.amount || o.sellerTotal), 0);
 
     res.json({
+      profile: {
+        displayName: sellerDoc?.businessName || sellerDoc?.name || '',
+        score: health.score,
+        scoreLabel: health.scoreLabel,
+        ratingMinOrders: health.ratingMinOrders,
+        shippedOrders: health.shippedOrders,
+        rank,
+      },
+      health: {
+        tat: health.tat,
+        onTimeRate: health.onTimeRate,
+        cancellationRate: health.cancellationRate,
+        photoApprovalRate: health.photoApprovalRate,
+        lowestOffers: lowestShare,
+      },
+      inventory: {
+        activeListings: listings.active,
+        pausedListings: listings.paused,
+        soldOutListings: listings.sold_out,
+        units: listings.units,
+        listingValue: listings.value,
+      },
+      sales: {
+        allTime: sum(sold),
+        orders: sold.length,
+        last7Days: sum(soldSince(7)),
+        last30Days: sum(soldSince(30)),
+        avgOrder: sold.length ? Math.round(sum(sold) / sold.length) : 0,
+      },
       listings,
       orders: {
         total: orders.length,
@@ -370,8 +536,10 @@ router.get('/dashboard', sellerAuth, async (req: SellerRequest, res: Response): 
         needsTracking: needsTracking.length,
         shipped: shipped.length,
         delivered: delivered.length,
+        cancelled: cancelled.length,
         pendingPayment: orders.filter((o) => o.status === 'pending_payment').length,
         overdue: overdue.length,
+        payoutDue: payoutDue.length,
       },
       latePenaltyText: LATE_PENALTY_TEXT,
       earnings: {

@@ -115,28 +115,32 @@ function OrdersInner() {
     <div>
       <PageHeader eyebrow="Fulfilment" title="Orders" description="Confirm each pair with live photos, then add tracking once SNKRS CART approves them." />
 
+      {hasAny !== false && (
+        <div className="flex gap-2 overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 pb-1 mb-4" role="tablist" aria-label="Order filters">
+          {TABS.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.value}
+              onClick={() => setTab(t.value)}
+              className={cn(
+                'shrink-0 min-h-[40px] px-3.5 border text-[11px] font-bold tracking-widest uppercase transition-colors',
+                tab === t.value ? 'bg-zinc-900 border-zinc-900 text-white' : 'bg-white border-zinc-200 text-zinc-600 hover:border-zinc-900',
+                t.value === 'action' && tab !== 'action' && counts.action > 0 && 'border-amber-300 text-amber-800 bg-amber-50',
+              )}
+            >
+              {t.label} {hasAny !== null && <span className="text-zinc-400">{counts[t.value]}</span>}
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading && <LoadingBlock label="Loading orders" />}
       {!loading && error && <ErrorBlock message={error} onRetry={load} />}
 
       {!loading && !error && (
         <>
-          <div className="flex gap-2 overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 pb-1 mb-4">
-            {TABS.map((t) => (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => setTab(t.value)}
-                className={cn(
-                  'shrink-0 min-h-[40px] px-3.5 border text-[11px] font-bold tracking-widest uppercase transition-colors',
-                  tab === t.value ? 'bg-zinc-900 border-zinc-900 text-white' : 'bg-white border-zinc-200 text-zinc-600 hover:border-zinc-900',
-                  t.value === 'action' && tab !== 'action' && counts.action > 0 && 'border-amber-300 text-amber-800 bg-amber-50',
-                )}
-              >
-                {t.label} <span className="text-zinc-400">{counts[t.value]}</span>
-              </button>
-            ))}
-          </div>
-
           {hasAny === false ? (
             <EmptyBlock
               title="No orders yet"
