@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useWishlist } from '@/context/WishlistContext';
@@ -10,27 +10,71 @@ import { Product } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
+type Fetched = { product: Product | null; gone: boolean };
+
+async function fetchProduct(slug: string): Promise<Fetched> {
+  try {
+    const r = await fetch(`${BASE_URL}/products/${encodeURIComponent(slug)}`);
+    if (r.ok) return { product: (await r.json()) as Product, gone: false };
+    return { product: null, gone: r.status === 404 };
+  } catch {
+    return { product: null, gone: false };
+  }
+}
+
 export default function WishlistPage() {
-  const { ids, toggle } = useWishlist();
+  const { ids, toggle, remove, rename, hydrated } = useWishlist();
   const { addItem, openDrawer } = useCart();
+  const cache = useRef<Map<string, Product | null>>(new Map());
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (ids.length === 0) { setProducts([]); setLoading(false); return; }
-    setLoading(true);
-    Promise.all(
-      ids.map((id) =>
-        fetch(`${BASE_URL}/products/${id}`)
-          .then((r) => r.ok ? r.json() : null)
-          .catch(() => null)
-      )
-    ).then((results) => {
-      setProducts(results.filter(Boolean) as Product[]);
-    }).finally(() => setLoading(false));
-  }, [ids]);
+    if (!hydrated) return;
+    let cancelled = false;
 
-  if (loading) {
+    const apply = () => {
+      const seen = new Set<string>();
+      const list: Product[] = [];
+      for (const id of ids) {
+        const p = cache.current.get(id);
+        if (!p || seen.has(p.id)) continue;
+        seen.add(p.id);
+        list.push(p);
+      }
+      setProducts(list);
+      setLoading(false);
+    };
+
+    const missing = ids.filter((id) => !cache.current.has(id));
+    if (missing.length === 0) {
+      apply();
+      return;
+    }
+    if (cache.current.size === 0) setLoading(true);
+
+    Promise.all(missing.map(fetchProduct)).then((results) => {
+      if (cancelled) return;
+      results.forEach(({ product, gone }, i) => {
+        const requested = missing[i];
+        if (product) {
+          cache.current.set(requested, product);
+          cache.current.set(product.slug, product);
+          if (product.slug !== requested) rename(requested, product.slug);
+        } else if (gone) {
+          cache.current.set(requested, null);
+          remove(requested);
+        }
+      });
+      apply();
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ids, hydrated, remove, rename]);
+
+  if (!hydrated || loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 flex justify-center">
         <div className="w-6 h-6 border-2 border-zinc-300 border-t-zinc-700 rounded-full animate-spin" />
