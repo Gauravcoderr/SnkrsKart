@@ -286,7 +286,7 @@ const blogs = [
 
 <p>The Jordan 1 Low dropped in 1986, the year after the High, and was originally intended as a training shoe. The low cut changes the experience completely — more breathable, easier to put on and take off, and substantially more versatile with Indian summer clothing.</p>
 
-<p>The Chicago 2025 colourway — which we stock as the <a href="/products/air-jordan-1-retro-low-og-chicago-2025">Air Jordan 1 Retro Low OG Chicago 2025</a> — is the definitive Low release. Red/white/black with premium leather construction. Retail was ₹10,495 in India. That price point makes the Low accessible to buyers who can't justify High prices, and the Chicago colourway has enough prestige to hold its ground on quality grounds.</p>
+<p>The Chicago 2025 colourway — which we stock as the <a href="/products/air-jordan-1-low-og-chicago-2025">Air Jordan 1 Retro Low OG Chicago 2025</a> — is the definitive Low release. Red/white/black with premium leather construction. Retail was ₹10,495 in India. That price point makes the Low accessible to buyers who can't justify High prices, and the Chicago colourway has enough prestige to hold its ground on quality grounds.</p>
 
 <img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1780080691/blog-images/air-jordan-1-low-vs-high-india-2026-inline-1-fix.jpg"
      alt="Air Jordan 1 High grey gold colourway — knit upper Jordan 1 silhouette"
@@ -453,7 +453,7 @@ const blogs = [
 
 <p>The Air Jordan 1 Low is consistently the most accessible authentic Jordan for Indian buyers. Nike India retails the standard Jordan 1 Low colourways at ₹8,495–₹10,495 depending on the specific version. The Chicago Low, the Black Toe Low, and the Heritage variants hit this range regularly.</p>
 
-<p>The <a href="/products/air-jordan-1-retro-low-og-chicago-2025">Air Jordan 1 Retro Low OG Chicago 2025</a> at SNKRS CART represents this value tier with one of Jordan Brand's most iconic colourways — red/white/black with premium leather construction. This is the shoe for buyers who want genuine Jordan heritage at a price that doesn't require EMI.</p>
+<p>The <a href="/products/air-jordan-1-low-og-chicago-2025">Air Jordan 1 Retro Low OG Chicago 2025</a> at SNKRS CART represents this value tier with one of Jordan Brand's most iconic colourways — red/white/black with premium leather construction. This is the shoe for buyers who want genuine Jordan heritage at a price that doesn't require EMI.</p>
 
 <p>For buyers asking "is the Jordan 1 Low still worth buying in 2026 when everyone has moved on?" — yes. The low silhouette is more wearable than the High for everyday Indian summer wear, and the Chicago colourway never looks dated. Fashion cycles don't erase classics.</p>
 
@@ -607,7 +607,7 @@ const blogs = [
 
 <h2>Popular Shoes Available Right Now</h2>
 
-<p>Currently in stock: <a href="/products/air-jordan-4-retro-black-cat-2025">Air Jordan 4 Black Cat 2025</a>, <a href="/products/air-jordan-3-retro-black-cement-2024-mens">Air Jordan 3 Black Cement</a>, <a href="/products/nike-dunk-low-stranger-things-phantom">Nike Dunk Low Stranger Things Phantom</a>, <a href="/products/new-balance-1906r-phantom-new-spruce">New Balance 1906R Phantom</a>, and <a href="/products/air-jordan-1-retro-low-og-chicago-2025">Air Jordan 1 Low Chicago</a>. Full catalogue with current availability at <a href="/products">snkrscart.com/products</a>.</p>
+<p>Currently in stock: <a href="/products/air-jordan-4-retro-black-cat-2025">Air Jordan 4 Black Cat 2025</a>, <a href="/products/air-jordan-3-retro-black-cement-2024-mens">Air Jordan 3 Black Cement</a>, <a href="/products/nike-dunk-low-stranger-things-phantom">Nike Dunk Low Stranger Things Phantom</a>, <a href="/products/new-balance-1906r-phantom-new-spruce">New Balance 1906R Phantom</a>, and <a href="/products/air-jordan-1-low-og-chicago-2025">Air Jordan 1 Low Chicago</a>. Full catalogue with current availability at <a href="/products">snkrscart.com/products</a>.</p>
 
 <p>Questions? WhatsApp +91-94109-03791 — we respond to all queries during business hours (Monday–Saturday, 10am–7pm IST). For size queries, share your foot length in CM and we'll give you an exact size recommendation.</p>
 `.trim(),

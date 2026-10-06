@@ -10,6 +10,7 @@ import { runRenderScraper, ScraperRunResult } from '../services/scraper/index';
 import { Brand } from '../models/Brand';
 import { pingIndexNow } from '../lib/indexNow';
 import { toSlug, buildProductSlug, cascadeProductSlug } from '../lib/productSlug';
+import { syncBrandCounts } from '../lib/brandCounts';
 
 // In-memory Render scraper state (resets on Render restart — intentional)
 type RenderScraperState =
@@ -101,8 +102,8 @@ router.post('/products', adminAuth, async (req: Request, res: Response): Promise
     }
 
     data.slug = data.slug
-      ? buildProductSlug(data.slug, data.brand)
-      : buildProductSlug(`${data.brand}-${data.name}-${data.colorway || ''}`, data.brand);
+      ? buildProductSlug(data.slug, data.brand, data.sku)
+      : buildProductSlug(`${data.brand}-${data.name}-${data.colorway || ''}`, data.brand, data.sku);
 
     const existing = await Product.findOne({ slug: data.slug }).lean();
     if (existing) {
@@ -138,9 +139,9 @@ router.put('/products/:id', adminAuth, async (req: Request, res: Response): Prom
   try {
     const update = { ...req.body };
     delete update.previousSlugs;
-    const before = await Product.findById(req.params.id).select('slug brand').lean();
+    const before = await Product.findById(req.params.id).select('slug brand sku').lean();
     if (update.slug) {
-      update.slug = buildProductSlug(update.slug, update.brand ?? before?.brand);
+      update.slug = buildProductSlug(update.slug, update.brand ?? before?.brand, update.sku ?? before?.sku);
       const dup = await Product.findOne({ slug: update.slug, _id: { $ne: req.params.id } }).lean();
       if (dup) {
         res.status(409).json({ error: 'Product with this slug already exists' });
@@ -1626,7 +1627,7 @@ router.post('/scraped-products/:id/publish', adminAuth, async (req: Request, res
     }
 
     // Generate unique slug
-    let slug = buildProductSlug(`${scraped.brand}-${scraped.name}${scraped.colorway ? `-${scraped.colorway}` : ''}`, scraped.brand);
+    let slug = buildProductSlug(`${scraped.brand}-${scraped.name}${scraped.colorway ? `-${scraped.colorway}` : ''}`, scraped.brand, scraped.sku);
     const baseSlug = slug;
     let suffix = 2;
     while (await Product.exists({ slug })) {
@@ -1692,20 +1693,5 @@ router.post('/scraped-products/:id/publish', adminAuth, async (req: Request, res
     res.status(500).json({ error: err.message || 'Failed to publish' });
   }
 });
-
-// ─── Helpers ───────────────────────────────────────────────────────────────
-
-async function syncBrandCounts() {
-  const distinctBrands: string[] = await Product.distinct('brand');
-  for (const brandName of distinctBrands) {
-    const count = await Product.countDocuments({ brand: brandName });
-    const slug = toSlug(brandName);
-    await Brand.findOneAndUpdate(
-      { slug },
-      { $set: { name: brandName, slug, productCount: count, logoText: brandName.toUpperCase(), heroColor: '#18181b' } },
-      { upsert: true }
-    );
-  }
-}
 
 export default router;

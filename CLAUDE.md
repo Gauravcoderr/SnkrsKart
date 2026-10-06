@@ -188,6 +188,11 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - List + detail pages (orders, seller-orders) wrap the detail panel in `_components/DetailPane.tsx`: inline grid column at `xl`, right slide-over sheet with backdrop below `xl`.
 - Form grids use `grid-cols-1 sm:grid-cols-N`; tall modals need `max-h-[90vh] overflow-y-auto`.
 
+## Product slugs
+- `backend/src/lib/productSlug.ts` `buildProductSlug(text, brand?, sku?)` is the only way product slugs are made (admin create/edit, scraper publish). It takes the last path segment if a URL was pasted, drops leading `snkrscart-com-products-` style tokens, removes style codes anywhere (`HQ6998-600`, `KT3851`, `553558-045`, `1203B302-100`) and the product `sku`, strips a duplicated brand prefix and collapses repeated runs. Model numbers like `U9060`, `1906R`, `Mind 001` are left alone.
+- Renaming a slug (admin PUT or `scripts/fixProductSlugs.ts`) pushes the old slug into `Product.previousSlugs` and cascades to reviews/orders/inquiries/drops/restocks; `GET /products/:slug` falls back to `previousSlugs`, and the product page issues a `permanentRedirect` when the returned slug differs, so old URLs 301.
+- Audit/migrate: `npx ts-node --transpile-only scripts/fixProductSlugs.ts --dry` (drop `--dry` to apply). Ran 2026-10-06: 7 slugs cleaned, `air-jordan-1-retro-low-og-chicago-2025` kept as an alias of `air-jordan-1-low-og-chicago-2025` because 8 blogs linked to it.
+
 ## Important decisions / gotchas
 - Render free tier sleeps after 15 min inactivity → UptimeRobot pings `/health` every 5 min
 - `trust proxy 1` set on Express for correct IP in rate-limiter behind Render/Vercel

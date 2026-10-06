@@ -10,6 +10,54 @@ export function toSlug(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
+const URL_RE = /^(?:https?:\/\/)?(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/[^\s?#]*)?(?:[?#]\S*)?$/i;
+const TLD_TOKENS = new Set(['com', 'in', 'net', 'org', 'co', 'io', 'shop', 'store']);
+const PATH_TOKENS = new Set(['products', 'product', 'p', 'collections', 'collection', 'item', 'items', 'shop']);
+
+function lastPathSegment(text: string): string {
+  const trimmed = text.trim();
+  if (!/^\S+$/.test(trimmed) || !URL_RE.test(trimmed)) return text;
+  try {
+    const url = new URL(/^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`);
+    const segments = url.pathname.split('/').map((s) => decodeURIComponent(s)).filter(Boolean);
+    return segments.length ? segments[segments.length - 1] : '';
+  } catch {
+    return text;
+  }
+}
+
+function stripUrlTokens(parts: string[]): string[] {
+  let out = parts;
+  if (out[0] === 'www') out = out.slice(1);
+  const tld = out.slice(0, 3).findIndex((p, i) => TLD_TOKENS.has(p) && PATH_TOKENS.has(out[i + 1] ?? ''));
+  if (tld !== -1) out = out.slice(tld + 2);
+  return out;
+}
+
+function isStyleCode(tok: string): boolean {
+  return /^[a-z]{2}[0-9]{4}$/.test(tok) || /^[0-9]{6}$/.test(tok) || /^[0-9]{4}[a-z][0-9]{3}$/.test(tok);
+}
+
+function stripStyleCode(parts: string[]): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < parts.length; i++) {
+    if (isStyleCode(parts[i])) {
+      if (/^[0-9]{3}$/.test(parts[i + 1] ?? '')) i++;
+      continue;
+    }
+    out.push(parts[i]);
+  }
+  return out.length >= 2 ? out : parts;
+}
+
+function stripSku(parts: string[], sku?: string): string[] {
+  if (!sku || !/\d/.test(sku)) return parts;
+  const s = toSlug(sku).split('-').filter(Boolean);
+  if (!s.length || parts.length - s.length < 2) return parts;
+  const tail = parts.slice(parts.length - s.length);
+  return s.every((w, k) => tail[k] === w) ? parts.slice(0, parts.length - s.length) : parts;
+}
+
 function sameRun(parts: string[], a: number, b: number, n: number): boolean {
   for (let k = 0; k < n; k++) if (parts[a + k] !== parts[b + k]) return false;
   return true;
@@ -47,9 +95,10 @@ function stripBrandPrefix(parts: string[], brand?: string): string[] {
   return containsRun(parts, b, b.length, 4) ? parts.slice(b.length) : parts;
 }
 
-export function buildProductSlug(text: string, brand?: string): string {
-  const parts = toSlug(text).split('-').filter(Boolean);
-  return collapseRepeats(stripBrandPrefix(collapseRepeats(parts), brand)).join('-');
+export function buildProductSlug(text: string, brand?: string, sku?: string): string {
+  const parts = stripUrlTokens(toSlug(lastPathSegment(text)).split('-').filter(Boolean));
+  const cleaned = stripStyleCode(stripSku(parts, sku));
+  return collapseRepeats(stripBrandPrefix(collapseRepeats(cleaned), brand)).join('-');
 }
 
 export async function cascadeProductSlug(oldSlug: string, newSlug: string): Promise<void> {
