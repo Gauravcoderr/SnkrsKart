@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getTrackingUrl } from '@/lib/tracking';
+import { getTrackingUrl, shipmentHeadline, shipmentTone, formatCheckpointTime } from '@/lib/tracking';
+import type { Shipment } from '@/types/seller';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 import Paginator from '../_components/Paginator';
+import AdminLoader from '@/app/admin/_components/AdminLoader';
 
 interface OrderItem {
   name: string;
@@ -16,6 +18,12 @@ interface OrderItem {
   price: number;
   image: string;
   slug?: string;
+  sellerName?: string;
+  sellerPrice?: number;
+  availability?: string;
+  listingId?: string;
+  trackingNumber?: string;
+  deliveryService?: string;
 }
 
 interface Order {
@@ -40,6 +48,7 @@ interface Order {
   notes: string;
   cancelReason?: string;
   paymentFailureReason?: string;
+  shipment?: Shipment | null;
   createdAt: string;
 }
 
@@ -166,9 +175,7 @@ export default function AdminOrdersPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-6 h-6 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
-      </div>
+      <AdminLoader />
     );
   }
 
@@ -240,6 +247,11 @@ export default function AdminOrdersPage() {
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${STATUS_COLORS[order.status]}`}>
                           {order.status.toUpperCase()}
                         </span>
+                        {order.items.some((it) => it.sellerName) && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-900/30 text-violet-400">
+                            PARTNER
+                          </span>
+                        )}
                         {order.paymentStatus !== 'paid' && (
                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${PAYMENT_STATUS_COLORS[order.paymentStatus]}`}>
                             {PAYMENT_STATUS_LABELS[order.paymentStatus].toUpperCase()}
@@ -393,6 +405,26 @@ export default function AdminOrdersPage() {
                           <span className="text-zinc-300 truncate block">{item.brand} {item.name}</span>
                         )}
                         <span className="text-zinc-500">UK {item.size} × {item.qty}</span>
+                        {item.sellerName && (
+                          <span className="ml-2 inline-block text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-900/30 text-violet-400 align-middle">
+                            Seller: {item.sellerName}
+                          </span>
+                        )}
+                        {item.trackingNumber && (() => {
+                          const itemUrl = item.deliveryService ? getTrackingUrl(item.deliveryService, item.trackingNumber) : null;
+                          return (
+                            <span className="block text-[11px] text-zinc-500 mt-0.5">
+                              {item.deliveryService ? `${item.deliveryService} ` : ''}
+                              {itemUrl ? (
+                                <a href={itemUrl} target="_blank" rel="noopener noreferrer" className="font-mono text-violet-400 hover:text-violet-300 underline underline-offset-2">
+                                  {item.trackingNumber}
+                                </a>
+                              ) : (
+                                <span className="font-mono text-zinc-300">{item.trackingNumber}</span>
+                              )}
+                            </span>
+                          );
+                        })()}
                       </div>
                       <span className="text-zinc-400 shrink-0 ml-2">₹{(item.price * item.qty).toLocaleString('en-IN')}</span>
                     </div>
@@ -435,6 +467,21 @@ export default function AdminOrdersPage() {
                       </div>
                     );
                   })()}
+                  {selected.shipment?.tag && (
+                    <div className="mt-2 px-3 py-2 rounded bg-zinc-800/60 border border-zinc-700">
+                      <p className={`text-xs font-bold ${shipmentTone(selected.shipment.tag) === 'ok' ? 'text-emerald-400' : shipmentTone(selected.shipment.tag) === 'warn' ? 'text-red-400' : 'text-sky-400'}`}>
+                        {shipmentHeadline(selected.shipment)}
+                      </p>
+                      {selected.shipment.lastCheckpoint && (
+                        <p className="text-[11px] text-zinc-400 mt-0.5">
+                          {selected.shipment.lastCheckpoint.message}
+                          {selected.shipment.lastCheckpoint.location ? ` · ${selected.shipment.lastCheckpoint.location}` : ''}
+                          {selected.shipment.lastCheckpoint.at ? ` · ${formatCheckpointTime(selected.shipment.lastCheckpoint.at)}` : ''}
+                        </p>
+                      )}
+                      <p className="text-[10px] text-zinc-500 mt-1">AfterShip{selected.shipment.syncedAt ? ` · synced ${formatCheckpointTime(selected.shipment.syncedAt)}` : ''}</p>
+                    </div>
+                  )}
                 </div>
               )}
 

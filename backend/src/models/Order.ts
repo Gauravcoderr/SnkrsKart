@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { IShipment, ShipmentSchema } from './Shipment';
 
 export interface IOrderItem {
   productId: string;
@@ -10,6 +11,13 @@ export interface IOrderItem {
   qty: number;
   image: string;
   slug?: string;
+  listingId?: string;
+  sellerId?: string;
+  sellerName?: string;
+  sellerPrice?: number;
+  availability?: 'instant' | 'inhand' | 'eta';
+  trackingNumber?: string;
+  deliveryService?: string;
 }
 
 export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
@@ -46,6 +54,7 @@ export interface IOrder extends Document {
   paymentSessionId?: string;
   cfOrderId?: string;
   razorpayOrderId?: string;
+  shipment: IShipment | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -60,6 +69,13 @@ const OrderItemSchema = new Schema<IOrderItem>({
   qty: { type: Number, required: true, min: 1 },
   image: { type: String, default: '' },
   slug: { type: String, default: '' },
+  listingId: { type: String, default: '' },
+  sellerId: { type: String, default: '' },
+  sellerName: { type: String, default: '' },
+  sellerPrice: { type: Number, default: null },
+  availability: { type: String, enum: ['instant', 'inhand', 'eta', null], default: null },
+  trackingNumber: { type: String, default: '' },
+  deliveryService: { type: String, default: '' },
 }, { _id: false });
 
 const OrderSchema = new Schema<IOrder>(
@@ -93,6 +109,7 @@ const OrderSchema = new Schema<IOrder>(
     paymentSessionId: { type: String, default: '' },
     cfOrderId:        { type: String, default: '' },
     razorpayOrderId:  { type: String, default: '' },
+    shipment:         { type: ShipmentSchema, default: null },
   },
   { timestamps: true }
 );

@@ -1,7 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useEffect, useMemo } from 'react';
-import { CartItem, Product } from '@/types';
+import { CartItem, Product, Availability } from '@/types';
+
+export interface CartItemMeta {
+  listingId?: string;
+  availability?: Availability;
+}
 import { useScrollLock } from '@/hooks/useScrollLock';
 
 interface CartState {
@@ -11,7 +16,7 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: 'ADD_ITEM'; product: Product; size: number | string; quantity?: number }
+  | { type: 'ADD_ITEM'; product: Product; size: number | string; quantity?: number; meta?: CartItemMeta }
   | { type: 'REMOVE_ITEM'; productId: string; size: number | string }
   | { type: 'UPDATE_QUANTITY'; productId: string; size: number | string; quantity: number }
   | { type: 'CLEAR_CART' }
@@ -39,19 +44,20 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       const existing = state.items.find(
         (item) => item.product.id === action.product.id && item.size === action.size
       );
+      const meta = { listingId: action.meta?.listingId, availability: action.meta?.availability };
       if (existing) {
         return {
           ...state,
           items: state.items.map((item) =>
             item.product.id === action.product.id && item.size === action.size
-              ? { ...item, quantity: Math.min(maxQty, item.quantity + qty) }
+              ? { ...item, product: action.product, quantity: Math.min(maxQty, item.quantity + qty), ...meta }
               : item
           ),
         };
       }
       return {
         ...state,
-        items: [...state.items, { product: action.product, size: action.size, quantity: Math.min(maxQty, qty) }],
+        items: [...state.items, { product: action.product, size: action.size, quantity: Math.min(maxQty, qty), ...meta }],
       };
     }
 
@@ -109,7 +115,7 @@ interface CartContextValue {
   itemCount: number;
   subtotal: number;
   buyNowItem: CartItem | null;
-  addItem: (product: Product, size: number | string, quantity?: number) => void;
+  addItem: (product: Product, size: number | string, quantity?: number, meta?: CartItemMeta) => void;
   removeItem: (productId: string, size: number | string) => void;
   updateQuantity: (productId: string, size: number | string, quantity: number) => void;
   clearCart: () => void;
@@ -171,7 +177,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     itemCount,
     subtotal,
     buyNowItem: state.buyNowItem,
-    addItem: (product, size, quantity) => dispatch({ type: 'ADD_ITEM', product, size, quantity }),
+    addItem: (product, size, quantity, meta) => dispatch({ type: 'ADD_ITEM', product, size, quantity, meta }),
     removeItem: (productId, size) => dispatch({ type: 'REMOVE_ITEM', productId, size }),
     updateQuantity: (productId, size, quantity) =>
       dispatch({ type: 'UPDATE_QUANTITY', productId, size, quantity }),

@@ -7,9 +7,6 @@ import { AuthProvider } from '@/context/AuthContext';
 import QueryProvider from '@/components/layout/QueryProvider';
 import LayoutShell from '@/components/layout/LayoutShell';
 import AuthModal from '@/components/auth/AuthModal';
-import EmailCaptureModal from '@/components/layout/EmailCaptureModal';
-import WhatsAppFloat from '@/components/layout/WhatsAppFloat';
-import GoogleReviewsBadge from '@/components/layout/GoogleReviewsBadge';
 import GoogleAuthProvider from '@/components/auth/GoogleAuthProvider';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -245,14 +242,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <WishlistProvider>
                   <LayoutShell>{children}</LayoutShell>
                   <AuthModal />
-                  <EmailCaptureModal />
-                  <WhatsAppFloat />
                 </WishlistProvider>
               </CartProvider>
             </AuthProvider>
           </QueryProvider>
         </GoogleAuthProvider>
-        <GoogleReviewsBadge />
         <Analytics />
         <SpeedInsights />
       </body>

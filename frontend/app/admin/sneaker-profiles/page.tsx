@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Paginator from '../_components/Paginator';
 import ConfirmModal from '../_components/ConfirmModal';
+import AdminLoader from '@/app/admin/_components/AdminLoader';
 
 const SP_PAGE_SIZE = 20;
 
@@ -197,9 +198,7 @@ export default function AdminSneakerProfilesPage() {
 
       {error && <p className="text-xs text-red-400 mb-4">{error}</p>}
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="w-5 h-5 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
-        </div>
+        <AdminLoader />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

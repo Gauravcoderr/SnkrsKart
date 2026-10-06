@@ -1,0 +1,15 @@
+export const DELIVERY_SERVICES = [
+  { value: '', label: '— Select courier —' },
+  { value: 'Shiprocket', label: 'Shiprocket' },
+  { value: 'Delhivery', label: 'Delhivery' },
+  { value: 'DTDC', label: 'DTDC' },
+  { value: 'Blue Dart', label: 'Blue Dart' },
+  { value: 'Ekart Logistics', label: 'Ekart Logistics' },
+  { value: 'XpressBees', label: 'XpressBees' },
+  { value: 'Shadowfax', label: 'Shadowfax' },
+  { value: 'Ecom Express', label: 'Ecom Express' },
+  { value: 'India Post', label: 'India Post (Speed Post)' },
+  { value: 'FedEx', label: 'FedEx' },
+  { value: 'DHL', label: 'DHL' },
+  { value: 'Other', label: 'Other' },
+];

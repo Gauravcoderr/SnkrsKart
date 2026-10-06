@@ -27,12 +27,17 @@ const nextConfig = {
   poweredByHeader: false,
   async headers() {
     const NOINDEX = [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }];
+    const SELLER_CAMERA = [{ key: 'Permissions-Policy', value: 'camera=(self), microphone=(), geolocation=(self), payment=(self)' }];
     return [
       { source: '/:path*', headers: SECURITY_HEADERS },
+      { source: '/sellers', headers: SELLER_CAMERA },
+      { source: '/sellers/:path*', headers: SELLER_CAMERA },
       // Private / per-user pages: never index. Header works even for client-only
       // pages (e.g. /admin) that cannot export Next metadata.
       { source: '/admin', headers: NOINDEX },
       { source: '/admin/:path*', headers: NOINDEX },
+      { source: '/sellers', headers: NOINDEX },
+      { source: '/sellers/:path*', headers: NOINDEX },
       { source: '/cart', headers: NOINDEX },
       { source: '/checkout', headers: NOINDEX },
       { source: '/checkout/:path*', headers: NOINDEX },

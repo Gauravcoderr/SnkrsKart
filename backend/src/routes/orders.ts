@@ -10,6 +10,10 @@ import { Coupon, couponUserError } from '../models/Coupon';
 import { Cashfree, CFEnvironment } from 'cashfree-pg';
 import Razorpay from 'razorpay';
 import { reactivateContact } from '../lib/syncUnsubscribes';
+import mongoose from 'mongoose';
+import { SellerListing } from '../models/SellerListing';
+import { Seller } from '../models/Seller';
+import { createSellerOrders, syncSellerOrdersWithOrder } from '../lib/sellerOrders';
 
 // Lazy-initialised gateway instances
 let _cashfree: InstanceType<typeof Cashfree> | null = null;
@@ -45,12 +49,18 @@ function sendAdminNewOrderEmail(order: IOrder, siteUrl: string, paymentMode: str
       <td style="padding:8px;border-bottom:1px solid #f0f0f0;font-size:13px;">
         <strong>${it.brand}</strong> ${it.name}<br/>
         <span style="color:#888;">Size: ${it.size} · Qty: ${it.qty}</span>
+        ${it.sellerName ? `<br/><span style="color:#6d28d9;font-weight:bold;">Seller: ${it.sellerName}</span> <span style="color:#888;">· payout ₹${Number(it.sellerPrice || 0).toLocaleString('en-IN')}</span>` : ''}
       </td>
       <td style="padding:8px;border-bottom:1px solid #f0f0f0;font-size:13px;text-align:right;font-weight:bold;">
         ₹${(it.price * it.qty).toLocaleString('en-IN')}
       </td>
     </tr>
   `).join('');
+
+  const sellerCount = new Set((order.items as any[]).map((it) => it.sellerId).filter(Boolean)).size;
+  const sellerNote = sellerCount > 0
+    ? `<p style="margin-top:12px;font-size:13px;color:#6d28d9;font-weight:bold;">${sellerCount} partner seller${sellerCount > 1 ? 's' : ''} will fulfil part of this order. They are emailed once payment is confirmed and must upload verification photos before shipping.</p>`
+    : '';
 
   const note = paymentMode === 'manual'
     ? '⚠️ Awaiting UPI payment confirmation from customer. Once received, confirm order in admin panel.'
@@ -79,6 +89,7 @@ function sendAdminNewOrderEmail(order: IOrder, siteUrl: string, paymentMode: str
             <tr><td style="padding:8px 0;font-weight:bold;font-size:16px;border-top:2px solid #111;">Total</td><td style="text-align:right;font-weight:bold;font-size:16px;border-top:2px solid #111;">₹${order.total.toLocaleString('en-IN')}</td></tr>
           </table>
           <p style="margin-top:20px;font-size:13px;color:#666;">${note}</p>
+          ${sellerNote}
           <a href="${siteUrl}/admin/orders" style="display:inline-block;margin-top:12px;background:#111;color:#fff;padding:10px 20px;text-decoration:none;font-size:13px;font-weight:bold;border-radius:6px;">View in Admin Panel →</a>
         </div>
       </div>
@@ -199,6 +210,7 @@ router.post('/cashfree/webhook', async (req: Request, res: Response) => {
       order.paymentStatus = 'paid';
       order.status = 'confirmed';
       await order.save();
+      syncSellerOrdersWithOrder(order._id, 'confirmed').catch((e) => console.error('[sellerOrders] sync failed', e));
       sendPaymentConfirmedEmail(order, siteUrl);
       sendAdminNewOrderEmail(order, siteUrl, 'cashfree');
     } else if (paymentStatus === 'FAILED' && order.paymentStatus === 'pending') {
@@ -242,6 +254,7 @@ router.post('/razorpay/verify', async (req: Request, res: Response) => {
       order.paymentStatus = 'paid';
       order.status = 'confirmed';
       await order.save();
+      syncSellerOrdersWithOrder(order._id, 'confirmed').catch((e) => console.error('[sellerOrders] sync failed', e));
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://snkrs-kart.vercel.app';
       sendPaymentConfirmedEmail(order, siteUrl);
       sendAdminNewOrderEmail(order, siteUrl, 'razorpay');
@@ -375,6 +388,14 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
     const products = await Product.find({ _id: { $in: uniqueProductIds } }).lean();
     const productMap = new Map(products.map((p) => [String(p._id), p]));
 
+    const listingIds = [...new Set((items as any[]).map((it) => it.listingId).filter((id) => typeof id === 'string' && mongoose.isValidObjectId(id)))];
+    const listings = listingIds.length ? await SellerListing.find({ _id: { $in: listingIds } }).lean() : [];
+    const listingMap = new Map(listings.map((l) => [String(l._id), l]));
+    const sellerIds = [...new Set(listings.map((l) => String(l.seller)))];
+    const sellers = sellerIds.length ? await Seller.find({ _id: { $in: sellerIds }, status: 'active' }).select('name').lean() : [];
+    const sellerMap = new Map(sellers.map((s) => [String(s._id), s]));
+
+    const authPrices: number[] = [];
     let serverSubtotal = 0;
     for (const item of items as any[]) {
       const product = productMap.get(String(item.productId));
@@ -382,8 +403,24 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
         res.status(400).json({ error: `Product not found: ${item.productId}` });
         return;
       }
-      const variant = product.variants?.find((v) => Number(v.size) === Number(item.size));
-      const authPrice = variant?.price ?? product.price;
+      let authPrice: number;
+      if (item.listingId) {
+        const listing = listingMap.get(String(item.listingId));
+        const seller = listing ? sellerMap.get(String(listing.seller)) : null;
+        if (!listing || !seller || String(listing.product) !== String(product._id) || String(listing.size) !== String(item.size)) {
+          res.status(400).json({ error: `${product.name} (size ${item.size}) is no longer available from this seller. Please refresh your bag.` });
+          return;
+        }
+        if (listing.status !== 'active' || listing.qty < item.qty) {
+          res.status(400).json({ error: `${product.name} (size ${item.size}) just sold out. Please refresh your bag.` });
+          return;
+        }
+        authPrice = listing.listPrice;
+      } else {
+        const variant = product.variants?.find((v) => Number(v.size) === Number(item.size));
+        authPrice = variant?.price ?? product.price;
+      }
+      authPrices.push(authPrice);
       serverSubtotal += authPrice * item.qty;
     }
     const serverShipping = serverSubtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
@@ -392,6 +429,29 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
     if (Math.abs(serverTotal - (subtotal + shipping)) > 1) {
       res.status(400).json({ error: 'Order total mismatch. Please refresh and try again.' });
       return;
+    }
+
+    // Reserve seller stock atomically before anything else is committed
+    const reserved: Array<{ id: string; qty: number }> = [];
+    const releaseReserved = async () => {
+      for (const r of reserved) {
+        await SellerListing.updateOne({ _id: r.id }, { $inc: { qty: r.qty, soldCount: -r.qty }, $set: { status: 'active' } }).catch(() => {});
+      }
+    };
+    for (const item of items as any[]) {
+      if (!item.listingId) continue;
+      const updated = await SellerListing.findOneAndUpdate(
+        { _id: item.listingId, status: 'active', qty: { $gte: item.qty } },
+        { $inc: { qty: -item.qty, soldCount: item.qty } },
+        { returnDocument: 'after' },
+      );
+      if (!updated) {
+        await releaseReserved();
+        res.status(400).json({ error: `${item.name} (size ${item.size}) just sold out. Please refresh your bag.` });
+        return;
+      }
+      reserved.push({ id: String(updated._id), qty: item.qty });
+      if (updated.qty === 0) await SellerListing.updateOne({ _id: updated._id }, { $set: { status: 'sold_out' } });
     }
 
     // Coupon validation (server-side, logged-in users only)
@@ -404,32 +464,34 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       const coupon = await Coupon.findOne({ code: trimmedCouponCode, active: true });
 
       if (!coupon) {
+        await releaseReserved();
         res.status(400).json({ error: 'Invalid or inactive coupon code' });
         return;
       }
       if (coupon.expiresAt && coupon.expiresAt < new Date()) {
+        await releaseReserved();
         res.status(400).json({ error: 'This coupon has expired' });
         return;
       }
       const userError = couponUserError(coupon, req.user!.id);
       if (userError) {
+        await releaseReserved();
         res.status(400).json({ error: userError });
         return;
       }
 
       let eligibleSubtotal = 0;
-      for (const item of items as any[]) {
+      (items as any[]).forEach((item, idx) => {
         const product = productMap.get(String(item.productId));
-        if (!product) continue;
+        if (!product) return;
         if (coupon.appliesTo === 'all' || (product as any).productType === coupon.appliesTo) {
-          const variant = product.variants?.find((v) => Number(v.size) === Number(item.size));
-          const authPrice = variant?.price ?? product.price;
-          eligibleSubtotal += authPrice * item.qty;
+          eligibleSubtotal += authPrices[idx] * item.qty;
         }
-      }
+      });
 
       if (eligibleSubtotal < coupon.minOrderValue) {
         const scope = coupon.appliesTo !== 'all' ? ` on ${coupon.appliesTo}` : '';
+        await releaseReserved();
         res.status(400).json({ error: `Minimum order value of ₹${coupon.minOrderValue}${scope} required for this coupon` });
         return;
       }
@@ -450,7 +512,8 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
           { $inc: { 'assignedUsers.$.usedCount': 1 } },
         );
         if (reserved.modifiedCount === 0) {
-          res.status(400).json({ error: `You have used this coupon the maximum number of times (${assignment.maxUses})` });
+          await releaseReserved();
+        res.status(400).json({ error: `You have used this coupon the maximum number of times (${assignment.maxUses})` });
           return;
         }
         reservedAssignment = { couponId: String(coupon._id), user: String(assignment.user) };
@@ -488,10 +551,21 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
     const finalTotal = Math.max(0, serverTotal - couponDiscount - coinDiscount);
     const coinsEarned = Math.floor(finalTotal / 100) * COINS_PER_100;
 
-    const enrichedItems = (items as any[]).map((item) => ({
-      ...item,
-      slug: productMap.get(String(item.productId))?.slug ?? '',
-    }));
+    const enrichedItems = (items as any[]).map((item, idx) => {
+      const product = productMap.get(String(item.productId));
+      const listing = item.listingId ? listingMap.get(String(item.listingId)) : null;
+      const seller = listing ? sellerMap.get(String(listing.seller)) : null;
+      return {
+        ...item,
+        price: authPrices[idx],
+        slug: product?.slug ?? '',
+        listingId: listing ? String(listing._id) : '',
+        sellerId: listing ? String(listing.seller) : '',
+        sellerName: seller?.name ?? '',
+        sellerPrice: listing ? listing.sellerPrice : null,
+        availability: listing ? listing.availability : 'inhand',
+      };
+    });
 
     const orderNumber = generateOrderNumber();
     let order;
@@ -505,6 +579,7 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
         ...(req.user ? { userId: req.user.id } : {}),
       });
     } catch (createErr) {
+      await releaseReserved();
       if (reservedAssignment) {
         Coupon.updateOne(
           { _id: reservedAssignment.couponId, 'assignedUsers.user': reservedAssignment.user },
@@ -513,6 +588,8 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       }
       throw createErr;
     }
+
+    await createSellerOrders(order).catch((e) => console.error('[sellerOrders] create failed', e));
 
     // Ordering counts as re-opting in — clear any prior unsubscribe.
     reactivateContact(email).catch(() => {});

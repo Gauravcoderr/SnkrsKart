@@ -30,7 +30,7 @@ async function tryCloudinary(file: File): Promise<string | null> {
   return data.secure_url ?? null;
 }
 
-export async function uploadImage(file: File, folder: 'products' | 'blogs'): Promise<string> {
+export async function uploadImage(file: File, folder: 'products' | 'blogs' | 'payouts'): Promise<string> {
   const ext = file.name.split('.').pop() || 'webp';
   const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 

@@ -3,15 +3,16 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product } from '@/types';
-import { useCart } from '@/context/CartContext';
+import { useCart, CartItemMeta } from '@/context/CartContext';
 
 interface BuyNowButtonProps {
   product: Product;
   selectedSize: number | string | null;
   onRequireSize: () => void;
+  meta?: CartItemMeta;
 }
 
-export default function BuyNowButton({ product, selectedSize, onRequireSize }: BuyNowButtonProps) {
+export default function BuyNowButton({ product, selectedSize, onRequireSize, meta }: BuyNowButtonProps) {
   const { setBuyNowItem } = useCart();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ export default function BuyNowButton({ product, selectedSize, onRequireSize }: B
       return;
     }
     setLoading(true);
-    setBuyNowItem({ product, size: selectedSize, quantity: 1 });
+    setBuyNowItem({ product, size: selectedSize, quantity: 1, listingId: meta?.listingId, availability: meta?.availability });
     router.push('/checkout');
   };
 

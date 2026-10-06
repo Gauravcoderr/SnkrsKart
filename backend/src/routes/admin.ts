@@ -36,6 +36,15 @@ import { sendProductLaunchBlast, sendBlogPublishBlast, sendCustomBlast } from '.
 import { sendMail } from '../lib/mailer';
 import { syncBrevoUnsubscribes } from '../lib/syncUnsubscribes';
 import { IOrder } from '../models/Order';
+import crypto from 'crypto';
+import mongoose from 'mongoose';
+import { SellerListing, computeListPrice, isAvailability } from '../models/SellerListing';
+import { SellerOrder } from '../models/SellerOrder';
+import { ProductRequest } from '../models/ProductRequest';
+import { applySellerTrackingToOrder, syncSellerOrdersWithOrder } from '../lib/sellerOrders';
+import { sendSellerCredentialsEmail, sendSellerVerificationResultEmail, sendSellerProductRequestResultEmail, sendSellerPayoutEmail } from '../lib/sellerEmails';
+import { sendOrderCancelledEmail, sendReviewRequestEmail } from '../lib/orderEmails';
+import { registerOrderShipment, getTracking, applyRawTracking } from '../services/aftership';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET as string;
@@ -289,22 +298,398 @@ router.delete('/reviews/:id', adminAuth, async (req: Request, res: Response): Pr
 
 // ─── Sellers ───────────────────────────────────────────────────────────────
 
+const PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+function generateTempPassword(): string {
+  const bytes = crypto.randomBytes(10);
+  return [...bytes].map((b) => PASSWORD_ALPHABET[b % PASSWORD_ALPHABET.length]).join('');
+}
+
+const SELLER_LISTING_PRODUCT_FIELDS = 'slug name brand colorway images hoverImage price';
+
+function shapeAdminSeller(s: any, counts?: { listings?: number; orders?: number }) {
+  return {
+    _id: String(s._id),
+    name: s.name,
+    email: s.email,
+    phone: s.phone,
+    brandsSell: s.brandsSell ?? '',
+    pairsCount: s.pairsCount ?? '',
+    message: s.message ?? '',
+    status: s.status ?? 'applied',
+    hasPassword: !!s.passwordHash,
+    mustChangePassword: !!s.mustChangePassword,
+    businessName: s.businessName ?? '',
+    addressLine: s.addressLine ?? '',
+    city: s.city ?? '',
+    state: s.state ?? '',
+    pincode: s.pincode ?? '',
+    whatsapp: s.whatsapp ?? '',
+    upiId: s.upiId ?? '',
+    lastLoginAt: s.lastLoginAt ?? null,
+    createdAt: s.createdAt,
+    listingCount: counts?.listings ?? 0,
+    orderCount: counts?.orders ?? 0,
+  };
+}
+
 router.get('/sellers', adminAuth, async (_req: Request, res: Response): Promise<void> => {
   try {
-    const sellers = await Seller.find().sort({ createdAt: -1 }).lean();
-    res.json(sellers);
+    const [sellers, listingCounts, orderCounts] = await Promise.all([
+      Seller.find().sort({ createdAt: -1 }).lean(),
+      SellerListing.aggregate([{ $group: { _id: '$seller', count: { $sum: 1 } } }]),
+      SellerOrder.aggregate([{ $group: { _id: '$seller', count: { $sum: 1 } } }]),
+    ]);
+    const lc = new Map(listingCounts.map((r: any) => [String(r._id), r.count]));
+    const oc = new Map(orderCounts.map((r: any) => [String(r._id), r.count]));
+    res.json(sellers.map((s) => shapeAdminSeller(s, { listings: lc.get(String(s._id)), orders: oc.get(String(s._id)) })));
   } catch {
     res.status(500).json({ error: 'Failed to fetch sellers' });
   }
+});
+
+router.post('/sellers', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const name = String(req.body.name || '').trim();
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const phone = String(req.body.phone || '').trim();
+    if (!name || !email || !phone) { res.status(400).json({ error: 'Name, email and phone are required' }); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { res.status(400).json({ error: 'Invalid email address' }); return; }
+    const clash = await Seller.findOne({ email, passwordHash: { $ne: null } }).lean();
+    if (clash) { res.status(409).json({ error: 'A seller account with this email already exists' }); return; }
+
+    const tempPassword = generateTempPassword();
+    const seller = await Seller.create({
+      name, email, phone,
+      businessName: String(req.body.businessName || '').trim(),
+      addressLine: String(req.body.addressLine || '').trim().slice(0, 300),
+      city: String(req.body.city || '').trim(),
+      state: String(req.body.state || '').trim().slice(0, 80),
+      pincode: String(req.body.pincode || '').replace(/\D/g, '').slice(0, 6),
+      whatsapp: String(req.body.whatsapp || phone).replace(/[^\d+]/g, ''),
+      status: 'active',
+      passwordHash: await bcrypt.hash(tempPassword, 10),
+      mustChangePassword: true,
+    });
+    sendSellerCredentialsEmail(email, name, tempPassword, false);
+    res.status(201).json({ seller: shapeAdminSeller(seller), tempPassword });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to create seller' });
+  }
+});
+
+router.get('/sellers/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const seller = await Seller.findById(req.params.id).lean();
+    if (!seller) { res.status(404).json({ error: 'Not found' }); return; }
+    const [listings, orders, requests] = await Promise.all([
+      SellerListing.find({ seller: seller._id }).sort({ updatedAt: -1 }).populate({ path: 'product', select: SELLER_LISTING_PRODUCT_FIELDS }).lean(),
+      SellerOrder.find({ seller: seller._id }).sort({ createdAt: -1 }).lean(),
+      ProductRequest.find({ seller: seller._id }).sort({ createdAt: -1 }).populate({ path: 'product', select: 'slug name brand' }).lean(),
+    ]);
+    res.json({ seller: shapeAdminSeller(seller, { listings: listings.length, orders: orders.length }), listings, orders, requests });
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch seller' });
+  }
+});
+
+router.put('/sellers/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { status, name, phone, businessName, addressLine, city, state, pincode, whatsapp, upiId } = req.body;
+    const update: Record<string, unknown> = {};
+    if (typeof addressLine === 'string') update.addressLine = addressLine.trim().slice(0, 300);
+    if (typeof state === 'string') update.state = state.trim().slice(0, 80);
+    if (typeof pincode === 'string') update.pincode = pincode.replace(/\D/g, '').slice(0, 6);
+    if (status !== undefined) {
+      if (!['applied', 'active', 'suspended'].includes(status)) { res.status(400).json({ error: 'Invalid status' }); return; }
+      update.status = status;
+    }
+    if (typeof name === 'string' && name.trim()) update.name = name.trim();
+    if (typeof phone === 'string' && phone.trim()) update.phone = phone.trim();
+    if (typeof businessName === 'string') update.businessName = businessName.trim();
+    if (typeof city === 'string') update.city = city.trim();
+    if (typeof whatsapp === 'string') update.whatsapp = whatsapp.replace(/[^\d+]/g, '');
+    if (typeof upiId === 'string') update.upiId = upiId.trim();
+    const seller = await Seller.findByIdAndUpdate(req.params.id, { $set: update }, { returnDocument: 'after' }).lean();
+    if (!seller) { res.status(404).json({ error: 'Not found' }); return; }
+    if (update.status === 'suspended') {
+      await SellerListing.updateMany({ seller: seller._id, status: 'active' }, { $set: { status: 'paused' } });
+    }
+    res.json(shapeAdminSeller(seller));
+  } catch {
+    res.status(500).json({ error: 'Failed to update seller' });
+  }
+});
+
+async function issueSellerPassword(sellerId: string, isReset: boolean, res: Response): Promise<void> {
+  const seller = await Seller.findById(sellerId);
+  if (!seller) { res.status(404).json({ error: 'Not found' }); return; }
+  const clash = await Seller.findOne({ _id: { $ne: seller._id }, email: seller.email, passwordHash: { $ne: null } }).lean();
+  if (clash) { res.status(409).json({ error: 'Another seller account already uses this email' }); return; }
+  const tempPassword = generateTempPassword();
+  seller.passwordHash = await bcrypt.hash(tempPassword, 10);
+  seller.mustChangePassword = true;
+  seller.status = 'active';
+  if (!seller.whatsapp) seller.whatsapp = seller.phone.replace(/[^\d+]/g, '');
+  await seller.save();
+  sendSellerCredentialsEmail(seller.email, seller.name, tempPassword, isReset);
+  res.json({ seller: shapeAdminSeller(seller), tempPassword });
+}
+
+router.post('/sellers/:id/activate', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try { await issueSellerPassword(req.params.id, false, res); }
+  catch { res.status(500).json({ error: 'Failed to activate seller' }); }
+});
+
+router.post('/sellers/:id/reset-password', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try { await issueSellerPassword(req.params.id, true, res); }
+  catch { res.status(500).json({ error: 'Failed to reset password' }); }
 });
 
 router.delete('/sellers/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const seller = await Seller.findByIdAndDelete(req.params.id);
     if (!seller) { res.status(404).json({ error: 'Not found' }); return; }
-    res.json({ message: 'Deleted' });
+    await SellerListing.deleteMany({ seller: seller._id });
+    res.json({ success: true });
   } catch {
     res.status(500).json({ error: 'Failed to delete seller' });
+  }
+});
+
+// ─── Seller listings (admin control) ───────────────────────────────────────
+
+router.put('/seller-listings/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const listing = await SellerListing.findById(req.params.id);
+    if (!listing) { res.status(404).json({ error: 'Not found' }); return; }
+    const { status, qty, sellerPrice, availability } = req.body;
+    if (status !== undefined) {
+      if (!['active', 'paused', 'sold_out'].includes(status)) { res.status(400).json({ error: 'Invalid status' }); return; }
+      listing.status = status;
+    }
+    if (qty !== undefined) {
+      const q = Math.floor(Number(qty));
+      if (!isFinite(q) || q < 0) { res.status(400).json({ error: 'Invalid qty' }); return; }
+      listing.qty = q;
+    }
+    if (sellerPrice !== undefined) {
+      const sp = Math.round(Number(sellerPrice));
+      if (!isFinite(sp) || sp <= 0) { res.status(400).json({ error: 'Invalid price' }); return; }
+      listing.sellerPrice = sp;
+      listing.listPrice = computeListPrice(sp);
+    }
+    if (availability !== undefined) {
+      if (!isAvailability(availability)) { res.status(400).json({ error: 'Invalid availability' }); return; }
+      listing.availability = availability;
+    }
+    await listing.save();
+    const populated = await SellerListing.findById(listing._id).populate({ path: 'product', select: SELLER_LISTING_PRODUCT_FIELDS }).lean();
+    res.json(populated);
+  } catch {
+    res.status(500).json({ error: 'Failed to update listing' });
+  }
+});
+
+router.delete('/seller-listings/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const result = await SellerListing.findByIdAndDelete(req.params.id);
+    if (!result) { res.status(404).json({ error: 'Not found' }); return; }
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ error: 'Failed to delete listing' });
+  }
+});
+
+// ─── Seller orders ─────────────────────────────────────────────────────────
+
+const SELLER_ORDER_SELLER_FIELDS = 'name email phone whatsapp businessName addressLine city state pincode';
+
+router.get('/seller-orders', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const filter: Record<string, unknown> = {};
+    const status = String(req.query.status || '');
+    const verification = String(req.query.verification || '');
+    if (['pending_payment', 'confirmed', 'shipped', 'delivered', 'cancelled'].includes(status)) filter.status = status;
+    if (['none', 'pending', 'approved', 'rejected'].includes(verification)) filter['verification.status'] = verification;
+    const payout = String(req.query.payout || '');
+    if (['pending', 'due', 'paid'].includes(payout)) filter['payout.status'] = payout;
+    const orders = await SellerOrder.find(filter).sort({ createdAt: -1 }).populate({ path: 'seller', select: SELLER_ORDER_SELLER_FIELDS }).lean();
+    res.json(orders);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch seller orders' });
+  }
+});
+
+router.get('/seller-orders/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const order = await SellerOrder.findById(req.params.id).populate({ path: 'seller', select: SELLER_ORDER_SELLER_FIELDS }).lean();
+    if (!order) { res.status(404).json({ error: 'Not found' }); return; }
+    const parent = await Order.findById(order.order).select('name email phone addressLine city state pincode status paymentStatus trackingNumber deliveryService').lean();
+    res.json({ ...order, customer: parent });
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch seller order' });
+  }
+});
+
+router.put('/seller-orders/:id/verification', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { status, adminNote } = req.body;
+    if (status !== 'approved' && status !== 'rejected') { res.status(400).json({ error: 'Status must be approved or rejected' }); return; }
+    const order = await SellerOrder.findById(req.params.id);
+    if (!order) { res.status(404).json({ error: 'Not found' }); return; }
+    if (order.verification.photos.length === 0) { res.status(400).json({ error: 'Seller has not submitted photos yet' }); return; }
+    order.verification.status = status;
+    order.verification.adminNote = typeof adminNote === 'string' ? adminNote.trim().slice(0, 1000) : '';
+    order.verification.reviewedAt = new Date();
+    await order.save();
+    const seller = await Seller.findById(order.seller).select('name email').lean();
+    if (seller) sendSellerVerificationResultEmail(seller.email, seller.name, order);
+    const populated = await SellerOrder.findById(order._id).populate({ path: 'seller', select: SELLER_ORDER_SELLER_FIELDS }).lean();
+    res.json(populated);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to update verification' });
+  }
+});
+
+router.put('/seller-orders/:id/tracking', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const order = await SellerOrder.findById(req.params.id);
+    if (!order) { res.status(404).json({ error: 'Not found' }); return; }
+    const deliveryService = String(req.body.deliveryService || '').trim().slice(0, 60);
+    const trackingNumber = String(req.body.trackingNumber || '').trim().replace(/\s+/g, '').slice(0, 60);
+    if (!deliveryService || trackingNumber.length < 5) { res.status(400).json({ error: 'Courier and tracking number are required' }); return; }
+    const firstTime = !order.trackingNumber;
+    const changed = order.trackingNumber !== trackingNumber || order.deliveryService !== deliveryService;
+    const now = new Date();
+    order.deliveryService = deliveryService;
+    order.trackingNumber = trackingNumber;
+    order.trackingAddedAt = order.trackingAddedAt ?? now;
+    order.trackingLockedAt = order.trackingLockedAt ?? now;
+    if (order.status === 'confirmed') order.status = 'shipped';
+    await order.save();
+    await applySellerTrackingToOrder(order, firstTime || (changed && req.body.notifyCustomer === true));
+    const populated = await SellerOrder.findById(order._id).populate({ path: 'seller', select: SELLER_ORDER_SELLER_FIELDS }).lean();
+    res.json(populated);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to update tracking' });
+  }
+});
+
+router.put('/seller-orders/:id/payout', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const order = await SellerOrder.findById(req.params.id);
+    if (!order) { res.status(404).json({ error: 'Not found' }); return; }
+    if (order.status !== 'delivered') { res.status(400).json({ error: 'Payout can be marked only after the order is delivered' }); return; }
+    const screenshotUrl = String(req.body.screenshotUrl || '').trim();
+    if (!/^https:\/\//.test(screenshotUrl) || screenshotUrl.length > 600) {
+      res.status(400).json({ error: 'A payment screenshot is required' });
+      return;
+    }
+    const amount = req.body.amount !== undefined ? Math.round(Number(req.body.amount)) : order.sellerTotal;
+    if (!isFinite(amount) || amount <= 0) { res.status(400).json({ error: 'Invalid payout amount' }); return; }
+    const firstTime = order.payout.status !== 'paid';
+    order.payout.status = 'paid';
+    order.payout.amount = amount;
+    order.payout.paidAt = order.payout.paidAt ?? new Date();
+    order.payout.screenshotUrl = screenshotUrl;
+    order.payout.reference = String(req.body.reference || '').trim().slice(0, 80);
+    order.payout.note = String(req.body.note || '').trim().slice(0, 500);
+    await order.save();
+    if (firstTime) {
+      const seller = await Seller.findById(order.seller).select('name email').lean();
+      if (seller) sendSellerPayoutEmail(seller.email, seller.name, order);
+    }
+    const populated = await SellerOrder.findById(order._id).populate({ path: 'seller', select: SELLER_ORDER_SELLER_FIELDS + ' upiId' }).lean();
+    res.json(populated);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to record payout' });
+  }
+});
+
+router.post('/seller-orders/:id/sync-tracking', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const order = await SellerOrder.findById(req.params.id);
+    if (!order) { res.status(404).json({ error: 'Not found' }); return; }
+    if (!order.shipment?.aftershipId) {
+      const parent = await Order.findById(order.order);
+      const { registerSellerShipment } = await import('../services/aftership');
+      await registerSellerShipment(order, parent && parent.items.every((it) => it.listingId) ? parent : null);
+    } else {
+      const raw = await getTracking(order.shipment.aftershipId);
+      if (raw) await applyRawTracking(raw);
+    }
+    const populated = await SellerOrder.findById(order._id).populate({ path: 'seller', select: SELLER_ORDER_SELLER_FIELDS }).lean();
+    res.json(populated);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to sync tracking' });
+  }
+});
+
+router.get('/payouts', adminAuth, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const orders = await SellerOrder.find({ status: 'delivered' })
+      .sort({ 'payout.status': 1, 'payout.dueAt': 1, deliveredAt: -1 })
+      .populate({ path: 'seller', select: SELLER_ORDER_SELLER_FIELDS + ' upiId' })
+      .lean();
+    res.json(orders);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch payouts' });
+  }
+});
+
+// ─── Product requests ──────────────────────────────────────────────────────
+
+router.get('/product-requests', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const filter: Record<string, unknown> = {};
+    const status = String(req.query.status || '');
+    if (['pending', 'approved', 'rejected'].includes(status)) filter.status = status;
+    const requests = await ProductRequest.find(filter)
+      .sort({ createdAt: -1 })
+      .populate({ path: 'seller', select: 'name email phone businessName' })
+      .populate({ path: 'product', select: 'slug name brand images' })
+      .lean();
+    res.json(requests);
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch product requests' });
+  }
+});
+
+router.put('/product-requests/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { status, adminNote, productId } = req.body;
+    if (!['pending', 'approved', 'rejected'].includes(status)) { res.status(400).json({ error: 'Invalid status' }); return; }
+    const request = await ProductRequest.findById(req.params.id);
+    if (!request) { res.status(404).json({ error: 'Not found' }); return; }
+
+    let productSlug: string | undefined;
+    if (status === 'approved') {
+      if (!productId || !mongoose.isValidObjectId(productId)) {
+        res.status(400).json({ error: 'Pick the catalog product this request was added as' });
+        return;
+      }
+      const product = await Product.findById(productId).select('slug').lean();
+      if (!product) { res.status(404).json({ error: 'Product not found' }); return; }
+      request.product = product._id as any;
+      productSlug = product.slug;
+    }
+    const prevStatus = request.status;
+    request.status = status;
+    request.adminNote = typeof adminNote === 'string' ? adminNote.trim().slice(0, 1000) : '';
+    request.reviewedAt = status === 'pending' ? null : new Date();
+    await request.save();
+
+    if (status !== 'pending' && (prevStatus !== status || request.adminNote)) {
+      const seller = await Seller.findById(request.seller).select('name email').lean();
+      if (seller) sendSellerProductRequestResultEmail(seller.email, seller.name, { name: request.name, brand: request.brand, status, adminNote: request.adminNote }, productSlug);
+    }
+    const populated = await ProductRequest.findById(request._id)
+      .populate({ path: 'seller', select: 'name email phone businessName' })
+      .populate({ path: 'product', select: 'slug name brand images' })
+      .lean();
+    res.json(populated);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to update request' });
   }
 });
 
@@ -385,87 +770,6 @@ router.delete('/blogs/:id', adminAuth, async (req: Request, res: Response): Prom
 
 // ─── Orders ────────────────────────────────────────────────────────────────
 
-function sendOrderCancelledEmail(order: IOrder, siteUrl: string, reason?: string) {
-  sendMail({
-    to: order.email,
-    subject: `Order Cancelled — ${order.orderNumber} | SNKRS CART`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
-        <div style="background:#111;padding:20px 32px;text-align:center;">
-          <img src="${siteUrl}/logo.jpg" alt="SNKRS CART" style="height:56px;width:auto;" />
-        </div>
-        <div style="padding:32px;">
-          <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:20px;margin-bottom:24px;text-align:center;">
-            <p style="font-size:13px;color:#991b1b;font-weight:bold;margin:0 0 4px;">Order Cancelled</p>
-            <p style="font-size:22px;font-weight:bold;color:#111;margin:0;">${order.orderNumber}</p>
-          </div>
-          <p style="font-size:16px;font-weight:bold;margin-top:0;">Hi ${order.name},</p>
-          <p style="color:#444;">Your order <strong>${order.orderNumber}</strong> for ₹${order.total.toLocaleString('en-IN')} has been cancelled.</p>
-          ${reason ? `
-          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;margin:16px 0;">
-            <p style="font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin:0 0 4px;">Reason</p>
-            <p style="font-size:14px;color:#111;margin:0;">${reason}</p>
-          </div>` : ''}
-          <p style="color:#444;">If any payment was made for this order, it will be refunded to your original payment method within 5–7 business days. If you have questions, reply to this email or reach out via our support channels.</p>
-          <p style="color:#888;font-size:12px;margin-top:32px;"><a href="${siteUrl}/account/orders" style="color:#888;">View your orders</a></p>
-          <p style="color:#888;font-size:12px;">— SNKRS CART Team</p>
-        </div>
-      </div>
-    `,
-  });
-}
-
-/**
- * Sent once, when an order first becomes "delivered". Asks for an on-site review per item
- * (feeds product JSON-LD and the Merchant Center reviews feed) and, if GBP_REVIEW_URL is set,
- * a Google Business Profile review. Google reviews cannot be created on the buyer's behalf;
- * this link is the only legitimate route.
- */
-function sendReviewRequestEmail(order: IOrder, siteUrl: string) {
-  // Public GBP short link. Env override kept for a future profile change.
-  const gbpUrl = process.env.GBP_REVIEW_URL?.trim() || 'https://g.page/r/CQyHw6Rl_xHBECE/review';
-  const items = (order.items || []).filter((it) => it.slug);
-  if (items.length === 0 && !gbpUrl) return;
-
-  const itemRows = items.map((it) => `
-            <tr>
-              <td style="padding:10px 0;border-bottom:1px solid #eee;">
-                ${it.image ? `<img src="${it.image}" alt="" width="56" height="56" style="border-radius:6px;object-fit:cover;vertical-align:middle;margin-right:12px;" />` : ''}
-                <span style="font-size:14px;font-weight:bold;color:#111;vertical-align:middle;">${it.brand ? `${it.brand} ` : ''}${it.name}</span>
-              </td>
-              <td style="padding:10px 0;border-bottom:1px solid #eee;text-align:right;white-space:nowrap;">
-                <a href="${siteUrl}/products/${it.slug}#reviews" style="display:inline-block;background:#111;color:#fff;font-size:11px;font-weight:bold;letter-spacing:0.08em;text-transform:uppercase;padding:10px 14px;border-radius:4px;text-decoration:none;">Write a review</a>
-              </td>
-            </tr>`).join('');
-
-  sendMail({
-    to: order.email,
-    subject: `How are the kicks? Leave a review — ${order.orderNumber} | SNKRS CART`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
-        <div style="background:#111;padding:20px 32px;text-align:center;">
-          <img src="${siteUrl}/logo.jpg" alt="SNKRS CART" style="height:56px;width:auto;" />
-        </div>
-        <div style="padding:32px;">
-          <p style="font-size:16px;font-weight:bold;margin-top:0;">Hi ${order.name},</p>
-          <p style="color:#444;">Your order <strong>${order.orderNumber}</strong> has been delivered. Two minutes of your time helps the next buyer trust us the way you did.</p>
-          ${items.length ? `
-          <table style="width:100%;border-collapse:collapse;margin:20px 0;">${itemRows}
-          </table>` : ''}
-          ${gbpUrl ? `
-          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:20px 0;text-align:center;">
-            <p style="font-size:13px;color:#444;margin:0 0 10px;">Happy with SNKRS CART overall?</p>
-            <a href="${gbpUrl}" style="display:inline-block;background:#1a73e8;color:#fff;font-size:12px;font-weight:bold;letter-spacing:0.06em;text-transform:uppercase;padding:12px 18px;border-radius:4px;text-decoration:none;">Review us on Google</a>
-          </div>` : ''}
-          <p style="color:#444;">Anything wrong with the pair? Reply to this email first and we will sort it out.</p>
-          <p style="color:#888;font-size:12px;margin-top:32px;"><a href="${siteUrl}/account/orders" style="color:#888;">View your orders</a></p>
-          <p style="color:#888;font-size:12px;">— SNKRS CART Team</p>
-        </div>
-      </div>
-    `,
-  });
-}
-
 router.get('/orders', adminAuth, async (_req: Request, res: Response): Promise<void> => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 }).lean();
@@ -488,7 +792,7 @@ router.get('/orders/:id', adminAuth, async (req: Request, res: Response): Promis
 router.put('/orders/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const { status, trackingNumber, deliveryService, notes, cancelReason } = req.body;
-    const existing = await Order.findById(req.params.id).select('status deliveredAt').lean();
+    const existing = await Order.findById(req.params.id).select('status deliveredAt trackingNumber deliveryService').lean();
     if (!existing) { res.status(404).json({ error: 'Order not found' }); return; }
 
     const update: Record<string, unknown> = {};
@@ -509,6 +813,15 @@ router.put('/orders/:id', adminAuth, async (req: Request, res: Response): Promis
     }
     if (status === 'delivered' && existing.status !== 'delivered') {
       sendReviewRequestEmail(order, siteUrl);
+    }
+    if (status && status !== existing.status) {
+      syncSellerOrdersWithOrder(order._id, status, cancelReason || order.cancelReason || undefined)
+        .catch((e) => console.error('[sellerOrders] sync failed', e));
+    }
+    const trackingChanged = order.trackingNumber && order.deliveryService
+      && (order.trackingNumber !== existing.trackingNumber || order.deliveryService !== existing.deliveryService);
+    if (trackingChanged && !order.items.some((it) => it.listingId)) {
+      registerOrderShipment(order).catch((e) => console.error('[aftership] register order failed', e));
     }
 
     res.json(order);

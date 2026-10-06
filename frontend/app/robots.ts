@@ -8,7 +8,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com'
 // `/admin` (no trailing slash) also matches `/admin/...`; `/admin/` alone does not match `/admin`.
 // /cart, /checkout, /account, /wishlist are deliberately NOT listed: they carry a noindex
 // header (next.config.mjs) and Google must be able to fetch them to see it.
-const DISALLOW = ['/admin', '/api/'];
+const DISALLOW = ['/admin', '/sellers', '/api/'];
 
 export default function robots(): MetadataRoute.Robots {
   return {

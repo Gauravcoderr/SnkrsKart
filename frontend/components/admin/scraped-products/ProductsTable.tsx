@@ -4,6 +4,7 @@ import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import ImageLightbox from '@/components/ui/ImageLightbox';
 import { ScrapedProduct, Status, SITE_COLORS, FLAG_STYLES, ProductFlag } from './types';
+import { Spinner } from '@/app/admin/_components/AdminLoader';
 
 const BulkDeleteModal = dynamic(() => import('./BulkDeleteModal'), { ssr: false });
 
@@ -56,7 +57,7 @@ export default function ProductsTable({ items, loading, status, onEdit, onPublis
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-6 h-6 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
+        <Spinner />
       </div>
     );
   }

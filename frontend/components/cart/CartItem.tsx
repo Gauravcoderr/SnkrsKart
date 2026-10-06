@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { CartItem as CartItemType } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
+import { AVAILABILITY_META, formatDeliveryWindow } from '@/lib/availability';
 
 interface CartItemProps {
   item: CartItemType;
@@ -45,6 +46,12 @@ export default function CartItem({ item, compact = false }: CartItemProps) {
             </Link>
             <p className="text-xs text-zinc-400 mt-0.5">{product.colorway}</p>
             <p className="text-xs text-zinc-500 mt-0.5">Size: {typeof size === 'number' ? `UK ${size}` : size}</p>
+            {item.availability && (
+              <p className="flex items-center gap-1.5 text-[11px] text-zinc-500 mt-1">
+                <span className={`w-1.5 h-1.5 rounded-full ${AVAILABILITY_META[item.availability].dotClass}`} />
+                {AVAILABILITY_META[item.availability].description} · Est. {formatDeliveryWindow(item.availability)}
+              </p>
+            )}
           </div>
           <p className="text-sm font-bold text-zinc-900 shrink-0">
             {formatPrice(product.price * quantity)}

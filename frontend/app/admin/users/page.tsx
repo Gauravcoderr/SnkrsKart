@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 import Paginator from '../_components/Paginator';
+import AdminLoader from '@/app/admin/_components/AdminLoader';
 
 interface AdminUser {
   _id: string;
@@ -60,9 +61,7 @@ export default function AdminUsersPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-6 h-6 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
-      </div>
+      <AdminLoader />
     );
   }
 

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Product } from '../models/Product';
 import { buildProductSlug } from '../lib/productSlug';
+import { attachSellerOffers } from '../lib/sellerOffers';
 
 type MongoFilter = Record<string, any>;
 
@@ -105,7 +106,7 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
     ]);
 
     res.json({
-      products: products.map((p) => ({ ...p, id: (p._id as any).toString() })),
+      products: (await attachSellerOffers(products)).map((p) => ({ ...p, id: (p._id as any).toString() })),
       total,
       page,
       limit,
@@ -139,7 +140,8 @@ export const getProductBySlug = async (req: Request, res: Response): Promise<voi
         .filter((rp: any) => rp != null)
         .map((rp: any) => ({ ...rp, id: rp._id.toString() }));
     }
-    res.json({ ...product, id: (product._id as any).toString() });
+    const [withOffers] = await attachSellerOffers([product]);
+    res.json({ ...withOffers, id: (product._id as any).toString() });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch product' });
   }
@@ -152,7 +154,7 @@ export const getFeaturedProducts = async (_req: Request, res: Response): Promise
       .limit(6)
       .select(CARD_FIELDS)
       .lean();
-    res.json(products.map((p) => ({ ...p, id: (p._id as any).toString() })));
+    res.json((await attachSellerOffers(products)).map((p) => ({ ...p, id: (p._id as any).toString() })));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch featured products' });
   }
@@ -165,7 +167,7 @@ export const getNewArrivals = async (_req: Request, res: Response): Promise<void
       .limit(8)
       .select(CARD_FIELDS)
       .lean();
-    res.json(products.map((p) => ({ ...p, id: (p._id as any).toString() })));
+    res.json((await attachSellerOffers(products)).map((p) => ({ ...p, id: (p._id as any).toString() })));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch new arrivals' });
   }
@@ -178,7 +180,7 @@ export const getTrendingProducts = async (_req: Request, res: Response): Promise
       .limit(8)
       .select(CARD_FIELDS)
       .lean();
-    res.json(products.map((p) => ({ ...p, id: (p._id as any).toString() })));
+    res.json((await attachSellerOffers(products)).map((p) => ({ ...p, id: (p._id as any).toString() })));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch trending products' });
   }
@@ -191,7 +193,7 @@ export const getComingSoonProducts = async (_req: Request, res: Response): Promi
       .limit(12)
       .select(CARD_FIELDS)
       .lean();
-    res.json(products.map((p) => ({ ...p, id: (p._id as any).toString() })));
+    res.json((await attachSellerOffers(products)).map((p) => ({ ...p, id: (p._id as any).toString() })));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch coming soon products' });
   }

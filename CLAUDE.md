@@ -20,6 +20,8 @@ BLOB_READ_WRITE_TOKEN      → Vercel Blob — required for deal screenshot uplo
 ## Key env vars (backend)
 ```
 ADMIN_NOTIFICATION_EMAIL   → email to notify on new deal submission (optional, falls back to EMAIL_FROM)
+AFTERSHIP_API_KEY          → AfterShip tracking API (server-side only); AFTERSHIP_WEBHOOK_SECRET verifies webhooks
+ADMIN_CC_EMAILS            → comma list CC'd on every mail whose TO is info@snkrscart.com or ADMIN_NOTIFICATION_EMAIL (default infosnkrscart@gmail.com,gauravrauthan12112@gmail.com); customer + batch/blog mails never CC'd
 ```
 
 ## Directory structure
@@ -36,10 +38,17 @@ frontend/
       inquiries/              Inquiry list + detail
       reviews/                Reviews list
       banners/                Banners CRUD
-      sellers/                Sellers list
+      sellers/                Seller accounts + applications (activate, reset password, suspend); [id] detail
+    seller-orders/          Seller fulfilment: verification photos review, tracking override
+    product-requests/       Approve/reject seller product requests
+    payouts/                Due/paid seller payouts, mark paid with UPI screenshot
       blogs/                  Blogs CRUD
       chat-leads/page.tsx     Chat leads from KickBot
     deal-verifications/page.tsx  Deal verification submissions + verdict UI
+  app/sellers/              Seller portal (login, dashboard, listings, orders/[id], requests, settings)
+  components/seller/        SellerShell (auth guard + nav), AddListingModal, RequestProductModal, VerificationCapture
+  lib/sellerApi.ts          Seller portal client (seller_token)
+  lib/availability.ts       Availability labels, delivery windows, computeListPrice
   components/
     layout/
       ChatBot.tsx             KickBot chat widget (full implementation)
@@ -61,12 +70,17 @@ backend/src/
     orders.ts / auth.ts / reviews.ts / inquiries.ts
     newsletter.ts / seller.ts / restock.ts
     chatLeads.ts              POST /api/v1/chat/lead (save KickBot leads)
+    sellerPortal.ts           /api/v1/seller-portal/* (seller auth, listings, orders, verification, tracking, requests)
     dealVerifications.ts      POST /api/v1/deals/send-otp + /submit (in-memory OTP, no User created)
     admin.ts                  All /api/v1/admin/* routes (adminAuth protected)
   models/
     User / Product / Brand / Order / Review / Inquiry
     Banner / Seller / Blog / Newsletter / Restock / ChatLead
     DealVerification          deal submissions with status pending/real/fake/inconclusive
+    SellerListing / SellerOrder / ProductRequest   seller portal (see "Seller portal" section)
+  lib/sellerOffers.ts       attachSellerOffers(): merge store stock + seller listings into product.offers
+  lib/sellerOrders.ts       createSellerOrders / syncSellerOrdersWithOrder / applySellerTrackingToOrder
+  lib/sellerEmails.ts       seller + admin + customer-shipped email templates
   config/database.ts          MongoDB connect (MONGODB_URI → dbName: snkrs-cart)
   index.ts                    Express app entry, all routes registered, /health endpoint
 ```
@@ -91,6 +105,17 @@ All prefixed `/api/v1/`. Admin routes require `Authorization: Bearer <admin_toke
 | `POST /api/v1/deals/submit` | verify OTP + create DealVerification + notify admin |
 | `GET /admin/deal-verifications` | admin: list all deal submissions |
 | `PUT /admin/deal-verifications/:id` | admin: set verdict + note → emails user result |
+| `POST /seller-portal/auth/login` | seller login → JWT (type seller) |
+| `GET/POST/PUT/DELETE /seller-portal/listings` | seller's own listings (sizes must exist on the product) |
+| `GET /seller-portal/catalog?search=` + `/catalog/:id` | catalog search + current best offer per size with `beat` price hints |
+| `GET /seller-portal/orders`, `POST /orders/:id/verification`, `POST /orders/:id/tracking` | seller orders (no customer PII), photo verification, one-time tracking |
+| `GET/POST /seller-portal/requests` | new-product requests |
+| `GET/POST /admin/sellers`, `POST /admin/sellers/:id/activate|reset-password`, `PUT /admin/sellers/:id` | seller account management |
+| `GET /admin/seller-orders`, `PUT /admin/seller-orders/:id/verification|tracking` | review photos, override tracking |
+| `GET/PUT /admin/product-requests` | approve (needs `productId`) / reject requests |
+| `GET /admin/payouts`, `PUT /admin/seller-orders/:id/payout` | delivered seller orders; mark paid (screenshotUrl required) → seller emailed |
+| `POST /tracking/aftership/webhook` | AfterShip tracking updates (HMAC verified) |
+| `POST /admin/seller-orders/:id/sync-tracking` | pull latest AfterShip status for one seller order |
 | `/health` | keep-alive ping (UptimeRobot pings every 5 min) |
 
 ## KickBot (ChatBot.tsx) — key behaviours
@@ -105,7 +130,7 @@ All prefixed `/api/v1/`. Admin routes require `Authorization: Bearer <admin_toke
 - Rate limit: 5 requests/IP/minute
 
 ## Admin sidebar nav order
-Orders → Users → Products → Inquiries → Reviews → Banners → Sellers → Blogs → Chat Leads → Deal Checks
+Orders → Users → Products → Inquiries → Reviews → Banners → Sellers → Seller Orders → Product Requests → Payouts → Blogs → Chat Leads → Deal Checks
 
 ## Brands available in store
 Nike, Jordan (Air Jordan), Adidas, New Balance, Crocs
@@ -119,6 +144,25 @@ Nike, Jordan (Air Jordan), Adidas, New Balance, Crocs
 
 ## Homepage section order
 MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → TrendingNow → WhyChooseUs → ComingSoon → NewsletterBar
+
+## Seller portal (`/sellers`)
+- Separate auth: `POST /api/v1/seller-portal/auth/login` (email + password, bcrypt, 10 tries/15 min) → JWT `{type:'seller'}` 7d in `localStorage` as `seller_token` (`lib/sellerApi.ts`). `middleware/sellerAuth.ts` re-checks `Seller.status === 'active'` on every request. Mounted at `/seller-portal` (not `/seller`) so the 100 POST/day limiter on the public application form does not apply.
+- Admin creates accounts: `POST /admin/sellers` (new) or `POST /admin/sellers/:id/activate` (from a `/sell` application). Both generate a temp password, email it (`lib/sellerEmails.ts`) and return it once; `mustChangePassword` forces a reset on first login. `reset-password` and `PUT status: suspended` (pauses all listings) also exist.
+- `SellerListing` = (seller, product, size) unique. Seller enters `sellerPrice`; public `listPrice = ceil((sellerPrice * 1.10) / 10) * 10` (`computeListPrice`, mirrored in `frontend/lib/availability.ts`). Availability: `instant` (ships 24h) / `inhand` (3 days) / `eta` (~20 days). Sellers can list any standard UK size (1 to 16, half steps) on an existing shoe even if the product does not carry it yet (the offers merge adds it to the size grid); clothing is limited to the product's `stringSizes`. New products go through `ProductRequest` (name, brand, sizes, supporting URLs) which admin approves by picking the catalog product they created.
+- `lib/sellerOffers.ts` `attachSellerOffers()` runs on every public product response: merges store stock (treated as `inhand`) with active listings of active sellers into `product.offers[]` (one best offer per size: lowest price, tie → faster). When a seller offer exists it also rewrites `sizes/availableSizes/variants/price` and clears `soldOut`. Frontend uses `offers` for per-size price + availability; `CartItem` carries `listingId` + `availability` and checkout sends them.
+- Order creation validates listing price/qty, reserves stock atomically (`qty` decrement, `sold_out` at 0, released on any later failure), stamps items with `listingId/sellerId/sellerName/sellerPrice/availability`, then `createSellerOrders()` writes one `SellerOrder` per seller (no customer PII: only `deliveryCity/State`). Seller-portal order responses go through `forSeller()` which strips `items[].listPrice`, so sellers only ever see their own payout (`sellerPrice`, `sellerTotal`), never what the customer paid. `syncSellerOrdersWithOrder()` is called on confirm (webhook / Razorpay verify / admin PUT), cancel (restores stock unless shipped) and deliver.
+- Fulfilment flow: `SellerOrder.status confirmed` → seller uploads live-camera photos (`VERIFICATION_ANGLES`, 6 required) → admin approves/rejects (`PUT /admin/seller-orders/:id/verification`, seller emailed) → seller requests the customer's address over WhatsApp (store number) → seller adds courier + tracking **once** (`trackingLockedAt`; only admin can change via `PUT /admin/seller-orders/:id/tracking`). `applySellerTrackingToOrder()` copies tracking onto the matching `Order.items[]`, sets order-level tracking/`shipped` when the whole order is one seller shipment, and emails the customer.
+- Fulfilment timeline: on payment confirmation `SellerOrder.confirmedAt` is set and `shipBy = confirmedAt + max(AVAILABILITY_SHIP_DAYS of items)` (instant 1d / inhand 3d / eta 20d). Shown in the seller new-order + approval emails, portal order list/detail, dashboard (`orders.overdue`) and admin seller-orders pills (Ship by / Overdue / Shipped late). Late penalty is **info only** (`LATE_PENALTY_TEXT`, override with `SELLER_LATE_PENALTY_TEXT` env); nothing is deducted automatically.
+- Payouts: `SellerOrder.payout` {status pending/due/paid, amount, dueAt, paidAt, screenshotUrl, reference, note}. Parent order `delivered` → `syncSellerOrdersWithOrder` sets `due` with `dueAt = deliveredAt + 7 days` (`PAYOUT_DELAY_DAYS`). Admin `/admin/payouts` (GET `/admin/payouts`) marks paid via `PUT /admin/seller-orders/:id/payout` (screenshot URL required, uploaded with `uploadImage(file, 'payouts')`), seller gets a payout email with amount, UTR and screenshot link. Seller dashboard/orders show Payout due / Paid out; admin pays manually to the seller's UPI ID.
+- Seller profile stores the seller's own shipping address (`addressLine/city/state/pincode`, editable in portal settings and admin). Dashboard nags until address + pincode are filled; admin seller-order detail shows it as "Ships from".
+
+## Shipment tracking (AfterShip)
+- Links: `frontend/lib/tracking.ts` `getTrackingUrl()` → native deep link for Shiprocket/Blue Dart/FedEx/DHL, else public `https://www.aftership.com/track/{slug}/{awb}` (free, no key). Slugs: delhivery, dtdc, bluedart, ekart, xpressbees, shadowfax, ecom-express, india-post, fedex, dhl.
+- API: `backend/src/services/aftership.ts` (header `as-api-key`, base `https://api.aftership.com/tracking/{AFTERSHIP_API_VERSION, default 2025-07}`). Env: `AFTERSHIP_API_KEY`, `AFTERSHIP_WEBHOOK_SECRET`, `AFTERSHIP_API_VERSION`. Key is server-side only.
+- Registration: `applySellerTrackingToOrder()` → `registerSellerShipment()` (mirrors to `Order.shipment` when the order is a single seller shipment); admin `PUT /admin/orders/:id` with new tracking on a store-only order → `registerOrderShipment()`. Result stored in `shipment` sub-doc (`models/Shipment.ts`: aftershipId, tag, subtag, lastCheckpoint, checkpoints[≤15], expectedDelivery) on both `Order` and `SellerOrder`.
+- Updates: webhook `POST /api/v1/tracking/aftership/webhook` (raw body, HMAC-SHA256 base64 in `aftership-hmac-sha256`; rejected with 503 if secret unset) + `jobs/aftershipSyncJob.ts` poll every 3h (`syncOpenShipments`, also registers shipped orders that have no aftershipId). Admin `POST /admin/seller-orders/:id/sync-tracking` forces a refresh.
+- `tag === 'Delivered'` → seller order delivered + payout due; parent order delivered (review email) when every non-cancelled seller order is delivered and there are no store items, or when the store shipment itself is delivered. Coins still flow through `processPendingCoins` off `deliveredAt`.
+- UI: live status card on customer `/account/orders`, seller order detail, admin orders and admin seller-orders.
 
 ## Deal Verification feature
 

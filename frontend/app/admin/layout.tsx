@@ -20,6 +20,7 @@ import {
   DealVerifIcon,
   MailIcon,
 } from '@/components/ui/Icons';
+import { Spinner } from '@/app/admin/_components/AdminLoader';
 
 const NAV = [
   { href: '/admin/orders',    label: 'Orders',    Icon: OrdersIcon },
@@ -29,6 +30,9 @@ const NAV = [
   { href: '/admin/reviews',   label: 'Reviews',   Icon: StarIcon },
   { href: '/admin/banners',   label: 'Banners',   Icon: BannersIcon },
   { href: '/admin/sellers',   label: 'Sellers',   Icon: SellersIcon },
+  { href: '/admin/seller-orders', label: 'Seller Orders', Icon: OrdersIcon },
+  { href: '/admin/product-requests', label: 'Product Requests', Icon: InquiriesIcon },
+  { href: '/admin/payouts', label: 'Payouts', Icon: DealVerifIcon },
   { href: '/admin/blogs',             label: 'Blogs',           Icon: BlogsIcon },
   { href: '/admin/sneaker-profiles',  label: 'Sneaker Profiles', Icon: ProductsIcon },
   { href: '/admin/drops',             label: 'Drops',            Icon: StarIcon },
@@ -73,7 +77,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!ready) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="w-5 h-5 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
+        <Spinner className="w-5 h-5" />
       </div>
     );
   }

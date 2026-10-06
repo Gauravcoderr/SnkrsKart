@@ -56,10 +56,13 @@ export default function StickyCartBar({
       return;
     }
     setAdding(true);
+    const offer = product.offers?.find((o) => String(o.size) === String(selectedSize));
     const variant = product.variants?.find((v) => v.size === selectedSize);
-    const effectiveProduct = variant ? { ...product, price: variant.price, originalPrice: variant.originalPrice } : product;
+    const effectiveProduct = offer
+      ? { ...product, price: offer.price, originalPrice: offer.originalPrice }
+      : variant ? { ...product, price: variant.price, originalPrice: variant.originalPrice } : product;
     await new Promise((r) => setTimeout(r, 400));
-    addItem(effectiveProduct, selectedSize, 1);
+    addItem(effectiveProduct, selectedSize, 1, offer ? { listingId: offer.listingId, availability: offer.availability } : undefined);
     setAdding(false);
     openDrawer();
   };

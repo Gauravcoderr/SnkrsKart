@@ -35,9 +35,12 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const handleQuickAdd = (e: React.MouseEvent, size: number | string) => {
     e.preventDefault();
     e.stopPropagation();
+    const offer = product.offers?.find((o) => String(o.size) === String(size));
     const variant = hasVariants ? product.variants!.find((v) => v.size === size) : null;
-    const effectiveProduct = variant ? { ...product, price: variant.price, originalPrice: variant.originalPrice } : product;
-    addItem(effectiveProduct, size, 1);
+    const effectiveProduct = offer
+      ? { ...product, price: offer.price, originalPrice: offer.originalPrice }
+      : variant ? { ...product, price: variant.price, originalPrice: variant.originalPrice } : product;
+    addItem(effectiveProduct, size, 1, offer ? { listingId: offer.listingId, availability: offer.availability } : undefined);
     openDrawer();
   };
 

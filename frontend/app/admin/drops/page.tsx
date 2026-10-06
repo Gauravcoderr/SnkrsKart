@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Paginator from '../_components/Paginator';
 import ConfirmModal from '../_components/ConfirmModal';
+import AdminLoader from '@/app/admin/_components/AdminLoader';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
@@ -200,7 +201,7 @@ export default function AdminDropsPage() {
 
       {error && <p className="text-xs text-red-400 mb-4">{error}</p>}
       {loading ? (
-        <div className="text-zinc-500 text-sm">Loading…</div>
+        <AdminLoader className="h-40" />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

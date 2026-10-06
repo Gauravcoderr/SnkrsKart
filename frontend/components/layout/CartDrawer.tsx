@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/utils';
+import { AVAILABILITY_META, formatDeliveryWindow } from '@/lib/availability';
 
 export default function CartDrawer() {
   const { items, isDrawerOpen, closeDrawer, itemCount, subtotal, removeItem, updateQuantity } = useCart();
@@ -104,6 +105,12 @@ export default function CartDrawer() {
                         <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400">{item.product.brand}</p>
                         <p className="text-sm font-semibold text-zinc-900 truncate">{item.product.name}</p>
                         <p className="text-xs text-zinc-400 mt-0.5">{typeof item.size === 'number' ? `UK ${item.size}` : item.size} · {item.product.colorway}</p>
+                        {item.availability && (
+                          <p className="flex items-center gap-1.5 text-[10px] text-zinc-500 mt-1">
+                            <span className={`w-1.5 h-1.5 rounded-full ${AVAILABILITY_META[item.availability].dotClass}`} />
+                            {AVAILABILITY_META[item.availability].description} · Est. {formatDeliveryWindow(item.availability)}
+                          </p>
+                        )}
                       </div>
                       <p className="text-sm font-bold text-zinc-900 shrink-0">{formatPrice(item.product.price * item.quantity)}</p>
                     </div>

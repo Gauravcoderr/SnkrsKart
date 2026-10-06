@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Product } from '@/types';
-import { useCart } from '@/context/CartContext';
+import { useCart, CartItemMeta } from '@/context/CartContext';
 
 type ButtonState = 'idle' | 'adding' | 'added';
 
@@ -10,12 +10,14 @@ interface AddToCartButtonProps {
   product: Product;
   selectedSize: number | string | null;
   onRequireSize: () => void;
+  meta?: CartItemMeta;
 }
 
 export default function AddToCartButton({
   product,
   selectedSize,
   onRequireSize,
+  meta,
 }: AddToCartButtonProps) {
   const { addItem, openDrawer, items } = useCart();
   const [btnState, setBtnState] = useState<ButtonState>('idle');
@@ -46,7 +48,7 @@ export default function AddToCartButton({
     setBtnState('adding');
     await new Promise((r) => setTimeout(r, 600));
 
-    addItem(product, selectedSize, 1);
+    addItem(product, selectedSize, 1, meta);
     setBtnState('added');
 
     await new Promise((r) => setTimeout(r, 800));

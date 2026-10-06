@@ -10,6 +10,7 @@ import FiltersPanel from '@/components/admin/scraped-products/FiltersPanel';
 import AdminFilterDrawer from '@/components/admin/AdminFilterDrawer';
 import { useFilters } from '@/components/admin/scraped-products/useFilters';
 import { ScrapedProduct, Status, STATUS_TABS, RejectedUrlEntry, API } from '@/components/admin/scraped-products/types';
+import { Spinner } from '@/app/admin/_components/AdminLoader';
 
 const ScraperStatusPanel = dynamic(() => import('@/components/admin/scraped-products/ScraperStatusPanel'), { ssr: false });
 const PublishModal = dynamic(() => import('@/components/admin/scraped-products/PublishModal'), { ssr: false });
@@ -241,7 +242,7 @@ export default function ScrapedProductsPage() {
         <div className="overflow-x-auto">
           {rejectedLoading ? (
             <div className="flex justify-center py-20">
-              <div className="w-6 h-6 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
+              <Spinner />
             </div>
           ) : rejectedItems.length === 0 ? (
             <div className="text-center py-20 text-zinc-600 text-sm">No blacklisted URLs yet.</div>

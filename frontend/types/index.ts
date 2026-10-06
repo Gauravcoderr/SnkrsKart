@@ -37,6 +37,8 @@ export interface Product {
   metaKeywords?: string[];
   /** Plain id strings in admin/list responses; populated Product objects on the single product-detail fetch. */
   relatedProducts?: Array<string | Product>;
+  /** Best purchasable offer per size (store stock merged with partner seller listings). */
+  offers?: Offer[];
   createdAt: string;
 }
 
@@ -50,10 +52,24 @@ export interface Brand {
   description: string;
 }
 
+export type Availability = 'instant' | 'inhand' | 'eta';
+
+export interface Offer {
+  size: number | string;
+  price: number;
+  originalPrice: number | null;
+  availability: Availability;
+  source: 'store' | 'seller';
+  listingId?: string;
+  maxQty: number;
+}
+
 export interface CartItem {
   product: Product;
   size: number | string;
   quantity: number;
+  listingId?: string;
+  availability?: Availability;
 }
 
 export type SortOption = 'newest' | 'popular' | 'price_asc' | 'price_desc';

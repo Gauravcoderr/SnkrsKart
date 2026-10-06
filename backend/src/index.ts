@@ -25,6 +25,9 @@ import dropRoutes from './routes/drops';
 import siteContentRoutes from './routes/siteContent';
 import couponRoutes from './routes/coupons';
 import scraperIngestRoutes from './routes/scraperIngest';
+import sellerPortalRoutes from './routes/sellerPortal';
+import trackingRoutes from './routes/tracking';
+import { startAfterShipSyncJob } from './jobs/aftershipSyncJob';
 import { startScraperJob } from './jobs/scraperJob';
 import { startUnsubscribeSyncJob } from './jobs/unsubscribeSyncJob';
 import { initWhatsApp } from './services/whatsapp';
@@ -47,6 +50,7 @@ const allowedOrigins = [
 app.use(cors({ origin: (origin, cb) => cb(null, !origin || allowedOrigins.includes(origin)), credentials: true }));
 // Raw body needed for Cashfree webhook signature verification (must be before express.json)
 app.use('/api/v1/orders/cashfree/webhook', express.raw({ type: '*/*' }));
+app.use('/api/v1/tracking/aftership/webhook', express.raw({ type: '*/*' }));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -62,6 +66,15 @@ const postLimiter = rateLimit({
 
 // Strict rate limit for admin login — 10 attempts per 15 minutes per IP
 const adminLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many login attempts. Try again in 15 minutes.' },
+});
+
+// Seller portal login — 10 attempts per 15 minutes per IP
+const sellerLoginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
   standardHeaders: true,
@@ -101,6 +114,9 @@ app.use('/api/v1/site-content', siteContentRoutes);
 app.use('/api/v1/coupons', postLimiter);
 app.use('/api/v1/coupons', couponRoutes);
 app.use('/api/v1/scraper', scraperIngestRoutes);
+app.use('/api/v1/seller-portal/auth/login', sellerLoginLimiter);
+app.use('/api/v1/seller-portal', sellerPortalRoutes);
+app.use('/api/v1/tracking', trackingRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
@@ -132,6 +148,7 @@ app.listen(PORT, () => {
       if (del.deletedCount > 0) console.log(`[startup] Purged ${del.deletedCount} soleseriouss/nike products`);
       startScraperJob();
       startUnsubscribeSyncJob();
+      startAfterShipSyncJob();
       if (process.env.WHATSAPP_ENABLED === 'true') initWhatsApp();
     })
     .catch((err) => {

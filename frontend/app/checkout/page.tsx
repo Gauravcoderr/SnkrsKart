@@ -9,6 +9,7 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { formatPrice } from '@/lib/utils';
+import { AVAILABILITY_META, formatDeliveryWindow, slowestAvailability } from '@/lib/availability';
 import OtpInput from '@/components/auth/OtpInput';
 import { LoyaltyAccount } from '@/types';
 
@@ -276,6 +277,8 @@ export default function CheckoutPage() {
           price: item.product.price,
           qty: item.quantity,
           image: item.product.images?.[0] || '',
+          listingId: item.listingId || undefined,
+          availability: item.availability || undefined,
         })),
         subtotal: checkoutSubtotal,
         shipping,
@@ -599,6 +602,12 @@ export default function CheckoutPage() {
                         {item.product.name}
                       </Link>
                       <p className="text-xs text-zinc-500">{typeof item.size === 'number' ? `UK ${item.size}` : item.size} · Qty {item.quantity}</p>
+                      {item.availability && (
+                        <p className="flex items-center gap-1.5 text-[11px] text-zinc-500 mt-1">
+                          <span className={`w-1.5 h-1.5 rounded-full ${AVAILABILITY_META[item.availability].dotClass}`} />
+                          {AVAILABILITY_META[item.availability].description} · Est. {formatDeliveryWindow(item.availability)}
+                        </p>
+                      )}
                     </div>
                     <p className="text-sm font-bold text-zinc-900 shrink-0">{formatPrice(item.product.price * item.quantity)}</p>
                   </div>
@@ -845,6 +854,9 @@ export default function CheckoutPage() {
                       {item.product.name}
                     </Link>
                     <p className="text-[10px] text-zinc-400 mt-0.5">{typeof item.size === 'number' ? `UK ${item.size}` : item.size} · Qty {item.quantity}</p>
+                    {item.availability && (
+                      <p className="text-[10px] text-zinc-400 mt-0.5">Est. {formatDeliveryWindow(item.availability)}</p>
+                    )}
                   </div>
                   <p className="text-xs font-bold text-zinc-900 shrink-0">{formatPrice(item.product.price * item.quantity)}</p>
                 </div>
@@ -884,7 +896,7 @@ export default function CheckoutPage() {
           </div>
 
           <p className="text-[11px] text-zinc-400 text-center mt-4 leading-relaxed">
-            🚚 Delivery in 3–7 business days after payment confirmation.
+            🚚 Estimated delivery {formatDeliveryWindow(slowestAvailability(checkoutItems.map((item) => item.availability)))} after payment confirmation.
           </p>
         </div>
       </div>

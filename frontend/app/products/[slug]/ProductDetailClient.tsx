@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Product } from '@/types';
+import { Product, Offer } from '@/types';
 import SizeSelector from '@/components/product-detail/SizeSelector';
 import AddToCartButton from '@/components/product-detail/AddToCartButton';
 import BuyNowButton from '@/components/product-detail/BuyNowButton';
@@ -12,6 +12,7 @@ import StickyCartBar from '@/components/product-detail/StickyCartBar';
 import DealVerifyModal from '@/components/product-detail/DealVerifyModal';
 import { formatPrice } from '@/lib/utils';
 import { useWishlist } from '@/context/WishlistContext';
+import { AVAILABILITY_META, formatDeliveryWindow } from '@/lib/availability';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
@@ -29,6 +30,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [showDealModal, setShowDealModal] = useState(false);
   const [currentOriginalPrice, setCurrentOriginalPrice] = useState(product.originalPrice);
+  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [shareState, setShareState] = useState<'idle' | 'copied'>('idle');
   const sizeSectionRef = useRef<HTMLDivElement>(null);
   const addToCartRef = useRef<HTMLDivElement>(null);
@@ -51,16 +53,28 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   };
 
   const hasVariants = (product.variants?.length ?? 0) > 0;
+  const offers = product.offers ?? [];
+  const hasMixedAvailability = new Set(offers.map((o) => o.availability)).size > 1 || offers.some((o) => o.availability !== 'inhand');
 
   const handleSizeSelect = (size: number | string) => {
     setSelectedSize(size);
+    const offer = offers.find((o) => String(o.size) === String(size)) ?? null;
+    setSelectedOffer(offer);
+    if (offer) {
+      setCurrentPrice(offer.price);
+      setCurrentOriginalPrice(offer.originalPrice);
+      return;
+    }
     if (hasVariants) {
       const variant = product.variants!.find((v) => v.size === size);
       if (variant) {
         setCurrentPrice(variant.price);
         setCurrentOriginalPrice(variant.originalPrice);
+        return;
       }
     }
+    setCurrentPrice(product.price);
+    setCurrentOriginalPrice(product.originalPrice);
   };
 
   const handleRequireSize = () => {
@@ -73,9 +87,10 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     ? Math.round(((currentOriginalPrice - currentPrice) / currentOriginalPrice) * 100)
     : null;
 
-  const effectiveProduct = selectedSize && hasVariants
+  const effectiveProduct = selectedSize && (hasVariants || selectedOffer)
     ? { ...product, price: currentPrice, originalPrice: currentOriginalPrice }
     : product;
+  const cartMeta = selectedOffer ? { listingId: selectedOffer.listingId, availability: selectedOffer.availability } : undefined;
 
   return (
     <div className="space-y-6">
@@ -91,9 +106,22 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               </>
             )}
           </div>
-          {hasVariants && !selectedSize && (
-            <span className="text-[10px] sm:text-xs text-zinc-400">Select size for exact price</span>
-          )}
+          {selectedOffer ? (
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] sm:text-xs">
+              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 border font-semibold ${AVAILABILITY_META[selectedOffer.availability].badgeClass}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${AVAILABILITY_META[selectedOffer.availability].dotClass}`} />
+                {AVAILABILITY_META[selectedOffer.availability].description}
+              </span>
+              <span className="text-zinc-500">Est. delivery {formatDeliveryWindow(selectedOffer.availability)}</span>
+              {selectedOffer.source === 'seller' && (
+                <span className="text-zinc-400">· Fulfilled by a verified partner, pair checked before dispatch</span>
+              )}
+            </div>
+          ) : (hasVariants || offers.length > 0) && !selectedSize ? (
+            <span className="text-[10px] sm:text-xs text-zinc-400">
+              {hasMixedAvailability ? 'Select a size to see price and delivery time' : 'Select size for exact price'}
+            </span>
+          ) : null}
         </div>
         <button
           type="button"
@@ -163,6 +191,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               onSizeSelect={handleSizeSelect}
               showError={showSizeError}
               variants={product.variants}
+              offers={product.offers}
               onSizeGuide={() => setShowSizeGuide(true)}
             />
           </div>
@@ -173,11 +202,13 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               product={effectiveProduct}
               selectedSize={selectedSize}
               onRequireSize={handleRequireSize}
+              meta={cartMeta}
             />
             <BuyNowButton
               product={effectiveProduct}
               selectedSize={selectedSize}
               onRequireSize={handleRequireSize}
+              meta={cartMeta}
             />
           </div>
 

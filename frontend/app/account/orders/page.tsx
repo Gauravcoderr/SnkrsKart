@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { GOOGLE_REVIEW_URL } from '@/lib/constants';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { formatPrice } from '@/lib/utils';
-import { getTrackingUrl, isDeepLink } from '@/lib/tracking';
+import { getTrackingUrl, isDeepLink, isAfterShipLink, shipmentHeadline, shipmentTone, formatCheckpointTime } from '@/lib/tracking';
+import type { Shipment } from '@/types/seller';
 import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 
@@ -59,6 +60,10 @@ interface OrderItem {
   qty: number;
   image: string;
   slug?: string;
+  sellerName?: string;
+  availability?: 'instant' | 'inhand' | 'eta';
+  trackingNumber?: string;
+  deliveryService?: string;
 }
 
 interface Order {
@@ -79,6 +84,7 @@ interface Order {
   trackingNumber?: string;
   deliveryService?: string;
   cancelReason?: string;
+  shipment?: Shipment | null;
   createdAt: string;
 }
 
@@ -316,7 +322,10 @@ function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
               </p>
               <p className="text-sm font-mono font-bold text-violet-900 truncate">{order.trackingNumber}</p>
               {trackUrl && !deepLink && (
-                <p className="text-[10px] text-violet-400 mt-0.5">Copy your number and enter it on the carrier's site</p>
+                <p className="text-[10px] text-violet-400 mt-0.5">Copy your number and paste it on the tracking page</p>
+              )}
+              {trackUrl && deepLink && order.deliveryService && isAfterShipLink(order.deliveryService) && (
+                <p className="text-[10px] text-violet-400 mt-0.5">Live checkpoints via AfterShip</p>
               )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -336,6 +345,29 @@ function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
                 >
                   {deepLink ? 'Track →' : 'Visit →'}
                 </a>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+      {order.shipment?.tag && order.status !== 'cancelled' && (() => {
+        const tone = shipmentTone(order.shipment.tag);
+        const cls = tone === 'ok' ? 'bg-emerald-50 border-emerald-100 text-emerald-900' : tone === 'warn' ? 'bg-red-50 border-red-100 text-red-900' : 'bg-sky-50 border-sky-100 text-sky-900';
+        const dot = tone === 'ok' ? 'bg-emerald-500' : tone === 'warn' ? 'bg-red-500' : 'bg-sky-500 animate-pulse';
+        return (
+          <div className={`flex items-start gap-3 px-4 py-3 border rounded-xl ${cls}`}>
+            <span className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${dot}`} />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold">{shipmentHeadline(order.shipment)}</p>
+              {order.shipment.lastCheckpoint && (
+                <p className="text-[11px] opacity-80 mt-0.5">
+                  {order.shipment.lastCheckpoint.message}
+                  {order.shipment.lastCheckpoint.location ? ` · ${order.shipment.lastCheckpoint.location}` : ''}
+                  {order.shipment.lastCheckpoint.at ? ` · ${formatCheckpointTime(order.shipment.lastCheckpoint.at)}` : ''}
+                </p>
+              )}
+              {order.shipment.expectedDelivery && order.shipment.tag !== 'Delivered' && (
+                <p className="text-[11px] opacity-70 mt-0.5">Expected by {new Date(order.shipment.expectedDelivery).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</p>
               )}
             </div>
           </div>
@@ -388,6 +420,11 @@ function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
                   <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md">UK {item.size}</span>
                   <span className="text-[10px] font-bold bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-md">Qty {item.qty}</span>
                 </div>
+                {item.trackingNumber && item.trackingNumber !== order.trackingNumber && (
+                  <p className="text-[11px] text-violet-600 mt-1.5 font-mono font-bold">
+                    {item.deliveryService ? `${item.deliveryService} · ` : ''}{item.trackingNumber}
+                  </p>
+                )}
               </div>
               <div className="flex flex-col items-end gap-1 shrink-0">
                 <p className="text-sm font-black text-zinc-900">{formatPrice(item.price * item.qty)}</p>

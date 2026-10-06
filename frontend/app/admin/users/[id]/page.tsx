@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import UserCoupons, { AssignedCoupon } from './UserCoupons';
+import AdminLoader from '@/app/admin/_components/AdminLoader';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -78,9 +79,7 @@ export default function AdminUserDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-6 h-6 border-2 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
-      </div>
+      <AdminLoader />
     );
   }
 
