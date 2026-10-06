@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { sellerApi } from '@/lib/sellerApi';
 import type { CatalogDetail, CatalogOffer, CatalogProduct, SellerListing } from '@/types/seller';
@@ -35,6 +35,15 @@ interface Entry {
 const MIN_PRICE = 500;
 const MAX_PRICE = 1000000;
 
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
+
 export default function AddListingModal({ open, onClose, onCreated, onRequestProduct, initialProductId }: Props) {
   const handleError = useHandleApiError();
   const [query, setQuery] = useState('');
@@ -62,26 +71,35 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
     setSubmitError('');
   }, [open, initialProductId]);
 
+  const debouncedQuery = useDebouncedValue(query.trim(), 400);
+  const searchCache = useRef(new Map<string, CatalogProduct[]>());
+
   useEffect(() => {
     if (!open || productId) return;
+    const cached = searchCache.current.get(debouncedQuery);
+    if (cached) {
+      setResults(cached);
+      setSearching(false);
+      setSearchError('');
+      return;
+    }
     let cancelled = false;
     setSearching(true);
     setSearchError('');
-    const timer = setTimeout(async () => {
-      try {
-        const found = await sellerApi.catalogSearch(query.trim());
-        if (!cancelled) setResults(found);
-      } catch (err) {
-        if (!cancelled) setSearchError(handleError(err));
-      } finally {
-        if (!cancelled) setSearching(false);
-      }
-    }, 300);
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [open, productId, query, handleError]);
+    sellerApi.catalogSearch(debouncedQuery)
+      .then((found) => {
+        if (cancelled) return;
+        searchCache.current.set(debouncedQuery, found);
+        setResults(found);
+      })
+      .catch((err) => { if (!cancelled) setSearchError(handleError(err)); })
+      .finally(() => { if (!cancelled) setSearching(false); });
+    return () => { cancelled = true; };
+  }, [open, productId, debouncedQuery, handleError]);
+
+  useEffect(() => {
+    if (!open) searchCache.current.clear();
+  }, [open]);
 
   const loadDetail = useCallback(
     async (id: string) => {
@@ -235,7 +253,7 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
                     className={`${inputClass} pr-10`}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400">
-                    {searching ? (
+                    {searching || query.trim() !== debouncedQuery ? (
                       <Spinner className="w-4 h-4" />
                     ) : (
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -251,7 +269,7 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
                   <p className="px-5 py-8 text-sm text-red-600 text-center">{searchError}</p>
                 ) : results.length === 0 && !searching ? (
                   <p className="px-5 py-10 text-sm text-zinc-500 text-center">
-                    {query.trim() ? `Nothing in the catalog matches "${query.trim()}".` : 'Type to search the catalog.'}
+                    {debouncedQuery ? `Nothing in the catalog matches "${debouncedQuery}".` : 'Type to search the catalog.'}
                   </p>
                 ) : (
                   <ul className="divide-y divide-zinc-100">
