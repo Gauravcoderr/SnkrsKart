@@ -5,6 +5,7 @@ import { customerAuth, optionalAuth, AuthRequest } from '../middleware/customerA
 import { User } from '../models/User';
 import { Product } from '../models/Product';
 import { sendMail } from '../lib/mailer';
+import { EMAIL_REASON, transactionalShell } from '../lib/emailLayout';
 import { Loyalty, COINS_PER_100, COINS_TO_RUPEE, MAX_REDEEM_PCT, MIN_REDEEM } from '../models/Loyalty';
 import { Coupon, couponUserError } from '../models/Coupon';
 import { Cashfree, CFEnvironment } from 'cashfree-pg';
@@ -69,12 +70,7 @@ function sendAdminNewOrderEmail(order: IOrder, siteUrl: string, paymentMode: str
   sendMail({
     to: storeEmail,
     subject: `New Order #${order.orderNumber} — ₹${order.total.toLocaleString('en-IN')} — ${order.name}`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:600px;color:#111;">
-        <div style="background:#111;padding:16px 24px;text-align:center;">
-          <img src="${siteUrl}/logo.jpg" alt="SNKRS CART" style="height:48px;width:auto;" />
-        </div>
-        <div style="padding:24px;">
+    html: transactionalShell(`
           <p style="font-size:16px;font-weight:bold;margin-top:0;">New Order Received — ${order.orderNumber}</p>
           <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px;">
             <tr><td style="padding:6px 0;color:#666;width:120px;">Customer</td><td style="padding:6px 0;font-weight:bold;">${order.name}</td></tr>
@@ -91,9 +87,7 @@ function sendAdminNewOrderEmail(order: IOrder, siteUrl: string, paymentMode: str
           <p style="margin-top:20px;font-size:13px;color:#666;">${note}</p>
           ${sellerNote}
           <a href="${siteUrl}/admin/orders" style="display:inline-block;margin-top:12px;background:#111;color:#fff;padding:10px 20px;text-decoration:none;font-size:13px;font-weight:bold;border-radius:6px;">View in Admin Panel →</a>
-        </div>
-      </div>
-    `,
+      `, EMAIL_REASON.admin),
   });
 }
 
@@ -116,12 +110,7 @@ function sendPaymentConfirmedEmail(order: IOrder, siteUrl: string) {
   sendMail({
     to: order.email,
     subject: `Payment Confirmed — ${order.orderNumber} | SNKRS CART`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
-        <div style="background:#111;padding:20px 32px;text-align:center;">
-          <img src="${siteUrl}/logo.jpg" alt="SNKRS CART" style="height:56px;width:auto;" />
-        </div>
-        <div style="padding:32px;">
+    html: transactionalShell(`
           <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:20px;margin-bottom:24px;text-align:center;">
             <p style="font-size:13px;color:#166534;font-weight:bold;margin:0 0 4px;">✅ Payment Confirmed</p>
             <p style="font-size:22px;font-weight:bold;color:#111;margin:0;">₹${order.total.toLocaleString('en-IN')}</p>
@@ -135,10 +124,7 @@ function sendPaymentConfirmedEmail(order: IOrder, siteUrl: string) {
             <tr><td style="padding:8px 0;font-weight:bold;border-top:2px solid #111;">Total Paid</td><td style="text-align:right;font-weight:bold;border-top:2px solid #111;">₹${order.total.toLocaleString('en-IN')}</td></tr>
           </table>
           <p style="color:#888;font-size:12px;margin-top:32px;">Delivery: 3–7 business days · <a href="${siteUrl}/account/orders" style="color:#888;">Track your order</a></p>
-          <p style="color:#888;font-size:12px;">— SNKRS CART Team</p>
-        </div>
-      </div>
-    `,
+      `, EMAIL_REASON.order),
   });
 }
 
@@ -147,12 +133,7 @@ function sendAdminPaymentFailedEmail(order: IOrder, siteUrl: string, paymentMode
   sendMail({
     to: storeEmail,
     subject: `⚠️ Payment Failed — ${order.orderNumber} — ₹${order.total.toLocaleString('en-IN')} — ${order.name}`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:600px;color:#111;">
-        <div style="background:#111;padding:16px 24px;text-align:center;">
-          <img src="${siteUrl}/logo.jpg" alt="SNKRS CART" style="height:48px;width:auto;" />
-        </div>
-        <div style="padding:24px;">
+    html: transactionalShell(`
           <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:16px;margin-bottom:20px;">
             <p style="font-size:14px;color:#991b1b;font-weight:bold;margin:0;">Payment failed via ${paymentMode.charAt(0).toUpperCase() + paymentMode.slice(1)}${reason ? ` — ${reason}` : ''}</p>
           </div>
@@ -165,9 +146,7 @@ function sendAdminPaymentFailedEmail(order: IOrder, siteUrl: string, paymentMode
           </table>
           <p style="font-size:13px;color:#666;">Customer likely dropped off or the payment was declined. No action needed unless they report an issue — order stays in the queue as unpaid.</p>
           <a href="${siteUrl}/admin/orders" style="display:inline-block;margin-top:12px;background:#111;color:#fff;padding:10px 20px;text-decoration:none;font-size:13px;font-weight:bold;border-radius:6px;">View in Admin Panel →</a>
-        </div>
-      </div>
-    `,
+      `, EMAIL_REASON.admin),
   });
 }
 
@@ -668,12 +647,7 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
     sendMail({
       to: email,
       subject: `Order Confirmed — ${orderNumber} | SNKRS CART`,
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
-          <div style="background:#111;padding:20px 32px;text-align:center;">
-            <img src="${siteUrl}/logo.jpg" alt="SNKRS CART" style="height:56px;width:auto;" />
-          </div>
-          <div style="padding:32px;">
+      html: transactionalShell(`
             <p style="font-size:18px;font-weight:bold;margin-top:0;">Thank you, ${name}!</p>
             <p style="color:#444;">Your order <strong>${orderNumber}</strong> has been placed. Please complete the payment via UPI to confirm your order.</p>
 
@@ -698,10 +672,7 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
             </table>
 
             <p style="color:#888;font-size:12px;margin-top:32px;">Delivery: 3–7 business days after payment confirmation · <a href="${siteUrl}/returns" style="color:#888;">Returns policy</a></p>
-            <p style="color:#888;font-size:12px;">— SNKRS CART Team, Pauri Garhwal, Uttarakhand</p>
-          </div>
-        </div>
-      `,
+      `, EMAIL_REASON.order),
     });
 
   } catch (err) {

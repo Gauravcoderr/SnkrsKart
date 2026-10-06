@@ -28,6 +28,7 @@ import { Newsletter } from '../models/Newsletter';
 import { User } from '../models/User';
 import ChatLead from '../models/ChatLead';
 import { DealVerification } from '../models/DealVerification';
+import { EMAIL_REASON, transactionalShell } from '../lib/emailLayout';
 import { SneakerProfile } from '../models/SneakerProfile';
 import { Drop } from '../models/Drop';
 import { SiteContent } from '../models/SiteContent';
@@ -1123,21 +1124,14 @@ router.put('/deal-verifications/:id', adminAuth, async (req: Request, res: Respo
     sendMail({
       to: deal.userEmail,
       subject: `Deal Check Result: ${deal.productName} — ${label}`,
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:32px 24px;">
-          <div style="background:#111;padding:16px;text-align:center;border-radius:8px 8px 0 0;">
-            <img src="https://snkrs-kart.vercel.app/logo.jpg" alt="SNKRS CART" style="height:40px;width:auto;" />
-          </div>
-          <div style="background:#fafafa;padding:32px 24px;border-radius:0 0 8px 8px;border:1px solid #eee;">
+      html: transactionalShell(`
             <h2 style="margin:0 0 8px;color:#111;font-size:18px;">Deal Verification Result</h2>
             <p style="color:#555;font-size:14px;margin:0 0 16px;">Product: <strong>${deal.productName}</strong></p>
             <div style="background:${color};color:#fff;font-size:20px;font-weight:900;letter-spacing:2px;text-align:center;padding:14px;border-radius:6px;margin:0 0 16px;">${label}</div>
             ${adminNote ? `<p style="color:#444;font-size:14px;background:#fff;border:1px solid #e5e7eb;padding:12px;border-radius:6px;margin:0 0 16px;"><strong>Our note:</strong> ${adminNote}</p>` : ''}
             <a href="https://www.snkrscart.com/products/${deal.productSlug}" style="display:block;background:#111;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:bold;text-align:center;">View Product on SNKRS CART</a>
             <p style="color:#999;font-size:11px;margin:16px 0 0;text-align:center;">We verify deals to help you shop smart. Stay real.</p>
-          </div>
-        </div>
-      `,
+      `, EMAIL_REASON.deal),
     });
 
     res.json({ ...deal.toObject(), id: deal._id.toString() });

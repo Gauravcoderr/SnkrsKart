@@ -7,6 +7,7 @@ import { User } from '../models/User';
 import { Order } from '../models/Order';
 import { customerAuth, AuthRequest } from '../middleware/customerAuth';
 import { sendMail } from '../lib/mailer';
+import { EMAIL_REASON, transactionalShell } from '../lib/emailLayout';
 import { sendSMS } from '../services/sms';
 import { sendWhatsApp } from '../services/whatsapp';
 
@@ -123,18 +124,13 @@ router.post('/send-otp', async (req: Request, res: Response): Promise<void> => {
         sendMail({
           to: user!.email,
           subject: `${otp} — Your SNKRS CART verification code`,
-          html: `
-            <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;text-align:center;padding:32px 24px;">
-              <div style="background:#111;padding:16px;text-align:center;border-radius:8px 8px 0 0;">
-                <img src="https://snkrs-kart.vercel.app/logo.jpg" alt="SNKRS CART" style="height:40px;width:auto;" />
-              </div>
-              <div style="background:#fafafa;padding:32px 24px;border-radius:0 0 8px 8px;border:1px solid #eee;">
+          html: transactionalShell(`
+              <div style="text-align:center;padding:8px 0;">
                 <p style="color:#666;font-size:14px;margin:0 0 16px;">Your verification code is</p>
                 <p style="font-size:36px;font-weight:900;letter-spacing:8px;color:#111;margin:0 0 16px;font-family:monospace;">${otp}</p>
                 <p style="color:#999;font-size:12px;margin:0;">Expires in 5 minutes. Do not share this code.</p>
               </div>
-            </div>
-          `,
+      `, EMAIL_REASON.otp),
         });
       }
 
@@ -180,18 +176,13 @@ router.post('/send-otp', async (req: Request, res: Response): Promise<void> => {
     sendMail({
       to: cleanEmail,
       subject: `${otp} — Your SNKRS CART verification code`,
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;text-align:center;padding:32px 24px;">
-          <div style="background:#111;padding:16px;text-align:center;border-radius:8px 8px 0 0;">
-            <img src="https://snkrs-kart.vercel.app/logo.jpg" alt="SNKRS CART" style="height:40px;width:auto;" />
-          </div>
-          <div style="background:#fafafa;padding:32px 24px;border-radius:0 0 8px 8px;border:1px solid #eee;">
+      html: transactionalShell(`
+              <div style="text-align:center;padding:8px 0;">
             <p style="color:#666;font-size:14px;margin:0 0 16px;">Your verification code is</p>
             <p style="font-size:36px;font-weight:900;letter-spacing:8px;color:#111;margin:0 0 16px;font-family:monospace;">${otp}</p>
             <p style="color:#999;font-size:12px;margin:0;">Expires in 5 minutes. Do not share this code.</p>
-          </div>
-        </div>
-      `,
+              </div>
+      `, EMAIL_REASON.otp),
     });
 
     const phoneForOtp = cleanPhone || user!.phone;

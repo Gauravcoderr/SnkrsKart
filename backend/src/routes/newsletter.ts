@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { Newsletter } from '../models/Newsletter';
 import { sendMail } from '../lib/mailer';
+import { EMAIL_REASON, transactionalShell } from '../lib/emailLayout';
 import { reactivateContact } from '../lib/syncUnsubscribes';
 
 const router = Router();
@@ -41,12 +42,7 @@ router.post('/', async (req: Request, res: Response) => {
     sendMail({
       to: String(email).trim(),
       subject: 'You\'re in — SNKRS CART drop alerts',
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#111;">
-          <div style="background:#111;padding:20px 32px;text-align:center;">
-            <img src="${siteUrl}/logo.jpg" alt="SNKRS CART" style="height:48px;width:auto;" />
-          </div>
-          <div style="padding:32px;">
+      html: transactionalShell(`
             <p style="font-size:18px;font-weight:bold;margin-top:0;">You're on the list.</p>
             <p style="color:#444;font-size:14px;">
               You'll be the first to know about new drops, restocks, and exclusive deals on SNKRS CART.
@@ -55,12 +51,7 @@ router.post('/', async (req: Request, res: Response) => {
             <a href="${siteUrl}/products" style="display:inline-block;margin-top:16px;background:#111;color:#fff;padding:12px 24px;text-decoration:none;font-size:13px;font-weight:bold;letter-spacing:0.1em;text-transform:uppercase;">
               Browse Latest Drops →
             </a>
-            <p style="color:#aaa;font-size:11px;margin-top:32px;">
-              You subscribed at snkrs-kart.vercel.app. To unsubscribe, reply to this email.
-            </p>
-          </div>
-        </div>
-      `,
+      `, EMAIL_REASON.newsletter),
     });
 
   } catch (err) {

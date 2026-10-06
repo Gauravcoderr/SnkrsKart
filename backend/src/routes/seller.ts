@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { Seller } from '../models/Seller';
 import { sendMail } from '../lib/mailer';
+import { EMAIL_REASON, transactionalShell } from '../lib/emailLayout';
 
 const router = Router();
 
@@ -30,12 +31,7 @@ router.post('/', async (req: Request, res: Response) => {
     sendMail({
       to: storeEmail,
       subject: `New Seller Inquiry — ${name}`,
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:560px;color:#111;">
-          <div style="background:#111;padding:16px 24px;text-align:center;">
-            <img src="https://snkrs-kart.vercel.app/logo.jpg" alt="SNKRS CART" style="height:48px;width:auto;display:inline-block;" />
-          </div>
-          <div style="padding:24px;">
+      html: transactionalShell(`
             <p style="font-size:16px;font-weight:bold;margin-top:0;">New Seller / Consignment Inquiry</p>
             <table style="width:100%;border-collapse:collapse;font-size:14px;">
               <tr><td style="padding:8px 0;color:#666;width:130px;">Name</td><td style="padding:8px 0;font-weight:bold;">${name}</td></tr>
@@ -45,28 +41,18 @@ router.post('/', async (req: Request, res: Response) => {
               <tr><td style="padding:8px 0;color:#666;">Pairs/month</td><td style="padding:8px 0;">${pairsCount || '—'}</td></tr>
               <tr><td style="padding:8px 0;color:#666;">Message</td><td style="padding:8px 0;">${message || '—'}</td></tr>
             </table>
-          </div>
-        </div>
-      `,
+      `, EMAIL_REASON.admin),
     });
 
     // Confirm to seller
     sendMail({
       to: email,
       subject: 'We received your seller application — SNKRS CART',
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#111;">
-          <div style="background:#111;padding:20px 32px;text-align:center;">
-            <img src="https://snkrs-kart.vercel.app/logo.jpg" alt="SNKRS CART" style="height:56px;width:auto;display:inline-block;" />
-          </div>
-          <div style="padding:32px;">
+      html: transactionalShell(`
             <p style="font-size:16px;margin-top:0;">Hi <strong>${name}</strong>,</p>
             <p style="color:#444;">Thanks for reaching out! We've received your seller inquiry and will get back to you within 24–48 hours to discuss next steps.</p>
             <p style="color:#444;">In the meantime, feel free to WhatsApp or email us directly if you have any questions.</p>
-            <p style="color:#888;font-size:13px;margin-top:32px;">— The SNKRS CART Team<br>Pauri Garhwal, Uttarakhand</p>
-          </div>
-        </div>
-      `,
+      `, EMAIL_REASON.sellerApplication),
     });
   } catch (err) {
     console.error('Seller inquiry error:', err);

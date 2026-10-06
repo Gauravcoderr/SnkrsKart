@@ -1,16 +1,12 @@
 import { IOrder } from '../models/Order';
 import { sendMail } from './mailer';
+import { EMAIL_REASON, transactionalShell } from './emailLayout';
 
 export function sendOrderCancelledEmail(order: IOrder, siteUrl: string, reason?: string) {
   sendMail({
     to: order.email,
     subject: `Order Cancelled — ${order.orderNumber} | SNKRS CART`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
-        <div style="background:#111;padding:20px 32px;text-align:center;">
-          <img src="${siteUrl}/logo.jpg" alt="SNKRS CART" style="height:56px;width:auto;" />
-        </div>
-        <div style="padding:32px;">
+    html: transactionalShell(`
           <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:20px;margin-bottom:24px;text-align:center;">
             <p style="font-size:13px;color:#991b1b;font-weight:bold;margin:0 0 4px;">Order Cancelled</p>
             <p style="font-size:22px;font-weight:bold;color:#111;margin:0;">${order.orderNumber}</p>
@@ -24,10 +20,7 @@ export function sendOrderCancelledEmail(order: IOrder, siteUrl: string, reason?:
           </div>` : ''}
           <p style="color:#444;">If any payment was made for this order, it will be refunded to your original payment method within 5–7 business days. If you have questions, reply to this email or reach out via our support channels.</p>
           <p style="color:#888;font-size:12px;margin-top:32px;"><a href="${siteUrl}/account/orders" style="color:#888;">View your orders</a></p>
-          <p style="color:#888;font-size:12px;">— SNKRS CART Team</p>
-        </div>
-      </div>
-    `,
+      `, EMAIL_REASON.order),
   });
 }
 
@@ -50,12 +43,7 @@ export function sendReviewRequestEmail(order: IOrder, siteUrl: string) {
   sendMail({
     to: order.email,
     subject: `How are the kicks? Leave a review — ${order.orderNumber} | SNKRS CART`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
-        <div style="background:#111;padding:20px 32px;text-align:center;">
-          <img src="${siteUrl}/logo.jpg" alt="SNKRS CART" style="height:56px;width:auto;" />
-        </div>
-        <div style="padding:32px;">
+    html: transactionalShell(`
           <p style="font-size:16px;font-weight:bold;margin-top:0;">Hi ${order.name},</p>
           <p style="color:#444;">Your order <strong>${order.orderNumber}</strong> has been delivered. Two minutes of your time helps the next buyer trust us the way you did.</p>
           ${items.length ? `
@@ -68,9 +56,6 @@ export function sendReviewRequestEmail(order: IOrder, siteUrl: string) {
           </div>` : ''}
           <p style="color:#444;">Anything wrong with the pair? Reply to this email first and we will sort it out.</p>
           <p style="color:#888;font-size:12px;margin-top:32px;"><a href="${siteUrl}/account/orders" style="color:#888;">View your orders</a></p>
-          <p style="color:#888;font-size:12px;">— SNKRS CART Team</p>
-        </div>
-      </div>
-    `,
+      `, EMAIL_REASON.order),
   });
 }

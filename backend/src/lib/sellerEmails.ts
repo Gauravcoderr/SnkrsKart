@@ -1,4 +1,5 @@
 import { sendMail } from './mailer';
+import { EMAIL_REASON, transactionalShell } from './emailLayout';
 import { ISellerOrder } from '../models/SellerOrder';
 import { AVAILABILITY_LABEL, AVAILABILITY_SHIP_DAYS } from '../models/SellerListing';
 import { LATE_PENALTY_TEXT } from '../models/SellerOrder';
@@ -6,15 +7,7 @@ import { LATE_PENALTY_TEXT } from '../models/SellerOrder';
 const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 const adminEmail = () => process.env.ADMIN_NOTIFICATION_EMAIL || process.env.GMAIL_USER || 'info@snkrscart.com';
 
-function shell(body: string): string {
-  return `
-    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
-      <div style="background:#111;padding:20px 32px;text-align:center;">
-        <img src="${siteUrl()}/logo.jpg" alt="SNKRS CART" style="height:56px;width:auto;" />
-      </div>
-      <div style="padding:32px;">${body}</div>
-    </div>`;
-}
+const shell = (body: string, reason: string = EMAIL_REASON.seller) => transactionalShell(body, reason);
 
 function itemsTable(order: ISellerOrder): string {
   const rows = order.items.map((it) => `
@@ -67,7 +60,6 @@ export function sendSellerCredentialsEmail(to: string, name: string, tempPasswor
       </div>
       <p style="color:#666;font-size:13px;">You will be asked to choose a new password on first login. Keep these details private.</p>
       ${btn(`${siteUrl()}/sellers/login`, 'Open Seller Portal')}
-      <p style="color:#888;font-size:12px;margin-top:32px;">— SNKRS CART Team</p>
     `),
   });
 }
@@ -84,7 +76,6 @@ export function sendSellerNewOrderEmail(to: string, name: string, order: ISeller
       <p style="margin-top:14px;font-size:14px;"><strong>Your payout for this order: ₹${order.sellerTotal.toLocaleString('en-IN')}</strong></p>
       ${order.deliveryCity ? `<p style="color:#666;font-size:13px;">Ships to ${order.deliveryCity}, ${order.deliveryState}. Full address is shared over WhatsApp after verification.</p>` : ''}
       ${btn(`${siteUrl()}/sellers/orders/${order._id}`, 'Upload Verification Photos')}
-      <p style="color:#888;font-size:12px;margin-top:32px;">— SNKRS CART Team</p>
     `),
   });
 }
@@ -99,7 +90,7 @@ export function sendAdminVerificationSubmittedEmail(order: ISellerOrder, sellerN
       ${itemsTable(order)}
       <div style="margin-top:16px;">${photos}</div>
       ${btn(`${siteUrl()}/admin/seller-orders`, 'Review in Admin →')}
-    `),
+    `, EMAIL_REASON.admin),
   });
 }
 
@@ -117,7 +108,6 @@ export function sendSellerVerificationResultEmail(to: string, name: string, orde
         : `<p style="color:#444;">We could not approve the photos for order <strong>${order.orderNumber}</strong>. Please retake them and submit again.</p>`}
       ${order.verification.adminNote ? `<div style="background:#fafafa;border-left:3px solid #111;padding:12px 16px;margin:16px 0;font-size:14px;color:#333;"><strong>Note from SNKRS CART:</strong><br/>${order.verification.adminNote}</div>` : ''}
       ${btn(`${siteUrl()}/sellers/orders/${order._id}`, approved ? 'Add Tracking' : 'Retake Photos')}
-      <p style="color:#888;font-size:12px;margin-top:32px;">— SNKRS CART Team</p>
     `),
   });
 }
@@ -144,8 +134,7 @@ export function sendCustomerShippedEmail(opts: {
       </div>
       <table style="width:100%;border-collapse:collapse;">${rows}</table>
       ${btn(`${siteUrl()}/account/orders`, 'Track Your Order')}
-      <p style="color:#888;font-size:12px;margin-top:32px;">— SNKRS CART Team</p>
-    `),
+    `, EMAIL_REASON.order),
   });
 }
 
@@ -165,7 +154,6 @@ export function sendSellerPayoutEmail(to: string, name: string, order: ISellerOr
       ${order.payout.note ? `<div style="background:#fafafa;border-left:3px solid #111;padding:12px 16px;margin:16px 0;font-size:14px;color:#333;">${order.payout.note}</div>` : ''}
       ${order.payout.screenshotUrl ? `<p style="font-size:13px;"><a href="${order.payout.screenshotUrl}" style="color:#111;font-weight:bold;">View payment screenshot</a></p>` : ''}
       ${btn(`${siteUrl()}/sellers/orders/${order._id}`, 'View Order')}
-      <p style="color:#888;font-size:12px;margin-top:32px;">— SNKRS CART Team</p>
     `),
   });
 }
@@ -185,7 +173,7 @@ export function sendAdminProductRequestEmail(sellerName: string, req: { name: st
       </table>
       ${links ? `<p style="font-size:13px;color:#666;margin-bottom:4px;">Supporting links</p><ul style="font-size:13px;">${links}</ul>` : ''}
       ${btn(`${siteUrl()}/admin/product-requests`, 'Review Request →')}
-    `),
+    `, EMAIL_REASON.admin),
   });
 }
 
@@ -204,7 +192,6 @@ export function sendSellerProductRequestResultEmail(to: string, name: string, re
       ${req.adminNote ? `<div style="background:#fafafa;border-left:3px solid #111;padding:12px 16px;margin:16px 0;font-size:14px;color:#333;">${req.adminNote}</div>` : ''}
       ${productSlug ? `<p style="font-size:13px;color:#666;">Catalog page: <a href="${siteUrl()}/products/${productSlug}">${siteUrl()}/products/${productSlug}</a></p>` : ''}
       ${btn(`${siteUrl()}/sellers/listings`, approved ? 'Add Your Listing' : 'Open Seller Portal')}
-      <p style="color:#888;font-size:12px;margin-top:32px;">— SNKRS CART Team</p>
     `),
   });
 }

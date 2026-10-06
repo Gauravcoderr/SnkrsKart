@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { DealVerification } from '../models/DealVerification';
 import { sendMail } from '../lib/mailer';
+import { EMAIL_REASON, transactionalShell } from '../lib/emailLayout';
 
 const router = Router();
 
@@ -39,18 +40,13 @@ router.post('/send-otp', async (req: Request, res: Response): Promise<void> => {
     sendMail({
       to: cleanEmail,
       subject: `${otp} — Verify your deal submission | SNKRS CART`,
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;text-align:center;padding:32px 24px;">
-          <div style="background:#111;padding:16px;text-align:center;border-radius:8px 8px 0 0;">
-            <img src="https://snkrs-kart.vercel.app/logo.jpg" alt="SNKRS CART" style="height:40px;width:auto;" />
-          </div>
-          <div style="background:#fafafa;padding:32px 24px;border-radius:0 0 8px 8px;border:1px solid #eee;">
+      html: transactionalShell(`
+              <div style="text-align:center;padding:8px 0;">
             <p style="color:#666;font-size:14px;margin:0 0 8px;">Your deal verification code</p>
             <p style="font-size:36px;font-weight:900;letter-spacing:8px;color:#111;margin:0 0 16px;font-family:monospace;">${otp}</p>
             <p style="color:#999;font-size:12px;margin:0;">Expires in 5 minutes. Do not share this code.</p>
-          </div>
-        </div>
-      `,
+              </div>
+      `, EMAIL_REASON.deal),
     });
 
     res.json({ message: 'OTP sent' });
@@ -116,8 +112,7 @@ router.post('/submit', async (req: Request, res: Response): Promise<void> => {
     sendMail({
       to: adminEmail,
       subject: `New Deal Check: ${productName}`,
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:24px;">
+      html: transactionalShell(`
           <h2 style="margin:0 0 16px;">New Deal Verification Submitted</h2>
           <p><strong>Product:</strong> ${productName}</p>
           <p><strong>Submitted URL:</strong> <a href="${submittedUrl}">${submittedUrl}</a></p>
@@ -125,8 +120,7 @@ router.post('/submit', async (req: Request, res: Response): Promise<void> => {
           <p><strong>Site:</strong> ${urlMeta?.siteName || 'Unknown'}</p>
           <br/>
           <a href="https://snkrs-kart.vercel.app/admin/deal-verifications" style="background:#111;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:bold;">Review in Admin Panel</a>
-        </div>
-      `,
+      `, EMAIL_REASON.admin),
     });
 
     res.status(201).json({ success: true, id: deal._id });
