@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Product } from '../models/Product';
 import { buildProductSlug } from '../lib/productSlug';
+import { compareForGrid } from '../lib/productSort';
 import { attachSellerOffers } from '../lib/sellerOffers';
 
 type MongoFilter = Record<string, any>;
@@ -85,7 +86,9 @@ function buildSort(sort: string): Record<string, 1 | -1> {
 const CARD_FIELDS =
   'slug name brand colorway gender price originalPrice discount images hoverImage ' +
   'availableSizes sizes stringSizes availableStringSizes productType colors variants ' +
-  'featured trending newArrival soldOut comingSoon rating reviewCount category';
+  'featured trending newArrival soldOut comingSoon rating reviewCount category createdAt';
+
+const IN_MEMORY_SORT_MAX = 1000;
 
 export const getAllProducts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -96,17 +99,19 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
 
     const filter = buildFilter(query);
     const userSort = buildSort(query.sort || 'popular');
+    const total = await Product.countDocuments(filter);
 
-    // comingSoon:-1 → true first; soldOut:1 → false first (soldOut last)
-    const sort = { comingSoon: -1 as const, soldOut: 1 as const, ...userSort, _id: 1 as const };
-
-    const [products, total] = await Promise.all([
-      Product.find(filter).sort(sort).skip(skip).limit(limit).select(CARD_FIELDS).lean(),
-      Product.countDocuments(filter),
-    ]);
+    let products;
+    if (total <= IN_MEMORY_SORT_MAX) {
+      const all = await attachSellerOffers(await Product.find(filter).select(CARD_FIELDS).lean());
+      products = all.sort(compareForGrid(userSort)).slice(skip, skip + limit);
+    } else {
+      const sort = { comingSoon: -1 as const, soldOut: 1 as const, ...userSort, _id: 1 as const };
+      products = await attachSellerOffers(await Product.find(filter).sort(sort).skip(skip).limit(limit).select(CARD_FIELDS).lean());
+    }
 
     res.json({
-      products: (await attachSellerOffers(products)).map((p) => ({ ...p, id: (p._id as any).toString() })),
+      products: products.map((p) => ({ ...p, id: (p._id as any).toString() })),
       total,
       page,
       limit,

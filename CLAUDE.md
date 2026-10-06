@@ -193,6 +193,11 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Renaming a slug (admin PUT or `scripts/fixProductSlugs.ts`) pushes the old slug into `Product.previousSlugs` and cascades to reviews/orders/inquiries/drops/restocks; `GET /products/:slug` falls back to `previousSlugs`, and the product page issues a `permanentRedirect` when the returned slug differs, so old URLs 301.
 - Audit/migrate: `npx ts-node --transpile-only scripts/fixProductSlugs.ts --dry` (drop `--dry` to apply). Ran 2026-10-06: 7 slugs cleaned, `air-jordan-1-retro-low-og-chicago-2025` kept as an alias of `air-jordan-1-low-og-chicago-2025` because 8 blogs linked to it.
 
+## Product grid ordering (`GET /products`)
+- Order is always: coming soon → in stock → sold out, then the user sort (`newest` = createdAt desc, `price_asc/desc`, `popular` = reviewCount desc), then `_id`. "In stock" means the product has at least one purchasable size after `attachSellerOffers()` (store sizes or active seller listings), so a product with `soldOut: false` but no available sizes still ranks with sold-out items.
+- Implemented in `backend/src/lib/productSort.ts` (`compareForGrid`) and applied in memory in `getAllProducts` while the filtered catalogue is ≤ 1000 products; above that it falls back to the Mongo `comingSoon:-1, soldOut:1` sort. `ProductCard` mirrors the rule and shows "Sold Out" whenever a non-coming-soon product has zero quick sizes.
+- Legacy docs missing `comingSoon` were backfilled to `false` on 2026-10-06 (a missing field sorted them after the sold-out block).
+
 ## Important decisions / gotchas
 - Render free tier sleeps after 15 min inactivity → UptimeRobot pings `/health` every 5 min
 - `trust proxy 1` set on Express for correct IP in rate-limiter behind Render/Vercel
