@@ -229,9 +229,12 @@ export default function SellerLoginPage() {
               <button type="submit" disabled={loading} className={`${btnPrimary} w-full`}>
                 {loading ? 'Logging in...' : 'Log in'}
               </button>
-              <button type="button" onClick={() => switchMode('otp')} className={cn(btnGhost, 'w-full')}>
-                Forgot password? Log in with an email code
-              </button>
+              <p className="text-sm text-zinc-500 text-center pt-1">
+                Forgot your password?{' '}
+                <button type="button" onClick={() => switchMode('otp')} className="font-bold text-zinc-900 underline underline-offset-4 hover:text-zinc-600">
+                  Log in with an email code
+                </button>
+              </p>
             </form>
           )}
         </div>
