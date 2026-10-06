@@ -10,6 +10,7 @@ import ProductRatingDisplay from '@/components/product-detail/ProductRatingDispl
 import RecentlyViewed from '@/components/product-detail/RecentlyViewed';
 import Link from 'next/link';
 import Image from 'next/image';
+import { fullProductName } from '@/lib/productTitle';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -61,9 +62,10 @@ export async function generateMetadata({ params }: PageProps) {
     const discountNote = hasDiscount
       ? `${Math.round(((origPrice - product.price) / origPrice) * 100)}% off`
       : 'best price guaranteed';
-    const title = product.metaTitle?.trim() || `${product.brand} ${product.name} | Buy in India | Snkrs Cart`;
+    const fullName = fullProductName(product.brand, product.name);
+    const title = product.metaTitle?.trim() || `${fullName} | Buy in India | Snkrs Cart`;
     const description = product.metaDescription?.trim()
-      || `Buy ${product.brand} ${product.name} for ₹${product.price.toLocaleString('en-IN')} (${discountNote}). 100% authentic ${product.brand} shoes in India — pan-India shipping. | Snkrs Cart`;
+      || `Buy ${fullName} for ₹${product.price.toLocaleString('en-IN')} (${discountNote}). 100% authentic ${product.brand} shoes in India — pan-India shipping. | Snkrs Cart`;
     const url = `${SITE_URL}/products/${product.slug}`;
     const ogImage = cloudinaryOgImage(product.images?.[0] || '');
 
@@ -132,7 +134,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const productSchema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: `${product.brand} ${product.name}`,
+    name: fullProductName(product.brand, product.name),
     brand: { '@type': 'Brand', name: product.brand },
     description: stripTags(product.description).slice(0, 5000),
     image: product.images,
@@ -298,7 +300,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
       {/* Main product layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
         {/* Image gallery — left col */}
-        <ImageGallery images={product.images} productName={`${product.brand} ${product.name}`} />
+        <ImageGallery images={product.images} productName={fullProductName(product.brand, product.name)} />
 
         {/* Product info — right col */}
         <div className="flex flex-col">
@@ -313,7 +315,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
               </span>
             )}
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 mb-1">
+          <h1 className="text-3xl font-bold tracking-tight uppercase text-zinc-900 mb-1">
             {product.name}
           </h1>
           <p className="text-sm text-zinc-500 mb-4">{product.colorway}</p>
@@ -348,7 +350,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
           <div>
             <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-3">Product Details</h3>
             <p className="text-sm text-zinc-600 leading-relaxed">
-              {product.brand} {product.name}
+              {fullProductName(product.brand, product.name)}
               {product.colorway ? ` — ${product.colorway}` : ''}
               {product.gender && product.gender !== 'unisex' ? `, ${product.gender === 'men' ? "Men's" : product.gender === 'women' ? "Women's" : "Kids'"}` : ''}
             </p>

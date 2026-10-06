@@ -4,6 +4,7 @@ import { useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
+import { fullProductName } from '@/lib/productTitle';
 
 interface PurchaseModalProps {
   product: Product;
@@ -80,8 +81,8 @@ export default function PurchaseModal({ product, selectedSize, currentPrice, onC
                 </p>
               </Dialog.Title>
               <Dialog.Description asChild>
-                <p className="text-sm font-bold text-zinc-900 mt-0.5 leading-tight">
-                  {product.brand} {product.name}
+                <p className="text-sm font-bold uppercase text-zinc-900 mt-0.5 leading-tight">
+                  {fullProductName(product.brand, product.name)}
                 </p>
               </Dialog.Description>
             </div>
@@ -179,7 +180,7 @@ export default function PurchaseModal({ product, selectedSize, currentPrice, onC
               </div>
               <h3 className="text-lg font-black uppercase tracking-tight text-zinc-900 mb-2">Thank You!</h3>
               <p className="text-sm text-zinc-500 leading-relaxed mb-1">We've received your request for</p>
-              <p className="text-sm font-bold text-zinc-900 mb-4">{product.brand} {product.name}</p>
+              <p className="text-sm font-bold uppercase text-zinc-900 mb-4">{fullProductName(product.brand, product.name)}</p>
               <p className="text-sm text-zinc-500 leading-relaxed mb-6">
                 We will reach out to you shortly on your email & phone to complete the purchase.
               </p>

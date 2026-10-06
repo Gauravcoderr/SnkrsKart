@@ -351,7 +351,7 @@ export default function Header() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className="text-sm text-zinc-900 font-medium truncate block group-hover:text-zinc-700">
+                        <span className="text-sm text-zinc-900 font-medium uppercase truncate block group-hover:text-zinc-700">
                           {p.name}
                         </span>
                         <span className="text-xs text-zinc-400">{p.brand}</span>
@@ -403,7 +403,7 @@ export default function Header() {
                             </div>
                             <div className="p-3">
                               <p className="text-xs text-zinc-500">{p.brand}</p>
-                              <p className="text-sm font-semibold text-zinc-900 truncate mt-0.5">{p.name}</p>
+                              <p className="text-sm font-semibold uppercase text-zinc-900 truncate mt-0.5">{p.name}</p>
                               <p className="text-xs text-zinc-400 truncate">{p.colorway}</p>
                               <p className="text-sm font-bold text-zinc-900 mt-1.5">{'\u20B9'}{p.price.toLocaleString('en-IN')}</p>
                             </div>
@@ -462,7 +462,7 @@ export default function Header() {
                           </div>
                           <div className="p-3">
                             <p className="text-xs text-zinc-500">{p.brand}</p>
-                            <p className="text-sm font-semibold text-zinc-900 truncate mt-0.5">{p.name}</p>
+                            <p className="text-sm font-semibold uppercase text-zinc-900 truncate mt-0.5">{p.name}</p>
                             <p className="text-xs text-zinc-400 truncate">{p.colorway}</p>
                             <p className="text-sm font-bold text-zinc-900 mt-1.5">{'\u20B9'}{p.price.toLocaleString('en-IN')}</p>
                           </div>

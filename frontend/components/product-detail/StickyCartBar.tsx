@@ -84,7 +84,7 @@ export default function StickyCartBar({
         {/* Name + price */}
         <div className="shrink-0 min-w-0 hidden md:block">
           <p className="text-xs font-bold tracking-widest uppercase text-zinc-400 leading-none">{product.brand}</p>
-          <p className="text-sm font-semibold text-zinc-900 truncate max-w-[180px]">{product.name}</p>
+          <p className="text-sm font-semibold uppercase text-zinc-900 truncate max-w-[180px]">{product.name}</p>
           <p className="text-sm font-bold text-zinc-900">{formatPrice(product.price)}</p>
         </div>
 

@@ -106,7 +106,7 @@ export default function ComingSoonModal({ product, onClose }: ComingSoonModalPro
               </p>
 
               {/* Name */}
-              <Dialog.Title className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight mb-1">
+              <Dialog.Title className="text-2xl sm:text-3xl font-black tracking-tight uppercase text-white leading-tight mb-1">
                 {product.name}
               </Dialog.Title>
 

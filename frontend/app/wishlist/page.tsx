@@ -147,7 +147,7 @@ export default function WishlistPage() {
 
               <div className="flex-1">
                 <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-400">{product.brand}</p>
-                <p className="text-sm font-semibold text-zinc-900 leading-tight mt-0.5">{product.name}</p>
+                <p className="text-sm font-semibold uppercase text-zinc-900 leading-tight mt-0.5">{product.name}</p>
                 <p className="text-xs text-zinc-400 mt-0.5">{product.colorway}</p>
                 <div className="flex items-baseline gap-2 mt-1.5">
                   <span className="text-sm font-bold text-zinc-900">{formatPrice(product.price)}</span>

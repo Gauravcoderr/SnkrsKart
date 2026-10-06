@@ -7,6 +7,7 @@ import { formatPrice } from '@/lib/utils';
 import { BRANDS } from '@/lib/constants';
 import ProductCard from '@/components/products/ProductCard';
 import BrandSortSelect from './BrandSortSelect';
+import { fullProductName } from '@/lib/productTitle';
 
 interface Props {
   params: { slug: string };
@@ -120,10 +121,10 @@ export default async function BrandPage({ params, searchParams }: Props) {
       position: i + 1,
       item: {
         '@type': 'Product',
-        name: `${p.brand} ${p.name}`,
+        name: fullProductName(p.brand, p.name),
         url: `${SITE_URL}/products/${p.slug}`,
         image: p.images?.[0] || p.hoverImage,
-        description: `${p.brand} ${p.name}${p.colorway ? ` — ${p.colorway}` : ''}. 100% authentic, free pan-India shipping.`,
+        description: `${fullProductName(p.brand, p.name)}${p.colorway ? ` — ${p.colorway}` : ''}. 100% authentic, free pan-India shipping.`,
         sku: p.sku,
         brand: { '@type': 'Brand', name: p.brand },
         offers: {

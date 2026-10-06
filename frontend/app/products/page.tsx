@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import ProductsClient from './ProductsClient';
 import { fetchAllProducts } from '@/lib/catalog';
+import { fullProductName } from '@/lib/productTitle';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
@@ -101,7 +102,7 @@ export default async function ProductsPage() {
           position: i + 1,
           item: {
             '@type': 'Product',
-            name: `${p.brand} ${p.name}`,
+            name: fullProductName(p.brand, p.name),
             brand: { '@type': 'Brand', name: p.brand },
             url: `${SITE_URL}/products/${p.slug}`,
             image: p.images?.[0] ?? '',

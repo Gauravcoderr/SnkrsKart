@@ -12,6 +12,7 @@ import WhatsAppCTA from '@/components/home/WhatsAppCTA';
 import NewsletterBar from '@/components/home/NewsletterBar';
 
 import type { Metadata } from 'next';
+import { fullProductName } from '@/lib/productTitle';
 
 export const revalidate = 60;
 
@@ -50,7 +51,7 @@ function buildItemList(name: string, url: string, products: Product[]) {
       position: i + 1,
       item: {
         '@type': 'Product',
-        name: `${p.brand} ${p.name}`,
+        name: fullProductName(p.brand, p.name),
         brand: { '@type': 'Brand', name: p.brand },
         url: `${SITE_URL}/products/${p.slug}`,
         image: p.images?.[0] ?? '',

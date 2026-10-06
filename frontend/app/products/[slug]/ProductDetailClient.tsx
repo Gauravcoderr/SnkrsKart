@@ -13,6 +13,7 @@ import DealVerifyModal from '@/components/product-detail/DealVerifyModal';
 import { formatPrice } from '@/lib/utils';
 import { useWishlist } from '@/context/WishlistContext';
 import { AVAILABILITY_META, formatDeliveryWindow } from '@/lib/availability';
+import { fullProductName } from '@/lib/productTitle';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
@@ -37,7 +38,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
   const handleShare = async () => {
     const url = `${SITE_URL}/products/${product.slug}`;
-    const title = `${product.brand} ${product.name} — ${formatPrice(currentPrice)} | Snkrs Cart`;
+    const title = `${fullProductName(product.brand, product.name)} — ${formatPrice(currentPrice)} | Snkrs Cart`;
 
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
@@ -276,7 +277,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         <DealVerifyModal
           productId={product.id}
           productSlug={product.slug}
-          productName={`${product.brand} ${product.name}`}
+          productName={fullProductName(product.brand, product.name)}
           onClose={() => setShowDealModal(false)}
         />
       )}

@@ -40,7 +40,7 @@ export default function CartItem({ item, compact = false }: CartItemProps) {
               {product.brand}
             </p>
             <Link href={`/products/${product.slug}`}>
-              <p className="text-sm font-semibold text-zinc-900 hover:text-zinc-600 transition-colors truncate">
+              <p className="text-sm font-semibold uppercase text-zinc-900 hover:text-zinc-600 transition-colors truncate">
                 {product.name}
               </p>
             </Link>

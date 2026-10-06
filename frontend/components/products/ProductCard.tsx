@@ -154,7 +154,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
               </span>
             )}
           </div>
-          <p className="text-sm font-semibold text-zinc-900 leading-snug">
+          <p className="text-sm font-semibold uppercase text-zinc-900 leading-snug">
             {product.name}
           </p>
           <p className="text-xs text-zinc-400 mt-1">{product.colorway}</p>
