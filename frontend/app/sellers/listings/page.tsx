@@ -5,7 +5,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { sellerApi } from '@/lib/sellerApi';
 import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue';
 import LoadMoreSentinel from '@/components/seller/LoadMoreSentinel';
-import type { SellerListing, ListingStatus } from '@/types/seller';
+import type { SellerListing, ListingStatus, ListingCompetition } from '@/types/seller';
 import type { Availability } from '@/types';
 import { AVAILABILITY_META, AVAILABILITY_ORDER } from '@/lib/availability';
 import { formatPrice, cn } from '@/lib/utils';
@@ -57,9 +57,45 @@ function ListingStatusPill({ status }: { status: ListingStatus }) {
   return <span className={cn('inline-flex items-center border px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase whitespace-nowrap', meta.className)}>{meta.label}</span>;
 }
 
-function EditFields({ draft, onChange, compact }: { draft: Draft; onChange: (patch: Partial<Draft>) => void; compact?: boolean }) {
+function competitorName(by: 'store' | 'seller', capital = true) {
+  if (by === 'store') return 'SNKRS CART stock';
+  return capital ? 'Another seller' : 'another seller';
+}
+
+function CompetitionPill({ competition, className }: { competition: ListingCompetition | null; className?: string }) {
+  if (!competition) return null;
+  const base = 'inline-flex items-center gap-1 border px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase whitespace-nowrap';
+  if (competition.lowest) {
+    return (
+      <span className={cn(base, 'bg-emerald-600 border-emerald-600 text-white', className)}>
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+        Lowest
+      </span>
+    );
+  }
+  return <span className={cn(base, 'bg-amber-50 border-amber-300 text-amber-800', className)}>Not lowest</span>;
+}
+
+function competitionHint(competition: ListingCompetition | null): string | null {
+  if (!competition || competition.lowest) return null;
+  const who = competitorName(competition.by);
+  const lead = competition.tie ? `Same price as ${competitorName(competition.by, false)}, their offer ranks first.` : `${who} is cheaper.`;
+  return `${lead} List at ${formatPrice(competition.beat)} or less to be the lowest.`;
+}
+
+function EditFields({ draft, onChange, compact, competition, currentPrice }: { draft: Draft; onChange: (patch: Partial<Draft>) => void; compact?: boolean; competition?: ListingCompetition | null; currentPrice?: number }) {
   const price = Number(draft.sellerPrice);
   const priceValid = draft.sellerPrice !== '' && Number.isFinite(price) && price >= 500;
+  let rankHint: { text: string; tone: 'good' | 'warn' } | null = null;
+  if (priceValid && competition) {
+    if (competition.lowest) {
+      if (currentPrice !== undefined && price <= currentPrice) rankHint = { text: 'You hold the lowest offer for this size', tone: 'good' };
+    } else if (price <= competition.beat) {
+      rankHint = { text: "You'll be the lowest offer", tone: 'good' };
+    } else {
+      rankHint = { text: `${competitorName(competition.by)} ranks first. Enter ${formatPrice(competition.beat)} or less to be the lowest`, tone: 'warn' };
+    }
+  }
   return (
     <div className={cn('grid gap-3', compact ? 'grid-cols-2' : 'grid-cols-[1fr_1.4fr_72px]')}>
       <div className={compact ? 'col-span-2' : ''}>
@@ -79,6 +115,9 @@ function EditFields({ draft, onChange, compact }: { draft: Draft; onChange: (pat
         <p className="text-[11px] text-zinc-500 mt-1">
           {priceValid ? <>You receive <span className="font-bold text-zinc-900">{formatPrice(price)}</span> per pair</> : 'Minimum ₹500'}
         </p>
+        {rankHint && (
+          <p className={cn('text-[11px] font-bold mt-1', rankHint.tone === 'good' ? 'text-emerald-700' : 'text-amber-700')}>{rankHint.text}</p>
+        )}
       </div>
       <div>
         <label className={labelClass}>Availability</label>
@@ -348,11 +387,15 @@ export default function SellerListingsPage() {
                           </td>
                           {editing ? (
                             <td className="px-4 py-3" colSpan={3}>
-                              <EditFields draft={draft} onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))} />
+                              <EditFields draft={draft} onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))} competition={l.competition} currentPrice={l.sellerPrice} />
                             </td>
                           ) : (
                             <>
-                              <td className="px-4 py-3 font-black text-zinc-900 whitespace-nowrap">{formatPrice(l.sellerPrice)}</td>
+                              <td className="px-4 py-3">
+                                <p className="font-black text-zinc-900 whitespace-nowrap">{formatPrice(l.sellerPrice)}</p>
+                                <CompetitionPill competition={l.competition} className="mt-1" />
+                                {(() => { const hint = competitionHint(l.competition); return hint ? <p className="text-[11px] text-amber-700 mt-1 max-w-[220px] leading-snug">{hint}</p> : null; })()}
+                              </td>
                               <td className="px-4 py-3">
                                 <AvailabilityBadge availability={l.availability} showDescription />
                               </td>
@@ -407,13 +450,14 @@ export default function SellerListingsPage() {
                           <div className="flex flex-wrap items-center gap-2 mt-1.5">
                             <span className="text-xs font-black text-zinc-900">{sizeLabel(l.size)}</span>
                             <ListingStatusPill status={l.status} />
+                            <CompetitionPill competition={l.competition} />
                           </div>
                         </div>
                       </div>
 
                       {editing ? (
                         <div className="mt-4">
-                          <EditFields draft={draft} onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))} compact />
+                          <EditFields draft={draft} onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))} compact competition={l.competition} currentPrice={l.sellerPrice} />
                           <div className="flex gap-2 mt-4">
                             <button type="button" onClick={cancelEdit} disabled={busy} className={`${btnSecondary} flex-1`}>Cancel</button>
                             <button type="button" onClick={() => saveEdit(l)} disabled={busy} className={`${btnPrimary} flex-1`}>{busy ? 'Saving...' : 'Save'}</button>
@@ -434,6 +478,7 @@ export default function SellerListingsPage() {
                           <div className="mt-3">
                             <AvailabilityBadge availability={l.availability} showDescription />
                           </div>
+                          {(() => { const hint = competitionHint(l.competition); return hint ? <p className="text-[11px] text-amber-700 mt-3 leading-snug border-l-2 border-amber-300 pl-2">{hint}</p> : null; })()}
                           <div className="grid grid-cols-3 gap-2 mt-4">
                             <button type="button" onClick={() => startEdit(l)} disabled={busy} className={`${btnSecondary} min-h-[40px] px-2`}>Edit</button>
                             {l.status !== 'sold_out' ? (

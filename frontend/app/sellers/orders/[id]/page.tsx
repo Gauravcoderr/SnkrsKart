@@ -79,20 +79,19 @@ function TrackingForm({ order, onSaved }: { order: SellerOrder; onSaved: (order:
   const [number, setNumber] = useState('');
   const [confirming, setConfirming] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const { show } = useToast();
 
   const cleanNumber = number.trim().replace(/\s+/g, '');
   const courierLabel = DELIVERY_SERVICES.find((s) => s.value === courier)?.label ?? courier;
 
   function review(e: FormEvent) {
     e.preventDefault();
-    setError('');
     if (!courier) {
-      setError('Pick the courier you shipped with');
+      show('Pick the courier you shipped with', 'error');
       return;
     }
     if (cleanNumber.length < 5) {
-      setError('Enter the full tracking number from your courier receipt');
+      show('Enter the full tracking number from your courier receipt', 'error');
       return;
     }
     setConfirming(true);
@@ -100,12 +99,11 @@ function TrackingForm({ order, onSaved }: { order: SellerOrder; onSaved: (order:
 
   async function submit() {
     setSaving(true);
-    setError('');
     try {
       const updated = await sellerApi.addTracking(order._id, courier, cleanNumber);
       onSaved(updated);
     } catch (err) {
-      setError(handleError(err));
+      show(handleError(err), 'error');
       setConfirming(false);
     } finally {
       setSaving(false);
@@ -123,7 +121,6 @@ function TrackingForm({ order, onSaved }: { order: SellerOrder; onSaved: (order:
         <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 mb-4">
           Tracking can be entered only once. After saving, only SNKRS CART can change it. Double check the number before you confirm.
         </div>
-        {error && <p className="text-xs text-red-600 font-medium mb-3">{error}</p>}
         <div className="flex flex-col sm:flex-row gap-2">
           <button type="button" onClick={() => setConfirming(false)} disabled={saving} className={`${btnSecondary} sm:flex-1`}>
             Go back and edit
@@ -144,7 +141,7 @@ function TrackingForm({ order, onSaved }: { order: SellerOrder; onSaved: (order:
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label htmlFor="courier" className={labelClass}>Courier *</label>
-          <select id="courier" value={courier} onChange={(e) => { setError(''); setCourier(e.target.value); }} className={inputClass}>
+          <select id="courier" value={courier} onChange={(e) => setCourier(e.target.value)} className={inputClass}>
             {DELIVERY_SERVICES.map((s) => (
               <option key={s.value || 'none'} value={s.value}>{s.label}</option>
             ))}
@@ -155,7 +152,7 @@ function TrackingForm({ order, onSaved }: { order: SellerOrder; onSaved: (order:
           <input
             id="tracking"
             value={number}
-            onChange={(e) => { setError(''); setNumber(e.target.value); }}
+            onChange={(e) => setNumber(e.target.value)}
             placeholder="From your courier receipt"
             autoCapitalize="characters"
             autoCorrect="off"
@@ -165,7 +162,6 @@ function TrackingForm({ order, onSaved }: { order: SellerOrder; onSaved: (order:
           />
         </div>
       </div>
-      {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
       <button type="submit" className={`${btnPrimary} w-full`}>
         Review and save tracking
       </button>

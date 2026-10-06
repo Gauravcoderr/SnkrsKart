@@ -5,7 +5,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { sellerApi } from '@/lib/sellerApi';
 import type { ProductRequest } from '@/types/seller';
 import { cn } from '@/lib/utils';
-import { inputClass, labelClass, btnPrimary, btnGhost, useHandleApiError } from '@/components/seller/SellerShell';
+import { inputClass, labelClass, btnPrimary, btnGhost, useHandleApiError, useToast } from '@/components/seller/SellerShell';
 
 interface Props {
   open: boolean;
@@ -19,6 +19,7 @@ const MAX_LINKS = 5;
 
 export default function RequestProductModal({ open, onClose, onCreated }: Props) {
   const handleError = useHandleApiError();
+  const { show } = useToast();
   const [name, setName] = useState('');
   const [brand, setBrand] = useState('Nike');
   const [otherBrand, setOtherBrand] = useState('');
@@ -28,7 +29,6 @@ export default function RequestProductModal({ open, onClose, onCreated }: Props)
   const [urls, setUrls] = useState<string[]>(['']);
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
   const [done, setDone] = useState(false);
 
   useEffect(() => {
@@ -41,18 +41,15 @@ export default function RequestProductModal({ open, onClose, onCreated }: Props)
     setOtherSizes('');
     setUrls(['']);
     setNote('');
-    setError('');
     setDone(false);
     setSubmitting(false);
   }, [open]);
 
   function toggleSize(size: string) {
-    setError('');
     setSizes((prev) => (prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]));
   }
 
   function updateUrl(index: number, value: string) {
-    setError('');
     setUrls((prev) => prev.map((u, i) => (i === index ? value : u)));
   }
 
@@ -62,21 +59,20 @@ export default function RequestProductModal({ open, onClose, onCreated }: Props)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError('');
     const finalBrand = brand === 'Other' ? otherBrand.trim() : brand;
     if (!name.trim() || !finalBrand) {
-      setError('Product name and brand are required');
+      show('Product name and brand are required', 'error');
       return;
     }
     const extraSizes = otherSizes.split(',').map((s) => s.trim()).filter(Boolean);
     const allSizes = [...new Set([...UK_SIZES.filter((s) => sizes.includes(s)), ...extraSizes])];
     if (allSizes.length === 0) {
-      setError('Select at least one size you can supply');
+      show('Select at least one size you can supply', 'error');
       return;
     }
     const links = urls.map((u) => u.trim()).filter(Boolean);
     if (links.length === 0) {
-      setError('Add at least one supporting link (official page, StockX, GOAT, etc.)');
+      show('Add at least one supporting link (official page, StockX, GOAT, etc.)', 'error');
       return;
     }
     for (const link of links) {
@@ -84,7 +80,7 @@ export default function RequestProductModal({ open, onClose, onCreated }: Props)
         const parsed = new URL(link);
         if (!/^https?:$/.test(parsed.protocol)) throw new Error('bad');
       } catch {
-        setError(`"${link}" is not a valid link`);
+        show(`"${link}" is not a valid link`, 'error');
         return;
       }
     }
@@ -101,7 +97,7 @@ export default function RequestProductModal({ open, onClose, onCreated }: Props)
       onCreated?.(created);
       setDone(true);
     } catch (err) {
-      setError(handleError(err));
+      show(handleError(err), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -208,7 +204,7 @@ export default function RequestProductModal({ open, onClose, onCreated }: Props)
                   </div>
                   <input
                     value={otherSizes}
-                    onChange={(e) => { setError(''); setOtherSizes(e.target.value); }}
+                    onChange={(e) => setOtherSizes(e.target.value)}
                     placeholder="Other sizes, comma separated (e.g. UK 14, M, 42 EU)"
                     className={`${inputClass} mt-3`}
                   />
@@ -267,7 +263,6 @@ export default function RequestProductModal({ open, onClose, onCreated }: Props)
               </div>
 
               <div className="px-5 py-4 border-t border-zinc-100 bg-white">
-                {error && <p className="text-xs text-red-600 font-medium mb-3">{error}</p>}
                 <div className="flex items-center gap-3">
                   <Dialog.Close asChild>
                     <button type="button" disabled={submitting} className={btnGhost}>

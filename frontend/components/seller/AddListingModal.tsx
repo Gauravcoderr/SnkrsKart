@@ -16,6 +16,7 @@ import {
   btnGhost,
   sizeLabel,
   useHandleApiError,
+  useToast,
 } from '@/components/seller/SellerShell';
 
 interface Props {
@@ -46,6 +47,7 @@ function useDebouncedValue<T>(value: T, delay: number): T {
 
 export default function AddListingModal({ open, onClose, onCreated, onRequestProduct, initialProductId }: Props) {
   const handleError = useHandleApiError();
+  const { show } = useToast();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<CatalogProduct[]>([]);
   const [searching, setSearching] = useState(false);
@@ -56,7 +58,6 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
   const [detailError, setDetailError] = useState('');
   const [entries, setEntries] = useState<Record<string, Entry>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
   const [showAllSizes, setShowAllSizes] = useState(false);
 
   useEffect(() => {
@@ -68,7 +69,6 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
     setDetail(null);
     setDetailError('');
     setEntries({});
-    setSubmitError('');
   }, [open, initialProductId]);
 
   const debouncedQuery = useDebouncedValue(query.trim(), 400);
@@ -151,7 +151,6 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
       setDetailError('');
       setDetail(null);
       setEntries({});
-      setSubmitError('');
       try {
         setDetail(await sellerApi.catalogProduct(id));
       } catch (err) {
@@ -181,7 +180,6 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
 
   function toggleSize(size: number | string) {
     const key = String(size);
-    setSubmitError('');
     setEntries((prev) => {
       if (prev[key]) {
         const next = { ...prev };
@@ -201,7 +199,6 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
   }
 
   function updateEntry(key: string, patch: Partial<Entry>) {
-    setSubmitError('');
     setEntries((prev) => (prev[key] ? { ...prev, [key]: { ...prev[key], ...patch } } : prev));
   }
 
@@ -221,7 +218,6 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
 
   async function handleSubmit() {
     if (!detail) return;
-    setSubmitError('');
     const payload: Array<{ size: number | string; sellerPrice: number; availability: Availability; qty: number }> = [];
     for (const size of selectedSizes) {
       const key = String(size);
@@ -229,17 +225,17 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
       const price = Math.round(Number(entry.sellerPrice));
       const qty = Math.floor(Number(entry.qty));
       if (!Number.isFinite(price) || price < MIN_PRICE || price > MAX_PRICE) {
-        setSubmitError(`Enter a price between ${formatPrice(MIN_PRICE)} and ${formatPrice(MAX_PRICE)} for ${sizeLabel(size)}`);
+        show(`Enter a price between ${formatPrice(MIN_PRICE)} and ${formatPrice(MAX_PRICE)} for ${sizeLabel(size)}`, 'error');
         return;
       }
       if (!Number.isFinite(qty) || qty < 1 || qty > 50) {
-        setSubmitError(`Quantity for ${sizeLabel(size)} must be 1-50`);
+        show(`Quantity for ${sizeLabel(size)} must be 1-50`, 'error');
         return;
       }
       payload.push({ size: detail.product.stringSized ? key : Number(key), sellerPrice: price, availability: entry.availability, qty });
     }
     if (payload.length === 0) {
-      setSubmitError('Select at least one size');
+      show('Select at least one size', 'error');
       return;
     }
     setSubmitting(true);
@@ -248,7 +244,7 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
       onCreated(created);
       onClose();
     } catch (err) {
-      setSubmitError(handleError(err));
+      show(handleError(err), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -566,7 +562,6 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
               </div>
 
               <div className="px-5 py-4 border-t border-zinc-100 bg-white">
-                {submitError && <p className="text-xs text-red-600 font-medium mb-3">{submitError}</p>}
                 <div className="flex items-center gap-3">
                   <Dialog.Close asChild>
                     <button type="button" disabled={submitting} className={btnGhost}>

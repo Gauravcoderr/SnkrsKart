@@ -38,20 +38,17 @@ function SettingsInner() {
     upiId: seller.upiId,
   });
   const [savingProfile, setSavingProfile] = useState(false);
-  const [profileError, setProfileError] = useState('');
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPasswords, setShowPasswords] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
 
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
   const [resendIn, setResendIn] = useState(0);
-  const [otpNotice, setOtpNotice] = useState('');
   const otpRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -61,18 +58,16 @@ function SettingsInner() {
   }, [resendIn]);
 
   async function sendVerifyOtp() {
-    setPasswordError('');
-    setOtpNotice('');
     setSendingOtp(true);
     try {
       const { email } = await sellerApi.sendVerifyOtp();
       setOtpSent(true);
       setOtp('');
       setResendIn(60);
-      setOtpNotice(`Code sent to ${email}. Check spam if it does not arrive in a minute.`);
+      show(`Code sent to ${email}. Check spam if it does not arrive in a minute.`);
       setTimeout(() => otpRef.current?.focus(), 50);
     } catch (err) {
-      setPasswordError(handleError(err));
+      show(handleError(err), 'error');
     } finally {
       setSendingOtp(false);
     }
@@ -93,19 +88,17 @@ function SettingsInner() {
   }, [seller]);
 
   function setField(key: keyof typeof profile, value: string) {
-    setProfileError('');
     setProfile((p) => ({ ...p, [key]: value }));
   }
 
   async function saveProfile(e: FormEvent) {
     e.preventDefault();
-    setProfileError('');
     if (!profile.name.trim()) {
-      setProfileError('Name is required');
+      show('Name is required', 'error');
       return;
     }
     if (!profile.phone.trim()) {
-      setProfileError('Phone is required');
+      show('Phone is required', 'error');
       return;
     }
     setSavingProfile(true);
@@ -124,7 +117,7 @@ function SettingsInner() {
       await refresh();
       show('Profile saved');
     } catch (err) {
-      setProfileError(handleError(err));
+      show(handleError(err), 'error');
     } finally {
       setSavingProfile(false);
     }
@@ -132,21 +125,20 @@ function SettingsInner() {
 
   async function savePassword(e: FormEvent) {
     e.preventDefault();
-    setPasswordError('');
     if (newPassword.length < 8) {
-      setPasswordError('New password must be at least 8 characters');
+      show('New password must be at least 8 characters', 'error');
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match');
+      show('Passwords do not match', 'error');
       return;
     }
     if (!forceReset && newPassword === currentPassword) {
-      setPasswordError('Choose a password different from your current one');
+      show('Choose a password different from your current one', 'error');
       return;
     }
     if (forceReset && otp.length !== 6) {
-      setPasswordError('Enter the 6-digit code we emailed you');
+      show('Enter the 6-digit code we emailed you', 'error');
       return;
     }
     setSavingPassword(true);
@@ -163,7 +155,7 @@ function SettingsInner() {
       }
       show('Password updated');
     } catch (err) {
-      setPasswordError(handleError(err));
+      show(handleError(err), 'error');
     } finally {
       setSavingPassword(false);
     }
@@ -238,7 +230,6 @@ function SettingsInner() {
                   <input id="pf-upi" value={profile.upiId} onChange={(e) => setField('upiId', e.target.value)} maxLength={80} placeholder="name@bank" autoCapitalize="none" autoCorrect="off" className={inputClass} />
                   <p className="text-[11px] text-zinc-400 mt-1">Payouts are sent to this UPI ID after delivery.</p>
                 </div>
-                {profileError && <p className="text-xs text-red-600 font-medium">{profileError}</p>}
               </div>
               <div className="px-5 py-4 border-t border-zinc-100 flex items-center justify-between gap-3">
                 <p className="text-[11px] text-zinc-400">Seller since {formatDate(seller.createdAt)}</p>
@@ -286,13 +277,12 @@ function SettingsInner() {
                           maxLength={6}
                           required
                           value={otp}
-                          onChange={(e) => { setPasswordError(''); setOtp(e.target.value.replace(/\D/g, '').slice(0, 6)); }}
+                          onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                           placeholder="6-digit code"
                           className={`${inputClass} text-center text-lg font-black tracking-[0.5em]`}
                         />
                       </div>
                     )}
-                    {otpNotice && !passwordError && <p className="text-xs text-emerald-700 font-medium">{otpNotice}</p>}
                   </div>
                 ) : (
                   <div>
@@ -302,7 +292,7 @@ function SettingsInner() {
                       type={showPasswords ? 'text' : 'password'}
                       autoComplete="current-password"
                       value={currentPassword}
-                      onChange={(e) => { setPasswordError(''); setCurrentPassword(e.target.value); }}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
                       required
                       className={inputClass}
                     />
@@ -316,7 +306,7 @@ function SettingsInner() {
                     type={showPasswords ? 'text' : 'password'}
                     autoComplete="new-password"
                     value={newPassword}
-                    onChange={(e) => { setPasswordError(''); setNewPassword(e.target.value); }}
+                    onChange={(e) => setNewPassword(e.target.value)}
                     required
                     minLength={8}
                     placeholder="At least 8 characters"
@@ -330,7 +320,7 @@ function SettingsInner() {
                     type={showPasswords ? 'text' : 'password'}
                     autoComplete="new-password"
                     value={confirmPassword}
-                    onChange={(e) => { setPasswordError(''); setConfirmPassword(e.target.value); }}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     minLength={8}
                     className={inputClass}
@@ -340,7 +330,6 @@ function SettingsInner() {
                   <input type="checkbox" checked={showPasswords} onChange={(e) => setShowPasswords(e.target.checked)} className="w-4 h-4 accent-zinc-900" />
                   Show passwords
                 </label>
-                {passwordError && <p className="text-xs text-red-600 font-medium">{passwordError}</p>}
               </div>
               <div className="px-5 py-4 border-t border-zinc-100 flex justify-end">
                 <button type="submit" disabled={savingPassword || (forceReset && otp.length !== 6)} className={`${btnPrimary} ${forceReset ? 'w-full' : ''}`}>

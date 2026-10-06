@@ -230,16 +230,36 @@ export interface ToastState {
   type: 'success' | 'error';
 }
 
-export function useToast() {
+export type ShowToast = (message: string, type?: 'success' | 'error') => void;
+
+const ToastContext = createContext<ShowToast | null>(null);
+
+function useLocalToast() {
   const [toast, setToast] = useState<ToastState | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const show = useCallback((message: string, type: 'success' | 'error' = 'success') => {
+  const show = useCallback<ShowToast>((message, type = 'success') => {
     setToast({ message, type });
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setToast(null), 3500);
+    timer.current = setTimeout(() => setToast(null), type === 'error' ? 5000 : 3500);
   }, []);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
   return { toast, show };
+}
+
+export function useToast(): { toast: ToastState | null; show: ShowToast } {
+  const shared = useContext(ToastContext);
+  const local = useLocalToast();
+  return shared ? { toast: null, show: shared } : local;
+}
+
+export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const { toast, show } = useLocalToast();
+  return (
+    <ToastContext.Provider value={show}>
+      {children}
+      <Toast toast={toast} />
+    </ToastContext.Provider>
+  );
 }
 
 export function Toast({ toast }: { toast: ToastState | null }) {
@@ -247,8 +267,9 @@ export function Toast({ toast }: { toast: ToastState | null }) {
   return (
     <div
       role="status"
+      aria-live={toast.type === 'error' ? 'assertive' : 'polite'}
       className={cn(
-        'fixed left-1/2 -translate-x-1/2 bottom-20 md:bottom-6 z-[70] px-4 py-3 text-xs font-bold shadow-lg max-w-[calc(100vw-2rem)] text-center',
+        'fixed left-1/2 -translate-x-1/2 bottom-20 md:bottom-6 z-[90] px-4 py-3 text-xs font-bold shadow-lg max-w-[calc(100vw-2rem)] text-center',
         toast.type === 'success' ? 'bg-zinc-900 text-white' : 'bg-red-600 text-white',
       )}
     >
@@ -447,6 +468,14 @@ function SidebarNav({
 }
 
 export default function SellerShell({ children }: { children: React.ReactNode }) {
+  return (
+    <ToastProvider>
+      <SellerShellInner>{children}</SellerShellInner>
+    </ToastProvider>
+  );
+}
+
+function SellerShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const isLogin = pathname === '/sellers/login';

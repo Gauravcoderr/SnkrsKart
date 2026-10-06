@@ -6,7 +6,7 @@ import type { SellerOrder, VerificationAngle } from '@/types/seller';
 import { compressImage } from '@/lib/compressImage';
 import { uploadVerificationPhoto } from '@/lib/sellerUpload';
 import { cn } from '@/lib/utils';
-import { btnPrimary, Spinner, useHandleApiError } from '@/components/seller/SellerShell';
+import { btnPrimary, Spinner, useHandleApiError, useToast } from '@/components/seller/SellerShell';
 
 const FALLBACK_ANGLES: VerificationAngle[] = [
   { id: 'side-lateral', label: 'Lateral side', required: true },
@@ -186,12 +186,12 @@ function CameraModal({
 
 export default function VerificationCapture({ orderId, onSubmitted, rejectedNote }: Props) {
   const handleError = useHandleApiError();
+  const { show } = useToast();
   const [angles, setAngles] = useState<VerificationAngle[]>(FALLBACK_ANGLES);
   const [slots, setSlots] = useState<Record<string, SlotState>>({});
   const [cameraAngle, setCameraAngle] = useState<VerificationAngle | null>(null);
   const [fallback, setFallback] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
   const previews = useRef<string[]>([]);
 
   useEffect(() => {
@@ -217,16 +217,17 @@ export default function VerificationCapture({ orderId, onSubmitted, rejectedNote
   const handleFile = useCallback(async (angleId: string, file: File) => {
     const preview = URL.createObjectURL(file);
     previews.current.push(preview);
-    setSubmitError('');
     setSlots((prev) => ({ ...prev, [angleId]: { preview, uploading: true } }));
     try {
       const compressed = await compressImage(file).catch(() => file);
       const url = await uploadVerificationPhoto(compressed);
       setSlots((prev) => ({ ...prev, [angleId]: { preview, url, uploading: false } }));
     } catch (err) {
-      setSlots((prev) => ({ ...prev, [angleId]: { uploading: false, error: err instanceof Error ? err.message : 'Upload failed' } }));
+      const message = err instanceof Error ? err.message : 'Upload failed';
+      show(`Photo upload failed: ${message}`, 'error');
+      setSlots((prev) => ({ ...prev, [angleId]: { uploading: false, error: message } }));
     }
-  }, []);
+  }, [show]);
 
   const onUnavailable = useCallback(() => setFallback(true), []);
 
@@ -237,14 +238,13 @@ export default function VerificationCapture({ orderId, onSubmitted, rejectedNote
   const pct = required.length ? Math.round((requiredDone / required.length) * 100) : 0;
 
   async function handleSubmit() {
-    setSubmitError('');
     const photos = angles.filter((a) => slots[a.id]?.url).map((a) => ({ angle: a.id, url: slots[a.id].url as string }));
     setSubmitting(true);
     try {
       const order = await sellerApi.submitVerification(orderId, photos);
       onSubmitted(order);
     } catch (err) {
-      setSubmitError(handleError(err));
+      show(handleError(err), 'error');
     } finally {
       setSubmitting(false);
     }
@@ -383,7 +383,6 @@ export default function VerificationCapture({ orderId, onSubmitted, rejectedNote
       </div>
 
       <div className="px-4 sm:px-5 py-4 border-t border-zinc-100">
-        {submitError && <p className="text-xs text-red-600 font-medium mb-3">{submitError}</p>}
         <button type="button" onClick={handleSubmit} disabled={!allRequired || anyUploading || submitting} className={`${btnPrimary} w-full`}>
           {submitting ? 'Submitting...' : anyUploading ? 'Uploading photos...' : allRequired ? 'Submit photos for review' : `Add ${required.length - requiredDone} more required photo${required.length - requiredDone === 1 ? '' : 's'}`}
         </button>

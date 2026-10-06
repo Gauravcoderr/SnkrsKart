@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { sellerApi, getSellerToken, setSellerToken } from '@/lib/sellerApi';
-import { WHATSAPP_NUMBER, inputClass, labelClass, btnPrimary, btnGhost } from '@/components/seller/SellerShell';
+import { WHATSAPP_NUMBER, inputClass, labelClass, btnPrimary, btnGhost, useToast, Toast } from '@/components/seller/SellerShell';
 import type { SellerProfile } from '@/types/seller';
 import { cn } from '@/lib/utils';
 
@@ -24,8 +24,7 @@ export default function SellerLoginPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [resendIn, setResendIn] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
+  const { toast, show } = useToast();
   const otpRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -49,36 +48,31 @@ export default function SellerLoginPage() {
 
   function switchMode(next: Mode) {
     setMode(next);
-    setError('');
-    setNotice('');
   }
 
   async function handlePasswordLogin(e: FormEvent) {
     e.preventDefault();
-    setError('');
     setLoading(true);
     try {
       const { token, seller } = await sellerApi.login(email.trim(), password);
       finishLogin(token, seller);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      show(err instanceof Error ? err.message : 'Login failed', 'error');
       setLoading(false);
     }
   }
 
   async function handleSendOtp(e?: FormEvent) {
     e?.preventDefault();
-    setError('');
-    setNotice('');
     setLoading(true);
     try {
       await sellerApi.sendLoginOtp(email.trim());
       setOtpSent(true);
       setOtp('');
       setResendIn(RESEND_SECONDS);
-      setNotice(`Code sent to ${email.trim()}. Check spam if it does not arrive in a minute.`);
+      show(`Code sent to ${email.trim()}. Check spam if it does not arrive in a minute.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not send the code');
+      show(err instanceof Error ? err.message : 'Could not send the code', 'error');
     } finally {
       setLoading(false);
     }
@@ -86,13 +80,12 @@ export default function SellerLoginPage() {
 
   async function handleVerifyOtp(e: FormEvent) {
     e.preventDefault();
-    setError('');
     setLoading(true);
     try {
       const { token, seller } = await sellerApi.verifyLoginOtp(email.trim(), otp);
       finishLogin(token, seller);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      show(err instanceof Error ? err.message : 'Login failed', 'error');
       setLoading(false);
     }
   }
@@ -100,8 +93,6 @@ export default function SellerLoginPage() {
   function changeEmail() {
     setOtpSent(false);
     setOtp('');
-    setError('');
-    setNotice('');
   }
 
   const emailField = (
@@ -162,7 +153,6 @@ export default function SellerLoginPage() {
           {mode === 'otp' && !otpSent && (
             <form onSubmit={handleSendOtp} className="space-y-4">
               {emailField}
-              {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
               <button type="submit" disabled={loading || !email.trim()} className={`${btnPrimary} w-full`}>
                 {loading ? 'Sending...' : 'Send login code'}
               </button>
@@ -195,9 +185,6 @@ export default function SellerLoginPage() {
                 />
                 <p className="text-[11px] text-zinc-500 mt-1.5 break-all">Sent to {email.trim()}</p>
               </div>
-
-              {notice && !error && <p className="text-xs text-emerald-700 font-medium">{notice}</p>}
-              {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
 
               <button type="submit" disabled={loading || otp.length !== 6} className={`${btnPrimary} w-full`}>
                 {loading ? 'Verifying...' : 'Log in'}
@@ -239,8 +226,6 @@ export default function SellerLoginPage() {
                 </div>
               </div>
 
-              {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
-
               <button type="submit" disabled={loading} className={`${btnPrimary} w-full`}>
                 {loading ? 'Logging in...' : 'Log in'}
               </button>
@@ -271,6 +256,7 @@ export default function SellerLoginPage() {
           </a>
         </div>
       </div>
+      <Toast toast={toast} />
     </div>
   );
 }
