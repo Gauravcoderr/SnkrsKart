@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense, useCallback, useEffect, useState } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -125,6 +126,7 @@ function SellerOrdersInner() {
   const [verificationFilter, setVerificationFilter] = useState<VerificationFilter>(preselectId ? 'all' : 'pending');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedSearch(search, LOCAL_SEARCH_DEBOUNCE_MS);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
 
@@ -266,7 +268,7 @@ function SellerOrdersInner() {
     setSavingTracking(false);
   }
 
-  const q = search.trim().toLowerCase();
+  const q = debouncedSearch.toLowerCase();
   const filtered = orders.filter((o) => {
     if (verificationFilter !== 'all' && (o.verification?.status ?? 'none') !== verificationFilter) return false;
     if (statusFilter !== 'all' && o.status !== statusFilter) return false;

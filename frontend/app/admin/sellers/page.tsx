@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Paginator from '../_components/Paginator';
@@ -130,6 +131,7 @@ export default function SellersPage() {
   const [error, setError] = useState('');
   const [tab, setTab] = useState<Tab>('accounts');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedSearch(search, LOCAL_SEARCH_DEBOUNCE_MS);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -259,7 +261,7 @@ export default function SellersPage() {
   const applications = sellers.filter((s) => s.status === 'applied');
   const source = tab === 'accounts' ? accounts : applications;
 
-  const q = search.trim().toLowerCase();
+  const q = debouncedSearch.toLowerCase();
   const filtered = q
     ? source.filter((s) =>
         s.name.toLowerCase().includes(q) ||

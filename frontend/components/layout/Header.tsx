@@ -54,6 +54,7 @@ export default function Header() {
   const inputRef = useRef<HTMLInputElement>(null);
   const brandsTimeout = useRef<NodeJS.Timeout>();
   const debounceRef = useRef<NodeJS.Timeout>();
+  const searchSeq = useRef(0);
 
   useScrollLock(searchOpen);
 
@@ -71,10 +72,12 @@ export default function Header() {
   }, [searchOpen, recommended.length]);
 
   const searchProducts = useCallback(async (q: string) => {
-    if (!q.trim()) { setResults([]); setSuggestions([]); return; }
+    const seq = ++searchSeq.current;
+    if (!q.trim()) { setResults([]); setSuggestions([]); setSearching(false); return; }
     setSearching(true);
     try {
       const res = await fetch(`${API}/products?search=${encodeURIComponent(q.trim())}&limit=8`);
+      if (seq !== searchSeq.current) return;
       if (res.ok) {
         const data = await res.json();
         const products: Product[] = data.products || [];
@@ -82,8 +85,10 @@ export default function Header() {
         setSuggestions(products.slice(0, 5));
       }
     } catch { /* ignore */ }
-    setSearching(false);
+    if (seq === searchSeq.current) setSearching(false);
   }, []);
+
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
 
   function handleQueryChange(val: string) {
     setQuery(val);
@@ -92,6 +97,9 @@ export default function Header() {
   }
 
   function closeSearch() {
+    clearTimeout(debounceRef.current);
+    searchSeq.current++;
+    setSearching(false);
     setSearchOpen(false);
     setQuery('');
     setResults([]);

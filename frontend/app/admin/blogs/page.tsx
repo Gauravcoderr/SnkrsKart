@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Paginator from '../_components/Paginator';
@@ -38,6 +39,7 @@ export default function AdminBlogsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedSearch(search, LOCAL_SEARCH_DEBOUNCE_MS);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -88,7 +90,7 @@ export default function AdminBlogsPage() {
   }
 
   const filtered = blogs.filter((b) => {
-    const q = search.toLowerCase();
+    const q = debouncedSearch.toLowerCase();
     return b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q) || b.tags.join(' ').toLowerCase().includes(q);
   });
 

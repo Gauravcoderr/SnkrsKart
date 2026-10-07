@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import { useRouter } from 'next/navigation';
 import Paginator from '../_components/Paginator';
 import AdminLoader from '@/app/admin/_components/AdminLoader';
@@ -53,6 +54,7 @@ export default function NewsletterPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedSearch(search, LOCAL_SEARCH_DEBOUNCE_MS);
   const [sourceFilter, setSourceFilter] = useState<'all' | Source>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'blocked' | 'unsubscribed' | 'bounced'>('all');
   const [page, setPage] = useState(1);
@@ -227,7 +229,7 @@ export default function NewsletterPage() {
     if (statusFilter === 'blocked' && !s.unsubscribed && !s.bounced) return false;
     if (statusFilter === 'unsubscribed' && !s.unsubscribed) return false;
     if (statusFilter === 'bounced' && !s.bounced) return false;
-    const q = search.toLowerCase();
+    const q = debouncedSearch.toLowerCase();
     if (!q) return true;
     return (
       (s.email || '').toLowerCase().includes(q) ||

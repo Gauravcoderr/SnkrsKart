@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Paginator from '../_components/Paginator';
@@ -63,6 +64,7 @@ export default function AdminSneakerProfilesPage() {
   const [saving, setSaving] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedSearch(search, LOCAL_SEARCH_DEBOUNCE_MS);
   const [page, setPage] = useState(1);
 
   const fetchProfiles = useCallback(async () => {
@@ -175,7 +177,7 @@ export default function AdminSneakerProfilesPage() {
   }
 
   const filtered = profiles.filter((p) =>
-    !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.brand.toLowerCase().includes(search.toLowerCase())
+    !debouncedSearch || p.name.toLowerCase().includes(debouncedSearch.toLowerCase()) || p.brand.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
   const totalPages = Math.max(1, Math.ceil(filtered.length / SP_PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * SP_PAGE_SIZE, page * SP_PAGE_SIZE);

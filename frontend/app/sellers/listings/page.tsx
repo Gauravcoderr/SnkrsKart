@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { sellerApi } from '@/lib/sellerApi';
-import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue';
+import { useDebouncedSearch, SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import LoadMoreSentinel from '@/components/seller/LoadMoreSentinel';
 import type { SellerListing, ListingStatus, ListingCompetition } from '@/types/seller';
 import type { Availability } from '@/types';
@@ -143,7 +143,8 @@ export default function SellerListingsPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const debouncedSearch = useDebouncedValue(search.trim(), 400);
+  const debouncedSearch = useDebouncedSearch(search, SEARCH_DEBOUNCE_MS);
+  const loadSeq = useRef(0);
   const [filter, setFilter] = useState<Filter>('all');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -162,10 +163,12 @@ export default function SellerListingsPage() {
   }, []);
 
   const load = useCallback(async () => {
+    const seq = ++loadSeq.current;
     setLoading(true);
     setError('');
     try {
       const res = await sellerApi.listings({ search: debouncedSearch, status: filter, page: 1 });
+      if (seq !== loadSeq.current) return;
       setListings(res.items);
       setPage(1);
       setHasMore(res.hasMore);
@@ -174,9 +177,9 @@ export default function SellerListingsPage() {
       if (!debouncedSearch && filter === 'all') setHasAny(res.total > 0);
       else if (res.counts.all > 0) setHasAny(true);
     } catch (err) {
-      setError(handleError(err));
+      if (seq === loadSeq.current) setError(handleError(err));
     } finally {
-      setLoading(false);
+      if (seq === loadSeq.current) setLoading(false);
     }
   }, [debouncedSearch, filter, handleError, applyCounts]);
 

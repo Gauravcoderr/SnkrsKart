@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -64,6 +65,7 @@ export default function AdminPayoutsPage() {
   const [error, setError] = useState('');
   const [tab, setTab] = useState<Tab>('due');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedSearch(search, LOCAL_SEARCH_DEBOUNCE_MS);
   const [editing, setEditing] = useState<PayoutRow | null>(null);
   const [lightbox, setLightbox] = useState<string | null>(null);
 
@@ -108,7 +110,7 @@ export default function AdminPayoutsPage() {
   }, [rows]);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = debouncedSearch.toLowerCase();
     return rows.filter((r) => {
       if (tab === 'due' && r.payout?.status === 'paid') return false;
       if (tab === 'paid' && r.payout?.status !== 'paid') return false;
@@ -116,7 +118,7 @@ export default function AdminPayoutsPage() {
       const s = sellerOf(r);
       return r.orderNumber.toLowerCase().includes(q) || s.name.toLowerCase().includes(q) || (s.businessName || '').toLowerCase().includes(q) || (s.upiId || '').toLowerCase().includes(q) || (r.payout?.reference || '').toLowerCase().includes(q);
     });
-  }, [rows, tab, search]);
+  }, [rows, tab, debouncedSearch]);
 
   function onSaved(updated: PayoutRow) {
     setRows((prev) => prev.map((r) => (r._id === updated._id ? updated : r)));

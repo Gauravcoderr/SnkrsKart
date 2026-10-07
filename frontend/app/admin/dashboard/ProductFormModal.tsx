@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, FormEvent, useEffect, useRef } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import { Product } from '@/types';
 import { compressImage } from '@/lib/compressImage';
 import { uploadImage } from '@/lib/uploadImage';
@@ -59,14 +60,15 @@ export default function ProductFormModal({ product, allProducts, onSave, onClose
     () => (product?.relatedProducts ?? []).map((r) => (typeof r === 'string' ? r : r.id))
   );
   const [relatedSearch, setRelatedSearch] = useState('');
+  const debouncedRelatedSearch = useDebouncedSearch(relatedSearch, LOCAL_SEARCH_DEBOUNCE_MS);
   const relatedProducts = relatedIds
     .map((id) => allProducts.find((p) => p.id === id))
     .filter((p): p is Product => !!p);
-  const relatedSearchResults = relatedSearch.trim()
+  const relatedSearchResults = debouncedRelatedSearch
     ? allProducts
         .filter((p) => p.id !== product?.id && !relatedIds.includes(p.id))
         .filter((p) => {
-          const q = relatedSearch.trim().toLowerCase();
+          const q = debouncedRelatedSearch.toLowerCase();
           return p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q);
         })
         .slice(0, 8)

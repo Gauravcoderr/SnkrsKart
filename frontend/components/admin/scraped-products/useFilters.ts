@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useDebouncedSearch, useDebouncedValue, SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 
 export interface Filters {
   filterSearch: string;
@@ -11,6 +12,12 @@ export interface Filters {
   filterPriceMin: string;
   filterPriceMax: string;
   filterFlag: string;
+}
+
+export interface FilterInputs {
+  search: string;
+  priceMin: string;
+  priceMax: string;
 }
 
 export interface FilterHandlers {
@@ -26,14 +33,17 @@ export interface FilterHandlers {
 }
 
 export function useFilters(onReset: () => void) {
-  const [filterSearch, setFilterSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [filterSite, setFilterSite] = useState('');
   const [filterBrand, setFilterBrand] = useState('');
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
-  const [filterPriceMin, setFilterPriceMin] = useState('');
-  const [filterPriceMax, setFilterPriceMax] = useState('');
+  const [priceMinInput, setPriceMinInput] = useState('');
+  const [priceMaxInput, setPriceMaxInput] = useState('');
   const [filterFlag, setFilterFlag] = useState('');
+  const filterSearch = useDebouncedSearch(searchInput, SEARCH_DEBOUNCE_MS);
+  const filterPriceMin = useDebouncedValue(priceMinInput.trim(), SEARCH_DEBOUNCE_MS);
+  const filterPriceMax = useDebouncedValue(priceMaxInput.trim(), SEARCH_DEBOUNCE_MS);
 
   useEffect(() => {
     onReset();
@@ -45,26 +55,28 @@ export function useFilters(onReset: () => void) {
     [filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax, filterFlag]
   );
 
+  const inputs: FilterInputs = { search: searchInput, priceMin: priceMinInput, priceMax: priceMaxInput };
+
   const handlers: FilterHandlers = {
-    onSearchChange: setFilterSearch,
+    onSearchChange: setSearchInput,
     onSiteChange: setFilterSite,
     onBrandChange: setFilterBrand,
     onDateFromChange: setFilterDateFrom,
     onDateToChange: setFilterDateTo,
-    onPriceMinChange: setFilterPriceMin,
-    onPriceMaxChange: setFilterPriceMax,
+    onPriceMinChange: setPriceMinInput,
+    onPriceMaxChange: setPriceMaxInput,
     onFlagChange: setFilterFlag,
     onClear: () => {
-      setFilterSearch('');
+      setSearchInput('');
       setFilterSite('');
       setFilterBrand('');
       setFilterDateFrom('');
       setFilterDateTo('');
-      setFilterPriceMin('');
-      setFilterPriceMax('');
+      setPriceMinInput('');
+      setPriceMaxInput('');
       setFilterFlag('');
     },
   };
 
-  return { filters, handlers };
+  return { filters, inputs, handlers };
 }

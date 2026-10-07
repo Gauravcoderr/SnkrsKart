@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import { useRouter } from 'next/navigation';
 import Paginator from '../_components/Paginator';
 import AdminLoader from '@/app/admin/_components/AdminLoader';
@@ -33,6 +34,7 @@ export default function ChatLeadsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedSearch(search, LOCAL_SEARCH_DEBOUNCE_MS);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -65,7 +67,7 @@ export default function ChatLeadsPage() {
   }
 
   const filtered = leads.filter((l) => {
-    const q = search.toLowerCase();
+    const q = debouncedSearch.toLowerCase();
     return (
       l.name.toLowerCase().includes(q) ||
       l.email.toLowerCase().includes(q) ||

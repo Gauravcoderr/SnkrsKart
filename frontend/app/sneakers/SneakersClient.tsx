@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SneakerProfile } from '@/types';
@@ -55,6 +56,7 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
   const [activeCategory, setActiveCategory] = useState(initial.category || ALL);
   const [sort, setSort] = useState<Sort>(initial.sort || 'name');
   const [search, setSearch] = useState(initial.q || '');
+  const debouncedSearch = useDebouncedSearch(search, LOCAL_SEARCH_DEBOUNCE_MS);
   const [page, setPage] = useState(initial.page || 1);
 
   // Reset to page 1 when filters change (not on the initial server-provided state)
@@ -62,7 +64,7 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
   useEffect(() => {
     if (!mounted.current) { mounted.current = true; return; }
     setPage(1);
-  }, [activeBrand, activeCategory, sort, search]);
+  }, [activeBrand, activeCategory, sort, debouncedSearch]);
 
   // Keep the URL in sync so filtered views are shareable and server-renderable (no navigation, no refetch)
   const firstRender = useRef(true);
@@ -72,11 +74,11 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
     if (activeBrand !== ALL) params.set('brand', activeBrand);
     if (activeCategory !== ALL) params.set('category', activeCategory);
     if (sort !== 'name') params.set('sort', sort);
-    if (search.trim()) params.set('q', search.trim());
+    if (debouncedSearch) params.set('q', debouncedSearch);
     if (page > 1) params.set('page', String(page));
     const qs = params.toString();
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
-  }, [activeBrand, activeCategory, sort, search, page]);
+  }, [activeBrand, activeCategory, sort, debouncedSearch, page]);
 
   const brands = useMemo(() => {
     const set = new Set(profiles.map((p) => p.brand));
@@ -104,8 +106,8 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
   const filtered = useMemo(() => {
     let result = activeBrand === ALL ? profiles : profiles.filter((p) => p.brand === activeBrand);
     if (activeCategory !== ALL) result = result.filter((p) => p.category?.toLowerCase() === activeCategory);
-    if (search.trim()) {
-      const q = search.toLowerCase();
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
       result = result.filter((p) =>
         p.name.toLowerCase().includes(q) ||
         p.brand.toLowerCase().includes(q) ||
@@ -127,24 +129,24 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
       }
       return byName(a, b);
     });
-  }, [profiles, activeBrand, activeCategory, sort, search]);
+  }, [profiles, activeBrand, activeCategory, sort, debouncedSearch]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   // Group current page's profiles by brand (only when showing all brands without search)
-  const isFiltering = activeBrand !== ALL || activeCategory !== ALL || search.trim() !== '' || sort !== 'name';
+  const isFiltering = activeBrand !== ALL || activeCategory !== ALL || debouncedSearch !== '' || sort !== 'name';
 
   const byBrand = useMemo(() => {
     if (isFiltering) {
-      const label = activeBrand !== ALL && activeCategory === ALL && !search.trim() && sort === 'name' ? activeBrand : 'Results';
+      const label = activeBrand !== ALL && activeCategory === ALL && !debouncedSearch && sort === 'name' ? activeBrand : 'Results';
       return paginated.length > 0 ? { [label]: paginated } : {};
     }
     return paginated.reduce<Record<string, SneakerProfile[]>>((acc, p) => {
       (acc[p.brand] = acc[p.brand] || []).push(p);
       return acc;
     }, {});
-  }, [paginated, activeBrand, activeCategory, search, sort, isFiltering]);
+  }, [paginated, activeBrand, activeCategory, debouncedSearch, sort, isFiltering]);
 
   return (
     <div>
@@ -228,7 +230,7 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
 
       {Object.keys(byBrand).length === 0 ? (
         <div className="py-20 text-center border border-dashed border-zinc-200">
-          <p className="text-sm text-zinc-400">No sneakers match{search ? ` “${search}”` : ' these filters'}.</p>
+          <p className="text-sm text-zinc-400">No sneakers match{debouncedSearch ? ` “${debouncedSearch}”` : ' these filters'}.</p>
           <button type="button" onClick={() => { setSearch(''); setActiveBrand(ALL); setActiveCategory(ALL); setSort('name'); }} className="mt-3 text-xs text-zinc-500 underline">Clear filters</button>
         </div>
       ) : (

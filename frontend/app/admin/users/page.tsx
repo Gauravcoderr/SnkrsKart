@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -25,6 +26,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedSearch(search, LOCAL_SEARCH_DEBOUNCE_MS);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 15;
 
@@ -45,9 +47,9 @@ export default function AdminUsersPage() {
     })();
   }, [router]);
 
-  const filtered = search.trim()
+  const filtered = debouncedSearch
     ? users.filter((u) => {
-        const q = search.toLowerCase();
+        const q = debouncedSearch.toLowerCase();
         return u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q) || u.phone.includes(q);
       })
     : users;

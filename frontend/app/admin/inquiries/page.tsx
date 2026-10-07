@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Paginator from '../_components/Paginator';
@@ -37,6 +38,7 @@ export default function InquiriesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedSearch(search, LOCAL_SEARCH_DEBOUNCE_MS);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
 
@@ -60,7 +62,7 @@ export default function InquiriesPage() {
   useEffect(() => { fetchInquiries(); }, [fetchInquiries]);
 
   const filtered = inquiries.filter((i) => {
-    const q = search.toLowerCase();
+    const q = debouncedSearch.toLowerCase();
     return (
       i.name.toLowerCase().includes(q) ||
       i.email.toLowerCase().includes(q) ||

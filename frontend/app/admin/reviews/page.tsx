@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import { useRouter } from 'next/navigation';
 import Paginator from '../_components/Paginator';
 import AdminLoader from '@/app/admin/_components/AdminLoader';
@@ -41,6 +42,7 @@ export default function ReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedSearch(search, LOCAL_SEARCH_DEBOUNCE_MS);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
 
@@ -115,7 +117,7 @@ export default function ReviewsPage() {
   }
 
   const filtered = reviews.filter((r) => {
-    const q = search.toLowerCase();
+    const q = debouncedSearch.toLowerCase();
     return r.name.toLowerCase().includes(q) || r.productName.toLowerCase().includes(q) || r.comment.toLowerCase().includes(q);
   });
 

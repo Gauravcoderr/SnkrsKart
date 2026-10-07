@@ -7,6 +7,7 @@ import type { CatalogDetail, CatalogOffer, CatalogProduct, SellerListing } from 
 import type { Availability } from '@/types';
 import { AVAILABILITY_META, AVAILABILITY_ORDER } from '@/lib/availability';
 import { formatPrice, cn } from '@/lib/utils';
+import { useDebouncedSearch, SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import {
   ProductThumb,
   Spinner,
@@ -36,15 +37,6 @@ interface Entry {
 const MIN_PRICE = 500;
 const MAX_PRICE = 1000000;
 
-function useDebouncedValue<T>(value: T, delay: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-  return debounced;
-}
-
 export default function AddListingModal({ open, onClose, onCreated, onRequestProduct, initialProductId }: Props) {
   const handleError = useHandleApiError();
   const { show } = useToast();
@@ -71,7 +63,7 @@ export default function AddListingModal({ open, onClose, onCreated, onRequestPro
     setEntries({});
   }, [open, initialProductId]);
 
-  const debouncedQuery = useDebouncedValue(query.trim(), 400);
+  const debouncedQuery = useDebouncedSearch(query, SEARCH_DEBOUNCE_MS);
   type SearchPage = { products: CatalogProduct[]; page: number; hasMore: boolean };
   const searchCache = useRef(new Map<string, SearchPage>());
   const [hasMore, setHasMore] = useState(false);

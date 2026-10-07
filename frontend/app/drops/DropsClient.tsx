@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Drop } from '@/types';
@@ -185,6 +186,7 @@ export default function DropsClient({ upcoming, recent, initial = {} }: Props) {
   const today = todayKey();
   const [brand, setBrand] = useState(initial.brand || ALL);
   const [search, setSearch] = useState(initial.q || '');
+  const debouncedSearch = useDebouncedSearch(search, LOCAL_SEARCH_DEBOUNCE_MS);
   const [range, setRange] = useState<Range>(initial.range || 'all');
   const [view, setView] = useState<View>(initial.view || 'list');
   const [calMonth, setCalMonth] = useState(initial.range && initial.range.length >= 7 ? initial.range.slice(0, 7) : monthKey(today));
@@ -195,12 +197,12 @@ export default function DropsClient({ upcoming, recent, initial = {} }: Props) {
     if (firstRender.current) { firstRender.current = false; return; }
     const params = new URLSearchParams();
     if (brand !== ALL) params.set('brand', brand);
-    if (search.trim()) params.set('q', search.trim());
+    if (debouncedSearch) params.set('q', debouncedSearch);
     if (view !== 'list') params.set('view', view);
     if (range !== 'all') params.set('range', range);
     const qs = params.toString();
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
-  }, [brand, search, view, range]);
+  }, [brand, debouncedSearch, view, range]);
 
   const brands = useMemo(() => [ALL, ...Array.from(new Set(upcoming.map((d) => d.brand))).sort()], [upcoming]);
   const months = useMemo(() => Array.from(new Set(upcoming.map((d) => monthKey(dateKey(d.releaseDate))))).sort(), [upcoming]);
@@ -208,7 +210,7 @@ export default function DropsClient({ upcoming, recent, initial = {} }: Props) {
 
   const matchesBrandSearch = (d: Drop) => {
     if (brand !== ALL && d.brand !== brand) return false;
-    const q = search.trim().toLowerCase();
+    const q = debouncedSearch.toLowerCase();
     if (q && !`${d.name} ${d.brand} ${d.colorway} ${d.where}`.toLowerCase().includes(q)) return false;
     return true;
   };
@@ -220,7 +222,7 @@ export default function DropsClient({ upcoming, recent, initial = {} }: Props) {
     if (range.length === 7) return monthKey(k) === range;
     if (range.length === 10) return k === range;
     return true;
-  }), [upcoming, brand, search, range]); // eslint-disable-line react-hooks/exhaustive-deps
+  }), [upcoming, brand, debouncedSearch, range]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const groups = useMemo(() => {
     const map = new Map<string, Drop[]>();
@@ -233,11 +235,11 @@ export default function DropsClient({ upcoming, recent, initial = {} }: Props) {
     const map = new Map<string, Drop[]>();
     [...recent, ...upcoming].filter(matchesBrandSearch).forEach((d) => { const k = dateKey(d.releaseDate); map.set(k, [...(map.get(k) ?? []), d]); });
     return map;
-  }, [upcoming, recent, brand, search]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [upcoming, recent, brand, debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const next = upcoming[0] ?? null;
   const recentFiltered = recent.filter(matchesBrandSearch);
-  const isFiltering = brand !== ALL || search.trim() !== '' || range !== 'all';
+  const isFiltering = brand !== ALL || debouncedSearch !== '' || range !== 'all';
 
   function pickDay(key: string) {
     const drops = byDay.get(key) ?? [];
@@ -349,7 +351,7 @@ export default function DropsClient({ upcoming, recent, initial = {} }: Props) {
       {view === 'list' && (
         groups.length === 0 ? (
           <div className="py-20 text-center border border-dashed border-zinc-200 mb-16">
-            <p className="text-sm text-zinc-400">No upcoming drops match{brand !== ALL ? ` ${brand}` : ''}{search ? ` “${search}”` : ''}.</p>
+            <p className="text-sm text-zinc-400">No upcoming drops match{brand !== ALL ? ` ${brand}` : ''}{debouncedSearch ? ` “${debouncedSearch}”` : ''}.</p>
             {isFiltering && (
               <button type="button" onClick={() => { setBrand(ALL); setSearch(''); setRange('all'); }} className="mt-3 text-xs text-zinc-500 underline underline-offset-4 hover:text-zinc-900">
                 Clear filters

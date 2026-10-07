@@ -209,6 +209,7 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Render free tier sleeps after 15 min inactivity → UptimeRobot pings `/health` every 5 min
 - `trust proxy 1` set on Express for correct IP in rate-limiter behind Render/Vercel
 - Backend is reachable on both `snkrskart.onrender.com` and `api.snkrscart.com` (Hostinger CNAME → Render custom domain). `sameSiteFor()` in `routes/auth.ts` picks `SameSite=Lax` only when request host AND Origin are under `snkrscart.com` (Safari/iOS keep the refresh cookie), else `SameSite=None` (old host, localhost dev). `COOKIE_SAMESITE` env overrides. Frontend must use `NEXT_PUBLIC_API_URL=https://api.snkrscart.com/api/v1` for first-party cookies. `http://localhost:3000` is always CORS-allowed.
+- Search boxes: input binds the raw value, filtering/fetching uses `useDebouncedSearch(value, delay)` from `frontend/lib/hooks/useDebouncedValue.ts` (trims, clears instantly). `SEARCH_DEBOUNCE_MS` 400 for API-backed search, `LOCAL_SEARCH_DEBOUNCE_MS` 250 for in-memory filters. API-backed ones also drop stale responses with a `useRef` sequence counter. Submit-only boxes (Navbar, order tracking) need neither.
 - Brand grid uses `brand.slug` (NOT `brand.id`) for brandMeta lookup
 - Next.js Image: allowed domains in `next.config.mjs` include Supabase + Cloudinary
 - Admin token stored in `localStorage` (not httpOnly cookie) — separate from customer auth

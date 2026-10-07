@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import { useRouter } from 'next/navigation';
 import { Product } from '@/types';
 import ProductFormModal from './ProductFormModal';
@@ -22,6 +23,7 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedSearch(search, LOCAL_SEARCH_DEBOUNCE_MS);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
@@ -103,8 +105,8 @@ export default function AdminDashboard() {
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
-      if (search) {
-        const q = search.toLowerCase();
+      if (debouncedSearch) {
+        const q = debouncedSearch.toLowerCase();
         if (!p.name.toLowerCase().includes(q) && !p.brand.toLowerCase().includes(q) && !p.sku.toLowerCase().includes(q) && !p.slug.toLowerCase().includes(q)) return false;
       }
       if (filterBrand && p.brand !== filterBrand) return false;
@@ -114,7 +116,7 @@ export default function AdminDashboard() {
       }
       return true;
     });
-  }, [products, search, filterBrand, filterGender, filterFlags]);
+  }, [products, debouncedSearch, filterBrand, filterGender, filterFlags]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);

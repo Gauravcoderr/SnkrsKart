@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getTrackingUrl, shipmentHeadline, shipmentTone, formatCheckpointTime } from '@/lib/tracking';
@@ -100,6 +101,7 @@ export default function AdminOrdersPage() {
   const [reasonModal, setReasonModal] = useState<{ title: string; text: string } | null>(null);
   const [filterStatus, setFilterStatus] = useState('all');
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedSearch(search, LOCAL_SEARCH_DEBOUNCE_MS);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
 
@@ -149,9 +151,9 @@ export default function AdminOrdersPage() {
     }
   }
 
-  const searched = search.trim()
+  const searched = debouncedSearch
     ? orders.filter((o) => {
-        const q = search.toLowerCase();
+        const q = debouncedSearch.toLowerCase();
         return (
           o.orderNumber.toLowerCase().includes(q) ||
           o.name.toLowerCase().includes(q) ||

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Paginator from '../_components/Paginator';
@@ -45,7 +45,8 @@ export default function ScrapedProductsPage() {
   const [scraperStatus, setScraperStatus] = useState<ScraperStatus | null>(null);
   const [toast, setToast] = useState('');
 
-  const { filters, handlers } = useFilters(() => setPage(1));
+  const { filters, inputs, handlers } = useFilters(() => setPage(1));
+  const fetchSeq = useRef(0);
   const { filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax, filterFlag } = filters;
   const { onSearchChange, onSiteChange, onBrandChange, onDateFromChange, onDateToChange, onPriceMinChange, onPriceMaxChange, onFlagChange, onClear } = handlers;
 
@@ -64,6 +65,7 @@ export default function ScrapedProductsPage() {
 
   const fetchItems = useCallback(async () => {
     if (tab === 'blacklist') return;
+    const seq = ++fetchSeq.current;
     setLoading(true);
     try {
       const token = getToken();
@@ -78,12 +80,13 @@ export default function ScrapedProductsPage() {
       if (filterFlag) params.set('flags', filterFlag);
       const res = await fetch(`${API}/admin/scraped-products?${params}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
+      if (seq !== fetchSeq.current) return;
       setItems(data.items ?? []);
       setTotal(data.total ?? 0);
     } catch {
-      showToast('Failed to load scraped products');
+      if (seq === fetchSeq.current) showToast('Failed to load scraped products');
     } finally {
-      setLoading(false);
+      if (seq === fetchSeq.current) setLoading(false);
     }
   }, [getToken, tab, page, limit, filterSearch, filterSite, filterBrand, filterDateFrom, filterDateTo, filterPriceMin, filterPriceMax, filterFlag]);
 
@@ -189,7 +192,7 @@ export default function ScrapedProductsPage() {
             type="text"
             aria-label="Search scraped products"
             placeholder="Search by name..."
-            value={filterSearch}
+            value={inputs.search}
             onChange={(e) => onSearchChange(e.target.value)}
             className="flex-1 max-w-sm bg-zinc-900 border border-zinc-800 rounded-lg px-3.5 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/20"
           />
@@ -293,8 +296,8 @@ export default function ScrapedProductsPage() {
           filterBrand={filterBrand}
           filterDateFrom={filterDateFrom}
           filterDateTo={filterDateTo}
-          filterPriceMin={filterPriceMin}
-          filterPriceMax={filterPriceMax}
+          filterPriceMin={inputs.priceMin}
+          filterPriceMax={inputs.priceMax}
           filterFlag={filterFlag}
           onSiteChange={onSiteChange}
           onBrandChange={onBrandChange}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useDebouncedSearch, LOCAL_SEARCH_DEBOUNCE_MS } from '@/lib/hooks/useDebouncedValue';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { BASE_URL } from '../_lib/config';
@@ -73,11 +74,12 @@ function ApproveModal({
   busy: boolean;
 }) {
   const [query, setQuery] = useState(`${request.brand} ${request.name}`.trim());
+  const debouncedQuery = useDebouncedSearch(query, LOCAL_SEARCH_DEBOUNCE_MS);
   const [picked, setPicked] = useState<AdminProduct | null>(request.product ? { id: request.product._id, slug: request.product.slug, name: request.product.name, brand: request.product.brand, images: request.product.images } : null);
   const [note, setNote] = useState(request.adminNote || '');
 
   const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = debouncedQuery.toLowerCase();
     if (!q) return products.slice(0, 10);
     const terms = q.split(/\s+/).filter(Boolean);
     return products
@@ -86,7 +88,7 @@ function ApproveModal({
         return terms.every((t) => hay.includes(t));
       })
       .slice(0, 10);
-  }, [products, query]);
+  }, [products, debouncedQuery]);
 
   const inputClass = 'w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20';
 
