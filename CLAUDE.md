@@ -81,6 +81,8 @@ backend/src/
   lib/sellerOffers.ts       attachSellerOffers(): merge store stock + seller listings into product.offers
   lib/sellerOrders.ts       createSellerOrders / syncSellerOrdersWithOrder / applySellerTrackingToOrder
   lib/sellerEmails.ts       seller + admin + customer-shipped email templates
+  scripts/refreshBlogs.ts   show | backup | apply <updates.json> for live blog refreshes (always backs up to content-ml/data/backups/ first, pings IndexNow); used for Search Console refresh-queue work
+  scripts/exportContentCorpus.ts  exports blogs/drops/profiles (with published flag) to content-ml/data/ours.jsonl and a fact catalog (product SKUs + INR prices incl. seller list prices, scraped INR prices, drop dates) to content-ml/data/catalog.jsonl; writes via .tmp + rename
   lib/emailLayout.ts        shared email chrome: transactionalShell(body, reason) + emailFooterRows (blog-style footer: socials, Connect With Us, brand line) + EMAIL_REASON per audience; every transactional + marketing email goes through it
   config/database.ts          MongoDB connect (MONGODB_URI → dbName: snkrs-cart)
   index.ts                    Express app entry, all routes registered, /health endpoint
@@ -95,6 +97,7 @@ All prefixed `/api/v1/`. Admin routes require `Authorization: Bearer <admin_toke
 | `GET /products/:slug` | single product |
 | `GET /drops?days=N` | published drops: upcoming + released in last N days (default 7, max 90) |
 | `GET /sneaker-profiles` | list select includes `releaseYear originalRetailPrice designer` for cards |
+| `GET /sneaker-profiles/:slug` | profile + computed `market: {inrMin, inrMax, listings, productSlugs}` or null (brand + whole-word model prefix match on store products incl. seller offers and scraped prices; kids/coming-soon excluded; no store names; cached 5 min per slug) |
 | `POST /api/v1/chat/lead` | save KickBot lead (name, email, phone, interests[]) |
 | `GET /admin/chat-leads` | admin: list chat leads |
 | `DELETE /admin/chat-leads/:id` | admin: delete chat lead |
@@ -141,7 +144,22 @@ Nike, Jordan (Air Jordan), Adidas, New Balance, Crocs
 - `/drops` UI: next-drop strip with live `Countdown`, search, brand chips, date-range chips, list view grouped by date (sticky day headers) or month calendar view, recently released (30 days), SEO copy + FAQ (FAQPage + ItemList JSON-LD).
 - `AddToCalendar` (Google URL + .ics download) lives in `components/drops/`; date helpers in `lib/calendar.ts` (all UTC-date based, matching stored midnight-UTC release dates).
 - Header nav has a `Drops` link.
+- `Drop` has optional `styleCode` (trimmed, upper-cased) and `launchTimeIST` (`HH:MM` 24h or empty, validated in admin create/update). Drop detail page shows both, passes `launchTimeIST` to `Countdown` (targets `day T HH:MM +05:30`, else midnight UTC), renders a per-size INR offers table from the linked product's `offers` (only when the product is fetched, not coming soon and has buyable sizes), and a visible FAQ + FAQPage JSON-LD built only from stored fields (3 to 5 questions, hidden below 3).
+- `SneakerProfile` has optional `indiaRetailPrice` (INR MRP or null) and `sizeNotes`. Profile page shows India retail, "Current price in India" from `market` (shop link only when our own products matched), sizing, and a FAQ + FAQPage JSON-LD from stored fields. Never show other stores' names or links.
 - Drop detail hero is `components/drops/DropGallery.tsx` (client): 4:3 stage, `object-contain` (never crop), slides = `[image, ...images]` deduped. Slider chrome (thumbs, arrows, counter, swipe, arrow keys, lightbox) only when 2+ images. `Drop.images: string[]` optional; admin form has multi-upload + reorder.
+
+## Content ML (`content-ml/`)
+- Free, local pre-publish model that the /blog, /drop and /sneaker skills run in their "Content ML Loop" step (repo copies of the skills live in `.claude/commands/`, mirrored in `~/.claude/commands/`; keep them identical). Python 3.9 venv at `content-ml/.venv`; `data/`, `models/` and `secrets/` are git-ignored.
+- `src/enhance.py <draft.json>` (exit 0 pass, 2 revise): blocking checks are facts (prices/dates/style codes vs `data/catalog.jsonl`, or a source link / draft `sources`) and near-duplicates (TF-IDF vs all posts of the same kind incl. unpublished and other drafts). Advisory: style score, stock words, Google India autocomplete + Search Console queries. Safe swaps (no global re-capitalisation, quotes and blockquotes untouched). Paragraph rewrites use the LoRA rewriter behind `factlock.py` placeholders and one shared gate `accept()`.
+- Style scorer: LightGBM on 30 style features + TF-IDF LR, trained only on matched pairs (pre-Nov-2022 human sneaker articles vs local Qwen rewrites vs Claude blog-voice rewrites of the same paragraphs); thresholds from human out-of-fold scores, frozen per version.
+- Rewriter: Qwen2.5-1.5B-Instruct-4bit + MLX LoRA. `train.sh rewriter` trains a candidate, `promote.py` picks the lowest-val checkpoint and promotes only if it beats the live adapter by 5+ accepted paragraphs on the frozen `models/eval_ours.jsonl` (100 of our own paragraphs). `train.sh retrain-if-due` runs at the end of `scripts/auto-content.sh` under `caffeinate` (needs 30 new published flywheel pairs).
+- Search Console: `src/gsc.py pull|queue|queries <slug>` (service account key in `content-ml/secrets/gsc.json`, setup in `content-ml/GSC_SETUP.md`) writes `data/gsc_pages.json` and `data/refresh_queue.json` (position 8 to 20, 50+ impressions). Live since 2026-10-09 with service account `snkrs-cart@snkrs-cart.iam.gserviceaccount.com` (Restricted) in GCP project `snkrs-cart`; `auto-content.sh` pulls it on every scheduled run. The EMB work org blocks service-account keys, so GSC keys must come from the personal-account project.
+- `content-ml/commands/*.sh` are owner-runnable wrappers (status, check-draft, check-post with `--no-log`, keywords, export-content, gsc-pull, train-scorer, train-rewriter, promote, retrain, make-pairs, stop, setup, run-auto-content); heavy ones refuse under 30W unless `FORCE=1`. Keep `commands/README.md` in sync when changing them.
+- Hardware: the M1 8 GB cannot run MLX training on a weak charger; run heavy jobs alone and check `pmset -g batt` first.
+- `scripts/com.snkrscart.autocontent.plist` runs Mon/Wed/Fri 13:30 (`StartCalendarInterval`, fires on next wake if asleep). `auto-content.sh` refuses to start on a dirty working tree.
+
+## Brand pages (`/brands/[slug]`)
+- `<title>` and meta description come from `frontend/lib/brandSeo.ts` `brandSeo()`: top 2 to 3 stocked models per brand (NB variants grouped, shared prefixes compressed, title kept to 60 chars), footwear-only price range (`productType` shoes, not coming soon). The on-page "starting from" price is also footwear-only. Added 2026-10-09 because `/brands/new-balance` had 3,378 impressions at position 8 and 1 click for "new balance india".
 
 ## Homepage section order
 MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → TrendingNow → WhyChooseUs → ComingSoon → NewsletterBar
