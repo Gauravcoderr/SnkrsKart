@@ -8,6 +8,7 @@ import {
   getComingSoonProducts,
 } from '../controllers/productController';
 import { Product } from '../models/Product';
+import { attachSellerOffers } from '../lib/sellerOffers';
 
 const router = Router();
 
@@ -52,13 +53,13 @@ router.get('/slugs', async (req: Request, res: Response): Promise<void> => {
 // Every product, feed fields incl. sku + description, no pagination cap. Cached 1h upstream.
 router.get('/feed', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const products = await Product.find({})
+    const products = await attachSellerOffers(await Product.find({})
       .sort({ createdAt: -1 })
       .select('slug name brand colorway colors gender price originalPrice discount images hoverImage ' +
-              'sizes availableSizes stringSizes availableStringSizes productType soldOut comingSoon ' +
+              'sizes availableSizes stringSizes availableStringSizes variants productType soldOut comingSoon ' +
               'releaseDate description sku category tags faqs rating reviewCount ' +
               'featured trending newArrival createdAt')
-      .lean();
+      .lean());
     res.json({ products: products.map((p) => ({ ...p, id: (p._id as any).toString() })), total: products.length });
   } catch {
     res.status(500).json({ error: 'Failed to build product feed' });

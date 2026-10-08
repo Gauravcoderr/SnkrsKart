@@ -192,7 +192,7 @@ export default async function AboutPage() {
                 <strong className="text-white">SNKRS CART is an independent reseller</strong> — we are not an official retailer or authorised dealer of Nike, Jordan, Adidas, New Balance, or Crocs. We are not affiliated with, endorsed by, or partnered with any of these brands.
               </p>
               <p>
-                We source genuine, brand-new sneakers through authorised importers and licensed distributors. Every pair is physically inspected by us before it is listed or dispatched.
+                We sell genuine, brand-new sneakers from our own stock, and some sizes are listed by vetted independent sellers. Pairs from our stock are physically inspected by us, and seller pairs are photo-verified by our team before they ship.
               </p>
               <p>
                 We operate as a sole proprietorship based in Pauri Garhwal, Uttarakhand. We sell directly to customers across India — no middlemen, no auction model.
@@ -202,9 +202,9 @@ export default async function AboutPage() {
               <div className="border border-zinc-700 p-5">
                 <h3 className="text-xs font-black uppercase tracking-widest text-white mb-3">How We Verify Authenticity</h3>
                 <ul className="space-y-2 text-xs text-zinc-400">
-                  <li className="flex gap-2"><span className="text-zinc-600 shrink-0">01</span> Source only from authorised importers and licensed distributors</li>
+                  <li className="flex gap-2"><span className="text-zinc-600 shrink-0">01</span> Buy only from vetted suppliers and verified independent sellers</li>
                   <li className="flex gap-2"><span className="text-zinc-600 shrink-0">02</span> Physical inspection of stitching, box labels, insole print, and sole patterns</li>
-                  <li className="flex gap-2"><span className="text-zinc-600 shrink-0">03</span> Photograph the exact pair before confirming any order</li>
+                  <li className="flex gap-2"><span className="text-zinc-600 shrink-0">03</span> Photo-verify every seller pair from six angles before it ships</li>
                   <li className="flex gap-2"><span className="text-zinc-600 shrink-0">04</span> Full refund if any authenticity concern — no questions asked</li>
                 </ul>
               </div>
@@ -264,7 +264,7 @@ export default async function AboutPage() {
               <div>
                 <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-600 mb-1">Based in</p>
                 <p className="text-sm text-white font-medium">Pauri Garhwal, Uttarakhand, India</p>
-                <p className="text-xs text-zinc-500 mt-1">Shipping across India · All sneakers dispatched within 1–2 business days</p>
+                <p className="text-xs text-zinc-500 mt-1">Shipping across India · Orders dispatched within 3 business days</p>
               </div>
             </div>
 

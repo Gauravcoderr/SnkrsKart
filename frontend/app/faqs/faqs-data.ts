@@ -1,7 +1,7 @@
 export const faqs = [
   {
     q: 'Are all products 100% authentic?',
-    a: 'Yes, absolutely. Every sneaker sold on SNKRS CART is 100% authentic and sourced from authorised retailers and verified distributors. We personally inspect each pair before dispatch.',
+    a: 'Yes, absolutely. Every sneaker sold on SNKRS CART is 100% authentic. Pairs from our own stock are physically inspected by us, and pairs listed by verified independent sellers are photo-verified by our team before they ship.',
   },
   {
     q: 'How do I purchase a sneaker?',
@@ -13,7 +13,7 @@ export const faqs = [
   },
   {
     q: 'How long does delivery take?',
-    a: 'Orders are typically delivered within 3–7 business days across India. Customers in Uttarakhand may receive their orders in 1–3 business days.',
+    a: 'Orders are dispatched within 3 business days and typically delivered within 3–7 business days across India. Sizes marked Pre-order ship in about 20 days, and the delivery estimate is shown on each size before you pay.',
   },
   {
     q: 'Do you ship across India?',
@@ -21,7 +21,7 @@ export const faqs = [
   },
   {
     q: 'Can I cancel, return, or exchange my order?',
-    a: 'You can cancel your order anytime before it is dispatched (usually within 1–2 business days) — just email or WhatsApp us with your order ID. Once delivered, all sales are final and we do not accept returns or exchanges for change of mind or size. If you receive a wrong or damaged item, contact us within 48 hours of delivery with photos and we will replace it or issue a full refund. See our full Cancellation & Refund Policy for details.',
+    a: 'You can cancel your order anytime before it is dispatched (within 3 business days) — just email or WhatsApp us with your order ID. Once delivered, all sales are final and we do not accept returns or exchanges for change of mind or size. If you receive a wrong or damaged item, contact us within 48 hours of delivery with photos and we will replace it or issue a full refund. See our full Cancellation & Refund Policy for details.',
   },
   {
     q: 'What sizes are listed in?',

@@ -69,12 +69,12 @@ export default async function TermsOfService() {
 
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Purchase Process</h2>
-          <p>SNKRS CART is a fully operational online store. You can browse products, add items to your cart, and complete your purchase through our secure checkout. Orders are confirmed immediately upon successful payment. We dispatch all orders within 1–2 business days and send tracking details once shipped.</p>
+          <p>SNKRS CART is a fully operational online store. You can browse products, add items to your cart, and complete your purchase through our secure checkout. Orders are confirmed immediately upon successful payment. We dispatch orders within 3 business days (sizes marked Pre-order take about 20 days, shown before you pay) and send tracking details once shipped.</p>
         </section>
 
         <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Product Authenticity</h2>
-          <p>All products sold by SNKRS CART are 100% authentic. We source our inventory from authorised retailers and verified distributors. Every sneaker is personally inspected before dispatch. If you have any authenticity concern after receiving your order, contact us immediately and we will resolve it.</p>
+          <p>All products sold by SNKRS CART are 100% authentic. Pairs from our own stock are physically inspected before dispatch, and pairs listed by verified independent sellers are photo-verified by our team before they ship. If you have any authenticity concern after receiving your order, contact us immediately and we will resolve it.</p>
         </section>
 
         <section>

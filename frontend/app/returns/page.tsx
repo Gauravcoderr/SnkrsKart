@@ -55,7 +55,7 @@ export default async function Returns() {
         <div className="bg-zinc-900 text-white p-6 mb-10">
           <h2 className="text-sm font-bold uppercase tracking-widest mb-2">100% Authentic — Our Promise</h2>
           <p className="text-sm text-zinc-300 leading-relaxed">
-            Every sneaker at SNKRS CART is personally verified for authenticity before dispatch. We photograph the exact pair you will receive and share it with you before confirming your order.
+            Every sneaker at SNKRS CART is checked for authenticity before dispatch. Pairs from our own stock are physically inspected, and pairs from verified independent sellers are photo-verified by our team before they ship.
           </p>
         </div>
 
@@ -63,7 +63,7 @@ export default async function Returns() {
 
           <section>
             <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Order Cancellation</h2>
-            <p className="mb-2">You can cancel your order anytime <strong className="text-zinc-900">before it is dispatched</strong>. Orders are dispatched within 1–2 business days of confirmation, so cancellation requests must reach us within that window.</p>
+            <p className="mb-2">You can cancel your order anytime <strong className="text-zinc-900">before it is dispatched</strong>. Orders are dispatched within 3 business days of confirmation (Pre-order sizes take about 20 days), so cancellation requests must reach us before dispatch.</p>
             <p className="mb-2">To cancel: email or WhatsApp us with your order ID. We do not currently support self-service cancellation from your account — every request is handled manually by our team.</p>
             <p className="text-xs text-zinc-500">Once an order has shipped, it can no longer be cancelled. It can only be returned after delivery if the item is damaged, incorrect, or has an authenticity concern — see eligibility below.</p>
           </section>

@@ -32,7 +32,6 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const shippingInfo = [
   { region: 'Pan-India (All States)', time: '3–7 Business Days', cost: 'Free on all orders', note: 'Delivery via Delhivery, DTDC, and other trusted courier partners' },
-  { region: 'Uttarakhand (Local)', time: '1–3 Business Days', cost: 'Free', note: 'Faster delivery to Pauri Garhwal and nearby areas' },
 ];
 
 export default async function ShippingInfo() {
@@ -77,7 +76,7 @@ export default async function ShippingInfo() {
           <ol className="list-decimal list-inside space-y-2">
             <li>Add your item to cart and complete checkout on snkrscart.com</li>
             <li>Your order is confirmed immediately upon successful payment</li>
-            <li>We dispatch within 1–2 business days in secure tamper-proof packaging</li>
+            <li>We dispatch within 3 business days in secure tamper-proof packaging (sizes marked Pre-order ship in about 20 days; the delivery estimate is shown on each size before you pay)</li>
             <li>You receive a tracking number via email/WhatsApp once shipped</li>
           </ol>
         </section>

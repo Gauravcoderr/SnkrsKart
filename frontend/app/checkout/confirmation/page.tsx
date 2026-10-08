@@ -33,7 +33,7 @@ function PaidState({ orderNumber }: { orderNumber: string }) {
           </li>
           <li className="flex items-start gap-2">
             <span className="w-5 h-5 bg-emerald-600 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">2</span>
-            <span>Your order will be packed and dispatched within 1–2 business days</span>
+            <span>Your order will be packed and dispatched within 3 business days (Pre-order sizes take about 20 days)</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="w-5 h-5 bg-emerald-600 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">3</span>

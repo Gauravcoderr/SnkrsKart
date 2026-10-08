@@ -49,7 +49,7 @@ export async function GET() {
     `## Shipping Policy`,
     `Free shipping across all of India.`,
     `Delivery time: 3–7 business days after dispatch.`,
-    `Orders dispatched within 1 business day of confirmation.`,
+    `Orders dispatched within 3 business days of confirmation (Pre-order sizes about 20 days).`,
     `Tracking provided via courier partner once dispatched.`,
     `Couriers used: Delhivery, DTDC, Blue Dart, Xpressbees (varies by pincode).`,
     ``,

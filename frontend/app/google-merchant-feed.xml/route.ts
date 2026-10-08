@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { fetchAllProducts } from '@/lib/catalog';
+import { fullProductName } from '@/lib/productTitle';
+import { AVAILABILITY_META } from '@/lib/availability';
+import type { Availability } from '@/types';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
@@ -37,6 +40,36 @@ interface Product {
   category?: string;
   sku?: string;
   productType?: string;
+  offers?: { size: number | string; price: number; availability: Availability }[];
+}
+
+const STYLE_CODE = /^(?:[A-Z]{2}\d{4}-\d{3}|\d{6}-\d{2,3}|[A-Z]{2}\d{4}|\d{4}[A-Z]\d{3}-\d{3}|[MUW]\d{3,4}[A-Z]{2,4}\d?)$/i;
+
+const KNOWN_BRANDS = ['Nike', 'Jordan', 'Adidas', 'New Balance', 'Crocs', 'Puma', 'Asics', 'On', 'Coach', 'Converse', 'Vans', 'Reebok'];
+
+const HANDLING_DAYS: Record<Availability, [number, number]> = {
+  instant: [0, 1],
+  inhand: [1, 3],
+  eta: [15, AVAILABILITY_META.eta.shipDays],
+};
+
+function canonicalBrand(raw: string): string {
+  const t = (raw || '').trim();
+  const lower = t.toLowerCase();
+  return KNOWN_BRANDS.find((b) => lower === b.toLowerCase() || lower.startsWith(`${b.toLowerCase()} `)) ?? t;
+}
+
+function colorParts(colorway?: string): string[] {
+  return (colorway ?? '')
+    .replace(/^\s*(?:and|&)\s+/i, '')
+    .split(/\s*[|/]\s*/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function validMpn(sku?: string): string | null {
+  const s = (sku ?? '').trim();
+  return STYLE_CODE.test(s) ? s.toUpperCase() : null;
 }
 
 function escapeXml(str: string): string {
@@ -102,21 +135,36 @@ function googleCategory(p: Product): string {
 
 function productTypeAttr(p: Product): string {
   const type = p.productType ?? 'shoes';
-  return `${TYPE_LABEL[type] ?? TYPE_LABEL.shoes} > ${p.brand}`;
+  return `${TYPE_LABEL[type] ?? TYPE_LABEL.shoes} > ${canonicalBrand(p.brand)}`;
 }
 
 /** Fallback description when the product has none. Unique per product, not boilerplate. */
 function fallbackDescription(p: Product): string {
   const isShoe = (p.productType ?? 'shoes') === 'shoes';
   const who = p.gender === 'men' ? "Men's" : p.gender === 'women' ? "Women's" : 'Unisex';
+  const colors = colorParts(p.colorway).join(' / ');
   const bits = [
-    `${p.brand} ${p.name}${p.colorway ? ` in ${p.colorway}` : ''}.`,
-    `100% authentic, verified before dispatch.`,
+    `${fullProductName(canonicalBrand(p.brand), p.name)}${colors ? ` in ${colors}` : ''}.`,
+    `Brand new and checked for authenticity before dispatch.`,
     isShoe ? `${who} sizing (UK).` : `${who} fit.`,
-    `Free pan-India shipping from SNKRS CART.`,
+    `Free shipping across India from SNKRS CART.`,
   ];
   return bits.join(' ');
 }
+
+function description(p: Product): string {
+  const plain = p.description ? plainText(p.description) : '';
+  return plain.length >= 60 ? plain : fallbackDescription(p);
+}
+
+function titleFor(p: Product, sizeSuffix: string): string {
+  const base = fullProductName(canonicalBrand(p.brand), p.name);
+  const colors = colorParts(p.colorway).join(' / ');
+  const withColor = colors && !base.toLowerCase().includes(colors.toLowerCase()) ? `${base} - ${colors}` : base;
+  return `${withColor.slice(0, 150 - sizeSuffix.length)}${sizeSuffix}`;
+}
+
+type Offer = NonNullable<Product['offers']>[number];
 
 interface Variant {
   /** Size label as shown to the buyer; undefined → single un-sized item */
@@ -125,6 +173,7 @@ interface Variant {
   inStock: boolean;
   /** shoes carry UK sizing; apparel uses free-form S/M/L */
   isShoe: boolean;
+  offer?: Offer;
 }
 
 function variants(p: Product): Variant[] {
@@ -132,17 +181,23 @@ function variants(p: Product): Variant[] {
   const all: string[] = isShoe
     ? (p.sizes?.length ? p.sizes : p.availableSizes).map(String)
     : (p.stringSizes?.length ? p.stringSizes : p.availableStringSizes ?? []);
+  const offers = new Map((p.offers ?? []).map((o) => [String(o.size), o]));
   const avail = new Set(
-    (isShoe ? p.availableSizes.map(String) : p.availableStringSizes ?? []),
+    p.offers ? Array.from(offers.keys()) : (isShoe ? p.availableSizes.map(String) : p.availableStringSizes ?? []),
   );
   if (all.length === 0) return [{ inStock: false, isShoe }];
-  return all.map((size) => ({ size, inStock: avail.has(size), isShoe }));
+  return all.map((size) => ({ size, inStock: avail.has(size), isShoe, offer: offers.get(size) }));
 }
 
 function availability(p: Product, v: Variant): string {
   if (p.comingSoon) return 'preorder';
   if (p.soldOut || !v.inStock) return 'out of stock';
+  if (v.offer?.availability === 'eta') return 'backorder';
   return 'in stock';
+}
+
+function isoDaysFromNow(days: number): string {
+  return new Date(Date.now() + days * 86_400_000).toISOString();
 }
 
 function variantEntry(p: Product, v: Variant): string {
@@ -152,11 +207,15 @@ function variantEntry(p: Product, v: Variant): string {
 
   // g:price = actual selling price. Permanent markdowns are NOT sale_price (Google rejects
   // sale prices that never end), so originalPrice is intentionally not emitted.
-  const sellingPrice = `${p.price.toFixed(2)} INR`;
+  const sellingPrice = `${(v.offer?.price ?? p.price).toFixed(2)} INR`;
 
   const sizeSuffix = v.size ? (v.isShoe ? ` - UK ${v.size}` : ` - ${v.size}`) : '';
-  const title = escapeXml(`${p.brand} ${p.name}${p.colorway ? ` - ${p.colorway}` : ''}${sizeSuffix}`);
-  const desc = escapeXml(p.description ? plainText(p.description) || fallbackDescription(p) : fallbackDescription(p));
+  const title = escapeXml(titleFor(p, sizeSuffix));
+  const desc = escapeXml(description(p));
+  const brand = canonicalBrand(p.brand);
+  const colors = colorParts(p.colorway).slice(0, 3).join('/').slice(0, 100);
+  const mpn = validMpn(p.sku);
+  const handling = v.offer && v.inStock ? HANDLING_DAYS[v.offer.availability] : null;
 
   const av = availability(p, v);
   const sizeKey = v.size ? `-${v.isShoe ? 'uk-' : ''}${v.size.toLowerCase().replace(/[^a-z0-9.]+/g, '-')}` : '';
@@ -172,22 +231,23 @@ function variantEntry(p: Product, v: Variant): string {
     ...extraImages.map((img) => `<g:additional_image_link>${escapeXml(img)}</g:additional_image_link>`),
     `<g:availability>${av}</g:availability>`,
     av === 'preorder' && p.releaseDate ? `<g:availability_date>${escapeXml(p.releaseDate)}</g:availability_date>` : '',
+    av === 'backorder' ? `<g:availability_date>${isoDaysFromNow(AVAILABILITY_META.eta.shipDays)}</g:availability_date>` : '',
     `<g:price>${sellingPrice}</g:price>`,
-    `<g:brand>${escapeXml(p.brand)}</g:brand>`,
+    `<g:brand>${escapeXml(brand)}</g:brand>`,
     `<g:condition>new</g:condition>`,
     `<g:google_product_category>${escapeXml(googleCategory(p))}</g:google_product_category>`,
     `<g:product_type>${escapeXml(productTypeAttr(p))}</g:product_type>`,
     `<g:gender>${escapeXml(genderAttr(p.gender))}</g:gender>`,
     `<g:age_group>${ageGroup(p.gender)}</g:age_group>`,
     `<g:item_group_id>${escapeXml(groupId)}</g:item_group_id>`,
-    p.colorway ? `<g:color>${escapeXml(p.colorway)}</g:color>` : '',
+    colors ? `<g:color>${escapeXml(colors)}</g:color>` : '',
     v.size ? `<g:size>${escapeXml(v.size)}</g:size>` : '',
     v.size && v.isShoe ? `<g:size_system>UK</g:size_system>` : '',
     // Style code (e.g. FD4810-010) is the manufacturer part number. No GTINs on file.
-    p.sku ? `<g:mpn>${escapeXml(p.sku)}</g:mpn>` : '',
-    `<g:identifier_exists>${p.sku ? 'yes' : 'no'}</g:identifier_exists>`,
+    mpn ? `<g:mpn>${escapeXml(mpn)}</g:mpn>` : '',
     `<g:shipping><g:country>IN</g:country><g:service>Standard</g:service><g:price>0 INR</g:price></g:shipping>`,
-    `<g:shipping_label>Free Shipping</g:shipping_label>`,
+    handling ? `<g:min_handling_time>${handling[0]}</g:min_handling_time>` : '',
+    handling ? `<g:max_handling_time>${handling[1]}</g:max_handling_time>` : '',
   ].filter(Boolean);
 
   return `<item>\n      ${lines.join('\n      ')}\n    </item>`;

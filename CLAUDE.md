@@ -184,6 +184,12 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - `tag === 'Delivered'` → seller order delivered + payout due; parent order delivered (review email) when every non-cancelled seller order is delivered and there are no store items, or when the store shipment itself is delivered. Coins still flow through `processPendingCoins` off `deliveredAt`.
 - UI: live status card on customer `/account/orders`, seller order detail, admin orders and admin seller-orders.
 
+## Google Merchant Center (account 5750742430)
+- Data source "PRODUCTS SOURCE 1" (id 10624791824) must fetch `https://www.snkrscart.com/google-merchant-feed.xml`, country IN only (we ship to India only, INR). Website autofeed stays off so the crawl never adds a second copy of the catalogue.
+- Feed (`frontend/app/google-merchant-feed.xml/route.ts`): one item per size. Price + availability per size come from `offers` (backend `GET /products/feed` runs `attachSellerOffers`), `eta` sizes go out as `backorder` with `availability_date` and handling 15 to 20 days, other in-stock sizes carry `min/max_handling_time`. Title = `fullProductName(canonicalBrand, name)` + colors, colors `/`-joined (max 3), `mpn` only when `sku` looks like a real style code (no `identifier_exists` otherwise), description falls back to a generated one when the stored text is under 60 chars.
+- Policy text must agree everywhere Google can read it (shipping, returns, terms, FAQ, contact, about, checkout confirmation, llms-full, MC shipping + return settings): dispatch within 3 business days, delivery 3 to 7 business days, Pre-order sizes about 20 days; returns only for damaged/wrong/authenticity issues within 48 h. Admin CMS `site-content` (`shipping`, `terms`, `privacy`) overrides the page code whenever `htmlContent` is set, so edit both.
+- Merchant API: GCP project `snkrs-cart` is registered (2026-10-09). Owner OAuth refresh token in `content-ml/secrets/merchant_token.json` (web client `merchant_oauth_client.json`, redirect `https://snkrs-kart.vercel.app`, code pasted back from the address bar). Service accounts cannot call `registerGcp`. Set request timeouts, some calls hang.
+
 ## Deal Verification feature
 
 - "Found it cheaper? Verify the deal" button on product detail page (non-comingSoon products only)

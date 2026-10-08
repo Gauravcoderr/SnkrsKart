@@ -92,7 +92,7 @@ export default function ContactPage() {
             <div>
               <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">Address</p>
               <p className="text-sm font-semibold text-zinc-900">House No. 4, Lingwal Bhawan, Circuit House Road, Pauri Garhwal – 246001, Uttarakhand, India</p>
-              <p className="text-xs text-zinc-500 mt-1">Shipping across India · Orders dispatched within 1–2 business days</p>
+              <p className="text-xs text-zinc-500 mt-1">Shipping across India · Orders dispatched within 3 business days</p>
             </div>
           </div>
         </div>
