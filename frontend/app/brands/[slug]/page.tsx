@@ -1,5 +1,6 @@
 import { notFound, permanentRedirect } from 'next/navigation';
 import type { Metadata } from 'next';
+import type { Product } from '@/types';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { fetchBrandBySlug, fetchProducts, NotFoundError } from '@/lib/api';
@@ -8,6 +9,7 @@ import { BRANDS } from '@/lib/constants';
 import ProductCard from '@/components/products/ProductCard';
 import BrandSortSelect from './BrandSortSelect';
 import { fullProductName } from '@/lib/productTitle';
+import { brandSeo, isShoe } from '@/lib/brandSeo';
 
 interface Props {
   params: { slug: string };
@@ -23,20 +25,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const meta = BRANDS.find((b) => b.slug === slug);
     const url = `${SITE_URL}/brands/${slug}`;
     const products = await fetchProducts({ brands: [meta?.label ?? brand.name], limit: 48 }).catch(() => []);
-    const productList = Array.isArray(products) ? products : (products as { products?: { price: number }[] }).products ?? [];
-    const lowestPrice = productList.length > 0
-      ? Math.min(...productList.map((p: { price: number }) => p.price))
-      : null;
+    const productList = (Array.isArray(products) ? products : (products as { products?: Product[] }).products ?? []) as Product[];
+    const seo = brandSeo(brand.name, slug, productList);
 
     return {
-      title: { absolute: lowestPrice
-        ? `${brand.name} Sneakers India — Starting ₹${lowestPrice.toLocaleString('en-IN')} | Snkrs Cart`
-        : `${brand.name} Sneakers India | Buy ${brand.name} Shoes Online | Snkrs Cart` },
-      description: `Shop authentic ${brand.name} sneakers in India${lowestPrice ? ` starting from ₹${lowestPrice.toLocaleString('en-IN')}` : ''}. ${brand.description || `Explore the full ${brand.name} collection — exclusive drops, classics & more.`} 100% authentic, free pan-India shipping.`,
+      title: { absolute: seo.title },
+      description: seo.description,
       alternates: { canonical: url },
       openGraph: {
-        title: `${brand.name} Sneakers | Snkrs Cart`,
-        description: `Shop authentic ${brand.name} shoes in India.`,
+        title: seo.title,
+        description: seo.description,
         url,
         siteName: 'Snkrs Cart',
         type: 'website',
@@ -77,9 +75,8 @@ export default async function BrandPage({ params, searchParams }: Props) {
     : [];
 
   const sort = searchParams.sort || 'popular';
-  const lowestPrice = Array.isArray(products) && products.length > 0
-    ? Math.min(...products.map((p) => p.price))
-    : null;
+  const shoePrices = Array.isArray(products) ? products.filter(isShoe).map((p) => p.price) : [];
+  const lowestPrice = shoePrices.length > 0 ? Math.min(...shoePrices) : null;
   const sortedProducts = Array.isArray(products) ? [...products].sort((a, b) => {
     if (sort === 'price-asc') return a.price - b.price;
     if (sort === 'price-desc') return b.price - a.price;
