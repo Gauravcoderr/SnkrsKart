@@ -12,10 +12,12 @@
         <string>$HOME/snkrs-cart/scripts/auto-content.sh</string>
     </array>
 
-    <!-- Every 2 days. launchd fires shortly after wake if the interval
-         elapsed while the Mac was asleep. -->
-    <key>StartInterval</key>
-    <integer>172800</integer>
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>13</integer><key>Minute</key><integer>30</integer></dict>
+        <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>13</integer><key>Minute</key><integer>30</integer></dict>
+        <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>13</integer><key>Minute</key><integer>30</integer></dict>
+    </array>
 
     <!-- Do not fire the moment this agent is loaded (or on every login). -->
     <key>RunAtLoad</key>

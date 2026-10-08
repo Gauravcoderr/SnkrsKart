@@ -174,6 +174,17 @@ probe() {
   else log "--- probe FAILED: fix the above before trusting the timer ---"; return 1; fi
 }
 
+maybe_retrain() {
+  local ml="$REPO/content-ml"
+  if [[ -x "$ml/train.sh" && -x "$ml/.venv/bin/python" ]]; then
+    if [[ -f "$ml/secrets/gsc.json" ]]; then
+      "$ml/commands/gsc-pull.sh" >> "$LOG" 2>&1 || log "warn: Search Console pull failed"
+    fi
+    log "content-ml: checking whether a retrain is due"
+    /usr/bin/caffeinate -i "$ml/train.sh" retrain-if-due >> "$LOG" 2>&1 || log "warn: content-ml retrain failed"
+  fi
+}
+
 main() {
   rotate_log
 
@@ -235,6 +246,7 @@ main() {
     log "no file changes produced; deleting empty branch"
     git checkout --quiet main
     git branch --quiet -D "$branch"
+    maybe_retrain
     log "=== run end: nothing to review ==="
     return 0
   fi
@@ -254,6 +266,7 @@ published: false. No marketing email sent. Review before merging."
   fi
 
   git checkout --quiet main
+  maybe_retrain
   log "=== run end: branch $branch ready for review ==="
 }
 
