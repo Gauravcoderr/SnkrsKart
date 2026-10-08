@@ -14,6 +14,8 @@ export interface IDrop extends Document {
   where: string;
   availableAtStore: boolean;
   productSlug: string;
+  styleCode: string;
+  launchTimeIST: string;
   published: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -34,6 +36,8 @@ const DropSchema = new Schema<IDrop>(
     where: { type: String, default: '' },
     availableAtStore: { type: Boolean, default: false },
     productSlug: { type: String, default: '' },
+    styleCode: { type: String, default: '', trim: true, uppercase: true },
+    launchTimeIST: { type: String, default: '', match: /^(?:([01]\d|2[0-3]):[0-5]\d)?$/ },
     published: { type: Boolean, default: false },
   },
   { timestamps: true }

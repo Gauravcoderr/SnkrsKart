@@ -73,6 +73,51 @@ export default async function SneakerHubPage({ params }: Props) {
 
   const url = `${SITE_URL}/sneakers/${params.slug}`;
 
+  const market = profile.market ?? null;
+  const indiaRetail = profile.indiaRetailPrice && profile.indiaRetailPrice > 0 ? profile.indiaRetailPrice : null;
+  const sizeNotes = profile.sizeNotes?.trim() || '';
+  const marketRange = market
+    ? market.inrMin === market.inrMax
+      ? formatPrice(market.inrMin)
+      : `${formatPrice(market.inrMin)} to ${formatPrice(market.inrMax)}`
+    : '';
+  const marketLabel = market ? `${marketRange} across ${market.listings} ${market.listings === 1 ? 'listing' : 'listings'}` : '';
+  const marketHref = !market || market.productSlugs.length === 0
+    ? null
+    : market.productSlugs.length === 1
+      ? `/products/${market.productSlugs[0]}`
+      : `/products?search=${encodeURIComponent(profile.name)}`;
+
+  const faqs: Array<{ question: string; answer: string }> = [];
+  if (profile.releaseYear) {
+    faqs.push({ question: `When was the ${profile.name} first released?`, answer: `The ${profile.name} was first released in ${profile.releaseYear}.` });
+  }
+  if (profile.designer) {
+    faqs.push({ question: `Who designed the ${profile.name}?`, answer: `The ${profile.name} was designed by ${profile.designer}.` });
+  }
+  if (profile.originalRetailPrice) {
+    faqs.push({ question: `What was the original retail price of the ${profile.name}?`, answer: `The ${profile.name} originally retailed at US$${profile.originalRetailPrice} in the United States.` });
+  }
+  if (indiaRetail) {
+    faqs.push({ question: `What is the official retail price of the ${profile.name} in India?`, answer: `The official India retail price (MRP) of the ${profile.name} is ${formatPrice(indiaRetail)}.` });
+  }
+  if (market) {
+    faqs.push({ question: `How much does the ${profile.name} cost in India right now?`, answer: `The ${profile.name} currently sells for ${marketLabel} in India.` });
+  }
+  if (sizeNotes) {
+    faqs.push({ question: `How does the ${profile.name} fit?`, answer: sizeNotes });
+  }
+
+  const faqJson = faqs.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.question,
+      acceptedAnswer: { '@type': 'Answer', text: f.answer },
+    })),
+  } : null;
+
   const breadcrumbJson = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -106,6 +151,7 @@ export default async function SneakerHubPage({ params }: Props) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJson) }} />
       {itemListJson && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJson) }} />}
+      {faqJson && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJson) }} />}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Breadcrumb */}
@@ -143,6 +189,7 @@ export default async function SneakerHubPage({ params }: Props) {
                 ['Silhouette', profile.silhouette ? profile.silhouette.charAt(0).toUpperCase() + profile.silhouette.slice(1) : null],
                 ['Category', profile.category ? profile.category.charAt(0).toUpperCase() + profile.category.slice(1) : null],
                 ['Original Retail', profile.originalRetailPrice ? `$${profile.originalRetailPrice}` : null],
+                ['India Retail', indiaRetail ? formatPrice(indiaRetail) : null],
               ].filter(([, v]) => v).map(([label, value]) => (
                 <div key={label as string} className="p-3 bg-zinc-50 border border-zinc-100">
                   <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-400 mb-0.5">{label}</p>
@@ -150,6 +197,25 @@ export default async function SneakerHubPage({ params }: Props) {
                 </div>
               ))}
             </div>
+
+            {market && (
+              <div className="mb-6 p-4 border border-zinc-200">
+                <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-400 mb-1">Current price in India</p>
+                <p className="text-sm font-semibold text-zinc-900">{marketLabel}</p>
+                {marketHref && (
+                  <Link href={marketHref} className="inline-block mt-2 text-xs font-bold underline underline-offset-2 text-zinc-900 hover:text-zinc-600">
+                    Shop {profile.name}
+                  </Link>
+                )}
+              </div>
+            )}
+
+            {sizeNotes && (
+              <div className="mb-6">
+                <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-2">Sizing</p>
+                <p className="text-sm text-zinc-600 leading-relaxed">{sizeNotes}</p>
+              </div>
+            )}
 
             {/* Description */}
             {profile.description && (
@@ -182,6 +248,21 @@ export default async function SneakerHubPage({ params }: Props) {
             </div>
           )}
         </div>
+
+        {faqs.length > 0 && (
+          <div className="border-t border-zinc-100 pt-10 mb-16">
+            <h2 className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">FAQ</h2>
+            <p className="text-xl font-bold tracking-tight text-zinc-900 mb-6">{profile.name} Questions</p>
+            <dl className="divide-y divide-zinc-100 border-y border-zinc-100 max-w-3xl">
+              {faqs.map((f) => (
+                <div key={f.question} className="py-4">
+                  <dt className="text-sm font-bold text-zinc-900 mb-1">{f.question}</dt>
+                  <dd className="text-sm text-zinc-600 leading-relaxed">{f.answer}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
 
         {/* Related models */}
         {relatedProfiles.length > 0 && (

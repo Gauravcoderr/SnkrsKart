@@ -27,13 +27,18 @@ interface Drop {
   where: string;
   availableAtStore: boolean;
   productSlug: string;
+  styleCode?: string;
+  launchTimeIST?: string;
   published: boolean;
 }
 
 const EMPTY_FORM = {
   name: '', brand: '', colorway: '', releaseDate: '', retailPrice: '',
   image: '', images: [] as string[], description: '', where: '', availableAtStore: false, productSlug: '', published: false,
+  styleCode: '', launchTimeIST: '',
 };
+
+const LAUNCH_TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 async function uploadImage(file: File): Promise<string> {
   const fd = new FormData();
@@ -98,6 +103,7 @@ export default function AdminDropsPage() {
       retailPrice: d.retailPrice ? String(d.retailPrice) : '',
       image: d.image, images: d.images ?? [], description: d.description, where: d.where,
       availableAtStore: d.availableAtStore, productSlug: d.productSlug, published: d.published,
+      styleCode: d.styleCode ?? '', launchTimeIST: d.launchTimeIST ?? '',
     });
     setShowForm(true);
   }
@@ -138,9 +144,16 @@ export default function AdminDropsPage() {
   }
 
   async function handleSave() {
+    const launchTimeIST = form.launchTimeIST.trim();
+    if (launchTimeIST && !LAUNCH_TIME_RE.test(launchTimeIST)) { toast('Launch time must be HH:MM (24h)', 'error'); return; }
     setSaving(true);
     const token = localStorage.getItem('admin_token');
-    const payload = { ...form, retailPrice: form.retailPrice ? Number(form.retailPrice) : null };
+    const payload = {
+      ...form,
+      retailPrice: form.retailPrice ? Number(form.retailPrice) : null,
+      styleCode: form.styleCode.trim().toUpperCase(),
+      launchTimeIST,
+    };
     try {
       const url = editingId ? `${API}/admin/drops/${editingId}` : `${API}/admin/drops`;
       const res = await fetch(url, {
@@ -280,6 +293,7 @@ export default function AdminDropsPage() {
                 ['Colorway', 'colorway', 'text', 'e.g. White/Black'],
                 ['Where', 'where', 'text', 'e.g. Nike SNKRS App'],
                 ['Product Slug (if in store)', 'productSlug', 'text', 'e.g. nike-dunk-low-panda'],
+                ['Style Code', 'styleCode', 'text', 'e.g. DD1391-100'],
               ].map(([label, key, type, placeholder]) => (
                 <div key={key as string}>
                   <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1">{label}</label>
@@ -305,6 +319,11 @@ export default function AdminDropsPage() {
                 <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1">Release Date *</label>
                 <input type="date" value={form.releaseDate} onChange={(e) => setF('releaseDate', e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:border-zinc-500" />
                 <p className="text-[10px] text-zinc-600 mt-1">From official brand announcement only</p>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1">Launch Time (IST)</label>
+                <input type="time" value={form.launchTimeIST} onChange={(e) => setF('launchTimeIST', e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:border-zinc-500" />
+                <p className="text-[10px] text-zinc-600 mt-1">Only when the source states an exact time. Leave empty otherwise</p>
               </div>
             </div>
 

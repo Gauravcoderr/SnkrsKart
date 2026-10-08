@@ -2,9 +2,11 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { fetchDrops, fetchDropBySlug, NotFoundError } from '@/lib/api';
-import { cloudinaryOgImage, formatDropPrice } from '@/lib/utils';
+import { fetchDrops, fetchDropBySlug, fetchProductBySlug, NotFoundError } from '@/lib/api';
+import { cloudinaryOgImage, formatDropPrice, formatPrice } from '@/lib/utils';
 import { dateKey, daysUntil, formatDropDate } from '@/lib/calendar';
+import { AVAILABILITY_META } from '@/lib/availability';
+import type { Drop, Offer, Product } from '@/types';
 import Countdown from '@/components/drops/Countdown';
 import AddToCalendar from '@/components/drops/AddToCalendar';
 import DropGallery from '@/components/drops/DropGallery';
@@ -53,6 +55,70 @@ export const revalidate = 300;
 
 function formatDate(dateStr: string) {
   return formatDropDate(dateStr, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function formatLaunchTime(hhmm?: string): string | null {
+  const m = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(hhmm ?? '');
+  if (!m) return null;
+  const h = Number(m[1]);
+  return `${h % 12 || 12}:${m[2]} ${h < 12 ? 'AM' : 'PM'} IST`;
+}
+
+function sortOffers(offers: Offer[]): Offer[] {
+  return [...offers].sort((a, b) => {
+    const na = Number(a.size);
+    const nb = Number(b.size);
+    if (Number.isFinite(na) && Number.isFinite(nb)) return na - nb;
+    return String(a.size).localeCompare(String(b.size));
+  });
+}
+
+function buildFaqs(drop: Drop, opts: { released: boolean; launchTime: string | null; stocked: boolean; comingSoon: boolean; fromPrice: number | null }): { q: string; a: string }[] {
+  const { released, launchTime, stocked, comingSoon, fromPrice } = opts;
+  const when = `${formatDate(drop.releaseDate)}${launchTime ? ` at ${launchTime}` : ''}`;
+  const faqs: { q: string; a: string }[] = [
+    {
+      q: `When does the ${drop.name} release in India?`,
+      a: released ? `The ${drop.name} released on ${when}.` : `The ${drop.name} releases on ${when}.`,
+    },
+  ];
+  if (drop.retailPrice) {
+    faqs.push({
+      q: `What is the retail price of the ${drop.name}?`,
+      a: drop.currency === 'USD'
+        ? `The announced retail price is ${formatDropPrice(drop.retailPrice, drop.currency)} in US dollars.`
+        : `The retail price is ${formatDropPrice(drop.retailPrice, drop.currency)}.`,
+    });
+  }
+  if (drop.where) {
+    faqs.push({
+      q: `Where can I buy the ${drop.name}?`,
+      a: `It ${released ? 'released' : 'releases'} through ${drop.where}.${stocked ? ' You can also buy it on SNKRS CART.' : ''}`,
+    });
+  }
+  if (drop.styleCode) {
+    faqs.push({
+      q: `What is the style code of the ${drop.name}?`,
+      a: `The style code is ${drop.styleCode}. Match it with the code on the box label to make sure you have the right pair.`,
+    });
+  }
+  faqs.push({
+    q: `Does SNKRS CART sell the ${drop.name}?`,
+    a: stocked
+      ? fromPrice
+        ? `Yes. It is listed on SNKRS CART with prices by size, starting at ${formatPrice(fromPrice)}.`
+        : 'Yes. It is listed on SNKRS CART. Open the product page to see which sizes are in stock.'
+      : comingSoon
+        ? 'It is coming soon to SNKRS CART. Sizes and prices go live on the product page once stock lands.'
+        : 'Not at the moment. SNKRS CART does not stock this pair yet.',
+  });
+  if (faqs.length < 5 && drop.colorway) {
+    faqs.splice(faqs.length - 1, 0, {
+      q: `What colorway is the ${drop.name}?`,
+      a: `The official colorway is ${drop.colorway}.`,
+    });
+  }
+  return faqs.slice(0, 5);
 }
 
 // Retailer-specific "how to buy" steps, derived from the free-text `where` field
@@ -119,6 +185,20 @@ export default async function DropPage({ params }: Props) {
     related = [...same, ...other].slice(0, 4);
   } catch { /* skip */ }
 
+  let product: Product | null = null;
+  if (drop.productSlug) {
+    try { product = await fetchProductBySlug(drop.productSlug); } catch { product = null; }
+  }
+  const comingSoon = !!product?.comingSoon;
+  const offers = product && !comingSoon
+    ? sortOffers((product.offers ?? []).filter((o) => o.price > 0 && o.maxQty > 0))
+    : [];
+  const fromPrice = offers.length > 0 ? Math.min(...offers.map((o) => o.price)) : null;
+  const launchTime = formatLaunchTime(drop.launchTimeIST);
+  const productHref = product ? `/products/${product.slug}` : null;
+  const stocked = offers.length > 0;
+  const faqs = buildFaqs(drop, { released, launchTime, stocked, comingSoon, fromPrice });
+
   const howTo = drop.availableAtStore && drop.productSlug ? null : copSteps(drop.where);
 
   const urgency = !released && days === 0 ? 'today'
@@ -180,11 +260,22 @@ export default async function DropPage({ params }: Props) {
     ],
   };
 
+  const faqJson = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  };
+
   const specs = [
     ['Brand', drop.brand],
-    ['Release Date', formatDate(drop.releaseDate)],
+    ['Release Date', `${formatDate(drop.releaseDate)}${launchTime ? `, ${launchTime}` : ''}`],
     ['Retail Price', drop.retailPrice ? formatDropPrice(drop.retailPrice, drop.currency) : 'TBC'],
     ['Colorway', drop.colorway || null],
+    ['Style Code', drop.styleCode || null],
     ['Where to Buy', drop.where || null],
   ].filter(([, v]) => v) as [string, string][];
 
@@ -192,6 +283,9 @@ export default async function DropPage({ params }: Props) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJson) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJson) }} />
+      {faqs.length >= 3 && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJson) }} />
+      )}
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Breadcrumb */}
@@ -248,7 +342,7 @@ export default async function DropPage({ params }: Props) {
             </div>
             {!released && (
               <div className="mb-6 text-zinc-900">
-                <Countdown releaseDate={drop.releaseDate} size="lg" />
+                <Countdown releaseDate={drop.releaseDate} launchTimeIST={drop.launchTimeIST} size="lg" />
               </div>
             )}
 
@@ -262,6 +356,7 @@ export default async function DropPage({ params }: Props) {
                 <div className="text-right">
                   <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 mb-0.5">Release</p>
                   <p className="text-sm font-bold text-zinc-200">{formatDropDate(drop.releaseDate, { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                  {launchTime && <p className="text-[11px] font-semibold text-zinc-400 mt-0.5">{launchTime}</p>}
                 </div>
               </div>
             )}
@@ -300,6 +395,48 @@ export default async function DropPage({ params }: Props) {
           </div>
         </div>
 
+        {productHref && offers.length > 0 && (
+          <section className="mb-10">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <h2 className="text-xs font-black tracking-[0.3em] uppercase text-zinc-900">Price by size on SNKRS CART</h2>
+              <Link href={productHref} className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 hover:text-zinc-900 transition-colors shrink-0">View product →</Link>
+            </div>
+            <div className="overflow-x-auto border border-zinc-100 rounded-sm">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-zinc-50 text-left text-[10px] font-bold tracking-widest uppercase text-zinc-400">
+                    <th className="py-2.5 px-4">Size</th>
+                    <th className="py-2.5 px-4">Price</th>
+                    <th className="py-2.5 px-4">Availability</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100">
+                  {offers.map((o) => {
+                    const meta = AVAILABILITY_META[o.availability];
+                    return (
+                      <tr key={String(o.size)}>
+                        <td className="py-2.5 px-4 font-semibold text-zinc-900">
+                          <Link href={productHref} className="hover:underline">
+                            {typeof o.size === 'number' ? `UK ${o.size}` : o.size}
+                          </Link>
+                        </td>
+                        <td className="py-2.5 px-4 font-bold text-zinc-900">{formatPrice(o.price)}</td>
+                        <td className="py-2.5 px-4">
+                          <span className="inline-flex items-center gap-1.5 text-xs text-zinc-600">
+                            <span className={`w-1.5 h-1.5 rounded-full ${meta.dotClass}`} />
+                            {meta.label}
+                            <span className="text-zinc-400">· {meta.description}</span>
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
         {/* How to cop */}
         {howTo && !released && (
           <section className="mb-10 border border-zinc-100 rounded-sm p-5 sm:p-6 bg-zinc-50/60">
@@ -313,6 +450,26 @@ export default async function DropPage({ params }: Props) {
                 </li>
               ))}
             </ol>
+          </section>
+        )}
+
+        {faqs.length >= 3 && (
+          <section className="mb-10">
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">FAQ</p>
+            <h2 className="text-lg font-black tracking-tight text-zinc-900 mb-3">{drop.name}: release questions</h2>
+            <div className="divide-y divide-zinc-100 border-y border-zinc-100">
+              {faqs.map((f) => (
+                <details key={f.q} className="group py-4">
+                  <summary className="flex items-start justify-between gap-4 cursor-pointer list-none text-sm font-bold text-zinc-900 [&::-webkit-details-marker]:hidden">
+                    <span>{f.q}</span>
+                    <span className="shrink-0 mt-0.5 text-zinc-400 group-open:rotate-45 transition-transform duration-200" aria-hidden>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                    </span>
+                  </summary>
+                  <p className="mt-3 text-sm text-zinc-500 leading-relaxed pr-8">{f.a}</p>
+                </details>
+              ))}
+            </div>
           </section>
         )}
 

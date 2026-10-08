@@ -176,12 +176,15 @@ export interface SneakerProfile {
   silhouette: string;
   category: string;
   originalRetailPrice: number | null;
+  indiaRetailPrice?: number | null;
+  sizeNotes?: string;
   searchTags: string[];
   relatedSlugs: string[];
   image: string;
   published: boolean;
   createdAt: string;
   updatedAt: string;
+  market?: { inrMin: number; inrMax: number; listings: number; productSlugs: string[] } | null;
 }
 
 export interface Drop {
@@ -199,6 +202,8 @@ export interface Drop {
   where: string;
   availableAtStore: boolean;
   productSlug: string;
+  styleCode?: string;
+  launchTimeIST?: string;
   published: boolean;
   createdAt: string;
 }

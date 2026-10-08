@@ -28,6 +28,8 @@ interface SneakerProfile {
   silhouette: string;
   category: string;
   originalRetailPrice: number | null;
+  indiaRetailPrice?: number | null;
+  sizeNotes?: string;
   searchTags: string[];
   relatedSlugs: string[];
   image: string;
@@ -38,7 +40,7 @@ interface SneakerProfile {
 const EMPTY_FORM = {
   name: '', brand: '', tagline: '', description: '',
   releaseYear: '', designer: '', silhouette: '', category: '',
-  originalRetailPrice: '', searchTags: '', relatedSlugs: '', image: '', published: false,
+  originalRetailPrice: '', indiaRetailPrice: '', sizeNotes: '', searchTags: '', relatedSlugs: '', image: '', published: false,
 };
 
 async function uploadImage(file: File): Promise<string> {
@@ -99,6 +101,8 @@ export default function AdminSneakerProfilesPage() {
       releaseYear: p.releaseYear ? String(p.releaseYear) : '',
       designer: p.designer, silhouette: p.silhouette, category: p.category,
       originalRetailPrice: p.originalRetailPrice ? String(p.originalRetailPrice) : '',
+      indiaRetailPrice: p.indiaRetailPrice ? String(p.indiaRetailPrice) : '',
+      sizeNotes: p.sizeNotes ?? '',
       searchTags: p.searchTags.join(', '),
       relatedSlugs: p.relatedSlugs.join(', '),
       image: p.image, published: p.published,
@@ -127,6 +131,8 @@ export default function AdminSneakerProfilesPage() {
       ...form,
       releaseYear: form.releaseYear ? Number(form.releaseYear) : null,
       originalRetailPrice: form.originalRetailPrice ? Number(form.originalRetailPrice) : null,
+      indiaRetailPrice: form.indiaRetailPrice ? Number(form.indiaRetailPrice) : null,
+      sizeNotes: form.sizeNotes.trim(),
       searchTags: form.searchTags.split(',').map((s) => s.trim()).filter(Boolean),
       relatedSlugs: form.relatedSlugs.split(',').map((s) => s.trim()).filter(Boolean),
     };
@@ -267,6 +273,7 @@ export default function AdminSneakerProfilesPage() {
                 ['Designer', 'designer', 'text', 'e.g. Bruce Kilgore'],
                 ['Release Year', 'releaseYear', 'number', 'e.g. 1982'],
                 ['Original Retail (USD)', 'originalRetailPrice', 'number', 'e.g. 90'],
+                ['India Retail (INR, current MRP)', 'indiaRetailPrice', 'number', 'e.g. 9695'],
               ].map(([label, key, type, placeholder]) => (
                 <div key={key as string}>
                   <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1">{label}</label>
@@ -297,6 +304,12 @@ export default function AdminSneakerProfilesPage() {
             <div className="mt-4">
               <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1">Description (sourced from official brand site / Wikipedia)</label>
               <textarea value={form.description} onChange={(e) => setF('description', e.target.value)} rows={5} placeholder="Write from official brand sources, Wikipedia, or your own research…" className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:border-zinc-500 resize-none" />
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1">Size Notes (how it fits)</label>
+              <input type="text" value={form.sizeNotes} onChange={(e) => setF('sizeNotes', e.target.value)} placeholder="e.g. Runs half a size big, go half a size down" className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:border-zinc-500" />
+              <p className="text-[10px] text-zinc-600 mt-1">Only from a source that states the fit. Leave empty otherwise.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">

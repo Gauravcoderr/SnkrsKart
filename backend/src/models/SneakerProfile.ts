@@ -11,6 +11,8 @@ export interface ISneakerProfile extends Document {
   silhouette: string;
   category: string;
   originalRetailPrice: number | null;
+  indiaRetailPrice: number | null;
+  sizeNotes: string;
   searchTags: string[];
   relatedSlugs: string[];
   image: string;
@@ -31,6 +33,8 @@ const SneakerProfileSchema = new Schema<ISneakerProfile>(
     silhouette: { type: String, default: '' },
     category: { type: String, default: '' },
     originalRetailPrice: { type: Number, default: null },
+    indiaRetailPrice: { type: Number, default: null },
+    sizeNotes: { type: String, default: '' },
     searchTags: [{ type: String }],
     relatedSlugs: [{ type: String }],
     image: { type: String, default: '' },

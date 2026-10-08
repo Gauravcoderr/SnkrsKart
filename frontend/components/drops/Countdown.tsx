@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 interface Props {
   releaseDate: string;      // ISO string, date-only precision (midnight UTC)
+  launchTimeIST?: string;
   size?: 'sm' | 'lg';
   className?: string;
 }
@@ -18,9 +19,12 @@ function parts(ms: number) {
   };
 }
 
-// Live countdown to a drop's release moment (midnight UTC on release day = 05:30 IST).
-export default function Countdown({ releaseDate, size = 'sm', className = '' }: Props) {
-  const target = new Date(`${releaseDate.slice(0, 10)}T00:00:00Z`).getTime();
+// Live countdown to a drop's release moment (launch time in IST when set, else midnight UTC on release day).
+export default function Countdown({ releaseDate, launchTimeIST, size = 'sm', className = '' }: Props) {
+  const day = releaseDate.slice(0, 10);
+  const target = (/^([01]\d|2[0-3]):[0-5]\d$/.test(launchTimeIST ?? '')
+    ? new Date(`${day}T${launchTimeIST}:00+05:30`)
+    : new Date(`${day}T00:00:00Z`)).getTime();
   // Server renders real values; the seconds cell may differ on hydration, so it is marked suppressHydrationWarning
   const [now, setNow] = useState<number>(() => Date.now());
 

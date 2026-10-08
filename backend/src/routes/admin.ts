@@ -1147,6 +1147,16 @@ router.put('/deal-verifications/:id', adminAuth, async (req: Request, res: Respo
 
 // ─── Sneaker Profiles CRUD ─────────────────────────────────────────────────
 
+function sneakerProfileFields(body: Record<string, unknown>): Record<string, unknown> {
+  const data: Record<string, unknown> = { ...body };
+  if ('indiaRetailPrice' in body) {
+    const n = Number(body.indiaRetailPrice);
+    data.indiaRetailPrice = body.indiaRetailPrice === null || body.indiaRetailPrice === '' || !Number.isFinite(n) || n <= 0 ? null : Math.round(n);
+  }
+  if ('sizeNotes' in body) data.sizeNotes = typeof body.sizeNotes === 'string' ? body.sizeNotes.trim() : '';
+  return data;
+}
+
 router.get('/sneaker-profiles', adminAuth, async (_req: Request, res: Response): Promise<void> => {
   try {
     const profiles = await SneakerProfile.find().sort({ name: 1 }).lean();
@@ -1161,7 +1171,7 @@ router.post('/sneaker-profiles', adminAuth, async (req: Request, res: Response):
     const { name, brand } = req.body;
     if (!name || !brand) { res.status(400).json({ error: 'name and brand are required' }); return; }
     const slug = req.body.slug || toSlug(`${brand}-${name}`);
-    const profile = await SneakerProfile.create({ ...req.body, slug });
+    const profile = await SneakerProfile.create({ ...sneakerProfileFields(req.body), slug });
     res.status(201).json(profile);
   } catch (err: any) {
     if (err.code === 11000) { res.status(409).json({ error: 'Slug already exists' }); return; }
@@ -1171,7 +1181,7 @@ router.post('/sneaker-profiles', adminAuth, async (req: Request, res: Response):
 
 router.put('/sneaker-profiles/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const profile = await SneakerProfile.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' });
+    const profile = await SneakerProfile.findByIdAndUpdate(req.params.id, sneakerProfileFields(req.body), { returnDocument: 'after' });
     if (!profile) { res.status(404).json({ error: 'Not found' }); return; }
     res.json(profile);
   } catch {
@@ -1189,6 +1199,22 @@ router.delete('/sneaker-profiles/:id', adminAuth, async (req: Request, res: Resp
 });
 
 // ─── Drops CRUD ────────────────────────────────────────────────────────────
+
+const LAUNCH_TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+function normalizeDropFields(body: Record<string, unknown>): string | null {
+  if (body.styleCode !== undefined) {
+    if (body.styleCode !== null && typeof body.styleCode !== 'string') return 'styleCode must be a string';
+    body.styleCode = String(body.styleCode ?? '').trim().toUpperCase();
+  }
+  if (body.launchTimeIST !== undefined) {
+    if (body.launchTimeIST !== null && typeof body.launchTimeIST !== 'string') return 'launchTimeIST must be a string';
+    const t = String(body.launchTimeIST ?? '').trim();
+    if (t && !LAUNCH_TIME_RE.test(t)) return 'launchTimeIST must be HH:MM (24h) or empty';
+    body.launchTimeIST = t;
+  }
+  return null;
+}
 
 router.get('/drops', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
@@ -1209,6 +1235,8 @@ router.post('/drops', adminAuth, async (req: Request, res: Response): Promise<vo
   try {
     const { name, brand, releaseDate } = req.body;
     if (!name || !brand || !releaseDate) { res.status(400).json({ error: 'name, brand and releaseDate are required' }); return; }
+    const fieldError = normalizeDropFields(req.body);
+    if (fieldError) { res.status(400).json({ error: fieldError }); return; }
     const slug = req.body.slug || toSlug(`${brand}-${name}`);
     const drop = await Drop.create({ ...req.body, slug });
     pingIndexNow([`/drops/${drop.slug}`]);
@@ -1221,6 +1249,8 @@ router.post('/drops', adminAuth, async (req: Request, res: Response): Promise<vo
 
 router.put('/drops/:id', adminAuth, async (req: Request, res: Response): Promise<void> => {
   try {
+    const fieldError = normalizeDropFields(req.body);
+    if (fieldError) { res.status(400).json({ error: fieldError }); return; }
     const drop = await Drop.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' });
     if (!drop) { res.status(404).json({ error: 'Not found' }); return; }
     res.json(drop);
