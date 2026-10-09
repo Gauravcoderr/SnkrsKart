@@ -112,13 +112,15 @@ For each topic collect: exact retail prices, resale prices from StockX/GOAT, rel
 - If a fact cannot be confirmed in a source you actually fetched this run, cut it
 - No hallucinated content. Every sentence must trace to a source fetched in this pipeline run
 
-**India landed-cost formula** (use this rather than guessing a multiplier). Footwear into India: 35% basic customs duty, plus a social welfare surcharge of 10% **calculated on the BCD**, plus 18% IGST applied to (CIF + BCD + SWS). That compounds to **≈1.634× declared value**:
+**India landed-cost formula** (use this rather than guessing a multiplier). Footwear into India (Chapter 64, MFN, verified 2026-10-10 against the ICEGATE-based calculator at `eximpe.com/hsncode-finder/64039120`, rates as at 2026-05-13): 20% basic customs duty on CIF, an agriculture cess (AIDC) of 20% **of the BCD** (4% of CIF), a 10% social welfare surcharge on (BCD + AIDC), then 18% IGST on (CIF + BCD + AIDC + SWS). Total duty 49.15%, so **≈1.49× declared value**:
 
 ```text
-1.00 → ×1.35 (BCD) → ×1.0350 (SWS on BCD) → ×1.18 (IGST) = 1.634
+per ₹100 CIF: BCD 20.00 + AIDC 4.00 + SWS 2.40 + IGST 22.75 = 49.15 → landed 149.15
 ```
 
-Verify the BCD rate is still 35% with a WebSearch each run; budget policy changes. Always anchor the landed number against a real India retail listing for the same silhouette so the reader can see the gap.
+The old 35% BCD / 1.634× figure is stale; Budget 2025 moved footwear to 20% BCD plus AIDC. Re-check the eximpe page (or ICEGATE) each run; budget policy changes. Link the page in the prose when you quote the stack. Always anchor the landed number against a real India retail listing for the same silhouette so the reader can see the gap.
+
+**Exchange rate:** WebSearch for `USD to INR` returns forecast pages, not a dated rate. Use `curl -s https://open.er-api.com/v6/latest/USD` and quote the `time_last_update_utc` date and the `INR` value in the prose (observed 2026-10-09: ₹96.88).
 
 ---
 
