@@ -4,7 +4,7 @@ import { cloudinaryFill, cloudinaryOgImage } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import type { Blog, Product } from '@/types';
 import { fetchAllProducts, type CatalogProduct } from '@/lib/catalog';
-import { isLive, lowestLivePrice, matchProducts } from '@/lib/productMatch';
+import { isLive, lowestLivePrice, matchProducts, mentionsProduct } from '@/lib/productMatch';
 import { fullProductName } from '@/lib/productTitle';
 import { extractHeadings, injectHeadingIds, type Heading } from './headings';
 // Simple server-safe sanitizer — strips <script> tags, inline event handlers,
@@ -192,7 +192,9 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
     fetchProductsByTags(blog.tags),
     fetchAllProducts({ revalidate: 3600 }).catch(() => [] as CatalogProduct[]),
   ]);
-  const featured = matchProducts(`${blog.title} ${blog.metaKeywords ?? ''} ${blog.excerpt ?? ''}`, catalog, 3);
+  const blogText = `${blog.title} ${blog.metaKeywords ?? ''} ${blog.excerpt ?? ''}`;
+  const featured = matchProducts(blogText, catalog, 3);
+  const mentioned = featured.filter((p) => mentionsProduct(blogText, p));
   const shopProducts: ShopCard[] = [
     ...featured,
     ...tagProducts.filter((p) => !featured.some((f) => f.slug === p.slug)),
@@ -283,8 +285,8 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
     },
     // About: links this post to specific brand entities — signals expert authorship to Flash.co & ChatGPT
     ...(mentionedBrands.length > 0 ? { about: mentionedBrands } : {}),
-    ...(featured.length > 0 ? {
-      mentions: featured.map((p) => ({
+    ...(mentioned.length > 0 ? {
+      mentions: mentioned.map((p) => ({
         '@type': 'Product',
         name: fullProductName(p.brand, p.name),
         url: `${SITE_URL}/products/${p.slug}`,
@@ -377,8 +379,8 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
               <div className={`my-10 pt-8 border-t-2 ${accent.border}`}>
                 <div className="flex items-center justify-between mb-5">
                   <div>
-                    <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-0.5">{featured.length > 0 ? 'Featured in this post' : 'Featured'}</p>
-                    <h2 className="text-xl font-black tracking-tight text-zinc-950">{featured.length > 0 ? 'Shop the pair in this post' : 'Shop These Kicks'}</h2>
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-0.5">{featured.length > 0 ? 'Same model, in stock' : 'Featured'}</p>
+                    <h2 className="text-xl font-black tracking-tight text-zinc-950">{featured.length > 0 ? 'Shop this model' : 'Shop These Kicks'}</h2>
                   </div>
                   <Link href="/products" className="text-xs font-bold tracking-widest uppercase text-zinc-500 hover:text-zinc-900 transition-colors">
                     View All &rarr;

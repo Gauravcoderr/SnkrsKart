@@ -4,7 +4,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { fetchDrops, fetchDropBySlug, fetchProductBySlug, NotFoundError } from '@/lib/api';
 import { fetchAllProducts } from '@/lib/catalog';
-import { matchProducts } from '@/lib/productMatch';
+import { matchSameProduct } from '@/lib/productMatch';
+import { fullProductName } from '@/lib/productTitle';
 import { cloudinaryOgImage, formatDropPrice, formatPrice } from '@/lib/utils';
 import { dateKey, daysUntil, formatDropDate } from '@/lib/calendar';
 import { AVAILABILITY_META } from '@/lib/availability';
@@ -191,7 +192,7 @@ export default async function DropPage({ params }: Props) {
   let productSlug = drop.productSlug || '';
   if (!productSlug) {
     const catalog = await fetchAllProducts({ revalidate: 3600 }).catch(() => []);
-    productSlug = matchProducts(`${drop.brand} ${drop.name} ${drop.colorway ?? ''}`, catalog, 1)[0]?.slug ?? '';
+    productSlug = matchSameProduct({ brand: drop.brand, name: drop.name, colorway: drop.colorway, styleCode: drop.styleCode }, catalog)?.slug ?? '';
   }
   if (productSlug) {
     try { product = await fetchProductBySlug(productSlug); } catch { product = null; }
@@ -403,47 +404,92 @@ export default async function DropPage({ params }: Props) {
           </div>
         </div>
 
-        {productHref && offers.length > 0 && (
-          <section className="mb-10">
-            <div className="flex items-center justify-between gap-4 mb-4">
-              <h2 className="text-xs font-black tracking-[0.3em] uppercase text-zinc-900">Price by size on SNKRS CART</h2>
-              <Link href={productHref} className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 hover:text-zinc-900 transition-colors shrink-0">View product →</Link>
-            </div>
-            <div className="overflow-x-auto border border-zinc-100 rounded-sm">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-zinc-50 text-left text-[10px] font-bold tracking-widest uppercase text-zinc-400">
-                    <th className="py-2.5 px-4">Size</th>
-                    <th className="py-2.5 px-4">Price</th>
-                    <th className="py-2.5 px-4">Availability</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100">
-                  {offers.map((o) => {
-                    const meta = AVAILABILITY_META[o.availability];
-                    return (
-                      <tr key={String(o.size)}>
-                        <td className="py-2.5 px-4 font-semibold text-zinc-900">
-                          <Link href={productHref} className="hover:underline">
-                            {typeof o.size === 'number' ? `UK ${o.size}` : o.size}
-                          </Link>
-                        </td>
-                        <td className="py-2.5 px-4 font-bold text-zinc-900">{formatPrice(o.price)}</td>
-                        <td className="py-2.5 px-4">
-                          <span className="inline-flex items-center gap-1.5 text-xs text-zinc-600">
-                            <span className={`w-1.5 h-1.5 rounded-full ${meta.dotClass}`} />
-                            {meta.label}
-                            <span className="text-zinc-400">· {meta.description}</span>
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
+        {product && productHref && offers.length > 0 && (() => {
+          const lowest = Math.min(...offers.map((o) => o.price));
+          const markLowest = offers.length > 1 && offers.filter((o) => o.price === lowest).length === 1;
+          const productName = fullProductName(product.brand, product.name);
+          return (
+            <section className="mb-10 border border-zinc-200 rounded-sm overflow-hidden bg-white" aria-labelledby="buy-on-snkrs-cart">
+              <div className="flex flex-col sm:flex-row">
+                <Link href={productHref} className="group relative block sm:w-60 shrink-0 bg-zinc-50 aspect-[4/3] sm:aspect-auto sm:min-h-[240px]">
+                  {product.images?.[0] && (
+                    <Image
+                      src={product.images[0]}
+                      alt={productName}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 240px"
+                      className="object-contain p-6 group-hover:scale-105 transition-transform duration-300"
+                    />
+                  )}
+                  <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur text-[9px] font-black tracking-widest uppercase text-zinc-900 px-2 py-1 rounded-sm border border-zinc-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    In stock
+                  </span>
+                </Link>
+
+                <div className="flex-1 min-w-0 p-5 sm:p-6 flex flex-col gap-5">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-black tracking-[0.3em] uppercase text-zinc-400 mb-1">Buy it on SNKRS CART</p>
+                      <h2 id="buy-on-snkrs-cart" className="text-lg sm:text-xl font-black tracking-tight text-zinc-900 leading-tight">
+                        <Link href={productHref} className="hover:underline underline-offset-4">{productName}</Link>
+                      </h2>
+                      {product.colorway && <p className="text-xs text-zinc-400 mt-1">{product.colorway}</p>}
+                    </div>
+                    <div className="text-left sm:text-right shrink-0">
+                      <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-400 mb-0.5">From</p>
+                      <p className="text-2xl font-black text-zinc-900 leading-none">{formatPrice(lowest)}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-2.5">
+                      Price by size · {offers.length} {offers.length === 1 ? 'size' : 'sizes'} available
+                    </p>
+                    <ul className="grid grid-cols-2 min-[420px]:grid-cols-3 lg:grid-cols-4 gap-2">
+                      {offers.map((o) => {
+                        const meta = AVAILABILITY_META[o.availability];
+                        const isLowest = markLowest && o.price === lowest;
+                        return (
+                          <li key={String(o.size)}>
+                            <Link
+                              href={productHref}
+                              className={`relative flex flex-col gap-0.5 h-full rounded-sm border px-3 py-2.5 transition-colors hover:border-zinc-900 hover:bg-zinc-50 ${isLowest ? 'border-zinc-900' : 'border-zinc-200'}`}
+                            >
+                              {isLowest && (
+                                <span className="absolute -top-2 right-2 bg-zinc-900 text-white text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-sm">Lowest</span>
+                              )}
+                              <span className="text-sm font-black text-zinc-900">{typeof o.size === 'number' ? `UK ${o.size}` : o.size}</span>
+                              <span className="text-sm font-bold text-zinc-700 tabular-nums">{formatPrice(o.price)}</span>
+                              <span className="inline-flex items-center gap-1.5 text-[11px] text-zinc-500 mt-0.5">
+                                <span className={`w-1.5 h-1.5 rounded-full ${meta.dotClass}`} />
+                                {meta.label} · {meta.short}
+                              </span>
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-3 pt-4 border-t border-zinc-100">
+                    <Link
+                      href={productHref}
+                      className="inline-flex items-center gap-2 px-5 py-3 bg-zinc-900 text-white text-xs font-black tracking-widest uppercase rounded-sm hover:bg-zinc-700 transition-colors"
+                    >
+                      Choose your size
+                      <span aria-hidden="true">→</span>
+                    </Link>
+                    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-zinc-500">
+                      <li className="inline-flex items-center gap-1.5"><span className="text-emerald-600" aria-hidden="true">✓</span>Checked for authenticity</li>
+                      <li className="inline-flex items-center gap-1.5"><span className="text-emerald-600" aria-hidden="true">✓</span>Free shipping across India</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </section>
+          );
+        })()}
 
         {/* How to cop */}
         {howTo && !released && (
