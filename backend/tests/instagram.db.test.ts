@@ -35,6 +35,7 @@ before(async () => {
     Drop: (await import('../src/models/Drop')).Drop,
     Blog: (await import('../src/models/Blog')).Blog,
     InstagramPost: (await import('../src/models/InstagramPost')).InstagramPost,
+    Product: (await import('../src/models/Product')).Product,
     publisher: await import('../src/services/instagramPublisher'),
   };
   const app = express();
@@ -145,4 +146,16 @@ test('publish now works from draft and the cron endpoint needs the secret', { sk
   const status = await api('/status');
   assert.equal(status.body.dryRun, true);
   assert.ok(status.body.counts.published >= 2);
+});
+
+test('a product post cannot be approved once the pair is sold out', { skip }, async () => {
+  const base = { brand: 'Jordan', colorway: 'Royal', gender: 'men', price: 18995, hoverImage: 'x', description: 'x', category: 'sneakers' };
+  await m.Product.create({ ...base, slug: 'in-stock', name: 'In Stock', sku: 'SKU-1', sizes: [8, 9], availableSizes: [8, 9] });
+  await m.Product.create({ ...base, slug: 'sold-out', name: 'Sold Out', sku: 'SKU-2', sizes: [8], availableSizes: [], soldOut: true });
+  const ok = await api('', 'POST', carousel('in-stock', 'product'));
+  assert.equal((await api(`/${ok.body._id}/approve`, 'POST')).status, 200);
+  const roundup = await api('', 'POST', carousel('in-stock,sold-out', 'product'));
+  const r = await api(`/${roundup.body._id}/approve`, 'POST');
+  assert.equal(r.status, 400);
+  assert.match(r.body.error, /Sold out or coming soon now: sold-out/);
 });

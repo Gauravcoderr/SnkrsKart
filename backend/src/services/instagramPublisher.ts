@@ -1,6 +1,8 @@
 import { Blog } from '../models/Blog';
 import { Drop } from '../models/Drop';
 import { SneakerProfile } from '../models/SneakerProfile';
+import { Product } from '../models/Product';
+import { attachSellerOffers } from '../lib/sellerOffers';
 import { IInstagramPost, InstagramPost } from '../models/InstagramPost';
 import { IgSourceKind, validatePost } from '../lib/instagramRules';
 import { decideAfterFailure, nextStatus, PublishFailure } from '../lib/instagramState';
@@ -29,11 +31,24 @@ export async function getClient(cfg: InstagramConfig = getInstagramConfig()): Pr
 // that page is unpublished (unattended content runs seed blogs as drafts).
 export async function checkSourceLive(source: { kind: IgSourceKind; slug: string }): Promise<string | null> {
   if (source.kind === 'manual' || !source.slug) return null;
+  if (source.kind === 'product') return checkProductsInStock(source.slug.split(',').map((s) => s.trim()).filter(Boolean));
   const model = source.kind === 'blog' ? Blog : source.kind === 'drop' ? Drop : SneakerProfile;
   const doc = await (model as typeof Blog).findOne({ slug: source.slug }).select('published').lean();
   if (!doc) return `The ${source.kind} "${source.slug}" does not exist`;
   if (!doc.published) return `The ${source.kind} "${source.slug}" is not published yet`;
   return null;
+}
+
+// Product posts (one slug, or a comma list for a roundup) must not go out
+// once a pair is sold out or back to "coming soon": the post would sell
+// something we cannot ship.
+async function checkProductsInStock(slugs: string[]): Promise<string | null> {
+  const products = await Product.find({ slug: { $in: slugs } }).lean();
+  const missing = slugs.filter((s) => !products.some((p) => p.slug === s));
+  if (missing.length) return `Product not found: ${missing.join(', ')}`;
+  const withOffers = await attachSellerOffers(products);
+  const gone = withOffers.filter((p) => p.comingSoon || p.offers.length === 0).map((p) => p.slug);
+  return gone.length ? `Sold out or coming soon now: ${gone.join(', ')}` : null;
 }
 
 export async function precheck(post: Pick<IInstagramPost, 'kind' | 'caption' | 'media' | 'coverUrl' | 'source'>): Promise<string[]> {

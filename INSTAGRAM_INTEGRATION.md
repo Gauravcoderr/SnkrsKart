@@ -91,6 +91,35 @@ automatically. The admin page shows days left.
 - Several drops in one week: pass all slugs to the starter for a roundup
   carousel (calendar cover with the shoes, one launch card per pair).
 
+## Products in stock
+
+Product posts sell, so they get their own path:
+
+- **`/ig-products`** with one or more product slugs, or none for new arrivals
+  (pairs added in the last 7 days, in stock, never posted). Claude writes the
+  caption in the brand voice and saves a draft.
+- **Automatically:** after every scheduled content run (Mon/Wed/Fri),
+  `igDraft.ts auto-products --days 3` turns new stock into a draft with a
+  facts-only caption. You approve or rewrite it in the admin panel.
+
+The slides use live stock, the same offers the product page shows: the
+lowest ₹ price, the UK sizes in stock and the fastest delivery ("Ships in
+24h", "Ships in 3 days", "Pre-order, about 20 days"). A single pair gets a
+launch card with a FROM price badge, cut-out angle shots from the gallery,
+an info card and a "Shop now" link. Several pairs get a "new pairs in stock"
+cover. If a pair sells out before the post goes out, approving or publishing
+it is refused.
+
+Many product photos were scraped from other stores' sites (Cloudinary folder
+`scraped-products`). The watermark check drops any photo with another
+store's mark; `auto-products` skips a pair whose main photo is marked. Your
+own photos are still the safer choice.
+
+Instagram Shopping tags (tap the shoe, see the price) are not part of this:
+they need the Facebook Login API path, a Commerce Manager catalog and shop
+approval, and the Merchant Center account is suspended right now. The shop
+link in bio does that job for now.
+
 ## What the slides look like
 
 1080x1350 JPEGs (stories 1080x1920), styled on how real sneaker accounts post:
@@ -98,7 +127,8 @@ automatically. The admin page shows days left.
 | Layout | Use |
 | --- | --- |
 | `hero` | launch card: the shoe cut out of its photo, background colour taken from the shoe, the nickname as a big ghost word, date badge |
-| `info` | release info rows: date and IST time, ₹ price, where, style code |
+| `info` | release info rows: date and IST time (or price, sizes, delivery for products), where, style code |
+| `angle` | another angle of the same pair, cut out, on the same colour |
 | `schedule` | roundup cover: three shoes fanned out over a release calendar |
 | `photo` | full-bleed photo with a dark fade; used automatically when no cut-out is possible |
 | `text` | a short explanation (blog summaries, sizing) |
@@ -155,6 +185,7 @@ Balance or Crocs retailer; the CTA slide says "Independent reseller".
 | `backend/src/scripts/igDraft.ts` | starter, render, create |
 | `backend/src/scripts/igCutout.swift` | shoe cut-out and watermark text (Apple Vision) |
 | `frontend/app/admin/instagram/page.tsx` | approval queue |
+| `.claude/commands/ig-products.md` | `/ig-products` command for product posts |
 | `.claude/skills/ig-*` | the 13 Instagram writing skills (MIT, from Jakeschincariol/instagram-agent-skill) |
 | `.claude/instagram/voice.md` | brand voice every `ig-*` skill reads |
 | `.github/workflows/instagram.yml` | hourly backup trigger |

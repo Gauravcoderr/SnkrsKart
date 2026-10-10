@@ -10,9 +10,11 @@ import { connectDB } from '../config/database';
 import { Blog } from '../models/Blog';
 import { Drop } from '../models/Drop';
 import { SneakerProfile } from '../models/SneakerProfile';
+import { Product } from '../models/Product';
+import { attachSellerOffers } from '../lib/sellerOffers';
 import { InstagramPost } from '../models/InstagramPost';
 import { IgMediaItem, validatePost } from '../lib/instagramRules';
-import { blogStarter, DraftSpec, dropStarter, renderSlideHtml, slideSize, sneakerStarter } from '../lib/instagramSlides';
+import { autoProductCaption, blogStarter, DraftSpec, dropStarter, ProductLike, productStarter, renderSlideHtml, slideSize, sneakerStarter } from '../lib/instagramSlides';
 import { uploadDataUriToCloudinary } from './uploadBlogImage';
 
 // Instagram draft pipeline used by the /drop, /blog and /sneaker skills.
@@ -20,12 +22,18 @@ import { uploadDataUriToCloudinary } from './uploadBlogImage';
 //   npx ts-node --transpile-only src/scripts/igDraft.ts starter drop <slug> [<slug>...] [--out spec.json]
 //   npx ts-node --transpile-only src/scripts/igDraft.ts starter blog <slug> [--out spec.json]
 //   npx ts-node --transpile-only src/scripts/igDraft.ts starter sneaker <slug> [--out spec.json]
+//   npx ts-node --transpile-only src/scripts/igDraft.ts starter product <slug> [<slug>...] [--auto-caption] [--out spec.json]
+//   npx ts-node --transpile-only src/scripts/igDraft.ts starter new-arrivals [--days 7] [--limit 6] [--auto-caption] [--out spec.json]
+//   npx ts-node --transpile-only src/scripts/igDraft.ts auto-products [--days 7] [--limit 6]
 //   npx ts-node --transpile-only src/scripts/igDraft.ts render <spec.json> <outDir>
 //   npx ts-node --transpile-only src/scripts/igDraft.ts create <spec.json> [--force] [--allow-watermark]
 //
 // "create" renders, uploads the JPEGs to Cloudinary (folder instagram/) and
 // saves an InstagramPost with status "draft". It never approves or publishes:
-// a human does that in /admin/instagram. It refuses images that carry another
+// a human does that in /admin/instagram. "auto-products" is the unattended
+// version for new stock: it picks pairs added in the last N days that were
+// never posted, drops watermarked photos, writes a facts-only caption and
+// creates the draft. It refuses images that carry another
 // account's watermark (found with Apple Vision text recognition).
 
 const ADMIN_URL = 'https://www.snkrscart.com/admin/instagram';
@@ -226,7 +234,7 @@ export async function renderSlides(spec: DraftSpec, outDir: string): Promise<Ren
   if (!tool) console.warn('  note: no cut-out tool (needs macOS + swiftc), hero and info slides fall back to full-bleed photos');
   const prepared = await Promise.all(
     slides.map(async (sl) => {
-      const main = sl.image ? await prepareImage(sl.image, tool, sl.layout === 'hero' || sl.layout === 'info') : { cutout: null, watermark: [] };
+      const main = sl.image ? await prepareImage(sl.image, tool, sl.layout === 'hero' || sl.layout === 'info' || sl.layout === 'angle') : { cutout: null, watermark: [] };
       const extras = await Promise.all((sl.images ?? []).slice(0, 3).map((u) => prepareImage(u, tool, true)));
       return { main, extras };
     }),
@@ -261,7 +269,38 @@ export async function renderSlides(spec: DraftSpec, outDir: string): Promise<Ren
   return { files, warnings };
 }
 
-async function starter(kind: string, slugs: string[]): Promise<DraftSpec> {
+type LoadedProduct = ProductLike & { createdAt?: Date };
+
+async function loadProducts(filter: Record<string, unknown>, limit = 30): Promise<LoadedProduct[]> {
+  const docs = await Product.find(filter).sort({ createdAt: -1 }).limit(limit).lean();
+  const withOffers = await attachSellerOffers(docs);
+  return withOffers
+    .filter((p) => !p.comingSoon && p.offers.length > 0)
+    .map((p) => ({
+      slug: p.slug,
+      name: p.name,
+      brand: p.brand,
+      colorway: p.colorway,
+      images: p.images,
+      sku: p.sku,
+      createdAt: p.createdAt,
+      offers: p.offers.map((o) => ({ size: o.size, price: o.price, availability: o.availability })),
+    }));
+}
+
+async function postedProductSlugs(): Promise<Set<string>> {
+  const posts = await InstagramPost.find({ 'source.kind': 'product', status: { $ne: 'rejected' } }).select('source').lean();
+  return new Set(posts.flatMap((p) => p.source.slug.split(',').map((x) => x.trim())));
+}
+
+async function newArrivals(days: number, limit: number): Promise<LoadedProduct[]> {
+  const since = new Date(Date.now() - days * 86_400_000);
+  const posted = await postedProductSlugs();
+  const fresh = await loadProducts({ productType: 'shoes', soldOut: false, comingSoon: false, createdAt: { $gte: since } });
+  return fresh.filter((p) => !posted.has(p.slug)).slice(0, limit);
+}
+
+async function starter(kind: string, slugs: string[], opts: { days?: number; limit?: number } = {}): Promise<DraftSpec> {
   await connectDB();
   if (kind === 'drop') {
     const drops = await Drop.find({ slug: { $in: slugs } }).lean();
@@ -280,7 +319,18 @@ async function starter(kind: string, slugs: string[]): Promise<DraftSpec> {
     if (!profile) throw new Error(`Sneaker profile not found: ${slugs[0]}`);
     return sneakerStarter(profile);
   }
-  throw new Error(`Unknown starter kind "${kind}" (drop, blog or sneaker)`);
+  if (kind === 'product') {
+    const found = await loadProducts({ slug: { $in: slugs } }, slugs.length);
+    const missing = slugs.filter((s) => !found.some((p) => p.slug === s));
+    if (missing.length) throw new Error(`Not found or not in stock: ${missing.join(', ')}`);
+    return productStarter(slugs.map((s) => found.find((p) => p.slug === s) as LoadedProduct));
+  }
+  if (kind === 'new-arrivals') {
+    const picked = await newArrivals(opts.days ?? 7, opts.limit ?? 6);
+    if (picked.length === 0) throw new Error(`No new pairs in stock in the last ${opts.days ?? 7} days that have not been posted`);
+    return productStarter(picked);
+  }
+  throw new Error(`Unknown starter kind "${kind}" (drop, blog, sneaker, product or new-arrivals)`);
 }
 
 async function create(spec: DraftSpec, force: boolean, allowWatermark: boolean): Promise<void> {
@@ -340,6 +390,38 @@ async function create(spec: DraftSpec, force: boolean, allowWatermark: boolean):
   console.log(`✅ Instagram draft ${post._id} (${spec.kind}, ${media.length} items) → ${ADMIN_URL}`);
 }
 
+// Unattended: new stock straight to a draft. Photos carrying another
+// account's watermark are dropped (a pair whose main photo is marked is
+// skipped), so the draft never needs --allow-watermark.
+async function autoProducts(days: number, limit: number): Promise<void> {
+  await connectDB();
+  const tool = cutoutTool();
+  const picked = await newArrivals(days, limit);
+  if (picked.length === 0) {
+    console.log(`Nothing to post: no new pairs in stock in the last ${days} days that have not been posted.`);
+    return;
+  }
+  const clean: LoadedProduct[] = [];
+  for (const p of picked) {
+    const imgs: string[] = [];
+    for (const url of (p.images ?? []).slice(0, 5)) {
+      const prep = await prepareImage(url, tool, false);
+      if (prep.watermark.length) console.warn(`  skipped a ${p.slug} photo with a watermark (${prep.watermark.join(' | ')})`);
+      else imgs.push(url);
+    }
+    if (imgs.length && imgs[0] === p.images?.[0]) clean.push({ ...p, images: imgs });
+    else console.warn(`  skipped ${p.slug}: its main photo is missing or watermarked`);
+  }
+  if (clean.length === 0) {
+    console.log('Nothing to post: every candidate photo carries a watermark.');
+    return;
+  }
+  const spec = productStarter(clean);
+  spec.caption = autoProductCaption(clean);
+  spec.notes = 'Made by auto-products with a facts-only caption. Rewrite the caption here if you like, then approve.';
+  await create(spec, false, false);
+}
+
 async function main(): Promise<void> {
   const [, , cmd, ...rest] = process.argv;
   const flag = (name: string) => {
@@ -352,15 +434,26 @@ async function main(): Promise<void> {
 
   if (cmd === 'starter') {
     const out = flag('--out');
-    const [kind, ...slugs] = rest;
-    if (!kind || slugs.length === 0) throw new Error('Usage: starter <drop|blog|sneaker> <slug...> [--out spec.json]');
-    const spec = await starter(kind, slugs);
+    const days = Number(flag('--days') ?? 7);
+    const limit = Number(flag('--limit') ?? 6);
+    const autoCaption = rest.includes('--auto-caption');
+    const [kind, ...slugs] = rest.filter((a) => a !== '--auto-caption');
+    if (!kind || (slugs.length === 0 && kind !== 'new-arrivals')) throw new Error('Usage: starter <drop|blog|sneaker|product> <slug...> | starter new-arrivals [--days 7] [--limit 6] [--out spec.json]');
+    const spec = await starter(kind, slugs, { days, limit });
+    if (autoCaption && (kind === 'product' || kind === 'new-arrivals')) {
+      const slugList = spec.source.slug.split(',');
+      spec.caption = autoProductCaption(await loadProducts({ slug: { $in: slugList } }, slugList.length));
+    }
     const json = JSON.stringify(spec, null, 2) + '\n';
     if (out) {
       fs.mkdirSync(path.dirname(out), { recursive: true });
       fs.writeFileSync(out, json);
       console.log(`✅ Starter spec written to ${out}. Write the caption, then run "create".`);
     } else process.stdout.write(json);
+    return;
+  }
+  if (cmd === 'auto-products') {
+    await autoProducts(Number(flag('--days') ?? 7), Number(flag('--limit') ?? 6));
     return;
   }
   if (cmd === 'render') {

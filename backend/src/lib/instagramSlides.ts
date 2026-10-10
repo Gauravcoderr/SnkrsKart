@@ -11,7 +11,7 @@ import { IgKind, IgMediaItem, IgSourceKind } from './instagramRules';
 
 export const SITE_HOST = 'snkrscart.com';
 
-export type SlideLayout = 'hero' | 'info' | 'schedule' | 'photo' | 'text' | 'cta';
+export type SlideLayout = 'hero' | 'info' | 'angle' | 'schedule' | 'photo' | 'text' | 'cta';
 
 export interface SlideSpec {
   layout: SlideLayout;
@@ -23,7 +23,7 @@ export interface SlideSpec {
   image?: string;
   images?: string[];
   ghost?: string;
-  badge?: { big: string; small: string[] };
+  badge?: { big: string; small: string[]; variant?: 'date' | 'price' };
   rows?: string[][];
   altText?: string;
 }
@@ -142,13 +142,15 @@ function css(width: number, height: number): string {
   .badge { text-align:right; }
   .badge .big { font-size:200px; line-height:.8; }
   .badge .small { font-weight:800; font-size:26px; letter-spacing:.2em; margin-top:14px; }
+  .badge.price .big { font-size:104px; line-height:.9; }
+  .badge.price .small { margin:0 0 10px; }
   .rows { left:var(--pad); right:var(--pad); }
   .row { display:flex; justify-content:space-between; align-items:baseline; gap:24px; padding:26px 0; border-top:2px solid var(--line); }
   .row:last-child { border-bottom:2px solid var(--line); }
   .row .k { font-weight:700; font-size:22px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); flex:none; }
   .row .v { font-family:'Anton', Impact, sans-serif; font-size:52px; text-transform:uppercase; text-align:right; line-height:1.05; }
   .sched .row { align-items:center; }
-  .sched .d { font-family:'Anton', Impact, sans-serif; font-size:64px; width:190px; flex:none; line-height:.95; }
+  .sched .d { font-family:'Anton', Impact, sans-serif; font-size:64px; min-width:190px; flex:none; line-height:.95; }
   .sched .n { flex:1; font-weight:700; font-size:34px; line-height:1.2; }
   .sched .p { font-weight:600; font-size:26px; color:var(--ink-soft); text-align:right; flex:none; }
   .fan { object-fit:contain; filter:drop-shadow(0 26px 22px rgba(0,0,0,.4)); }
@@ -169,6 +171,13 @@ export interface RenderOptions {
   cutoutDataUri?: string;
   // Cut-outs for the shoes on a schedule (roundup) cover.
   extraCutouts?: string[];
+}
+
+function badgeHtml(b: NonNullable<SlideSpec['badge']>, e: (v: string | undefined) => string): string {
+  if (b.variant === 'price') {
+    return `<div class="badge price"><div class="small">${b.small.map(e).join('<br>')}</div><div class="display big">${e(b.big)}</div></div>`;
+  }
+  return `<div class="badge"><div class="display big">${e(b.big)}</div><div class="small">${b.small.map(e).join('<br>')}</div></div>`;
 }
 
 // Up to three shoes fanned out between the headline and the calendar rows.
@@ -199,7 +208,7 @@ export function renderSlideHtml(slide: SlideSpec, o: RenderOptions): string {
   const photoSrc = escapeHtml(safeSrc(slide.image));
 
   // No cut-out available: a hero or info slide falls back to full-bleed photo.
-  const layout: SlideLayout = (slide.layout === 'hero' || slide.layout === 'info') && !shoeSrc && photoSrc ? 'photo' : slide.layout;
+  const layout: SlideLayout = (slide.layout === 'hero' || slide.layout === 'info' || slide.layout === 'angle') && !shoeSrc && photoSrc ? 'photo' : slide.layout;
   let inner = '';
 
   switch (layout) {
@@ -216,7 +225,7 @@ export function renderSlideHtml(slide: SlideSpec, o: RenderOptions): string {
           <div class="display name" data-fit data-min="54" style="max-height:${story ? 300 : 200}px">${e(slide.title)}</div>
           ${slide.subtitle ? `<div class="sub">${e(slide.subtitle)}</div>` : ''}
         </div>
-        ${slide.badge ? `<div class="badge"><div class="display big">${e(slide.badge.big)}</div><div class="small">${slide.badge.small.map(e).join('<br>')}</div></div>` : ''}
+        ${slide.badge ? badgeHtml(slide.badge, e) : ''}
       </div>`;
       break;
     }
@@ -235,6 +244,16 @@ export function renderSlideHtml(slide: SlideSpec, o: RenderOptions): string {
       </div>`;
       break;
     }
+    case 'angle':
+      inner = `
+      <div class="abs top">${count}${logo}</div>
+      <div class="abs floor" style="top:${story ? 1260 : 960}px;width:820px"></div>
+      <img class="abs shoe" src="${shoeSrc}" alt="" style="--tilt:0deg;top:${story ? 560 : 300}px;width:1000px;height:${story ? 720 : 680}px">
+      <div class="abs" style="left:var(--pad);right:var(--pad);bottom:calc(var(--pad) + var(--safe))">
+        <div class="brand">${e(slide.brand || slide.kicker)}</div>
+        <div class="sub" style="margin-top:8px;font-weight:700;color:var(--ink)">${e(slide.title)}</div>
+      </div>`;
+      break;
     case 'photo':
       inner = `
       <img class="abs photo-img" src="${photoSrc}" alt="">
@@ -441,4 +460,149 @@ export function sneakerStarter(s: SneakerLike): DraftSpec {
   if (s.sizeNotes) slides.push({ layout: 'text', kicker: 'Sizing', title: 'How it fits', body: s.sizeNotes, altText: `Sizing notes for the ${s.name}` });
   slides.push({ layout: 'cta', title: 'Full guide', body: `${SITE_HOST}/sneakers/${s.slug}`, subtitle: 'History, India price and sizing', altText: 'Link to the sneaker guide' });
   return { kind: 'CAROUSEL', source: { kind: 'sneaker', slug: s.slug }, caption: CAPTION_TODO, scheduledAt: null, slides };
+}
+
+// ─── products in stock ─────────────────────────────────────────────────────
+
+export interface ProductOfferLike {
+  size: number | string;
+  price: number;
+  availability: 'instant' | 'inhand' | 'eta';
+}
+
+export interface ProductLike {
+  slug: string;
+  name: string;
+  brand: string;
+  colorway?: string;
+  images?: string[];
+  sku?: string;
+  offers: ProductOfferLike[];
+}
+
+const SHIP_TEXT: Record<ProductOfferLike['availability'], string> = { instant: 'Ships in 24h', inhand: 'Ships in 3 days', eta: 'Pre-order, about 20 days' };
+const AVAIL_ORDER: Record<ProductOfferLike['availability'], number> = { instant: 0, inhand: 1, eta: 2 };
+
+const STYLE_CODE = /^(?:[A-Z]{2}\d{4}-\d{3}|\d{6}-\d{2,3}|[A-Z]{2}\d{4}|\d{4}[A-Z]\d{3}-\d{3}|[MUW]\d{3,4}[A-Z]{2,4}\d?)$/i;
+
+export function styleCode(sku?: string): string {
+  const s = (sku ?? '').trim();
+  return STYLE_CODE.test(s) ? s.toUpperCase() : '';
+}
+
+// "UK 7, 8, 9, 10" for up to 6 sizes, "UK 6 to 11" beyond that.
+export function sizeRange(offers: ProductOfferLike[]): string {
+  const sizes = [...new Set(offers.map((o) => String(o.size)))];
+  const nums = sizes.map(Number);
+  if (nums.every((n) => Number.isFinite(n))) {
+    const sorted = [...new Set(nums)].sort((a, b) => a - b);
+    if (sorted.length === 0) return '';
+    if (sorted.length <= 6) return `UK ${sorted.join(', ')}`;
+    return `UK ${sorted[0]} to ${sorted[sorted.length - 1]}`;
+  }
+  return sizes.join(', ');
+}
+
+export function productFacts(p: ProductLike): { from: string; sizes: string; ships: string; style: string } {
+  const min = Math.min(...p.offers.map((o) => o.price));
+  const fastest = [...p.offers].sort((a, b) => AVAIL_ORDER[a.availability] - AVAIL_ORDER[b.availability])[0];
+  return {
+    from: formatPrice(min, 'INR') ?? '',
+    sizes: sizeRange(p.offers),
+    ships: fastest ? SHIP_TEXT[fastest.availability] : '',
+    style: styleCode(p.sku),
+  };
+}
+
+function productHero(p: ProductLike, kicker: string): SlideSpec {
+  const f = productFacts(p);
+  return {
+    layout: 'hero',
+    kicker,
+    brand: p.brand,
+    title: stripNickname(p.name),
+    subtitle: p.colorway ?? '',
+    ghost: ghostWord(p.name),
+    image: p.images?.[0],
+    badge: { big: f.from, small: ['FROM'], variant: 'price' },
+    altText: altFor(p.name, p.colorway),
+  };
+}
+
+export function productStarter(products: ProductLike[]): DraftSpec {
+  const live = products.filter((p) => p.offers.length > 0);
+  if (live.length === 0) throw new Error('None of these products has a size in stock');
+  const cta = (href: string, title: string): SlideSpec => ({
+    layout: 'cta',
+    title,
+    body: href,
+    subtitle: 'Every pair is checked before it ships. Shipping across India.',
+    altText: 'Link to shop on SNKRS CART',
+  });
+
+  if (live.length === 1) {
+    const p = live[0];
+    const f = productFacts(p);
+    const angles = (p.images ?? []).slice(1, 5).map((src) => ({ layout: 'angle' as const, brand: p.brand, title: stripNickname(p.name), image: src, altText: altFor(p.name, p.colorway) }));
+    return {
+      kind: 'CAROUSEL',
+      source: { kind: 'product', slug: p.slug },
+      caption: CAPTION_TODO,
+      scheduledAt: null,
+      slides: [
+        productHero(p, 'In stock'),
+        ...angles,
+        { layout: 'info' as const, brand: p.brand, title: stripNickname(p.name), image: p.images?.[0], rows: [['Price', `From ${f.from}`], ['Sizes', f.sizes], ['Delivery', f.ships], ['Style', f.style]], altText: altFor(p.name, p.colorway) },
+        cta(`${SITE_HOST}/products/${p.slug}`, 'Shop now'),
+      ].slice(0, 10),
+    };
+  }
+
+  const picked = live.slice(0, 6);
+  return {
+    kind: 'CAROUSEL',
+    source: { kind: 'product', slug: picked.map((p) => p.slug).join(',') },
+    caption: CAPTION_TODO,
+    scheduledAt: null,
+    slides: [
+      {
+        layout: 'schedule' as const,
+        kicker: 'Just landed at SNKRS CART',
+        title: `${picked.length} new pairs in stock`,
+        images: picked.slice(0, 3).map((p) => p.images?.[0] ?? '').filter(Boolean),
+        rows: picked.slice(0, 4).map((p) => [productFacts(p).from, p.name, productFacts(p).sizes]),
+        altText: `New in stock: ${picked.map((p) => p.name).join(', ')}`,
+      },
+      ...picked.map((p) => productHero(p, 'New in')),
+      cta(`${SITE_HOST}/products`, 'Shop new arrivals'),
+    ].slice(0, 10),
+  };
+}
+
+const BRAND_TAG: Record<string, string> = { nike: '#nike', jordan: '#jordan', 'air jordan': '#airjordan', adidas: '#adidas', 'new balance': '#newbalance', crocs: '#crocs' };
+
+// A facts-only caption for unattended runs: nothing in it that is not in the
+// record. A human still approves it, and can rewrite it in the admin panel.
+export function autoProductCaption(products: ProductLike[]): string {
+  const live = products.filter((p) => p.offers.length > 0);
+  const tags = new Set<string>();
+  live.forEach((p) => {
+    const b = BRAND_TAG[p.brand.toLowerCase()];
+    if (b) tags.add(b);
+  });
+  const model = live.length === 1 ? `#${stripNickname(live[0].name).toLowerCase().replace(/^(nike|adidas|new balance)\s+/, '').replace(/[^a-z0-9]/g, '')}` : '';
+  const all = [...tags, model, '#sneakersindia', '#snkrscart'].filter((t) => t && t.length > 2).slice(0, 5);
+  if (live.length === 1) {
+    const p = live[0];
+    const f = productFacts(p);
+    return [
+      `${p.name} is in stock. From ${f.from}, ${f.sizes}.`,
+      '',
+      `${f.ships}. Every pair is checked before it ships, anywhere in India. Link in bio.`,
+      '',
+      all.join(' '),
+    ].join('\n');
+  }
+  const lines = live.slice(0, 6).map((p) => `${p.name}: from ${productFacts(p).from}`);
+  return [`${live.length} new pairs just landed.`, '', ...lines, '', 'Every pair is checked before it ships. Link in bio.', '', all.join(' ')].join('\n');
 }

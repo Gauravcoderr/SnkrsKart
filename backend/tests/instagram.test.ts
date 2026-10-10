@@ -18,7 +18,7 @@ import {
   publishToInstagram,
 } from '../src/services/instagram';
 import { decryptToken, encryptToken } from '../src/services/instagramToken';
-import { dateBadge, dropStarter, ghostWord, renderSlideHtml } from '../src/lib/instagramSlides';
+import { autoProductCaption, dateBadge, dropStarter, ghostWord, productFacts, productStarter, renderSlideHtml, sizeRange, styleCode } from '../src/lib/instagramSlides';
 import { watermarkLines } from '../src/scripts/igDraft';
 
 const CLD = 'https://res.cloudinary.com/dadulg5bs/image/upload';
@@ -266,4 +266,45 @@ test('slide HTML escapes text and falls back to a full-bleed photo without a cut
   assert.ok(!html.includes('<script>x'));
   assert.ok(html.includes('&lt;script&gt;'));
   assert.ok(html.includes('data-layout="photo"'));
+});
+
+// ─── products ──────────────────────────────────────────────────────────────
+
+const royal = {
+  slug: 'aj1-royal',
+  name: 'Air Jordan 1 High OG "Royal"',
+  brand: 'Jordan',
+  colorway: 'Black/Game Royal-White',
+  images: [`${CLD}/v1/a.jpg`, `${CLD}/v1/b.jpg`, `${CLD}/v1/c.jpg`],
+  sku: 'DZ5485-042',
+  offers: [
+    { size: 9, price: 18995, availability: 'inhand' as const },
+    { size: 7, price: 19995, availability: 'instant' as const },
+    { size: 8, price: 18995, availability: 'eta' as const },
+  ],
+};
+
+test('product facts: lowest price, sorted UK sizes, fastest delivery, real style codes only', () => {
+  assert.deepEqual(productFacts(royal), { from: '₹18,995', sizes: 'UK 7, 8, 9', ships: 'Ships in 24h', style: 'DZ5485-042' });
+  assert.equal(sizeRange([6, 6.5, 7, 8, 9, 10, 11].map((size) => ({ size, price: 1, availability: 'inhand' as const }))), 'UK 6 to 11');
+  assert.equal(styleCode('air-jordan-1-royal'), '');
+});
+
+test('product starter: single pair carousel with angles, and a roundup for several', () => {
+  const one = productStarter([royal]);
+  assert.deepEqual(one.source, { kind: 'product', slug: 'aj1-royal' });
+  assert.deepEqual(one.slides!.map((x) => x.layout), ['hero', 'angle', 'angle', 'info', 'cta']);
+  assert.deepEqual(one.slides![0].badge, { big: '₹18,995', small: ['FROM'], variant: 'price' });
+  const two = productStarter([royal, { ...royal, slug: 'aj1-other', offers: [{ size: 10, price: 12000, availability: 'inhand' }] }, { ...royal, slug: 'gone', offers: [] }]);
+  assert.equal(two.source.slug, 'aj1-royal,aj1-other');
+  assert.equal(two.slides![0].layout, 'schedule');
+  assert.throws(() => productStarter([{ ...royal, offers: [] }]), /in stock/);
+});
+
+test('the unattended product caption passes every caption rule', () => {
+  const cap = autoProductCaption([royal]);
+  assert.match(cap, /^Air Jordan 1 High OG "Royal" is in stock\. From ₹18,995, UK 7, 8, 9\./);
+  const spec = productStarter([royal]);
+  assert.deepEqual(validatePost({ kind: 'CAROUSEL', caption: cap, media: spec.slides!.map(() => ({ url: `${CLD}/v1/x.jpg`, type: 'IMAGE' as const })) }), []);
+  assert.ok(countHashtags(autoProductCaption([royal, { ...royal, slug: 'b', brand: 'Nike' }])) <= 5);
 });

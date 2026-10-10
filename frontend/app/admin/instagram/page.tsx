@@ -27,7 +27,7 @@ interface IgPost {
   coverUrl?: string;
   status: Status;
   scheduledAt: string | null;
-  source: { kind: 'drop' | 'blog' | 'sneaker' | 'manual'; slug: string };
+  source: { kind: 'drop' | 'blog' | 'sneaker' | 'product' | 'manual'; slug: string };
   notes?: string;
   attempts: number;
   error?: string;
@@ -85,8 +85,8 @@ function toLocalInput(iso: string | null | undefined): string {
 
 function sourceHref(s: IgPost['source']): string | null {
   if (!s.slug || s.kind === 'manual') return null;
-  const base = s.kind === 'blog' ? 'blogs' : s.kind === 'drop' ? 'drops' : 'sneakers';
-  return `${SITE}/${base}/${s.slug}`;
+  const base = s.kind === 'blog' ? 'blogs' : s.kind === 'drop' ? 'drops' : s.kind === 'product' ? 'products' : 'sneakers';
+  return `${SITE}/${base}/${s.slug.split(',')[0]}`;
 }
 
 function CarouselPreview({ media }: { media: Media[] }) {
@@ -310,7 +310,7 @@ export default function AdminInstagramPage() {
       {loading ? (
         <AdminLoader className="h-40" />
       ) : posts.length === 0 ? (
-        <p className="py-12 text-center text-sm text-zinc-500">Nothing here. Run /drop, /blog or /sneaker and say yes to the Instagram step.</p>
+        <p className="py-12 text-center text-sm text-zinc-500">Nothing here. Run /ig-products, /drop, /blog or /sneaker and say yes to the Instagram step.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {posts.map((p) => {
@@ -324,7 +324,7 @@ export default function AdminInstagramPage() {
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${STATUS_STYLE[p.status]}`}>{p.status === 'approved' ? 'scheduled' : p.status}{p.dryRun ? ' (dry run)' : ''}</span>
                     <span className="text-[10px] font-bold text-zinc-500">{p.kind} · {p.media.length}</span>
                     {href ? (
-                      <a href={href} target="_blank" rel="noopener noreferrer" className="text-[10px] text-zinc-500 hover:text-zinc-300 truncate">{p.source.kind}/{p.source.slug}</a>
+                      <a href={href} target="_blank" rel="noopener noreferrer" className="text-[10px] text-zinc-500 hover:text-zinc-300 truncate">{p.source.kind}/{p.source.slug.includes(',') ? `${p.source.slug.split(',').length} products` : p.source.slug}</a>
                     ) : (
                       <span className="text-[10px] text-zinc-600 truncate">{p.source.slug || 'manual'}</span>
                     )}

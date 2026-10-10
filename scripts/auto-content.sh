@@ -241,6 +241,11 @@ main() {
 
   log "claude exited rc=$rc"
 
+  # New stock goes to the Instagram queue as drafts (facts-only caption, a
+  # human approves). Never blocks the run; writes nothing to git.
+  ( cd "$REPO/backend" && npx ts-node --transpile-only src/scripts/igDraft.ts auto-products --days 3 ) >> "$LOG" 2>&1 \
+    || log "warn: instagram auto-products failed"
+
   # --- commit whatever the run produced ------------------------------------
   local current; current="$(git rev-parse --abbrev-ref HEAD)"
   if [[ "$current" == "main" ]]; then

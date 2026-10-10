@@ -4,7 +4,7 @@
 export const IG_KINDS = ['IMAGE', 'CAROUSEL', 'REELS', 'STORIES'] as const;
 export type IgKind = (typeof IG_KINDS)[number];
 
-export const IG_SOURCE_KINDS = ['drop', 'blog', 'sneaker', 'manual'] as const;
+export const IG_SOURCE_KINDS = ['drop', 'blog', 'sneaker', 'product', 'manual'] as const;
 export type IgSourceKind = (typeof IG_SOURCE_KINDS)[number];
 
 export const CAPTION_MAX = 2200;
