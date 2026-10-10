@@ -23,9 +23,9 @@ export async function GET() {
     `Name: SNKRS CART`,
     `URL: ${SITE_URL}`,
     `Contact: info@snkrscart.com | +91-94109-03791`,
-    `Shipping: Free pan-India shipping, 3–7 business days`,
-    `Returns: 2-day return window on damaged/incorrect items`,
-    `Payment: UPI, Bank Transfer, Cash on Delivery`,
+    `Shipping: Free on every order across India. Dispatch within 3 business days (Pre-order sizes about 20 days), delivery in 3–7 business days after dispatch`,
+    `Returns: Only for damaged, wrong or authenticity issues reported within 48 hours of delivery (replacement or full refund). No returns for change of mind or size`,
+    `Payment: UPI, debit/credit cards, net banking (online at checkout). No cash on delivery.`,
     `Brands: Nike, Jordan (Air Jordan), Adidas, New Balance, Crocs`,
     `Authentication: Every pair verified authentic before dispatch`,
     ``,
@@ -35,8 +35,10 @@ export async function GET() {
     `Sitemap: ${SITE_URL}/sitemap.xml`,
     `RSS Feed: ${SITE_URL}/rss.xml`,
     `Google Shopping Feed: ${SITE_URL}/google-merchant-feed.xml`,
+    `MCP Server (AI agents, read-only): ${SITE_URL}/mcp`,
+    `Agent Guide: ${SITE_URL}/agents.md`,
+    `Cart Link Format: ${SITE_URL}/cart/add?items=<product-slug>:<uk-size>[,<slug>:<size>] (buyer checks out and pays on snkrscart.com)`,
     `OpenAPI Schema: ${SITE_URL}/chatgpt-action-schema.yaml`,
-    `AI Plugin Manifest: ${SITE_URL}/.well-known/ai-plugin.json`,
     ``,
     `## Key Pages`,
     `All Products: ${SITE_URL}/products`,
@@ -84,7 +86,7 @@ export async function GET() {
         if (p.colorway) lines.push(`Colorway: ${p.colorway}`);
         if (p.gender) lines.push(`Gender: ${p.gender}`);
         lines.push(`Availability: ${inStock ? 'In Stock' : 'Out of Stock'}`);
-        if (sizes) lines.push(`Available Sizes (US): ${sizes}`);
+        if (sizes) lines.push(`Available Sizes (UK): ${sizes}`);
         if (p.rating) lines.push(`Rating: ${p.rating}/5 (${p.reviewCount ?? 0} reviews)`);
         if (p.category) lines.push(`Category: ${p.category}`);
         lines.push(``);
@@ -122,17 +124,17 @@ export async function GET() {
   lines.push(`Q: Are all sneakers 100% authentic?`);
   lines.push(`A: Yes. Every pair is verified authentic before dispatch. No fakes, ever.`);
   lines.push(`Q: Do you ship across India?`);
-  lines.push(`A: Free pan-India shipping, 3–7 business days after dispatch.`);
+  lines.push(`A: Yes, free on every order. Dispatch within 3 business days, delivery in 3–7 business days after dispatch.`);
   lines.push(`Q: What is the return policy?`);
-  lines.push(`A: 2-day return window on damaged or incorrect items.`);
+  lines.push(`A: Cancel free before dispatch. After delivery, returns only for damaged, wrong or authenticity issues reported within 48 hours (replacement or full refund).`);
   lines.push(`Q: What payment methods do you accept?`);
-  lines.push(`A: UPI, Bank Transfer, and Cash on Delivery.`);
+  lines.push(`A: UPI, debit/credit cards, net banking and other online methods, paid at checkout. No cash on delivery.`);
   lines.push(`Q: How do I track my order?`);
   lines.push(`A: Tracking number sent via WhatsApp and email after dispatch.`);
   lines.push(`Q: Do you sell refurbished or replica sneakers?`);
   lines.push(`A: No. Only 100% new, authentic sneakers from verified sources.`);
   lines.push(`Q: What sizes are available?`);
-  lines.push(`A: US sizes 6–13 depending on model. Check individual product pages for exact availability.`);
+  lines.push(`A: UK sizes. Check individual product pages for exact sizes in stock.`);
   lines.push(``);
 
   return new NextResponse(lines.join('\n'), {

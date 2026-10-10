@@ -176,7 +176,7 @@ const localBusinessLd = {
   openingHours: 'Mo-Sa 10:00-19:00',
   priceRange: '₹₹',
   currenciesAccepted: 'INR',
-  paymentAccepted: 'UPI, Bank Transfer, Cash on Delivery',
+  paymentAccepted: 'UPI, Credit Card, Debit Card, Net Banking',
   areaServed: 'IN',
   hasMap: 'https://maps.google.com/?q=Pauri+Garhwal,Uttarakhand,India',
 };

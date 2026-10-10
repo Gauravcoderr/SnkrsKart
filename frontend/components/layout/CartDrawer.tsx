@@ -47,25 +47,9 @@ export default function CartDrawer() {
         {/* Free shipping bar */}
         {items.length > 0 && (
           <div className="px-6 py-3 bg-zinc-50 border-b border-zinc-100">
-            {subtotal >= 3000 ? (
-              <p className="text-xs font-semibold text-emerald-600 tracking-wide">
-                🎉 You qualify for free shipping!
-              </p>
-            ) : (
-              <div>
-                <p className="text-xs text-zinc-500 mb-1.5">
-                  Add{' '}
-                  <span className="font-bold text-zinc-900">{formatPrice(3000 - subtotal)}</span>{' '}
-                  for free shipping
-                </p>
-                <div className="w-full bg-zinc-200 h-1">
-                  <div
-                    className="bg-zinc-900 h-1 transition-all duration-500"
-                    style={{ width: `${Math.min(100, (subtotal / 3000) * 100)}%` }}
-                  />
-                </div>
-              </div>
-            )}
+            <p className="text-xs font-semibold text-emerald-600 tracking-wide">
+              Free shipping across India on every order
+            </p>
           </div>
         )}
 

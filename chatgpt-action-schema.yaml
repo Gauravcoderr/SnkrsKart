@@ -1,10 +1,10 @@
 openapi: 3.1.0
 info:
   title: SNKRS CART Live Inventory API
-  description: Fetches live sneaker products, brands, and blog posts from SNKRS CART
+  description: Fetches live sneaker products, brands, and blog posts from SNKRS CART (India, INR, UK sizes). For per-size prices, stock and cart links, AI agents should use the MCP server at https://www.snkrscart.com/mcp
   version: 1.0.0
 servers:
-  - url: https://snkrskart.onrender.com/api/v1
+  - url: https://api.snkrscart.com/api/v1
 
 paths:
   /products:
@@ -29,14 +29,35 @@ paths:
             type: string
         - name: limit
           in: query
-          description: Number of products to return (default 20, max 500)
+          description: Number of products to return (default 20, max 48)
           schema:
             type: integer
+            maximum: 48
         - name: page
           in: query
           description: Page number for pagination
           schema:
             type: integer
+        - name: size
+          in: query
+          description: UK sizes in stock, comma separated (e.g. 9 or 8.5,9)
+          schema:
+            type: string
+        - name: minPrice
+          in: query
+          description: Minimum price in INR
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          description: Maximum price in INR
+          schema:
+            type: number
+        - name: sort
+          in: query
+          description: newest, popular, price_asc or price_desc
+          schema:
+            type: string
       responses:
         "200":
           description: List of products
@@ -154,7 +175,7 @@ paths:
     get:
       operationId: getFaqs
       summary: Get frequently asked questions about SNKRS CART
-      description: Returns common customer questions about ordering, shipping, returns, authenticity, sizing, and payment
+      description: The answers shown on snkrscart.com/faqs (ordering, payment, shipping, returns, sizing, authenticity, contact)
       responses:
         "200":
           description: FAQ list
@@ -173,7 +194,4 @@ paths:
                           description: Customer question
                         answer:
                           type: string
-                          description: Direct answer from SNKRS CART
-                        category:
-                          type: string
-                          description: "FAQ category (e.g. shipping, returns, sizing, authenticity)"
+                          description: Answer from SNKRS CART, plain text

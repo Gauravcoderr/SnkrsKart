@@ -5,6 +5,10 @@ import { fetchAllProducts } from '@/lib/catalog';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 const API = process.env.NEXT_PUBLIC_API_URL || 'https://snkrskart.onrender.com/api/v1';
 
+// Next 15 no longer caches GET handlers; keep this prerendered and refreshed hourly as on Next 14.
+export const dynamic = 'force-static';
+export const revalidate = 3600;
+
 export async function GET() {
   const lines: string[] = [
     `# SNKRS CART — Full AI Content Feed (llms-full.txt)`,
@@ -62,12 +66,11 @@ export async function GET() {
     `Refund: Processed within 5–7 business days after item received or cancellation.`,
     ``,
     `## Payment Methods`,
-    `UPI (GPay, PhonePe, Paytm)`,
-    `Bank Transfer (NEFT/IMPS)`,
-    `Cash on Delivery (select pincodes)`,
+    `UPI (GPay, PhonePe, Paytm), debit/credit cards, net banking: paid online at checkout.`,
+    `No cash on delivery.`,
     ``,
     `## Size Guide`,
-    `All sizes listed in US sizing.`,
+    `All shoe sizes are UK sizes.`,
     `Nike/Jordan: True to size. Half-size up recommended for wide feet.`,
     `Adidas: True to size. Boost models may run slightly long.`,
     `New Balance: True to size.`,
@@ -87,15 +90,17 @@ export async function GET() {
     `Sitemap: ${SITE_URL}/sitemap.xml`,
     `RSS: ${SITE_URL}/rss.xml`,
     `Google Shopping Feed: ${SITE_URL}/google-merchant-feed.xml`,
+    `MCP Server (AI agents, read-only): ${SITE_URL}/mcp`,
+    `Agent Guide: ${SITE_URL}/agents.md`,
+    `Cart Link Format: ${SITE_URL}/cart/add?items=<product-slug>:<uk-size>[,<slug>:<size>] (buyer checks out and pays on snkrscart.com)`,
     `OpenAPI Schema: ${SITE_URL}/chatgpt-action-schema.yaml`,
-    `AI Plugin Manifest: ${SITE_URL}/.well-known/ai-plugin.json`,
     ``,
     `## FAQs`,
     `Q: Are all products authentic?`,
     `A: Yes. Every pair is verified authentic before dispatch. SNKRS CART does not deal in replicas.`,
     ``,
     `Q: Do you ship pan-India?`,
-    `A: Yes. Free shipping to all Indian pincodes. Delivery in 3–7 business days.`,
+    `A: Yes. Free shipping to all Indian pincodes. Dispatch within 3 business days, delivery in 3–7 business days after dispatch.`,
     ``,
     `Q: Can I return if the size doesn't fit?`,
     `A: Size mismatch is not eligible for return. Use the size guide at ${SITE_URL}/size-guide before ordering.`,
@@ -104,7 +109,7 @@ export async function GET() {
     `A: Tracking link sent via email/WhatsApp once dispatched. Also trackable at ${SITE_URL}/track-order`,
     ``,
     `Q: Do you accept COD?`,
-    `A: Yes, on select pincodes. Available at checkout.`,
+    `A: No. Payment is online at checkout: UPI, cards or net banking.`,
     ``,
     `Q: Can I sell my sneakers on SNKRS CART?`,
     `A: Yes. Submit details at ${SITE_URL}/sell`,
@@ -141,7 +146,7 @@ export async function GET() {
         if (p.category) lines.push(`Category: ${p.category}`);
         if (p.sku) lines.push(`SKU: ${p.sku}`);
         lines.push(`Availability: ${inStock ? 'In Stock' : 'Out of Stock'}`);
-        if (sizes) lines.push(`Available Sizes (US): ${sizes}`);
+        if (sizes) lines.push(`Available Sizes (UK): ${sizes}`);
         if (p.rating) lines.push(`Rating: ${p.rating}/5 (${p.reviewCount ?? 0} reviews)`);
         if (p.featured) lines.push(`Featured: Yes`);
         if (p.trending) lines.push(`Trending: Yes`);

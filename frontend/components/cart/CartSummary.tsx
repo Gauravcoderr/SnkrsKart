@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
+import { SHIPPING_FEE_INR } from '@/lib/storeFacts';
 import { CartItem } from '@/types';
 
 interface CartSummaryProps {
@@ -34,22 +35,17 @@ export default function CartSummary({ items, subtotal }: CartSummaryProps) {
         )}
         <div className="flex justify-between text-sm">
           <span className="text-zinc-600">Shipping</span>
-          <span className={subtotal >= 3000 ? 'text-emerald-600 font-medium' : 'text-zinc-600'}>
-            {subtotal >= 3000 ? 'FREE' : formatPrice(299)}
+          <span className={SHIPPING_FEE_INR === 0 ? 'text-emerald-600 font-medium' : 'text-zinc-600'}>
+            {SHIPPING_FEE_INR === 0 ? 'FREE' : formatPrice(SHIPPING_FEE_INR)}
           </span>
         </div>
-        {subtotal < 3000 && (
-          <p className="text-xs text-zinc-400">
-            Add {formatPrice(3000 - subtotal)} more for free shipping
-          </p>
-        )}
       </div>
 
       <div className="border-t border-zinc-200 pt-4">
         <div className="flex justify-between">
           <span className="font-bold text-zinc-900">Total</span>
           <span className="font-bold text-xl text-zinc-900">
-            {formatPrice(subtotal + (subtotal >= 3000 ? 0 : 299))}
+            {formatPrice(subtotal + SHIPPING_FEE_INR)}
           </span>
         </div>
         <p className="text-xs text-zinc-400 mt-1">Including all taxes</p>
@@ -63,7 +59,7 @@ export default function CartSummary({ items, subtotal }: CartSummaryProps) {
       </Link>
 
       <p className="text-center text-xs text-zinc-400">
-        Secure online payment · Delivery in 3–7 business days
+        Secure online payment · Dispatch within 3 business days, delivery in 3–7
       </p>
     </div>
   );

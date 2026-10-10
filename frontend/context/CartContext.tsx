@@ -13,6 +13,8 @@ interface CartState {
   items: CartItem[];
   isDrawerOpen: boolean;
   buyNowItem: CartItem | null;
+  /** true once saved items are restored from localStorage; adds before that would be overwritten */
+  hydrated: boolean;
 }
 
 type CartAction =
@@ -30,7 +32,7 @@ type CartAction =
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'HYDRATE':
-      return { ...state, items: action.items };
+      return { ...state, items: action.items, hydrated: true };
 
     case 'SET_BUY_NOW':
       return { ...state, buyNowItem: action.item };
@@ -115,6 +117,7 @@ interface CartContextValue {
   itemCount: number;
   subtotal: number;
   buyNowItem: CartItem | null;
+  hydrated: boolean;
   addItem: (product: Product, size: number | string, quantity?: number, meta?: CartItemMeta) => void;
   removeItem: (productId: string, size: number | string) => void;
   updateQuantity: (productId: string, size: number | string, quantity: number) => void;
@@ -129,25 +132,25 @@ interface CartContextValue {
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(cartReducer, { items: [], isDrawerOpen: false, buyNowItem: null });
+  const [state, dispatch] = useReducer(cartReducer, { items: [], isDrawerOpen: false, buyNowItem: null, hydrated: false });
 
   // Hydrate from localStorage on mount
   useEffect(() => {
+    let items: CartItem[] = [];
     try {
       const saved = localStorage.getItem('snkrs-cart');
-      if (saved) {
-        const parsed = JSON.parse(saved) as CartItem[];
-        dispatch({ type: 'HYDRATE', items: parsed });
-      }
+      if (saved) items = JSON.parse(saved) as CartItem[];
     } catch {
       // ignore malformed storage
     }
+    dispatch({ type: 'HYDRATE', items });
   }, []);
 
   // Persist items to localStorage
   useEffect(() => {
+    if (!state.hydrated) return;
     localStorage.setItem('snkrs-cart', JSON.stringify(state.items));
-  }, [state.items]);
+  }, [state.items, state.hydrated]);
 
   // Lock body scroll when drawer is open
   useScrollLock(state.isDrawerOpen);
@@ -177,6 +180,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     itemCount,
     subtotal,
     buyNowItem: state.buyNowItem,
+    hydrated: state.hydrated,
     addItem: (product, size, quantity, meta) => dispatch({ type: 'ADD_ITEM', product, size, quantity, meta }),
     removeItem: (productId, size) => dispatch({ type: 'REMOVE_ITEM', productId, size }),
     updateQuantity: (productId, size, quantity) =>

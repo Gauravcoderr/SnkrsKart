@@ -19,9 +19,9 @@ async function getPageContent(): Promise<SiteContent | null> {
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getPageContent();
   const title = content?.metaTitle || 'Shipping Info | Free Pan-India Delivery | Snkrs Cart';
-  const description = content?.metaDescription || 'SNKRS CART ships all orders free across India in 3–7 business days. Faster delivery in Uttarakhand. Track your order anytime.';
+  const description = content?.metaDescription || 'SNKRS CART ships all orders free across India. Dispatch within 3 business days, delivery in 3–7 business days after dispatch. Track your order anytime.';
   const ogTitle = content?.ogTitle || 'Shipping Info | Snkrs Cart';
-  const ogDescription = content?.ogDescription || 'Free pan-India shipping on all sneaker orders. 3–7 business days delivery.';
+  const ogDescription = content?.ogDescription || 'Free pan-India shipping on all orders. Dispatch within 3 business days, delivery in 3–7 business days.';
   return {
     title: { absolute: title }, description,
     alternates: { canonical: `${SITE_URL}/shipping` },

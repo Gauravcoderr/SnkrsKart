@@ -1,6 +1,6 @@
 import { fetchProductBySlug, fetchTrendingProducts, fetchProductReviews, NotFoundError } from '@/lib/api';
 import { cloudinaryOgImage } from '@/lib/utils';
-import { Product } from '@/types';
+import { Offer, Product } from '@/types';
 import { notFound, permanentRedirect } from 'next/navigation';
 import ImageGallery from '@/components/product-detail/ImageGallery';
 import ProductDetailClient from './ProductDetailClient';
@@ -11,6 +11,7 @@ import RecentlyViewed from '@/components/product-detail/RecentlyViewed';
 import Link from 'next/link';
 import Image from 'next/image';
 import { fullProductName } from '@/lib/productTitle';
+import { HANDLING_DAYS, SCHEMA_AVAILABILITY, groupId, handlingDays, stockState, validMpn, variantId, variants, type Variant } from '@/lib/merchantFacts';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -49,12 +50,13 @@ async function fetchBlogsByBrand(brand: string): Promise<BlogSnippet[]> {
 }
 
 interface PageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
-export async function generateMetadata({ params }: PageProps) {
+export async function generateMetadata(props: PageProps) {
+  const params = await props.params;
   try {
     const product = await fetchProductBySlug(params.slug);
     const origPrice = product.originalPrice ?? 0;
@@ -98,7 +100,8 @@ export async function generateMetadata({ params }: PageProps) {
   }
 }
 
-export default async function ProductDetailPage({ params }: PageProps) {
+export default async function ProductDetailPage(props: PageProps) {
+  const params = await props.params;
   let product;
   try {
     product = await fetchProductBySlug(params.slug);
@@ -131,38 +134,31 @@ export default async function ProductDetailPage({ params }: PageProps) {
     : product.productType === 'accessories' ? 'Accessories'
     : 'Sneakers';
 
-  const productSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: fullProductName(product.brand, product.name),
-    brand: { '@type': 'Brand', name: product.brand },
-    description: stripTags(product.description).slice(0, 5000),
-    image: product.images,
-    sku: product.sku,
-    category: schemaCategory,
-    itemCondition: 'https://schema.org/NewCondition',
-    datePublished: product.createdAt,
-    color: product.colorway || (product.colors?.[0] ?? ''),
-    audience: {
-      '@type': 'PeopleAudience',
-      suggestedGender: product.gender === 'men' ? 'male' : product.gender === 'women' ? 'female' : 'unisex',
-      suggestedAge: ageGroup === 'kids'
-        ? { '@type': 'QuantitativeValue', minValue: 0, maxValue: 12 }
-        : { '@type': 'QuantitativeValue', minValue: 13, maxValue: 99 },
-    },
-    offers: {
+  const fullName = fullProductName(product.brand, product.name);
+  const mpn = validMpn(product.sku);
+  const color = product.colorway || (product.colors?.[0] ?? '');
+  const priceValidUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const sizedVariants = variants(product).filter((v) => v.size);
+
+  // Same per-size price, stock and handling days as the Merchant feed (lib/merchantFacts).
+  const offerFor = (v: Variant<Offer> | null) => {
+    const handling = (v && handlingDays(v)) ?? HANDLING_DAYS.inhand;
+    const state = v
+      ? stockState(product, v)
+      : product.soldOut || (product.productType !== 'shoes'
+        ? (product.availableStringSizes?.length ?? 0) === 0
+        : product.availableSizes.length === 0)
+        ? 'out of stock'
+        : product.comingSoon ? 'preorder' : 'in stock';
+    return {
       '@type': 'Offer',
       priceCurrency: 'INR',
-      price: String(product.price),
-      availability: product.soldOut ||
-        (product.productType !== 'shoes'
-          ? (product.availableStringSizes?.length ?? 0) === 0
-          : product.availableSizes.length === 0)
-        ? 'https://schema.org/OutOfStock'
-        : 'https://schema.org/InStock',
-      url: productUrl,
+      price: String(v?.offer?.price ?? product.price),
+      availability: SCHEMA_AVAILABILITY[state],
+      itemCondition: 'https://schema.org/NewCondition',
+      url: v?.size ? `${productUrl}?size=${encodeURIComponent(v.size)}` : productUrl,
       seller: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL },
-      priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      priceValidUntil,
       shippingDetails: {
         '@type': 'OfferShippingDetails',
         shippingRate: {
@@ -179,8 +175,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
           '@type': 'ShippingDeliveryTime',
           handlingTime: {
             '@type': 'QuantitativeValue',
-            minValue: 0,
-            maxValue: 1,
+            minValue: handling[0],
+            maxValue: handling[1],
             unitCode: 'DAY',
           },
           transitTime: {
@@ -200,6 +196,22 @@ export default async function ProductDetailPage({ params }: PageProps) {
         returnFees: 'https://schema.org/FreeReturn',
         itemCondition: 'https://schema.org/DamagedCondition',
       },
+    };
+  };
+
+  const productBase = {
+    name: fullName,
+    brand: { '@type': 'Brand', name: product.brand },
+    description: stripTags(product.description).slice(0, 5000),
+    image: product.images,
+    category: schemaCategory,
+    color,
+    audience: {
+      '@type': 'PeopleAudience',
+      suggestedGender: product.gender === 'men' ? 'male' : product.gender === 'women' ? 'female' : 'unisex',
+      suggestedAge: ageGroup === 'kids'
+        ? { '@type': 'QuantitativeValue', minValue: 0, maxValue: 12 }
+        : { '@type': 'QuantitativeValue', minValue: 13, maxValue: 99 },
     },
     speakable: {
       '@type': 'SpeakableSpecification',
@@ -227,6 +239,42 @@ export default async function ProductDetailPage({ params }: PageProps) {
       })),
     }),
   };
+
+  const productSchema = sizedVariants.length > 0
+    ? {
+      '@context': 'https://schema.org',
+      '@type': 'ProductGroup',
+      '@id': `${productUrl}#product`,
+      url: productUrl,
+      productGroupID: groupId(product.slug),
+      variesBy: ['https://schema.org/size'],
+      ...productBase,
+      hasVariant: sizedVariants.map((v) => ({
+        '@type': 'Product',
+        name: `${fullName} - ${v.isShoe ? 'UK ' : ''}${v.size}`,
+        sku: variantId(product.slug, v),
+        ...(mpn && { mpn }),
+        inProductGroupWithID: groupId(product.slug),
+        image: product.images?.[0],
+        color,
+        size: v.isShoe
+          ? { '@type': 'SizeSpecification', name: v.size, sizeSystem: 'https://schema.org/WearableSizeSystemUK' }
+          : v.size,
+        offers: offerFor(v),
+      })),
+    }
+    : {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      '@id': `${productUrl}#product`,
+      url: productUrl,
+      sku: variantId(product.slug, { isShoe: product.productType === 'shoes' }),
+      ...(mpn && { mpn }),
+      itemCondition: 'https://schema.org/NewCondition',
+      datePublished: product.createdAt,
+      ...productBase,
+      offers: offerFor(null),
+    };
 
   const faqSchema = product.faqs?.length ? {
     '@context': 'https://schema.org',
@@ -365,7 +413,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 ['Brand', product.brand],
                 ['Gender', product.gender === 'men' ? "Men's" : product.gender === 'women' ? "Women's" : product.gender === 'kids' ? "Kids'" : 'Unisex'],
                 ['Colorway', product.colorway],
-                ['Available Sizes', (() => { const isStr = product.productType !== 'shoes' && (product.availableStringSizes?.length ?? 0) > 0; const s = isStr ? product.availableStringSizes : product.availableSizes; return (s?.length ?? 0) > 0 ? s!.join(', ') : 'See options above'; })()],
+                ...(mpn ? [['Style Code', mpn]] : []),
+                [product.productType === 'shoes' ? 'Available Sizes (UK)' : 'Available Sizes', (() => { const isStr = product.productType !== 'shoes' && (product.availableStringSizes?.length ?? 0) > 0; const s = isStr ? product.availableStringSizes : product.availableSizes; return (s?.length ?? 0) > 0 ? s!.join(', ') : 'See options above'; })()],
               ].map(([label, value]) => (
                 <div key={label} className="flex gap-4 text-sm py-2 border-b border-zinc-100 last:border-0">
                   <dt className="w-36 shrink-0 font-semibold text-zinc-900">{label}</dt>

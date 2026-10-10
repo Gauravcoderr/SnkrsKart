@@ -16,7 +16,7 @@ const BANNER_SLIDES = [
     color: 'text-white',
   },
   {
-    text: 'FREE SHIPPING ON ORDERS ABOVE \u20B910,000',
+    text: 'FREE SHIPPING ACROSS INDIA',
     sub: '100% Authentic Sneakers',
     bg: 'bg-zinc-900',
     color: 'text-white',

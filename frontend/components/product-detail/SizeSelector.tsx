@@ -81,6 +81,12 @@ export default function SizeSelector({
         type="button"
         onClick={() => available && onSizeSelect(size)}
         disabled={!available}
+        aria-pressed={selected}
+        aria-label={[
+          isStringMode ? `Size ${size}` : `UK ${size}`,
+          available ? (price !== null ? formatPrice(price) : null) : 'sold out',
+          available && meta ? meta.description.toLowerCase() : null,
+        ].filter(Boolean).join(', ')}
         className={`
           relative overflow-hidden flex flex-col items-center justify-center gap-0.5 border transition-all duration-150
           ${showPrices ? 'py-2.5 px-2' : 'h-11'}
@@ -132,6 +138,8 @@ export default function SizeSelector({
       </div>
 
       <div
+        role="group"
+        aria-label={isStringMode ? 'Select size' : 'Select UK size'}
         className={`grid gap-2 ${isStringMode ? 'grid-cols-4' : showPrices ? 'grid-cols-3 sm:grid-cols-4' : 'grid-cols-5'} ${showError ? 'ring-2 ring-red-400 ring-offset-2 p-2' : ''}`}
       >
         {isStringMode

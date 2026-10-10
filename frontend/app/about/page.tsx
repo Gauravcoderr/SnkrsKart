@@ -205,7 +205,7 @@ export default async function AboutPage() {
                   <li className="flex gap-2"><span className="text-zinc-600 shrink-0">01</span> Buy only from vetted suppliers and verified independent sellers</li>
                   <li className="flex gap-2"><span className="text-zinc-600 shrink-0">02</span> Physical inspection of stitching, box labels, insole print, and sole patterns</li>
                   <li className="flex gap-2"><span className="text-zinc-600 shrink-0">03</span> Photo-verify every seller pair from six angles before it ships</li>
-                  <li className="flex gap-2"><span className="text-zinc-600 shrink-0">04</span> Full refund if any authenticity concern — no questions asked</li>
+                  <li className="flex gap-2"><span className="text-zinc-600 shrink-0">04</span> Full refund for any authenticity concern raised within 48 hours of delivery</li>
                 </ul>
               </div>
               <p className="text-xs text-zinc-600">

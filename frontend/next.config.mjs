@@ -39,6 +39,7 @@ const nextConfig = {
       { source: '/sellers', headers: NOINDEX },
       { source: '/sellers/:path*', headers: NOINDEX },
       { source: '/cart', headers: NOINDEX },
+      { source: '/cart/:path*', headers: NOINDEX },
       { source: '/checkout', headers: NOINDEX },
       { source: '/checkout/:path*', headers: NOINDEX },
       { source: '/account', headers: NOINDEX },

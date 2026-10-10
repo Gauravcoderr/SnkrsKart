@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Product, Offer } from '@/types';
 import SizeSelector from '@/components/product-detail/SizeSelector';
 import AddToCartButton from '@/components/product-detail/AddToCartButton';
@@ -14,6 +14,7 @@ import { formatPrice } from '@/lib/utils';
 import { useWishlist } from '@/context/WishlistContext';
 import { AVAILABILITY_META, formatDeliveryWindow } from '@/lib/availability';
 import { fullProductName } from '@/lib/productTitle';
+import { buyableSize } from '@/lib/cartLink';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
@@ -77,6 +78,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     setCurrentPrice(product.price);
     setCurrentOriginalPrice(product.originalPrice);
   };
+
+  // ?size=9 (from JSON-LD variant URLs, shared links and AI agents) preselects a buyable size.
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('size');
+    const match = wanted ? buyableSize(product, wanted) : undefined;
+    if (match !== undefined) handleSizeSelect(match);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleRequireSize = () => {
     setShowSizeError(true);

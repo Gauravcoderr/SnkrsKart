@@ -518,7 +518,7 @@ export default function OrdersPage() {
   const lookupMutation = useMutation({
     mutationFn: async (orderNumber: string) => {
       const email = user?.email || '';
-      const res = await fetch(`${BASE_URL}/orders/lookup?orderNumber=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(email)}`);
+      const res = await fetchWithAuth(`${BASE_URL}/orders/lookup?orderNumber=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(email)}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Order not found');
       return data as Order;

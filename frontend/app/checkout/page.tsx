@@ -12,6 +12,7 @@ import { formatPrice } from '@/lib/utils';
 import { AVAILABILITY_META, formatDeliveryWindow, slowestAvailability } from '@/lib/availability';
 import OtpInput from '@/components/auth/OtpInput';
 import { LoyaltyAccount } from '@/types';
+import { SHIPPING_FEE_INR } from '@/lib/storeFacts';
 
 declare global {
   interface Window {
@@ -23,8 +24,6 @@ declare global {
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-const SHIPPING_THRESHOLD = 3000;
-const SHIPPING_COST = 199;
 
 const INDIAN_STATES = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
@@ -41,7 +40,7 @@ export default function CheckoutPage() {
   const { user, isLoggedIn, loading: authLoading, openAuthModal, loginWithData } = useAuth();
   const checkoutItems = buyNowItem ? [buyNowItem] : items;
   const checkoutSubtotal = checkoutItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-  const shipping = checkoutSubtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+  const shipping = SHIPPING_FEE_INR;
   const total = checkoutSubtotal + shipping;
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -873,9 +872,6 @@ export default function CheckoutPage() {
                   {shipping === 0 ? 'Free' : formatPrice(shipping)}
                 </span>
               </div>
-              {shipping === 0 && (
-                <p className="text-[10px] text-emerald-600 text-right">You saved {formatPrice(SHIPPING_COST)} on shipping</p>
-              )}
               {couponDiscount > 0 && (
                 <div className="flex justify-between text-sm text-emerald-600">
                   <span className="font-medium">Coupon ({appliedCoupon?.code})</span>
