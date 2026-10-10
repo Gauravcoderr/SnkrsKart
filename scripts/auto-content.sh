@@ -130,6 +130,11 @@ human watching. These constraints override the skill's own Step 5b and Step 6:
    do not invent facts to hit a count. A run that writes nothing and explains
    why is a successful run.
 
+7. Instagram: run the skill's "Instagram draft" step without asking. It only
+   creates a draft that a human approves in /admin/instagram. Never approve or
+   publish an Instagram post, and never pass --allow-watermark. Spec files go
+   under .claude/instagram/specs/ (git-ignored).
+
 End your output with a line starting "SUMMARY:" giving what you created and any
 source that was unreachable.
 PROMPT

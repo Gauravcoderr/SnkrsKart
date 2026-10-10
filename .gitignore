@@ -34,3 +34,6 @@ yarn-debug.log*
 
 # Automated content pipeline rotation state
 .auto-content-state
+
+# Instagram draft specs (the draft itself lives in Mongo / admin panel)
+.claude/instagram/specs/

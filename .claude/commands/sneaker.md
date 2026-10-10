@@ -206,6 +206,35 @@ run().catch(e => { console.error('❌', e.message); process.exit(1); });
 
 Confirm `✅ Added:` in output.
 
+## Step 5b: Instagram draft (optional)
+
+**Run by hand:** ask once, "Make the Instagram post for this? (y/n)". On no, skip to the next step.
+**AUTOMATED DRAFT RUN:** do not ask, always make the draft. It only lands as status `draft`; a human approves it in `/admin/instagram`. Never approve or publish from here.
+
+1. Starter spec. Every fact on the slides (dates, ₹ prices, style codes, where) comes straight from Mongo, never typed by hand:
+   ```bash
+   cd /Users/gauravrauthan/snkrs-cart/backend
+   npx ts-node --transpile-only src/scripts/igDraft.ts starter sneaker <slug> --out ../.claude/instagram/specs/$(date +%F)-<slug>.json 2>/dev/null
+   ```
+2. Caption. Follow `.claude/skills/ig-caption/SKILL.md` in the voice of `.claude/instagram/voice.md`: first line under 125 characters carrying the concrete fact (date, ₹ price, model), one ask, 3 to 5 specific hashtags, no em dashes, no other store names, nothing invented. Lint and clean it, fix every FAIL:
+   ```bash
+   cd /Users/gauravrauthan/snkrs-cart
+   python3 -I .claude/skills/ig-caption/caption.py /tmp/ig-cap.txt --keywords "<model name>"
+   python3 -I .claude/skills/ig-human/humanize.py /tmp/ig-cap.txt -o /tmp/ig-cap.txt --report
+   ```
+   Put the final text in the spec's `caption` (it starts as a `{{placeholder}}`, and `create` refuses while it is there). Leave the slides as generated; if a fact on them is wrong, fix the Mongo record and regenerate the starter.
+3. Preview, then look at every slide image:
+   ```bash
+   cd /Users/gauravrauthan/snkrs-cart/backend
+   npx ts-node --transpile-only src/scripts/igDraft.ts render ../.claude/instagram/specs/<file>.json /tmp/ig-<slug>
+   ```
+   A watermark warning means the photo belongs to another account (an @handle or a web address is printed on it). Swap the record's image for a clean one and re-run. Never pass `--allow-watermark` for a photo we do not own.
+4. Create the draft (renders, uploads to Cloudinary `instagram/`, saves the post as `draft`):
+   ```bash
+   npx ts-node --transpile-only src/scripts/igDraft.ts create ../.claude/instagram/specs/<file>.json 2>/dev/null
+   ```
+   Confirm `✅ Instagram draft` and put the admin link (https://www.snkrscart.com/admin/instagram) in your summary.
+
 ## Step 6 — Commit & Push
 
 ```bash

@@ -27,9 +27,12 @@ import couponRoutes from './routes/coupons';
 import scraperIngestRoutes from './routes/scraperIngest';
 import sellerPortalRoutes from './routes/sellerPortal';
 import trackingRoutes from './routes/tracking';
+import instagramAdminRoutes from './routes/instagramAdmin';
+import instagramCronRoutes from './routes/instagramCron';
 import { startAfterShipSyncJob } from './jobs/aftershipSyncJob';
 import { startScraperJob } from './jobs/scraperJob';
 import { startUnsubscribeSyncJob } from './jobs/unsubscribeSyncJob';
+import { startInstagramPublishJob } from './jobs/instagramPublishJob';
 import { initWhatsApp } from './services/whatsapp';
 
 const app = express();
@@ -97,6 +100,7 @@ app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/seller', sellerRoutes);
 app.use('/api/v1/blogs', blogRoutes);
 app.use('/api/v1/admin/login', adminLoginLimiter);
+app.use('/api/v1/admin/instagram', instagramAdminRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/newsletter', newsletterRoutes);
@@ -117,6 +121,7 @@ app.use('/api/v1/scraper', scraperIngestRoutes);
 app.use(['/api/v1/seller-portal/auth/login', '/api/v1/seller-portal/auth/send-otp', '/api/v1/seller-portal/auth/verify-otp', '/api/v1/seller-portal/auth/send-verify-otp'], sellerLoginLimiter);
 app.use('/api/v1/seller-portal', sellerPortalRoutes);
 app.use('/api/v1/tracking', trackingRoutes);
+app.use('/api/v1/instagram', instagramCronRoutes);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
@@ -149,6 +154,7 @@ app.listen(PORT, () => {
       startScraperJob();
       startUnsubscribeSyncJob();
       startAfterShipSyncJob();
+      startInstagramPublishJob();
       if (process.env.WHATSAPP_ENABLED === 'true') initWhatsApp();
     })
     .catch((err) => {

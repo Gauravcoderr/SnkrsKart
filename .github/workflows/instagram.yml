@@ -1,0 +1,30 @@
+name: Instagram publisher backup
+
+# The backend publishes due Instagram posts every 5 minutes on its own
+# (node-cron, kept awake by UptimeRobot). This hourly call is a backup in case
+# Render was asleep. Hourly keeps it inside the free Actions minutes next to
+# the scraper. Needs repo secrets BACKEND_URL and IG_CRON_SECRET; skips
+# quietly until IG_CRON_SECRET is set.
+
+on:
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+
+jobs:
+  run-due:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Publish due Instagram posts
+        env:
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+          IG_CRON_SECRET: ${{ secrets.IG_CRON_SECRET }}
+        run: |
+          if [ -z "$IG_CRON_SECRET" ] || [ -z "$BACKEND_URL" ]; then
+            echo "IG_CRON_SECRET or BACKEND_URL not set, skipping"
+            exit 0
+          fi
+          curl -fsS --retry 3 --retry-delay 30 --retry-all-errors --max-time 150 \
+            -X POST -H "Authorization: Bearer $IG_CRON_SECRET" \
+            "$BACKEND_URL/api/v1/instagram/run-due"

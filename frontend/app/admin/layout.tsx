@@ -20,6 +20,7 @@ import {
   SearchIcon,
   DealVerifIcon,
   MailIcon,
+  InstagramIcon,
 } from '@/components/ui/Icons';
 import { Spinner } from '@/app/admin/_components/AdminLoader';
 import { AdminToastProvider } from '@/app/admin/_components/AdminToast';
@@ -44,6 +45,7 @@ const NAV = [
   { href: '/admin/deal-verifications',   label: 'Deal Checks',   Icon: DealVerifIcon },
   { href: '/admin/newsletter',           label: 'Newsletter',    Icon: MailIcon },
   { href: '/admin/email-blast',          label: 'Email Blast',   Icon: BlogsIcon },
+  { href: '/admin/instagram',            label: 'Instagram',     Icon: InstagramIcon },
   { href: '/admin/pages',             label: 'Pages & SEO',      Icon: PagesIcon },
 ];
 

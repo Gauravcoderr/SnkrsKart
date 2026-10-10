@@ -22,6 +22,11 @@ BLOB_READ_WRITE_TOKEN      → Vercel Blob — required for deal screenshot uplo
 ADMIN_NOTIFICATION_EMAIL   → email to notify on new deal submission (optional, falls back to EMAIL_FROM)
 AFTERSHIP_API_KEY          → AfterShip tracking API (server-side only); AFTERSHIP_WEBHOOK_SECRET verifies webhooks
 ADMIN_CC_EMAILS            → comma list CC'd on every mail whose TO is info@snkrscart.com or ADMIN_NOTIFICATION_EMAIL (default infosnkrscart@gmail.com,gauravrauthan12112@gmail.com); customer + batch/blog mails never CC'd
+IG_USER_ID / IG_ACCESS_TOKEN → Instagram account id + 60-day token (Instagram Login); publisher off when unset
+IG_TOKEN_KEY               → encrypts the refreshed Instagram token stored in Mongo
+IG_API_VERSION / IG_LOGIN  → default v25.0 / instagram (facebook switches to graph.facebook.com)
+IG_DRY_RUN=true            → run the whole Instagram flow without calling Instagram
+IG_CRON_SECRET             → Bearer for POST /api/v1/instagram/run-due (also a GitHub Actions secret)
 ```
 
 ## Directory structure
@@ -120,6 +125,9 @@ All prefixed `/api/v1/`. Admin routes require `Authorization: Bearer <admin_toke
 | `GET /admin/payouts`, `PUT /admin/seller-orders/:id/payout` | delivered seller orders; mark paid (screenshotUrl required) → seller emailed |
 | `POST /tracking/aftership/webhook` | AfterShip tracking updates (HMAC verified) |
 | `POST /admin/seller-orders/:id/sync-tracking` | pull latest AfterShip status for one seller order |
+| `GET /admin/instagram` · `GET /admin/instagram/status` | Instagram queue (`status` filter) and publisher, token and quota status |
+| `POST /admin/instagram/:id/approve\|unapprove\|reject\|reopen\|retry\|publish-now` | Instagram lifecycle; approve takes optional `scheduledAt` |
+| `POST /instagram/run-due` | Bearer `IG_CRON_SECRET`; publishes due Instagram posts (hourly GitHub Actions backup) |
 | `/health` | keep-alive ping (UptimeRobot pings every 5 min) |
 
 ## KickBot (ChatBot.tsx) — key behaviours
@@ -134,7 +142,7 @@ All prefixed `/api/v1/`. Admin routes require `Authorization: Bearer <admin_toke
 - Rate limit: 5 requests/IP/minute
 
 ## Admin sidebar nav order
-Orders → Users → Products → Inquiries → Reviews → Banners → Sellers → Seller Orders → Product Requests → Payouts → Blogs → Chat Leads → Deal Checks
+Orders → Users → Products → Inquiries → Reviews → Banners → Sellers → Seller Orders → Product Requests → Payouts → Blogs → Chat Leads → Deal Checks (Instagram sits after Email Blast)
 
 ## Brands available in store
 Nike, Jordan (Air Jordan), Adidas, New Balance, Crocs
@@ -198,6 +206,17 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Feed (`frontend/app/google-merchant-feed.xml/route.ts`): one item per size. Price + availability per size come from `offers` (backend `GET /products/feed` runs `attachSellerOffers`), `eta` sizes go out as `backorder` with `availability_date` and handling 15 to 20 days, other in-stock sizes carry `min/max_handling_time`. Title = `fullProductName(canonicalBrand, name)` + colors, colors `/`-joined (max 3), `mpn` only when `sku` looks like a real style code (no `identifier_exists` otherwise), description falls back to a generated one when the stored text is under 60 chars.
 - Policy text must agree everywhere Google can read it (shipping, returns, terms, FAQ, contact, about, checkout confirmation, llms-full, MC shipping + return settings): dispatch within 3 business days, delivery 3 to 7 business days, Pre-order sizes about 20 days; returns only for damaged/wrong/authenticity issues within 48 h. Admin CMS `site-content` (`shipping`, `terms`, `privacy`) overrides the page code whenever `htmlContent` is set, so edit both.
 - Merchant API: GCP project `snkrs-cart` is registered (2026-10-09). Owner OAuth refresh token in `content-ml/secrets/merchant_token.json` (web client `merchant_oauth_client.json`, redirect `https://snkrs-kart.vercel.app`, code pasted back from the address bar). Service accounts cannot call `registerGcp`. Set request timeouts, some calls hang.
+
+## Instagram automation (2026-10-10)
+- Official Instagram API with Instagram Login only (`graph.instagram.com`, v25.0, scopes `instagram_business_basic` + `instagram_business_content_publish`, Standard Access, no App Review for our own account). The Meta app must be Live or its posts are visible only to app roles. Never browser automation. Owner setup: `INSTAGRAM_INTEGRATION.md`; research with Meta doc links: `research_notes/instagram-graph-api-2026-10.md`.
+- Flow: `/drop`, `/sneaker` Step 5b and `/blog` Step 5c → `backend/src/scripts/igDraft.ts starter|render|create` → `InstagramPost` status `draft` → `/admin/instagram` approve (optional IST time) → `jobs/instagramPublishJob.ts` every 5 min (+ hourly `.github/workflows/instagram.yml` calling `POST /api/v1/instagram/run-due`) → `published` with permalink. Unattended `auto-content.sh` runs make drafts without asking and never approve.
+- Lifecycle only through `lib/instagramState.ts` (draft → approved → publishing → published or failed; rejected). Claim is an atomic `findOneAndUpdate`. Editing content sends an approved post back to draft. A post stuck in publishing for 15 min becomes failed and is never auto-retried (it may be live). Transient container errors retry 3 times, 15 min apart, never once `media_publish` was called.
+- Rules (`lib/instagramRules.ts`): JPEG only (Cloudinary URLs get `f_jpg,q_90` and `.jpg`), carousel 2 to 10, caption up to 2200 chars, 5 hashtags, 20 mentions, no em dash, no `{{placeholder}}`. Approve and publish are refused while the linked blog, drop or profile is unpublished.
+- Token: `IG_ACCESS_TOKEN` seeds; the refreshed copy is AES-256-GCM encrypted (`IG_TOKEN_KEY`) in `InstagramAuth`, refreshed daily when under 15 days are left. A new env token replaces it.
+- Slides (`lib/instagramSlides.ts`, 1080x1350, stories 1080x1920) copy how real sneaker accounts post: `hero` launch card (cut-out shoe, background hue sampled from the shoe, ghost nickname, date badge), `info` release rows, `schedule` roundup with fanned shoes, `photo` full-bleed fallback, `text`, `cta`. Cut-out and watermark OCR use Apple Vision (`scripts/igCutout.swift`, compiled to `~/.cache/snkrs-cart/ig-cutout`, macOS only, else photo fallback). `create` refuses images carrying another account's watermark unless `--allow-watermark`. Starter facts come only from Mongo; the caption starts as a placeholder that blocks `create`.
+- Skills: 13 `ig-*` skills from Jakeschincariol/instagram-agent-skill (MIT, `.claude/skills/INSTAGRAM_AGENT_SKILL_LICENSE`) in `.claude/skills/`, state in `.claude/instagram/` (`voice.md` = brand voice: faceless, independent reseller, ₹ prices, never other store names). Specs in `.claude/instagram/specs/` are git-ignored.
+- Tests: `cd backend && npm test` (node:test via ts-node). DB flow tests run only with `IG_TEST_MONGO_URI` pointing at a local throwaway mongod; Atlas URIs are refused.
+- Press images are copyrighted and repeated IP takedowns disable accounts: prefer our own photos (seller six-angle verification photos, in-house shots).
 
 ## Deal Verification feature
 

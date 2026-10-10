@@ -19,8 +19,11 @@ export async function uploadToCloudinary(imageUrl: string, publicId: string, fol
   const buffer = await imgRes.arrayBuffer();
   const mimeType = imgRes.headers.get('content-type') || 'image/jpeg';
   const base64 = Buffer.from(buffer).toString('base64');
-  const dataUri = `data:${mimeType};base64,${base64}`;
+  return uploadDataUriToCloudinary(`data:${mimeType};base64,${base64}`, publicId, folder);
+}
 
+// Upload bytes we produced ourselves (rendered Instagram slides).
+export async function uploadDataUriToCloudinary(dataUri: string, publicId: string, folder: string): Promise<string> {
   const formData = new FormData();
   formData.append('file', dataUri);
   formData.append('upload_preset', UPLOAD_PRESET);
