@@ -15,7 +15,7 @@ export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 interface BlogEntry { slug: string; updatedAt?: string; createdAt: string; tags?: string[] }
-interface SlugEntry { slug: string; createdAt?: string }
+interface SlugEntry { slug: string; createdAt?: string; updatedAt?: string }
 
 function opts(revalidate: number): RequestInit {
   return { next: { revalidate } as NextFetchRequestConfig, signal: AbortSignal.timeout(TIMEOUT_MS) };
@@ -74,7 +74,7 @@ async function fetchProductPage(page: number): Promise<MetadataRoute.Sitemap> {
     const data: { slugs?: SlugEntry[] } = await res.json();
     return (data.slugs ?? []).map((p) => ({
       url: `${SITE_URL}/products/${p.slug}`,
-      lastModified: p.createdAt ? new Date(p.createdAt) : new Date(),
+      lastModified: new Date(p.updatedAt ?? p.createdAt ?? Date.now()),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     }));

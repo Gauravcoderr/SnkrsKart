@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { fetchProducts } from '@/lib/api';
 import { CATEGORY_FILTERS, type CategoryFilter } from '@/lib/categoryFilters';
 import ProductCard from '@/components/products/ProductCard';
+import { isLive, lowestLivePrice } from '@/lib/productMatch';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
@@ -113,6 +114,42 @@ const CATEGORIES: Record<string, CategoryConfig> = {
     ],
     filter: CATEGORY_FILTERS.sale,
   },
+  'air-jordan-1': {
+    label: 'Air Jordan 1',
+    metaTitle: 'Air Jordan 1 India: Low, Mid & High OG Prices | SNKRS CART',
+    metaDesc: 'Buy authentic Air Jordan 1 sneakers in India: Low, Mid and Retro High OG colourways with per-size INR prices. 100% authentic, free pan-India shipping.',
+    guide: 'The Air Jordan 1 is the shoe that started Jordan Brand in 1985 and it still anchors sneaker rotations across India. SNKRS CART lists Air Jordan 1 Low, Mid and Retro High OG pairs with a price for every UK size, so you can compare an OG colourway against a Low before you buy. Every pair is checked for authenticity before dispatch.',
+    faqs: [
+      { q: 'How does the Air Jordan 1 fit?', a: 'Most people take their usual UK size in the Low and Mid. The Retro High OG has a snug toe box, so wide feet often go up half a size. Our size guide at /size-guide has the full conversion chart.' },
+      { q: 'What is the difference between Air Jordan 1 Low, Mid and High?', a: 'The High is the original 1985 cut with the Nike Air tongue tag on OG releases. The Mid sits at the ankle and the Low is a court shoe cut below it. Lows and Mids are usually cheaper and easier to find in India.' },
+      { q: 'How do I know the pair is authentic?', a: 'Every Air Jordan 1 on SNKRS CART is checked before dispatch. Match the style code on the box label with the code on the product page; they should be identical.' },
+    ],
+    filter: CATEGORY_FILTERS['air-jordan-1'],
+  },
+  'air-jordan-4': {
+    label: 'Air Jordan 4',
+    metaTitle: 'Air Jordan 4 India: Retro Colourways & Prices | SNKRS CART',
+    metaDesc: 'Buy authentic Air Jordan 4 Retro sneakers in India with per-size INR prices. 100% authentic, free pan-India shipping.',
+    guide: 'The Air Jordan 4 brought mesh panels, visible Air and the wing eyelets to the line in 1989, and its Retro releases are among the most searched sneakers in India. SNKRS CART lists Air Jordan 4 Retro colourways with a price for every UK size and only ships pairs that pass an authenticity check.',
+    faqs: [
+      { q: 'How does the Air Jordan 4 fit?', a: 'The Air Jordan 4 runs true to size for most feet. If you are between sizes or have a wide foot, go up half a size. Check /size-guide for the UK conversion.' },
+      { q: 'Why do Air Jordan 4 prices differ by size?', a: 'Each size is listed by the seller who has it in hand, so popular sizes cost more than slow ones. The product page shows the price for every size.' },
+      { q: 'How do I know the pair is authentic?', a: 'Every Air Jordan 4 on SNKRS CART is checked before dispatch. Match the style code on the box label with the code on the product page.' },
+    ],
+    filter: CATEGORY_FILTERS['air-jordan-4'],
+  },
+  'nike-dunk-low': {
+    label: 'Nike Dunk Low',
+    metaTitle: 'Nike Dunk Low India: Retro & SB Colourways, Prices | SNKRS CART',
+    metaDesc: 'Buy authentic Nike Dunk Low and SB Dunk Low sneakers in India with per-size INR prices. 100% authentic, free pan-India shipping.',
+    guide: 'The Nike Dunk started as a 1985 college basketball shoe and the Dunk Low is now the everyday sneaker of choice in Indian cities. SNKRS CART lists Dunk Low Retro, SE and SB colourways with a price for every UK size, and every pair is checked for authenticity before dispatch.',
+    faqs: [
+      { q: 'What is the difference between a Dunk Low and an SB Dunk Low?', a: 'The SB Dunk Low is the skateboarding version: a padded tongue, a Zoom Air insole and a fatter lace set. The regular Dunk Low Retro keeps the thinner 1985 shape.' },
+      { q: 'How does the Nike Dunk Low fit?', a: 'True to size for most people. The toe box is roomy, so narrow feet sometimes go down half a size. See /size-guide for the UK conversion.' },
+      { q: 'How do I know the pair is authentic?', a: 'Every Dunk Low on SNKRS CART is checked before dispatch. Match the style code on the box label with the code on the product page.' },
+    ],
+    filter: CATEGORY_FILTERS['nike-dunk-low'],
+  },
 };
 
 interface Props {
@@ -123,9 +160,14 @@ async function loadCategoryProducts(slug: string) {
   const filter = CATEGORY_FILTERS[slug];
   if (!filter) return [];
   try {
-    const res = await fetchProducts({ ...filter, limit: 48 });
+    const { namePattern, ...query } = filter;
+    const res = await fetchProducts({ ...query, limit: 48 });
     let products = Array.isArray(res) ? res : res.products ?? [];
     if (slug === 'sale') products = products.filter((p) => p.discount && p.discount > 0);
+    if (namePattern) {
+      const re = new RegExp(namePattern, 'i');
+      products = products.filter((p) => re.test(`${p.brand} ${p.name}`));
+    }
     return products;
   } catch {
     return [];
@@ -192,7 +234,7 @@ export default async function CategoryPage({ params }: Props) {
         name: p.name,
         url: `${SITE_URL}/products/${p.slug}`,
         image: p.images?.[0],
-        offers: { '@type': 'Offer', price: p.price, priceCurrency: 'INR', availability: p.soldOut ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock' },
+        offers: { '@type': 'Offer', price: String(lowestLivePrice(p)), priceCurrency: 'INR', availability: isLive(p) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock', url: `${SITE_URL}/products/${p.slug}` },
       },
     })),
   } : null;

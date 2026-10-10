@@ -7,6 +7,8 @@
  * walking the paginated grid if the backend predates that endpoint.
  */
 
+import type { Offer } from '@/types';
+
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 /** Grid endpoint's hard `limit` cap (backend getAllProducts). */
@@ -52,6 +54,8 @@ export interface CatalogProduct {
   trending?: boolean;
   newArrival?: boolean;
   createdAt?: string;
+  updatedAt?: string;
+  offers?: Offer[];
 }
 
 interface Options {

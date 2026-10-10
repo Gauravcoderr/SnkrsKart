@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { fetchDrops, fetchDropBySlug, fetchProductBySlug, NotFoundError } from '@/lib/api';
+import { fetchAllProducts } from '@/lib/catalog';
+import { matchProducts } from '@/lib/productMatch';
 import { cloudinaryOgImage, formatDropPrice, formatPrice } from '@/lib/utils';
 import { dateKey, daysUntil, formatDropDate } from '@/lib/calendar';
 import { AVAILABILITY_META } from '@/lib/availability';
@@ -186,8 +188,13 @@ export default async function DropPage({ params }: Props) {
   } catch { /* skip */ }
 
   let product: Product | null = null;
-  if (drop.productSlug) {
-    try { product = await fetchProductBySlug(drop.productSlug); } catch { product = null; }
+  let productSlug = drop.productSlug || '';
+  if (!productSlug) {
+    const catalog = await fetchAllProducts({ revalidate: 3600 }).catch(() => []);
+    productSlug = matchProducts(`${drop.brand} ${drop.name} ${drop.colorway ?? ''}`, catalog, 1)[0]?.slug ?? '';
+  }
+  if (productSlug) {
+    try { product = await fetchProductBySlug(productSlug); } catch { product = null; }
   }
   const comingSoon = !!product?.comingSoon;
   const offers = product && !comingSoon
@@ -197,9 +204,10 @@ export default async function DropPage({ params }: Props) {
   const launchTime = formatLaunchTime(drop.launchTimeIST);
   const productHref = product ? `/products/${product.slug}` : null;
   const stocked = offers.length > 0;
+  const storeHref = productHref && (drop.availableAtStore || stocked) ? productHref : null;
   const faqs = buildFaqs(drop, { released, launchTime, stocked, comingSoon, fromPrice });
 
-  const howTo = drop.availableAtStore && drop.productSlug ? null : copSteps(drop.where);
+  const howTo = storeHref ? null : copSteps(drop.where);
 
   const urgency = !released && days === 0 ? 'today'
     : !released && days === 1 ? 'tomorrow'
@@ -245,7 +253,7 @@ export default async function DropPage({ params }: Props) {
       priceCurrency: drop.currency,
       availability: released ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder',
       validFrom: isoDate,
-      url: drop.availableAtStore && drop.productSlug ? `${SITE_URL}/products/${drop.productSlug}` : locationUrl,
+      url: storeHref ? `${SITE_URL}${storeHref}` : locationUrl,
       seller: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL },
     } : undefined,
   };
@@ -377,9 +385,9 @@ export default async function DropPage({ params }: Props) {
 
             {/* CTA */}
             <div className="space-y-3">
-              {drop.availableAtStore && drop.productSlug ? (
+              {storeHref ? (
                 <Link
-                  href={`/products/${drop.productSlug}`}
+                  href={storeHref}
                   className="block w-full py-4 bg-zinc-900 text-white text-sm font-black tracking-widest uppercase text-center hover:bg-zinc-700 transition-colors rounded-sm"
                 >
                   Shop Now at SNKRS CART

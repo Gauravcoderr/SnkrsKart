@@ -34,11 +34,11 @@ router.get('/slugs', async (req: Request, res: Response): Promise<void> => {
     const limit = Math.min(500, parseInt(req.query.limit as string || '500'));
     const skip  = (page - 1) * limit;
     const [products, total] = await Promise.all([
-      Product.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).select('slug createdAt').lean(),
+      Product.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).select('slug createdAt updatedAt').lean(),
       Product.countDocuments({}),
     ]);
     res.json({
-      slugs: products.map((p) => ({ slug: p.slug, createdAt: p.createdAt })),
+      slugs: products.map((p) => ({ slug: p.slug, createdAt: p.createdAt, updatedAt: p.updatedAt })),
       total,
       page,
       limit,

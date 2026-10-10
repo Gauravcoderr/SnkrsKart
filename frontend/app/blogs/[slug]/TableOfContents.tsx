@@ -1,30 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import type { Heading } from './headings';
 
-interface TocItem {
-  id: string;
-  text: string;
-  level: number;
-}
-
-export default function TableOfContents({ html }: { html: string }) {
+export default function TableOfContents({ headings }: { headings: Heading[] }) {
   const [open, setOpen] = useState(true);
+  const items = headings.filter((h) => h.text);
 
-  // Parse headings from HTML string
-  const headings: TocItem[] = [];
-  const regex = /<h([23])[^>]*>(.*?)<\/h[23]>/gi;
-  let match;
-  let idx = 0;
-  while ((match = regex.exec(html)) !== null) {
-    const text = match[2].replace(/<[^>]*>/g, '').trim();
-    if (text) {
-      headings.push({ id: `heading-${idx}`, text, level: parseInt(match[1]) });
-      idx++;
-    }
-  }
-
-  if (headings.length < 2) return null;
+  if (items.length < 2) return null;
 
   return (
     <nav className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 mb-8">
@@ -46,8 +29,8 @@ export default function TableOfContents({ html }: { html: string }) {
 
       {open && (
         <ol className="mt-3 space-y-1.5">
-          {headings.map((h, i) => (
-            <li key={i} className={h.level === 3 ? 'ml-4' : ''}>
+          {items.map((h) => (
+            <li key={h.id} className={h.level === 3 ? 'ml-4' : ''}>
               <a
                 href={`#${h.id}`}
                 className="text-sm text-zinc-600 hover:text-zinc-900 transition-colors leading-snug block py-0.5"

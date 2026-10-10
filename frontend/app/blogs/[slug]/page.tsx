@@ -3,6 +3,10 @@ import Link from 'next/link';
 import { cloudinaryFill, cloudinaryOgImage } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import type { Blog, Product } from '@/types';
+import { fetchAllProducts, type CatalogProduct } from '@/lib/catalog';
+import { isLive, lowestLivePrice, matchProducts } from '@/lib/productMatch';
+import { fullProductName } from '@/lib/productTitle';
+import { extractHeadings, injectHeadingIds, type Heading } from './headings';
 // Simple server-safe sanitizer — strips <script> tags, inline event handlers,
 // and javascript: URIs without needing jsdom / isomorphic-dompurify.
 // Blog content is admin-created via Tiptap so there is no real XSS surface,
@@ -103,13 +107,24 @@ function readingTime(html: string): number {
   return Math.max(1, Math.ceil(words / 200));
 }
 
-function injectHeadingIds(html: string): string {
-  if (!html) return '';
+function prepareContent(html: string): { html: string; headings: Heading[] } {
+  if (!html) return { html: '', headings: [] };
   const clean = serverSanitize(html);
-  let idx = 0;
-  return clean
-    .replace(/<h([23])([^>]*)>/gi, (_m, level, attrs) => `<h${level}${attrs} id="heading-${idx++}">`)
-    .replace(/<img\b(?![^>]*\bloading=)/gi, '<img loading="lazy" decoding="async"');
+  const headings = extractHeadings(clean);
+  return {
+    headings,
+    html: injectHeadingIds(clean, headings).replace(/<img\b(?![^>]*\bloading=)/gi, '<img loading="lazy" decoding="async"'),
+  };
+}
+
+interface ShopCard {
+  id?: string;
+  slug: string;
+  name: string;
+  brand: string;
+  images: string[];
+  price: number;
+  originalPrice?: number | null;
 }
 
 const TAG_TO_BRAND: Record<string, string> = {
@@ -167,15 +182,21 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
   const safeTags = blog.tags ?? [];
   const safeContent = blog.content ?? '';
   const accent = getAccent(safeTags);
-  const contentWithIds = injectHeadingIds(safeContent);
+  const { html: contentWithIds, headings } = prepareContent(safeContent);
   const minutes = readingTime(safeContent);
   const postUrl = `${SITE_URL}/blogs/${blog.slug}`;
   const template = blog.template === 'v2' || blog.template === 'v3' ? blog.template : 'v1';
 
-  const [relatedBlogs, tagProducts] = await Promise.all([
+  const [relatedBlogs, tagProducts, catalog] = await Promise.all([
     fetchRelatedBlogs(blog.tags, blog.slug),
     fetchProductsByTags(blog.tags),
+    fetchAllProducts({ revalidate: 3600 }).catch(() => [] as CatalogProduct[]),
   ]);
+  const featured = matchProducts(`${blog.title} ${blog.metaKeywords ?? ''} ${blog.excerpt ?? ''}`, catalog, 3);
+  const shopProducts: ShopCard[] = [
+    ...featured,
+    ...tagProducts.filter((p) => !featured.some((f) => f.slug === p.slug)),
+  ].slice(0, 4);
 
   const wordCount = safeContent.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length;
 
@@ -262,6 +283,22 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
     },
     // About: links this post to specific brand entities — signals expert authorship to Flash.co & ChatGPT
     ...(mentionedBrands.length > 0 ? { about: mentionedBrands } : {}),
+    ...(featured.length > 0 ? {
+      mentions: featured.map((p) => ({
+        '@type': 'Product',
+        name: fullProductName(p.brand, p.name),
+        url: `${SITE_URL}/products/${p.slug}`,
+        ...(p.images?.[0] ? { image: p.images[0] } : {}),
+        brand: { '@type': 'Brand', name: p.brand },
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: 'INR',
+          price: String(lowestLivePrice(p)),
+          availability: isLive(p) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          url: `${SITE_URL}/products/${p.slug}`,
+        },
+      })),
+    } : {}),
   };
 
   const breadcrumbJsonLd = {
@@ -304,7 +341,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
             {/* Listen + TOC (mobile) */}
             <div className="flex flex-col gap-4 mb-8 lg:hidden">
               <ListenButton html={contentWithIds} />
-              <TableOfContents html={contentWithIds} />
+              <TableOfContents headings={headings} />
             </div>
 
             {/* Listen button (desktop) */}
@@ -336,19 +373,19 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
             />
 
             {/* ── Shop These Kicks ─────────────────────────────────── */}
-            {tagProducts.length > 0 && (
+            {shopProducts.length > 0 && (
               <div className={`my-10 pt-8 border-t-2 ${accent.border}`}>
                 <div className="flex items-center justify-between mb-5">
                   <div>
-                    <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-0.5">Featured</p>
-                    <h2 className="text-xl font-black tracking-tight text-zinc-950">Shop These Kicks</h2>
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-0.5">{featured.length > 0 ? 'Featured in this post' : 'Featured'}</p>
+                    <h2 className="text-xl font-black tracking-tight text-zinc-950">{featured.length > 0 ? 'Shop the pair in this post' : 'Shop These Kicks'}</h2>
                   </div>
                   <Link href="/products" className="text-xs font-bold tracking-widest uppercase text-zinc-500 hover:text-zinc-900 transition-colors">
                     View All &rarr;
                   </Link>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {tagProducts.map((p) => (
+                  {shopProducts.map((p) => (
                     <Link
                       key={p.id || p.slug}
                       href={`/products/${p.slug}`}
@@ -457,7 +494,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
           <aside className="hidden lg:block">
             <div className="sticky top-24 space-y-6">
               {/* TOC */}
-              <TableOfContents html={contentWithIds} />
+              <TableOfContents headings={headings} />
 
               {/* Shop CTA card */}
               <div className="rounded-2xl bg-zinc-950 p-6 text-center">

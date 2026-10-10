@@ -46,6 +46,7 @@ export interface IProduct extends Document {
   metaKeywords: string[];
   relatedProducts: mongoose.Types.ObjectId[];
   createdAt: Date;
+  updatedAt: Date;
 }
 
 const ProductSchema = new Schema<IProduct>(

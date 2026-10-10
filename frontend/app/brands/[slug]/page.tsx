@@ -10,6 +10,7 @@ import ProductCard from '@/components/products/ProductCard';
 import BrandSortSelect from './BrandSortSelect';
 import { fullProductName } from '@/lib/productTitle';
 import { brandSeo, isShoe } from '@/lib/brandSeo';
+import { isLive, lowestLivePrice } from '@/lib/productMatch';
 
 interface Props {
   params: { slug: string };
@@ -120,15 +121,15 @@ export default async function BrandPage({ params, searchParams }: Props) {
         '@type': 'Product',
         name: fullProductName(p.brand, p.name),
         url: `${SITE_URL}/products/${p.slug}`,
-        image: p.images?.[0] || p.hoverImage,
-        description: `${fullProductName(p.brand, p.name)}${p.colorway ? ` — ${p.colorway}` : ''}. 100% authentic, free pan-India shipping.`,
+        image: p.images?.length ? p.images.slice(0, 3) : p.hoverImage,
+        description: `${fullProductName(p.brand, p.name)}${p.colorway ? ` in ${p.colorway}` : ''}. 100% authentic, free pan-India shipping.`,
         sku: p.sku,
         brand: { '@type': 'Brand', name: p.brand },
         offers: {
           '@type': 'Offer',
           priceCurrency: 'INR',
-          price: String(p.price),
-          availability: p.soldOut ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+          price: String(lowestLivePrice(p)),
+          availability: isLive(p) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
           url: `${SITE_URL}/products/${p.slug}`,
           seller: { '@type': 'Organization', name: 'SNKRS CART', url: SITE_URL },
           priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
