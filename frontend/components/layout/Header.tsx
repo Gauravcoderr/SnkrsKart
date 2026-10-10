@@ -52,8 +52,8 @@ export default function Header() {
   const [searching, setSearching] = useState(false);
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const brandsTimeout = useRef<NodeJS.Timeout>();
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const brandsTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
+  const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const searchSeq = useRef(0);
 
   useScrollLock(searchOpen);

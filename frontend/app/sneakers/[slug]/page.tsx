@@ -10,9 +10,10 @@ import RestockNotify from '@/components/product-detail/RestockNotify';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
-interface Props { params: { slug: string } }
+interface Props { params: Promise<{ slug: string }> }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   try {
     const profile = await fetchSneakerProfileBySlug(params.slug);
     const url = `${SITE_URL}/sneakers/${params.slug}`;
@@ -49,7 +50,8 @@ export async function generateStaticParams() {
 
 export const revalidate = 3600;
 
-export default async function SneakerHubPage({ params }: Props) {
+export default async function SneakerHubPage(props: Props) {
+  const params = await props.params;
   let profile;
   try { profile = await fetchSneakerProfileBySlug(params.slug); }
   catch (e) { if (e instanceof NotFoundError) notFound(); throw e; }

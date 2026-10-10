@@ -23,7 +23,8 @@ export const metadata = {
   twitter: { card: 'summary_large_image', title: 'Sneaker Blog | Snkrs Cart', description: 'Latest sneaker content from SNKRS CART.', images: [`${SITE_URL}/logo.png`] },
 };
 
-export default async function BlogsPage({ searchParams }: { searchParams?: { tag?: string } }) {
+export default async function BlogsPage(props: { searchParams?: Promise<{ tag?: string }> }) {
+  const searchParams = await props.searchParams;
   if (searchParams?.tag) {
     permanentRedirect(`/blogs/tag/${encodeURIComponent(searchParams.tag)}`);
   }

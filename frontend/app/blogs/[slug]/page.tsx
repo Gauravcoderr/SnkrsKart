@@ -152,7 +152,8 @@ async function fetchProductsByTags(tags: string[]): Promise<Product[]> {
   }
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const blog = await fetchBlog(params.slug);
   if (!blog) return { title: { absolute: 'Blog | Snkrs Cart' } };
   const title = blog.metaTitle || `${blog.title} | Snkrs Cart`;
@@ -175,7 +176,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function BlogDetailPage({ params }: { params: { slug: string } }) {
+export default async function BlogDetailPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const blog = await fetchBlog(params.slug);
   if (!blog) notFound();
 

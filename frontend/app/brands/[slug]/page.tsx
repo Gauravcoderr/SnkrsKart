@@ -13,13 +13,14 @@ import { brandSeo, isShoe } from '@/lib/brandSeo';
 import { isLive, lowestLivePrice } from '@/lib/productMatch';
 
 interface Props {
-  params: { slug: string };
-  searchParams: { sort?: string };
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ sort?: string }>;
 }
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   try {
     const slug = decodeURIComponent(params.slug).toLowerCase().replace(/\s+/g, '-');
     const brand = await fetchBrandBySlug(slug);
@@ -49,7 +50,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export const revalidate = 60;
 
-export default async function BrandPage({ params, searchParams }: Props) {
+export default async function BrandPage(props: Props) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const rawSlug = decodeURIComponent(params.slug);
   const slug = rawSlug.toLowerCase().replace(/\s+/g, '-');
 

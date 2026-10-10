@@ -16,9 +16,10 @@ import DropGallery from '@/components/drops/DropGallery';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
-interface Props { params: { slug: string } }
+interface Props { params: Promise<{ slug: string }> }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   try {
     const drop = await fetchDropBySlug(params.slug);
     const url = `${SITE_URL}/drops/${params.slug}`;
@@ -169,7 +170,8 @@ function copSteps(where: string): { title: string; steps: string[] } {
   };
 }
 
-export default async function DropPage({ params }: Props) {
+export default async function DropPage(props: Props) {
+  const params = await props.params;
   let drop;
   try { drop = await fetchDropBySlug(params.slug); }
   catch (e) { if (e instanceof NotFoundError) notFound(); throw e; }

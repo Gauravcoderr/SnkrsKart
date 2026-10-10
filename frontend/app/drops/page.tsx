@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  searchParams?: { brand?: string; q?: string; view?: string; range?: string };
+  searchParams?: Promise<{ brand?: string; q?: string; view?: string; range?: string }>;
 }
 
 const FAQS: { q: string; a: string }[] = [
@@ -50,7 +50,8 @@ const FAQS: { q: string; a: string }[] = [
   },
 ];
 
-export default async function DropsPage({ searchParams = {} }: Props) {
+export default async function DropsPage(props: Props) {
+  const searchParams = (await props.searchParams) ?? {};
   let drops: Awaited<ReturnType<typeof fetchDrops>> = [];
   try { drops = await fetchDrops(30); } catch { /* empty state */ }
 

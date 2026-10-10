@@ -23,12 +23,13 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  searchParams?: { brand?: string; category?: string; sort?: string; q?: string; page?: string };
+  searchParams?: Promise<{ brand?: string; category?: string; sort?: string; q?: string; page?: string }>;
 }
 
 const SORTS = ['name', 'year-desc', 'year-asc', 'brand'] as const;
 
-export default async function SneakersIndexPage({ searchParams = {} }: Props) {
+export default async function SneakersIndexPage(props: Props) {
+  const searchParams = (await props.searchParams) ?? {};
   let profiles: Awaited<ReturnType<typeof fetchSneakerProfiles>> = [];
   try { profiles = await fetchSneakerProfiles(); } catch { /* empty state */ }
 

@@ -49,7 +49,8 @@ function normalizeTag(raw: string) {
   return decodeURIComponent(raw).toLowerCase().replace(/\s+/g, '-');
 }
 
-export async function generateMetadata({ params }: { params: { tag: string } }) {
+export async function generateMetadata(props: { params: Promise<{ tag: string }> }) {
+  const params = await props.params;
   const tag = normalizeTag(params.tag);
   const label = tag.replace(/-/g, ' ');
   const title = `${label.charAt(0).toUpperCase() + label.slice(1)} Sneaker Blog | Snkrs Cart`;
@@ -64,7 +65,8 @@ export async function generateMetadata({ params }: { params: { tag: string } }) 
   };
 }
 
-export default async function TagPage({ params }: { params: { tag: string } }) {
+export default async function TagPage(props: { params: Promise<{ tag: string }> }) {
+  const params = await props.params;
   const tag = normalizeTag(params.tag);
   if (decodeURIComponent(params.tag) !== tag) permanentRedirect(`/blogs/tag/${encodeURIComponent(tag)}`);
   const blogs = await fetchByTag(tag);

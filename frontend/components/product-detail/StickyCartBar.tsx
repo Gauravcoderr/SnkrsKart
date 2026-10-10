@@ -12,7 +12,7 @@ interface StickyCartBarProps {
   onSizeSelect: (size: number | string) => void;
   onRequireSize: () => void;
   /** Ref to the main Add to Bag button — bar appears when it scrolls out of view */
-  triggerRef: RefObject<HTMLElement>;
+  triggerRef: RefObject<HTMLElement | null>;
 }
 
 export default function StickyCartBar({

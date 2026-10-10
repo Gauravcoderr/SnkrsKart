@@ -33,7 +33,8 @@ function brandSlug(raw: string): string | null {
   return BRAND_SLUGS[raw.toLowerCase().trim()] ?? null;
 }
 
-export async function generateMetadata({ searchParams }: { searchParams: { brand?: string } }) {
+export async function generateMetadata(props: { searchParams: Promise<{ brand?: string }> }) {
+  const searchParams = await props.searchParams;
   const rawBrand = searchParams?.brand?.trim();
   if (!rawBrand) {
     return {
