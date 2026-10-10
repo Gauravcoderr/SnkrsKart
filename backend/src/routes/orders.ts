@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { Order, IOrder } from '../models/Order';
+import { customerOrderView, lookupGuessLimiter, lookupLimiter, trackingOrderView } from '../lib/orderAccess';
 import { customerAuth, optionalAuth, AuthRequest } from '../middleware/customerAuth';
 import { User } from '../models/User';
 import { Product } from '../models/Product';
@@ -123,7 +124,7 @@ function sendPaymentConfirmedEmail(order: IOrder, siteUrl: string) {
             <tr><td style="padding:4px 0;color:#666;">Shipping</td><td style="text-align:right;">${order.shipping === 0 ? 'Free' : '₹' + order.shipping.toLocaleString('en-IN')}</td></tr>
             <tr><td style="padding:8px 0;font-weight:bold;border-top:2px solid #111;">Total Paid</td><td style="text-align:right;font-weight:bold;border-top:2px solid #111;">₹${order.total.toLocaleString('en-IN')}</td></tr>
           </table>
-          <p style="color:#888;font-size:12px;margin-top:32px;">Delivery: 3–7 business days · <a href="${siteUrl}/account/orders" style="color:#888;">Track your order</a></p>
+          <p style="color:#888;font-size:12px;margin-top:32px;">Dispatch within 3 business days, delivery in 3–7 business days after dispatch · <a href="${siteUrl}/account/orders" style="color:#888;">Track your order</a></p>
       `, EMAIL_REASON.order),
   });
 }
@@ -150,8 +151,9 @@ function sendAdminPaymentFailedEmail(order: IOrder, siteUrl: string, paymentMode
   });
 }
 
-const SHIPPING_THRESHOLD = 3000;
-const SHIPPING_COST = 199;
+// Free shipping on every order (owner decision 2026-10-10): the shipping page, Merchant feed and
+// product JSON-LD all promise ₹0, so checkout never adds a fee.
+const SHIPPING_COST = 0;
 
 const router = Router();
 
@@ -402,10 +404,12 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
       authPrices.push(authPrice);
       serverSubtotal += authPrice * item.qty;
     }
-    const serverShipping = serverSubtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+    const serverShipping = SHIPPING_COST;
     const serverTotal = serverSubtotal + serverShipping;
 
-    if (Math.abs(serverTotal - (subtotal + shipping)) > 1) {
+    // Shipping is server-defined; only the item subtotal must match what the buyer saw, so a
+    // cached older frontend that still adds a shipping fee does not block the order.
+    if (Math.abs(serverSubtotal - subtotal) > 1) {
       res.status(400).json({ error: 'Order total mismatch. Please refresh and try again.' });
       return;
     }
@@ -551,7 +555,7 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
     try {
       order = await Order.create({
         orderNumber, name, email, phone, addressLine, city, state, pincode,
-        items: enrichedItems, subtotal, shipping, total: finalTotal, status: 'pending',
+        items: enrichedItems, subtotal, shipping: serverShipping, total: finalTotal, status: 'pending',
         coinsEarned, coinsRedeemed,
         couponCode: appliedCouponCode,
         couponDiscount,
@@ -653,7 +657,7 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
 
             <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:20px;margin:20px 0;text-align:center;">
               <p style="font-size:13px;color:#166534;font-weight:bold;margin:0 0 8px;">Complete Your Payment</p>
-              <p style="font-size:28px;font-weight:black;color:#111;margin:0 0 4px;">₹${total.toLocaleString('en-IN')}</p>
+              <p style="font-size:28px;font-weight:black;color:#111;margin:0 0 4px;">₹${order.total.toLocaleString('en-IN')}</p>
               <p style="font-size:15px;color:#333;margin:0 0 12px;">Pay to UPI ID: <strong>${UPI_ID}</strong></p>
               <p style="font-size:12px;color:#666;margin:0;">Use PhonePe · Google Pay · Paytm · any UPI app</p>
             </div>
@@ -667,11 +671,11 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
             <table style="width:100%;border-collapse:collapse;margin-top:20px;">${itemsHtml}</table>
             <table style="width:100%;margin-top:12px;font-size:14px;">
               <tr><td style="padding:4px 0;color:#666;">Subtotal</td><td style="text-align:right;">₹${subtotal.toLocaleString('en-IN')}</td></tr>
-              <tr><td style="padding:4px 0;color:#666;">Shipping</td><td style="text-align:right;">${shipping === 0 ? 'Free' : '₹' + shipping.toLocaleString('en-IN')}</td></tr>
-              <tr><td style="padding:8px 0;font-weight:bold;border-top:2px solid #111;">Total</td><td style="text-align:right;font-weight:bold;border-top:2px solid #111;">₹${total.toLocaleString('en-IN')}</td></tr>
+              <tr><td style="padding:4px 0;color:#666;">Shipping</td><td style="text-align:right;">${order.shipping === 0 ? 'Free' : '₹' + order.shipping.toLocaleString('en-IN')}</td></tr>
+              <tr><td style="padding:8px 0;font-weight:bold;border-top:2px solid #111;">Total</td><td style="text-align:right;font-weight:bold;border-top:2px solid #111;">₹${order.total.toLocaleString('en-IN')}</td></tr>
             </table>
 
-            <p style="color:#888;font-size:12px;margin-top:32px;">Delivery: 3–7 business days after payment confirmation · <a href="${siteUrl}/returns" style="color:#888;">Returns policy</a></p>
+            <p style="color:#888;font-size:12px;margin-top:32px;">Dispatch within 3 business days, delivery in 3–7 business days after dispatch · <a href="${siteUrl}/returns" style="color:#888;">Returns policy</a></p>
       `, EMAIL_REASON.order),
     });
 
@@ -685,14 +689,15 @@ router.post('/', optionalAuth, async (req: AuthRequest, res: Response) => {
 router.get('/my', customerAuth, async (req: AuthRequest, res: Response) => {
   try {
     const orders = await Order.find({ userId: req.user!.id }).sort({ createdAt: -1 }).lean();
-    res.json(orders);
+    res.json(orders.map(customerOrderView));
   } catch {
     res.status(500).json({ error: 'Failed to fetch orders' });
   }
 });
 
-// GET /api/v1/orders/lookup?orderNumber=SC-XXX&email=x — lookup by order number + email verification
-router.get('/lookup', async (req: Request, res: Response) => {
+// GET /api/v1/orders/lookup?orderNumber=SC-XXX&email=x — lookup by order number + email verification.
+// The signed-in owner gets the full order; anyone else gets trackingOrderView.
+router.get('/lookup', lookupLimiter, lookupGuessLimiter, optionalAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { orderNumber, email, phone } = req.query as { orderNumber?: string; email?: string; phone?: string };
     if (!orderNumber || (!email && !phone)) {
@@ -707,21 +712,22 @@ router.get('/lookup', async (req: Request, res: Response) => {
       res.status(404).json({ error: 'Order not found' });
       return;
     }
-    res.json(order);
+    const owner = req.user && (order.userId?.toString() === req.user.id || order.email.toLowerCase() === req.user.email?.toLowerCase());
+    res.json(owner ? customerOrderView(order) : trackingOrderView(order));
   } catch {
     res.status(500).json({ error: 'Failed to fetch order' });
   }
 });
 
 // GET /api/v1/orders/:id — get order by ID (auth required or email query param)
-router.get('/:id', optionalAuth, async (req: AuthRequest, res: Response) => {
+router.get('/:id', lookupLimiter, lookupGuessLimiter, optionalAuth, async (req: AuthRequest, res: Response) => {
   try {
     const order = await Order.findById(req.params.id).lean();
     if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
     const authed = req.user && (order.userId?.toString() === req.user.id || order.email === req.user.email);
     const emailMatch = !req.user && req.query.email && order.email.toLowerCase() === String(req.query.email).trim().toLowerCase();
     if (!authed && !emailMatch) { res.status(403).json({ error: 'Forbidden' }); return; }
-    res.json(order);
+    res.json(authed ? customerOrderView(order) : trackingOrderView(order));
   } catch {
     res.status(500).json({ error: 'Failed to fetch order' });
   }

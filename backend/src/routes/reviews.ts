@@ -4,6 +4,9 @@ import { Product } from '../models/Product';
 
 const router = Router();
 
+// Reviewer emails are only for admin follow-up; public responses never carry them.
+const PUBLIC_FIELDS = '-email';
+
 function buildFitSummary(reviews: { fitRating?: string | null }[]) {
   const result = { small: 0, true: 0, large: 0, total: 0 };
   for (const r of reviews) {
@@ -19,7 +22,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     const { productSlug } = req.query as { productSlug?: string };
     const filter = productSlug ? { productSlug } : {};
-    const reviews = await Review.find(filter).sort({ createdAt: -1 }).lean();
+    const reviews = await Review.find(filter).select(PUBLIC_FIELDS).sort({ createdAt: -1 }).lean();
     const fitSummary = productSlug ? buildFitSummary(reviews) : null;
     res.json({ reviews, fitSummary });
   } catch {
@@ -30,7 +33,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 // GET /api/v1/reviews/recent — latest 6 across all products
 router.get('/recent', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const reviews = await Review.find().sort({ createdAt: -1 }).limit(6).lean();
+    const reviews = await Review.find().select(PUBLIC_FIELDS).sort({ createdAt: -1 }).limit(6).lean();
     res.json(reviews);
   } catch {
     res.status(500).json({ error: 'Failed to fetch recent reviews' });
@@ -98,7 +101,8 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       );
     }
 
-    res.status(201).json(review);
+    const { email: _email, ...publicReview } = review.toObject();
+    res.status(201).json(publicReview);
   } catch {
     res.status(500).json({ error: 'Failed to submit review' });
   }
