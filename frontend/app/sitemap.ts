@@ -137,6 +137,7 @@ function staticPages(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/track-order`,                           changeFrequency: 'monthly', priority: 0.3 },
     { url: `${SITE_URL}/privacy`,                               changeFrequency: 'yearly',  priority: 0.2 },
     { url: `${SITE_URL}/terms`,                                 changeFrequency: 'yearly',  priority: 0.2 },
+    { url: `${SITE_URL}/data-deletion`,                         changeFrequency: 'yearly',  priority: 0.1 },
   ];
 }
 
