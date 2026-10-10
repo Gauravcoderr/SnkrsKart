@@ -79,6 +79,12 @@ From Python, `gsc.queries_for(slug, kind='blog', limit=10)` returns the top quer
 
 `scripts/auto-content.sh` runs `commands/gsc-pull.sh` on every scheduled run when `secrets/gsc.json` exists, so the data and refresh queue stay current without anyone running it.
 
+## Growth analysis (Search Console + Merchant Center)
+
+`commands/growth.sh` pulls 16 months of Search Console history (`src/gsc_history.py`: daily totals for India and all countries, device, country, search appearance, image search, query and page windows for the last 28, previous 28 and 90 days) and the Merchant Center state (`src/merchant.py`, owner OAuth token in `secrets/merchant_token.json`: products Google accepted and their issues, data source and latest feed upload, account issues, programs, shipping, best-seller brands and product clusters for India, non-product and product performance, price views), saves the live product feed, then runs `src/growth.py`.
+
+`data/growth/growth_report.json` holds: trend with spike days and a 30-day projection, the site's own CTR by position curve (isotonic regression on page by query rows), missed clicks per page and per page-query pair split into CTR gap (below the curve at the current position) and rank lift (to position 3), query clusters (TF-IDF character n-grams + KMeans) with intent and brand mix, rising, falling and new queries and pages, cannibalised queries, anchor-fragment URL leaks, commercial queries that rank with no shop page and whether an in-stock product matches, product pages never seen, Merchant demand coverage, and a ranked `actions` list with the evidence for each. A LightGBM CTR model is trained too and reports its out-of-fold R2; when it cannot beat the mean (true at the current volume) the report says so and the isotonic curve is the one to trust. `--no-pull` reruns on saved data. The written summary of each run goes in `reports/`.
+
 ## Setup
 
 ```bash

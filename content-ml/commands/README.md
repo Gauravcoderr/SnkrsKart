@@ -52,3 +52,7 @@ These refuse to start on battery or on a weak charger, because the Mac shut down
 | `commands/run-auto-content.sh` | Runs the unattended content pipeline once. Needs the Claude CLI logged in and no uncommitted files |
 
 Exit codes: 0 means success or PASS, 2 means REVISE or not enough power, 3 means another job is already running or Search Console setup is missing.
+
+## growth.sh
+
+`commands/growth.sh` pulls 16 months of Search Console history (daily, device, country, query and page windows, image search), the Merchant Center account state (products accepted, item issues, account issues, best-seller brands and product clusters for India, non-product performance) and the live product feed, then runs `src/growth.py`. Output is `data/growth/growth_report.json`: trend and spike days, the site's own CTR by position curve (isotonic regression), missed clicks per page and per page-query pair (CTR gap and rank lift), query clusters (TF-IDF + KMeans), rising and falling queries and pages, cannibalised queries, anchor-fragment URL leaks, commercial queries that rank with no shop page, product pages never seen, Merchant demand coverage and a ranked `actions` list. `--no-pull` reruns the analysis on saved data. The Merchant pull needs `secrets/merchant_token.json` (owner OAuth refresh token) and `secrets/merchant_oauth_client.json`.
