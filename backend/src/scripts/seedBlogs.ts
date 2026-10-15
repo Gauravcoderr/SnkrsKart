@@ -55,6 +55,7 @@ const blogs = [
   // lisa-blackpink-nike-moon-shoe-tough-red-campaign-india-2026, puma-rcb-dhruv-kapoor-milan-fashion-week-jackets-india-2026 — seeded 2026-10-04
   // thums-up-gully-labs-gully-number-001-toofani-sneaker-india-2026 — seeded 2026-10-05
   // air-jordan-1-high-og-royal-2026-india, street-fighter-puma-suede-pack-india-2026, adidas-handball-spezial-loafer-snoafer-trend-india-2026 — seeded 2026-10-10
+  // nike-air-force-1-low-what-the-la-2026-india, kiko-kostadinov-crocs-vaals-india-2026, air-jordan-4-light-army-europe-exclusive-india-2026 - seeded 2026-10-15
 ];
 
 async function seed() {
