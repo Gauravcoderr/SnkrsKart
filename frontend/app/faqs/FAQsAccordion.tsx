@@ -19,7 +19,7 @@ export default function FAQsAccordion({ items }: { items?: FaqItem[] }) {
             className="w-full flex items-center justify-between py-4 text-left gap-4"
           >
             <span className="text-sm font-semibold text-zinc-900">{faq.q}</span>
-            <span className="text-zinc-400 shrink-0 text-lg leading-none">{open === i ? '−' : '+'}</span>
+            <span className="text-zinc-500 shrink-0 text-lg leading-none">{open === i ? '−' : '+'}</span>
           </button>
           {open === i && (
             <p className="text-sm text-zinc-500 leading-relaxed pb-5">{faq.a}</p>

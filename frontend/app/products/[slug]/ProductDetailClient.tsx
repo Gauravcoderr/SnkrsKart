@@ -111,8 +111,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
             <span className="text-xl sm:text-2xl font-bold text-zinc-900">{formatPrice(currentPrice)}</span>
             {currentOriginalPrice && currentOriginalPrice > currentPrice && (
               <>
-                <span className="text-sm sm:text-base text-zinc-400 line-through">{formatPrice(currentOriginalPrice)}</span>
-                {discount && <span className="text-xs sm:text-sm font-bold text-red-500">−{discount}%</span>}
+                <span className="text-sm sm:text-base text-zinc-500 line-through">{formatPrice(currentOriginalPrice)}</span>
+                {discount && <span className="text-xs sm:text-sm font-bold text-red-600">−{discount}%</span>}
               </>
             )}
           </div>
@@ -124,11 +124,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               </span>
               <span className="text-zinc-500">Est. delivery {formatDeliveryWindow(selectedOffer.availability)}</span>
               {selectedOffer.source === 'seller' && (
-                <span className="text-zinc-400">· Fulfilled by a verified partner, pair checked before dispatch</span>
+                <span className="text-zinc-500">· Fulfilled by a verified partner, pair checked before dispatch</span>
               )}
             </div>
           ) : (hasVariants || offers.length > 0) && !selectedSize ? (
-            <span className="text-[10px] sm:text-xs text-zinc-400">
+            <span className="text-[10px] sm:text-xs text-zinc-500">
               {hasMixedAvailability ? 'Select a size to see price and delivery time' : 'Select size for exact price'}
             </span>
           ) : null}

@@ -55,7 +55,7 @@ export default function WhyChooseUs() {
       <div className="max-w-7xl mx-auto">
         {/* Heading */}
         <div className="text-center mb-8">
-          <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-zinc-400 mb-3">
+          <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-zinc-500 mb-3">
             Why you&apos;ll always
           </p>
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-900">
@@ -73,11 +73,10 @@ export default function WhyChooseUs() {
               {/* Decorative number */}
               <span
                 aria-hidden="true"
-                className="absolute bottom-0 right-1 font-black select-none pointer-events-none leading-none text-zinc-900"
+                data-ghost={reason.num}
+                className="absolute bottom-0 right-1 font-black select-none pointer-events-none leading-none text-zinc-900 after:content-[attr(data-ghost)]"
                 style={{ fontSize: '7rem', lineHeight: 1, opacity: 0.04 }}
-              >
-                {reason.num}
-              </span>
+              />
 
               {/* Icon circle */}
               <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${reason.iconBg} ${reason.iconColor}`}>

@@ -53,7 +53,7 @@ export default function BecomeASellerPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       {/* Hero */}
       <div className="max-w-2xl mb-14">
-        <p className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Partner With Us</p>
+        <p className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-500 mb-2">Partner With Us</p>
         <h1 className="text-4xl font-black tracking-tight text-zinc-900 mb-4">Become a Seller</h1>
         <p className="text-base text-zinc-500 leading-relaxed">
           Got heat sitting in your collection? List your sneakers on SNKRS CART and reach serious buyers across India.
@@ -166,7 +166,7 @@ export default function BecomeASellerPage() {
                 />
               </div>
 
-              {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
+              {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
 
               <button
                 type="submit"
@@ -198,7 +198,7 @@ export default function BecomeASellerPage() {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-zinc-900 group-hover:text-zinc-700 transition-colors">WhatsApp Us</p>
-                  <p className="text-xs text-zinc-400">Quick replies, usually within the hour</p>
+                  <p className="text-xs text-zinc-500">Quick replies, usually within the hour</p>
                 </div>
                 <svg className="w-4 h-4 text-zinc-300 ml-auto group-hover:text-zinc-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -216,7 +216,7 @@ export default function BecomeASellerPage() {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-zinc-900 group-hover:text-zinc-700 transition-colors">Email Us</p>
-                  <p className="text-xs text-zinc-400">{STORE_EMAIL}</p>
+                  <p className="text-xs text-zinc-500">{STORE_EMAIL}</p>
                 </div>
                 <svg className="w-4 h-4 text-zinc-300 ml-auto group-hover:text-zinc-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

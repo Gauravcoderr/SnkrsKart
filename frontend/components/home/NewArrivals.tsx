@@ -13,7 +13,7 @@ export default function NewArrivals({ products }: NewArrivalsProps) {
         {/* Header */}
         <div className="flex items-end justify-between mb-8">
           <div>
-            <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-400 mb-1">
+            <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-500 mb-1">
               Just Dropped
             </p>
             <h2 className="text-2xl font-bold tracking-[0.15em] uppercase text-zinc-900">

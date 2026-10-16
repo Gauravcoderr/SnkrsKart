@@ -28,7 +28,7 @@ export default function DropBanner() {
             <h2 className="font-display text-6xl md:text-7xl lg:text-8xl text-white leading-none tracking-tight mb-4">
               SAMBA
               <br />
-              <span className="text-zinc-500">OG</span>
+              <span className="text-zinc-400">OG</span>
             </h2>
             <p className="text-sm text-zinc-400 max-w-sm leading-relaxed mb-3">
               The shoe that started it all. Back in the game since 1950 — the Adidas Samba OG has
@@ -36,7 +36,7 @@ export default function DropBanner() {
             </p>
             <p className="text-zinc-400 text-sm mb-8">
               <span className="text-white font-bold text-xl">₹9,995</span>
-              <span className="ml-2 text-zinc-500">· Cloud White / Core Black</span>
+              <span className="ml-2 text-zinc-400">· Cloud White / Core Black</span>
             </p>
             <div className="flex flex-wrap gap-4">
               <Link

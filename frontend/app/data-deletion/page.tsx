@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function DataDeletion() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-16">
-      <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Legal</p>
+      <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-2">Legal</p>
       <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-8">Data Deletion</h1>
 
       <p className="text-sm text-zinc-500 mb-8">SNKRS CART is operated by Ashutosh Lingwal (sole proprietor), who is responsible for the data described here.</p>
@@ -54,7 +54,7 @@ export default function DataDeletion() {
           </p>
         </section>
 
-        <p className="text-xs text-zinc-400 pt-4 border-t border-zinc-100">Last updated: October 2026</p>
+        <p className="text-xs text-zinc-500 pt-4 border-t border-zinc-100">Last updated: October 2026</p>
       </div>
     </main>
   );

@@ -134,7 +134,7 @@ export default function Header() {
 
             {/* Logo */}
             <Link href="/" className="shrink-0 flex items-center">
-              <Image src="/logo.png" alt="SNKRS CART" width={52} height={52} className="object-contain" priority />
+              <Image src="/logo-104.png" alt="SNKRS CART" width={52} height={52} className="object-contain" loading="eager" />
             </Link>
 
             {/* Desktop Nav */}
@@ -149,14 +149,14 @@ export default function Header() {
                   >
                     <button type="button" className="px-3 py-1.5 text-sm font-semibold tracking-widest uppercase text-zinc-600 hover:text-zinc-900 transition-colors relative group">
                       Brands
-                      <svg className={`inline-block ml-1 w-3 h-3 text-zinc-400 group-hover:text-zinc-600 transition-transform ${brandsOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                      <svg className={`inline-block ml-1 w-3 h-3 text-zinc-500 group-hover:text-zinc-600 transition-transform ${brandsOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                     </button>
 
                     {brandsOpen && (
                       <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0 pt-2">
                         <div className="w-[420px] bg-white rounded-xl border border-zinc-100 shadow-2xl shadow-black/8 overflow-hidden">
                           <div className="px-5 pt-4 pb-2">
-                            <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-400">Shop by Brand</p>
+                            <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500">Shop by Brand</p>
                           </div>
                           <div className="px-3 pb-2">
                             {BRANDS.map((brand) => (
@@ -171,7 +171,7 @@ export default function Header() {
                                 </span>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-semibold text-zinc-900 group-hover/item:text-zinc-700">{brand.name}</p>
-                                  <p className="text-[11px] text-zinc-400">{brand.desc}</p>
+                                  <p className="text-[11px] text-zinc-500">{brand.desc}</p>
                                 </div>
                                 <svg className="w-4 h-4 text-zinc-300 group-hover/item:text-zinc-500 group-hover/item:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
                               </Link>
@@ -243,7 +243,7 @@ export default function Header() {
                         <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl border border-zinc-100 shadow-2xl z-40 overflow-hidden">
                           <div className="px-4 py-3 border-b border-zinc-100">
                             <p className="text-sm font-bold text-zinc-900 truncate">{user?.name || 'Hey there'}</p>
-                            <p className="text-xs text-zinc-400 truncate">{user?.email}</p>
+                            <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
                           </div>
                           <div className="py-1">
                             <Link href="/account" onClick={() => setAccountOpen(false)} className="block px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 transition">My Account</Link>
@@ -254,7 +254,7 @@ export default function Header() {
                             <button
                               type="button"
                               onClick={() => { setAccountOpen(false); logout(); }}
-                              className="block w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition"
+                              className="block w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition"
                             >
                               Sign Out
                             </button>
@@ -322,7 +322,7 @@ export default function Header() {
             <div className="border-b border-zinc-200">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <form onSubmit={handleSearchSubmit} className="flex items-center h-14 gap-3">
-                  <svg className="w-5 h-5 text-zinc-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+                  <svg className="w-5 h-5 text-zinc-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
                   <input
                     ref={inputRef}
                     value={query}
@@ -334,7 +334,7 @@ export default function Header() {
                     type="button"
                     onClick={closeSearch}
                     aria-label="Close search"
-                    className="p-1.5 text-zinc-400 hover:text-zinc-900 transition"
+                    className="p-1.5 text-zinc-500 hover:text-zinc-900 transition"
                   >
                     <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12" /></svg>
                   </button>
@@ -362,9 +362,9 @@ export default function Header() {
                         <span className="text-sm text-zinc-900 font-medium uppercase truncate block group-hover:text-zinc-700">
                           {p.name}
                         </span>
-                        <span className="text-xs text-zinc-400">{p.brand}</span>
+                        <span className="text-xs text-zinc-500">{p.brand}</span>
                       </div>
-                      <span className="text-xs text-zinc-400 flex-shrink-0">₹{p.price.toLocaleString('en-IN')}</span>
+                      <span className="text-xs text-zinc-500 flex-shrink-0">₹{p.price.toLocaleString('en-IN')}</span>
                     </button>
                   ))}
                   <button
@@ -385,17 +385,17 @@ export default function Header() {
                 /* ── Search results ────────────────────────────────────── */
                 <div>
                   {searching && results.length === 0 && (
-                    <div className="py-12 text-center text-sm text-zinc-400">Searching...</div>
+                    <div className="py-12 text-center text-sm text-zinc-500">Searching...</div>
                   )}
                   {!searching && results.length === 0 && query.length > 1 && (
                     <div className="py-12 text-center">
-                      <p className="text-zinc-400 text-sm">No results found for &quot;{query}&quot;</p>
+                      <p className="text-zinc-500 text-sm">No results found for &quot;{query}&quot;</p>
                       <p className="text-zinc-300 text-xs mt-1">Try a different search term</p>
                     </div>
                   )}
                   {results.length > 0 && (
                     <>
-                      <p className="text-xs font-bold tracking-[0.15em] uppercase text-zinc-400 mb-4">
+                      <p className="text-xs font-bold tracking-[0.15em] uppercase text-zinc-500 mb-4">
                         Results
                       </p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -412,7 +412,7 @@ export default function Header() {
                             <div className="p-3">
                               <p className="text-xs text-zinc-500">{p.brand}</p>
                               <p className="text-sm font-semibold uppercase text-zinc-900 truncate mt-0.5">{p.name}</p>
-                              <p className="text-xs text-zinc-400 truncate">{p.colorway}</p>
+                              <p className="text-xs text-zinc-500 truncate">{p.colorway}</p>
                               <p className="text-sm font-bold text-zinc-900 mt-1.5">{'\u20B9'}{p.price.toLocaleString('en-IN')}</p>
                             </div>
                           </button>
@@ -435,7 +435,7 @@ export default function Header() {
                 <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8">
                   {/* Left: Popular searches */}
                   <div>
-                    <p className="text-xs font-bold tracking-[0.15em] uppercase text-zinc-400 mb-3">
+                    <p className="text-xs font-bold tracking-[0.15em] uppercase text-zinc-500 mb-3">
                       Popular Searches
                     </p>
                     <div className="space-y-1">
@@ -454,7 +454,7 @@ export default function Header() {
 
                   {/* Right: Recommended products */}
                   <div>
-                    <p className="text-xs font-bold tracking-[0.15em] uppercase text-zinc-400 mb-4">
+                    <p className="text-xs font-bold tracking-[0.15em] uppercase text-zinc-500 mb-4">
                       Recommended For You
                     </p>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -471,7 +471,7 @@ export default function Header() {
                           <div className="p-3">
                             <p className="text-xs text-zinc-500">{p.brand}</p>
                             <p className="text-sm font-semibold uppercase text-zinc-900 truncate mt-0.5">{p.name}</p>
-                            <p className="text-xs text-zinc-400 truncate">{p.colorway}</p>
+                            <p className="text-xs text-zinc-500 truncate">{p.colorway}</p>
                             <p className="text-sm font-bold text-zinc-900 mt-1.5">{'\u20B9'}{p.price.toLocaleString('en-IN')}</p>
                           </div>
                         </button>
@@ -508,10 +508,10 @@ export default function Header() {
               <div className="pt-4 border-t border-zinc-100">
                 {isLoggedIn ? (
                   <div className="space-y-1 mb-4">
-                    <p className="text-xs font-bold tracking-[0.2em] uppercase text-zinc-400 mb-2">Account</p>
+                    <p className="text-xs font-bold tracking-[0.2em] uppercase text-zinc-500 mb-2">Account</p>
                     <Link href="/account" onClick={() => setMobileOpen(false)} className="block px-2 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 rounded-lg hover:bg-zinc-50 transition">My Account</Link>
                     <Link href="/account/orders" onClick={() => setMobileOpen(false)} className="block px-2 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 rounded-lg hover:bg-zinc-50 transition">My Orders</Link>
-                    <button type="button" onClick={() => { setMobileOpen(false); logout(); }} className="block w-full text-left px-2 py-2 text-sm font-medium text-red-500 rounded-lg hover:bg-red-50 transition">Sign Out</button>
+                    <button type="button" onClick={() => { setMobileOpen(false); logout(); }} className="block w-full text-left px-2 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition">Sign Out</button>
                   </div>
                 ) : (
                   <button
@@ -525,7 +525,7 @@ export default function Header() {
               </div>
 
               <div className="pt-4 border-t border-zinc-100">
-                <p className="text-xs font-bold tracking-[0.2em] uppercase text-zinc-400 mb-3">Brands</p>
+                <p className="text-xs font-bold tracking-[0.2em] uppercase text-zinc-500 mb-3">Brands</p>
                 <div className="space-y-1">
                   {BRANDS.map((brand) => (
                     <Link

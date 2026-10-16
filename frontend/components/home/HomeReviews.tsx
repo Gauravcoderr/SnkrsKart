@@ -99,7 +99,7 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
           <div>
-            <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-400 mb-1">Verified Buyers</p>
+            <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-500 mb-1">Verified Buyers</p>
             <h2 className="text-xl sm:text-2xl font-black tracking-[0.1em] uppercase text-zinc-900">What Customers Say</h2>
           </div>
           {!showForm && !submitted && (
@@ -191,7 +191,7 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
                     placeholder="e.g. rahul@example.com"
                     className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors"
                   />
-                  <p className="text-[10px] text-zinc-400 mt-1">Not shown publicly</p>
+                  <p className="text-[10px] text-zinc-500 mt-1">Not shown publicly</p>
                 </div>
 
                 <div>
@@ -232,7 +232,7 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
                   />
                 </div>
 
-                {error && <p className="sm:col-span-2 text-xs text-red-500 font-medium">{error}</p>}
+                {error && <p className="sm:col-span-2 text-xs text-red-600 font-medium">{error}</p>}
 
                 <div className="sm:col-span-2 flex gap-3">
                   <button
@@ -270,15 +270,15 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <p className="text-xs sm:text-sm font-bold text-zinc-900">{review.name}{review.location && <span className="ml-1.5 text-xs font-normal text-zinc-400">· {review.location}</span>}</p>
+                    <p className="text-xs sm:text-sm font-bold text-zinc-900">{review.name}{review.location && <span className="ml-1.5 text-xs font-normal text-zinc-500">· {review.location}</span>}</p>
                     <StarRating value={review.rating} size="sm" />
                   </div>
-                  <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-400 border border-zinc-100 px-2 py-0.5">
+                  <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-500 border border-zinc-100 px-2 py-0.5">
                     {review.rating === 5 ? 'Excellent' : review.rating === 4 ? 'Great' : review.rating === 3 ? 'Good' : review.rating === 2 ? 'Fair' : 'Poor'}
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed line-clamp-3 mb-3">"{review.comment}"</p>
-                <p className="text-[10px] font-semibold tracking-wider uppercase text-zinc-400 group-hover:text-zinc-700 transition-colors">
+                <p className="text-[10px] font-semibold tracking-wider uppercase text-zinc-500 group-hover:text-zinc-700 transition-colors">
                   {review.productName}
                 </p>
               </Wrapper>

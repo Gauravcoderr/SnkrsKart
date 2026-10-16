@@ -124,7 +124,7 @@ export default async function DropsPage(props: Props) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Breadcrumb */}
-        <nav className="text-[10px] text-zinc-400 mb-6 flex items-center gap-1.5">
+        <nav className="text-[10px] text-zinc-500 mb-6 flex items-center gap-1.5">
           <Link href="/" className="hover:text-zinc-900 transition-colors">Home</Link>
           <span>/</span>
           <span className="text-zinc-900 font-semibold">Drop Calendar</span>
@@ -134,7 +134,7 @@ export default async function DropsPage(props: Props) {
           <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 mb-2">
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-900">Sneaker Release Dates</h1>
             {upcoming.length > 0 && (
-              <span className="text-xs font-bold text-zinc-400 tracking-widest uppercase">
+              <span className="text-xs font-bold text-zinc-500 tracking-widest uppercase">
                 {upcoming.length} upcoming · {brandCount} brand{brandCount !== 1 ? 's' : ''}
               </span>
             )}
@@ -146,7 +146,7 @@ export default async function DropsPage(props: Props) {
 
         {drops.length === 0 ? (
           <div className="py-24 text-center border border-dashed border-zinc-200">
-            <p className="text-sm text-zinc-400">No upcoming drops added yet. Check back soon.</p>
+            <p className="text-sm text-zinc-500">No upcoming drops added yet. Check back soon.</p>
           </div>
         ) : (
           <DropsClient upcoming={upcoming} recent={recent} initial={initial} />
@@ -155,7 +155,7 @@ export default async function DropsPage(props: Props) {
         {/* ── SEO copy + FAQ ── */}
         <section className="mt-20 pt-12 border-t border-zinc-100 grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-10 lg:gap-16">
           <div>
-            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-3">About this calendar</p>
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-3">About this calendar</p>
             <h2 className="text-xl sm:text-2xl font-black tracking-tight text-zinc-900 mb-4 leading-tight">How sneaker releases work in India</h2>
             <div className="space-y-3 text-sm text-zinc-600 leading-relaxed">
               <p>
@@ -179,13 +179,13 @@ export default async function DropsPage(props: Props) {
           </div>
 
           <div>
-            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-3">FAQ</p>
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-3">FAQ</p>
             <div className="divide-y divide-zinc-100 border-y border-zinc-100">
               {FAQS.map((f) => (
                 <details key={f.q} className="group py-4">
                   <summary className="flex items-start justify-between gap-4 cursor-pointer list-none text-sm font-bold text-zinc-900 [&::-webkit-details-marker]:hidden">
                     <span>{f.q}</span>
-                    <span className="shrink-0 mt-0.5 text-zinc-400 group-open:rotate-45 transition-transform duration-200" aria-hidden>
+                    <span className="shrink-0 mt-0.5 text-zinc-500 group-open:rotate-45 transition-transform duration-200" aria-hidden>
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
                     </span>
                   </summary>

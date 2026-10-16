@@ -27,7 +27,7 @@ export default function NotFound() {
 
       {/* Content */}
       <div className="relative z-10 text-center max-w-md">
-        <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-zinc-400 mb-4">
+        <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-zinc-500 mb-4">
           SNKRS CART
         </p>
 

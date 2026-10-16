@@ -300,7 +300,7 @@ export default async function DropPage(props: Props) {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Breadcrumb */}
-        <nav className="text-[10px] text-zinc-400 mb-8 flex items-center gap-1.5">
+        <nav className="text-[10px] text-zinc-500 mb-8 flex items-center gap-1.5">
           <Link href="/" className="hover:text-zinc-900 transition-colors">Home</Link>
           <span>/</span>
           <Link href="/drops" className="hover:text-zinc-900 transition-colors">Drop Calendar</Link>
@@ -322,8 +322,8 @@ export default async function DropPage(props: Props) {
                 {!released && (
                   <div className="absolute top-3 right-3 pointer-events-none">
                     <div className={`px-3 py-1.5 rounded-sm font-black text-[11px] tracking-widest uppercase shadow-lg ${
-                      urgency === 'today' ? 'bg-red-500 text-white' :
-                      urgency === 'tomorrow' ? 'bg-orange-500 text-white' :
+                      urgency === 'today' ? 'bg-red-600 text-white' :
+                      urgency === 'tomorrow' ? 'bg-orange-700 text-white' :
                       urgency === 'soon' ? 'bg-amber-400 text-zinc-900' :
                       'bg-zinc-900/80 backdrop-blur text-white'
                     }`}>
@@ -342,9 +342,9 @@ export default async function DropPage(props: Props) {
 
           {/* ── Details ── */}
           <div className="flex flex-col">
-            <p className="text-[10px] font-black tracking-[0.3em] uppercase text-zinc-400 mb-1">{drop.brand}</p>
+            <p className="text-[10px] font-black tracking-[0.3em] uppercase text-zinc-500 mb-1">{drop.brand}</p>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900 mb-1 leading-tight">{drop.name}</h1>
-            {drop.colorway && <p className="text-sm text-zinc-400 mb-5">{drop.colorway}</p>}
+            {drop.colorway && <p className="text-sm text-zinc-500 mb-5">{drop.colorway}</p>}
 
             {/* Status pill + live countdown */}
             <div className="inline-flex items-center gap-2 mb-3">
@@ -361,11 +361,11 @@ export default async function DropPage(props: Props) {
             {drop.retailPrice && (
               <div className="mb-5 p-4 bg-zinc-950 text-white flex items-center justify-between rounded-sm">
                 <div>
-                  <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 mb-0.5">Retail Price</p>
+                  <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-400 mb-0.5">Retail Price</p>
                   <p className="text-2xl font-black">{formatDropPrice(drop.retailPrice, drop.currency)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 mb-0.5">Release</p>
+                  <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-400 mb-0.5">Release</p>
                   <p className="text-sm font-bold text-zinc-200">{formatDropDate(drop.releaseDate, { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                   {launchTime && <p className="text-[11px] font-semibold text-zinc-400 mt-0.5">{launchTime}</p>}
                 </div>
@@ -376,7 +376,7 @@ export default async function DropPage(props: Props) {
             <div className="grid grid-cols-1 gap-2 mb-5">
               {specs.map(([label, value]) => (
                 <div key={label} className="flex items-start gap-3 py-2 border-b border-zinc-100 last:border-0">
-                  <p className="text-[9px] font-black tracking-widest uppercase text-zinc-400 w-24 shrink-0 mt-0.5">{label}</p>
+                  <p className="text-[9px] font-black tracking-widest uppercase text-zinc-500 w-24 shrink-0 mt-0.5">{label}</p>
                   <p className="text-sm font-semibold text-zinc-800 leading-snug">{value}</p>
                 </div>
               ))}
@@ -397,7 +397,7 @@ export default async function DropPage(props: Props) {
                 </Link>
               ) : (
                 <div className="border border-zinc-100 rounded-sm p-4 text-center bg-zinc-50">
-                  <p className="text-[10px] text-zinc-400 font-bold tracking-widest uppercase mb-1">Where to Buy</p>
+                  <p className="text-[10px] text-zinc-500 font-bold tracking-widest uppercase mb-1">Where to Buy</p>
                   <p className="text-sm font-bold text-zinc-700">{drop.where || 'Official brand site'}</p>
                 </div>
               )}
@@ -432,20 +432,20 @@ export default async function DropPage(props: Props) {
                 <div className="flex-1 min-w-0 p-5 sm:p-6 flex flex-col gap-5">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="text-[10px] font-black tracking-[0.3em] uppercase text-zinc-400 mb-1">Buy it on SNKRS CART</p>
+                      <p className="text-[10px] font-black tracking-[0.3em] uppercase text-zinc-500 mb-1">Buy it on SNKRS CART</p>
                       <h2 id="buy-on-snkrs-cart" className="text-lg sm:text-xl font-black tracking-tight text-zinc-900 leading-tight">
                         <Link href={productHref} className="hover:underline underline-offset-4">{productName}</Link>
                       </h2>
-                      {product.colorway && <p className="text-xs text-zinc-400 mt-1">{product.colorway}</p>}
+                      {product.colorway && <p className="text-xs text-zinc-500 mt-1">{product.colorway}</p>}
                     </div>
                     <div className="text-left sm:text-right shrink-0">
-                      <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-400 mb-0.5">From</p>
+                      <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 mb-0.5">From</p>
                       <p className="text-2xl font-black text-zinc-900 leading-none">{formatPrice(lowest)}</p>
                     </div>
                   </div>
 
                   <div>
-                    <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-2.5">
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-2.5">
                       Price by size · {offers.length} {offers.length === 1 ? 'size' : 'sizes'} available
                     </p>
                     <ul className="grid grid-cols-2 min-[420px]:grid-cols-3 lg:grid-cols-4 gap-2">
@@ -496,7 +496,7 @@ export default async function DropPage(props: Props) {
         {/* How to cop */}
         {howTo && !released && (
           <section className="mb-10 border border-zinc-100 rounded-sm p-5 sm:p-6 bg-zinc-50/60">
-            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">Game plan</p>
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-1">Game plan</p>
             <h2 className="text-lg font-black tracking-tight text-zinc-900 mb-4">{howTo.title}</h2>
             <ol className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {howTo.steps.map((step, i) => (
@@ -511,14 +511,14 @@ export default async function DropPage(props: Props) {
 
         {faqs.length >= 3 && (
           <section className="mb-10">
-            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">FAQ</p>
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-1">FAQ</p>
             <h2 className="text-lg font-black tracking-tight text-zinc-900 mb-3">{drop.name}: release questions</h2>
             <div className="divide-y divide-zinc-100 border-y border-zinc-100">
               {faqs.map((f) => (
                 <details key={f.q} className="group py-4">
                   <summary className="flex items-start justify-between gap-4 cursor-pointer list-none text-sm font-bold text-zinc-900 [&::-webkit-details-marker]:hidden">
                     <span>{f.q}</span>
-                    <span className="shrink-0 mt-0.5 text-zinc-400 group-open:rotate-45 transition-transform duration-200" aria-hidden>
+                    <span className="shrink-0 mt-0.5 text-zinc-500 group-open:rotate-45 transition-transform duration-200" aria-hidden>
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
                     </span>
                   </summary>
@@ -534,7 +534,7 @@ export default async function DropPage(props: Props) {
           <section className="mb-10">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xs font-black tracking-[0.3em] uppercase text-zinc-900">More upcoming drops</h2>
-              <Link href="/drops" className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 hover:text-zinc-900 transition-colors">Full calendar →</Link>
+              <Link href="/drops" className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 hover:text-zinc-900 transition-colors">Full calendar →</Link>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {related.map((r) => {
@@ -543,14 +543,14 @@ export default async function DropPage(props: Props) {
                   <Link key={r._id} href={`/drops/${r.slug}`} className="group border border-zinc-100 hover:border-zinc-300 hover:shadow-md transition-all overflow-hidden bg-white">
                     <div className="relative aspect-[4/3] bg-zinc-50 overflow-hidden">
                       {r.image && <Image src={r.image} alt={r.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 1024px) 50vw, 25vw" />}
-                      <span className={`absolute top-2 right-2 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-sm ${rd === 0 ? 'bg-red-500 text-white' : rd === 1 ? 'bg-orange-500 text-white' : rd <= 7 ? 'bg-amber-400 text-zinc-900' : 'bg-zinc-900/70 text-white'}`}>
+                      <span className={`absolute top-2 right-2 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-sm ${rd === 0 ? 'bg-red-600 text-white' : rd === 1 ? 'bg-orange-700 text-white' : rd <= 7 ? 'bg-amber-400 text-zinc-900' : 'bg-zinc-900/70 text-white'}`}>
                         {rd === 0 ? 'Today' : rd === 1 ? 'Tomorrow' : `${rd}D`}
                       </span>
                     </div>
                     <div className="p-3">
-                      <p className="text-[9px] font-black tracking-[0.2em] uppercase text-zinc-400 mb-0.5">{r.brand}</p>
+                      <p className="text-[9px] font-black tracking-[0.2em] uppercase text-zinc-500 mb-0.5">{r.brand}</p>
                       <p className="text-xs font-bold text-zinc-900 leading-snug line-clamp-2 group-hover:text-zinc-600 transition-colors">{r.name}</p>
-                      <p className="text-[10px] text-zinc-400 mt-1">{formatDropDate(r.releaseDate, { weekday: 'short', day: 'numeric', month: 'short' })}</p>
+                      <p className="text-[10px] text-zinc-500 mt-1">{formatDropDate(r.releaseDate, { weekday: 'short', day: 'numeric', month: 'short' })}</p>
                     </div>
                   </Link>
                 );
@@ -561,10 +561,10 @@ export default async function DropPage(props: Props) {
 
         {/* Footer nav */}
         <div className="pt-6 border-t border-zinc-100 flex items-center justify-between">
-          <Link href="/drops" className="text-xs text-zinc-400 hover:text-zinc-900 transition-colors font-semibold">
+          <Link href="/drops" className="text-xs text-zinc-500 hover:text-zinc-900 transition-colors font-semibold">
             ← Drop Calendar
           </Link>
-          <Link href="/products" className="text-xs text-zinc-400 hover:text-zinc-900 transition-colors font-semibold">
+          <Link href="/products" className="text-xs text-zinc-500 hover:text-zinc-900 transition-colors font-semibold">
             Shop All Sneakers →
           </Link>
         </div>

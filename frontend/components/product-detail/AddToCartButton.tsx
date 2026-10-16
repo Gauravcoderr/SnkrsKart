@@ -63,7 +63,7 @@ export default function AddToCartButton({
       <button
         type="button"
         disabled
-        className="w-full py-4 bg-zinc-200 text-zinc-400 text-sm font-bold tracking-widest uppercase cursor-not-allowed"
+        className="w-full py-4 bg-zinc-200 text-zinc-500 text-sm font-bold tracking-widest uppercase cursor-not-allowed"
       >
         Sold Out
       </button>
@@ -75,7 +75,7 @@ export default function AddToCartButton({
       <button
         type="button"
         disabled
-        className="w-full py-4 bg-zinc-100 text-zinc-400 text-sm font-bold tracking-widest uppercase cursor-not-allowed border border-zinc-200"
+        className="w-full py-4 bg-zinc-100 text-zinc-600 text-sm font-bold tracking-widest uppercase cursor-not-allowed border border-zinc-200"
       >
         Max Qty Reached ({maxQty})
       </button>

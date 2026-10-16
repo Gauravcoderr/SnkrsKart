@@ -159,7 +159,7 @@ export default function AccountPage() {
         <div className="bg-white rounded-2xl shadow-md border border-zinc-100 p-6 mb-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
           <div className="flex items-center justify-between mb-4">
-            <p className="text-xs font-bold tracking-widest uppercase text-zinc-400">Profile</p>
+            <p className="text-xs font-bold tracking-widest uppercase text-zinc-500">Profile</p>
             {!editing && (
               <button type="button" onClick={startEdit} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 border border-indigo-200 hover:border-indigo-400 px-3 py-1 rounded-full transition">
                 Edit Profile
@@ -192,7 +192,7 @@ export default function AccountPage() {
               <div className="space-y-0.5">
                 <p className="text-base font-bold text-zinc-900">{user?.name || 'No name set'}</p>
                 <p className="text-xs text-zinc-500">{user?.email}</p>
-                {user?.phone && <p className="text-xs text-zinc-400">{user.phone}</p>}
+                {user?.phone && <p className="text-xs text-zinc-500">{user.phone}</p>}
               </div>
             </div>
           )}
@@ -219,7 +219,7 @@ export default function AccountPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-bold text-zinc-900 ${item.accent} transition-colors`}>{item.label}</p>
-                <p className="text-xs text-zinc-400 mt-0.5">{item.desc}</p>
+                <p className="text-xs text-zinc-500 mt-0.5">{item.desc}</p>
               </div>
               <svg className={`w-4 h-4 ${item.iconColor} opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />

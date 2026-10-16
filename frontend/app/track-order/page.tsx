@@ -37,7 +37,7 @@ export default async function TrackOrder() {
   if (content?.htmlContent) {
     return (
       <main className="max-w-2xl mx-auto px-4 py-16">
-        <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Help</p>
+        <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-2">Help</p>
         <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-3">Track My Order</h1>
         <div className="prose prose-zinc prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: content.htmlContent }} />
       </main>
@@ -46,7 +46,7 @@ export default async function TrackOrder() {
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-16">
-      <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Help</p>
+      <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-2">Help</p>
       <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-3">Track My Order</h1>
       <p className="text-sm text-zinc-500 mb-10">Once your order is shipped, you&apos;ll receive a tracking number via WhatsApp and email.</p>
 

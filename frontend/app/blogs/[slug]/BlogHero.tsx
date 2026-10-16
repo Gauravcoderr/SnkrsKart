@@ -49,10 +49,10 @@ function HeroV1({ blog, accent, dateLabel, minutes, postUrl }: Omit<BlogHeroProp
           src={blog.coverImage}
           alt={blog.title}
           fill
-          unoptimized
           className="object-cover opacity-60"
           sizes="100vw"
           priority
+          fetchPriority="high"
         />
       ) : (
         <div className={`absolute inset-0 bg-gradient-to-br ${accent.heroGrad}`} />
@@ -174,6 +174,7 @@ function Cover({ blog, accent, aspect, sizes }: { blog: Blog; accent: HeroAccent
           alt={blog.title}
           fill
           priority
+          fetchPriority="high"
           sizes={sizes}
           className="object-cover object-center"
         />

@@ -85,17 +85,17 @@ export default function WishlistPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-10">
-        <p className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">Saved</p>
+        <p className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-500 mb-1">Saved</p>
         <h1 className="text-3xl font-black tracking-tight text-zinc-900">
           Wishlist{' '}
-          {ids.length > 0 && <span className="text-zinc-400 font-normal text-xl">({ids.length})</span>}
+          {ids.length > 0 && <span className="text-zinc-500 font-normal text-xl">({ids.length})</span>}
         </h1>
       </div>
 
       {ids.length === 0 ? (
         <div className="text-center py-24">
           <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="w-8 h-8 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
           </div>
@@ -140,25 +140,25 @@ export default function WishlistPage() {
                 className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center bg-white/90 rounded-full shadow-sm hover:scale-110 transition-transform"
                 aria-label="Remove from wishlist"
               >
-                <svg className="w-4 h-4 fill-red-500 text-red-500" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-4 h-4 fill-red-500 text-red-600" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </button>
 
               <div className="flex-1">
-                <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-400">{product.brand}</p>
+                <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">{product.brand}</p>
                 <p className="text-sm font-semibold uppercase text-zinc-900 leading-tight mt-0.5">{product.name}</p>
-                <p className="text-xs text-zinc-400 mt-0.5">{product.colorway}</p>
+                <p className="text-xs text-zinc-500 mt-0.5">{product.colorway}</p>
                 <div className="flex items-baseline gap-2 mt-1.5">
                   <span className="text-sm font-bold text-zinc-900">{formatPrice(product.price)}</span>
                   {product.originalPrice && product.originalPrice > product.price && (
-                    <span className="text-xs text-zinc-400 line-through">{formatPrice(product.originalPrice)}</span>
+                    <span className="text-xs text-zinc-500 line-through">{formatPrice(product.originalPrice)}</span>
                   )}
                 </div>
               </div>
 
               {product.comingSoon ? (
-                <div className="mt-3 w-full py-2 border border-zinc-200 text-xs font-bold tracking-widest uppercase text-center text-zinc-400 cursor-default">
+                <div className="mt-3 w-full py-2 border border-zinc-200 text-xs font-bold tracking-widest uppercase text-center text-zinc-500 cursor-default">
                   Dropping Soon
                 </div>
               ) : !product.soldOut && (product.availableSizes.length > 0 || (product.availableStringSizes ?? []).length > 0) ? (

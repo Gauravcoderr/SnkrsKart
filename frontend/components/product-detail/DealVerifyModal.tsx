@@ -171,7 +171,7 @@ export default function DealVerifyModal({ productId, productSlug, productName, o
               <button
                 type="button"
                 onClick={() => { setStep('form'); setOtp(''); setError(''); }}
-                className="flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-zinc-900 transition-colors"
+                className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500 hover:text-zinc-900 transition-colors"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -184,7 +184,7 @@ export default function DealVerifyModal({ productId, productSlug, productName, o
                 <p className="text-[11px] text-zinc-500 mt-0.5">Submit proof — we'll verify it for you</p>
               </div>
             )}
-            <button type="button" onClick={onClose} aria-label="Close" className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors">
+            <button type="button" onClick={onClose} aria-label="Close" className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -212,7 +212,7 @@ export default function DealVerifyModal({ productId, productSlug, productName, o
                 className="w-full border border-zinc-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
               />
               {urlFetching && (
-                <div className="mt-2 flex items-center gap-2 text-xs text-zinc-400">
+                <div className="mt-2 flex items-center gap-2 text-xs text-zinc-500">
                   <div className="w-3 h-3 border border-zinc-300 border-t-zinc-600 rounded-full animate-spin" />
                   Fetching page info...
                 </div>
@@ -225,7 +225,7 @@ export default function DealVerifyModal({ productId, productSlug, productName, o
                   )}
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-zinc-700 truncate">{urlMeta.siteName || 'Unknown site'}</p>
-                    {urlMeta.title && <p className="text-[11px] text-zinc-400 truncate">{urlMeta.title}</p>}
+                    {urlMeta.title && <p className="text-[11px] text-zinc-500 truncate">{urlMeta.title}</p>}
                   </div>
                 </div>
               )}
@@ -253,7 +253,7 @@ export default function DealVerifyModal({ productId, productSlug, productName, o
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="w-full border-2 border-dashed border-zinc-200 rounded-lg py-6 flex flex-col items-center gap-2 text-zinc-400 hover:border-zinc-400 hover:text-zinc-600 transition-colors"
+                  className="w-full border-2 border-dashed border-zinc-200 rounded-lg py-6 flex flex-col items-center gap-2 text-zinc-500 hover:border-zinc-400 hover:text-zinc-600 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -276,7 +276,7 @@ export default function DealVerifyModal({ productId, productSlug, productName, o
             </div>
 
             {error && (
-              <p className="text-xs text-red-500 font-medium bg-red-50 px-3 py-2 rounded-lg">{error}</p>
+              <p className="text-xs text-red-600 font-medium bg-red-50 px-3 py-2 rounded-lg">{error}</p>
             )}
 
             <button
@@ -293,7 +293,7 @@ export default function DealVerifyModal({ productId, productSlug, productName, o
               ) : 'Get Verification Code'}
             </button>
 
-            <p className="text-[10px] text-zinc-400 text-center pb-1">
+            <p className="text-[10px] text-zinc-500 text-center pb-1">
               Indian retail sites only. Verification within 24 hours.
             </p>
           </div>
@@ -331,7 +331,7 @@ export default function DealVerifyModal({ productId, productSlug, productName, o
             />
 
             {error && (
-              <p className="text-xs text-red-500 font-medium bg-red-50 px-3 py-2 rounded-lg w-full">{error}</p>
+              <p className="text-xs text-red-600 font-medium bg-red-50 px-3 py-2 rounded-lg w-full">{error}</p>
             )}
 
             {/* Submit */}
@@ -348,7 +348,7 @@ export default function DealVerifyModal({ productId, productSlug, productName, o
               type="button"
               onClick={sendOtp}
               disabled={otpCooldown > 0 || otpSending}
-              className="text-xs text-zinc-400 hover:text-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="text-xs text-zinc-500 hover:text-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {otpCooldown > 0 ? `Resend code in ${otpCooldown}s` : otpSending ? 'Sending...' : 'Resend code'}
             </button>

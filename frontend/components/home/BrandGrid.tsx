@@ -15,7 +15,7 @@ export default function BrandGrid({ brands }: BrandGridProps) {
         {/* Header */}
         <div className="flex items-end justify-between mb-8">
           <div>
-            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-1">
               Premium Partners
             </p>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight uppercase text-zinc-900">
@@ -24,7 +24,7 @@ export default function BrandGrid({ brands }: BrandGridProps) {
           </div>
           <Link
             href="/products"
-            className="hidden sm:block text-[11px] font-bold tracking-widest uppercase text-zinc-400 hover:text-zinc-900 transition-colors border-b border-zinc-200 hover:border-zinc-900 pb-0.5"
+            className="hidden sm:block text-[11px] font-bold tracking-widest uppercase text-zinc-500 hover:text-zinc-900 transition-colors border-b border-zinc-200 hover:border-zinc-900 pb-0.5"
           >
             All Brands &rarr;
           </Link>
@@ -71,7 +71,7 @@ export default function BrandGrid({ brands }: BrandGridProps) {
                       {meta.label}
                     </p>
                     <div className="flex items-center justify-between mt-1">
-                      <p className="text-zinc-500 text-[10px] tracking-widest uppercase">
+                      <p className="text-zinc-400 text-[10px] tracking-widest uppercase">
                         {brand.productCount} styles
                       </p>
                       <p

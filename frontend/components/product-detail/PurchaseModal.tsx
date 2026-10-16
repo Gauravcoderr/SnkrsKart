@@ -76,7 +76,7 @@ export default function PurchaseModal({ product, selectedSize, currentPrice, onC
           <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
             <div>
               <Dialog.Title asChild>
-                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400">
+                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-500">
                   {step === 'form' ? 'Purchase Inquiry' : 'Request Received'}
                 </p>
               </Dialog.Title>
@@ -87,7 +87,7 @@ export default function PurchaseModal({ product, selectedSize, currentPrice, onC
               </Dialog.Description>
             </div>
             <Dialog.Close asChild>
-              <button type="button" aria-label="Close" className="p-1 text-zinc-400 hover:text-zinc-900 transition-colors">
+              <button type="button" aria-label="Close" className="p-1 text-zinc-500 hover:text-zinc-900 transition-colors">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -128,7 +128,7 @@ export default function PurchaseModal({ product, selectedSize, currentPrice, onC
                     placeholder="your@email.com"
                     className={`w-full border px-3 py-2.5 text-sm text-zinc-900 focus:outline-none transition-colors ${fieldErrors.email ? 'border-red-400 focus:border-red-500' : 'border-zinc-200 focus:border-zinc-900'}`}
                   />
-                  {fieldErrors.email && <p className="mt-1 text-[11px] text-red-500">{fieldErrors.email}</p>}
+                  {fieldErrors.email && <p className="mt-1 text-[11px] text-red-600">{fieldErrors.email}</p>}
                 </div>
                 <div>
                   <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-1">Phone / WhatsApp *</label>
@@ -143,7 +143,7 @@ export default function PurchaseModal({ product, selectedSize, currentPrice, onC
                     placeholder="+91 XXXXX XXXXX"
                     className={`w-full border px-3 py-2.5 text-sm text-zinc-900 focus:outline-none transition-colors ${fieldErrors.phone ? 'border-red-400 focus:border-red-500' : 'border-zinc-200 focus:border-zinc-900'}`}
                   />
-                  {fieldErrors.phone && <p className="mt-1 text-[11px] text-red-500">{fieldErrors.phone}</p>}
+                  {fieldErrors.phone && <p className="mt-1 text-[11px] text-red-600">{fieldErrors.phone}</p>}
                 </div>
                 <div>
                   <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-1">Delivery Address *</label>
@@ -157,7 +157,7 @@ export default function PurchaseModal({ product, selectedSize, currentPrice, onC
                   />
                 </div>
 
-                {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
+                {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
 
                 <button
                   type="submit"
@@ -166,7 +166,7 @@ export default function PurchaseModal({ product, selectedSize, currentPrice, onC
                 >
                   {loading ? 'Submitting...' : 'Submit Request'}
                 </button>
-                <p className="text-[11px] text-zinc-400 text-center">
+                <p className="text-[11px] text-zinc-500 text-center">
                   We'll contact you within 24 hours to complete your purchase.
                 </p>
               </form>
@@ -184,7 +184,7 @@ export default function PurchaseModal({ product, selectedSize, currentPrice, onC
               <p className="text-sm text-zinc-500 leading-relaxed mb-6">
                 We will reach out to you shortly on your email & phone to complete the purchase.
               </p>
-              <p className="text-xs text-zinc-400 mb-6">
+              <p className="text-xs text-zinc-500 mb-6">
                 A confirmation has been sent to <strong>{form.email}</strong>
               </p>
               <Dialog.Close asChild>

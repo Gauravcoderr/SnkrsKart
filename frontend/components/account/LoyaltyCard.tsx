@@ -131,7 +131,7 @@ export default function LoyaltyCard() {
       {/* Transaction history */}
       {recentHistory.length > 0 && (
         <div className="p-6">
-          <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-3">Recent Activity</p>
+          <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-3">Recent Activity</p>
           <div className="space-y-3">
             {recentHistory.map((event, i) => (
               <div key={i} className="flex items-start justify-between">
@@ -144,18 +144,18 @@ export default function LoyaltyCard() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                       </svg>
                     ) : (
-                      <svg className="w-3 h-3 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <svg className="w-3 h-3 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
                       </svg>
                     )}
                   </div>
                   <div>
                     <p className="text-xs font-medium text-zinc-800">{event.reason}</p>
-                    <p className="text-[10px] text-zinc-400">{formatDate(event.createdAt)}</p>
+                    <p className="text-[10px] text-zinc-500">{formatDate(event.createdAt)}</p>
                   </div>
                 </div>
                 <span className={`text-sm font-bold shrink-0 ml-4 ${
-                  event.type === 'earn' ? 'text-emerald-600' : 'text-red-500'
+                  event.type === 'earn' ? 'text-emerald-600' : 'text-red-600'
                 }`}>
                   {event.type === 'earn' ? '+' : '−'}{event.amount}
                 </span>

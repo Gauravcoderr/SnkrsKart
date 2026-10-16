@@ -29,7 +29,7 @@ function shiftMonth(ym: string, delta: number) {
 function CountdownBadge({ days }: { days: number }) {
   if (days < 0) return <span className="bg-zinc-200 text-zinc-600 text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-sm">Released</span>;
   if (days === 0) return <span className="bg-red-500 text-white text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-sm">Today</span>;
-  if (days === 1) return <span className="bg-orange-500 text-white text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-sm">Tomorrow</span>;
+  if (days === 1) return <span className="bg-orange-700 text-white text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-sm">Tomorrow</span>;
   if (days <= 7) return <span className="bg-amber-400 text-zinc-900 text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-sm">{days}D left</span>;
   return <span className="bg-zinc-900/70 backdrop-blur-sm text-white text-[9px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-sm">{days} days</span>;
 }
@@ -41,7 +41,7 @@ function Chip({ active, onClick, children, size = 'md' }: { active: boolean; onC
       type="button"
       onClick={onClick}
       className={`${pad} font-bold tracking-widest uppercase transition-all duration-150 rounded-sm whitespace-nowrap ${
-        active ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
+        active ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
       }`}
     >
       {children}
@@ -75,14 +75,14 @@ function DropCard({ drop }: { drop: Drop }) {
         )}
       </Link>
       <div className="p-4 flex flex-col flex-1">
-        <p className="text-[9px] font-black tracking-[0.2em] uppercase text-zinc-400 mb-1">{drop.brand}</p>
+        <p className="text-[9px] font-black tracking-[0.2em] uppercase text-zinc-500 mb-1">{drop.brand}</p>
         <Link href={href} className="text-sm font-bold text-zinc-900 leading-snug mb-1 hover:text-zinc-600 transition-colors line-clamp-2">
           {drop.name}
         </Link>
-        {drop.colorway && <p className="text-[10px] text-zinc-400 truncate">{drop.colorway}</p>}
+        {drop.colorway && <p className="text-[10px] text-zinc-500 truncate">{drop.colorway}</p>}
         <div className="flex items-center justify-between pt-2.5 mt-auto border-t border-zinc-50">
-          <p className="text-[10px] text-zinc-500">{formatDropDate(drop.releaseDate, { day: 'numeric', month: 'short' })}{drop.where ? <span className="text-zinc-300"> · {drop.where}</span> : null}</p>
-          {drop.retailPrice ? <p className="text-xs font-black text-zinc-900">{formatDropPrice(drop.retailPrice, drop.currency)}</p> : <p className="text-[10px] text-zinc-300 font-bold uppercase">Price TBC</p>}
+          <p className="text-[10px] text-zinc-500">{formatDropDate(drop.releaseDate, { day: 'numeric', month: 'short' })}{drop.where ? <span className="text-zinc-500"> · {drop.where}</span> : null}</p>
+          {drop.retailPrice ? <p className="text-xs font-black text-zinc-900">{formatDropPrice(drop.retailPrice, drop.currency)}</p> : <p className="text-[10px] text-zinc-500 font-bold uppercase">Price TBC</p>}
         </div>
         <div className="flex items-center gap-2 mt-3">
           <AddToCalendar drop={drop} variant="compact" />
@@ -119,20 +119,20 @@ function MonthGrid({ ym, byDay, today, onShift, onPick }: {
   return (
     <div className="border border-zinc-200 bg-white">
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
-        <button type="button" onClick={() => onShift(-1)} aria-label="Previous month" className="p-1.5 text-zinc-400 hover:text-zinc-900 transition-colors">
+        <button type="button" onClick={() => onShift(-1)} aria-label="Previous month" className="p-1.5 text-zinc-500 hover:text-zinc-900 transition-colors">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
         </button>
         <div className="text-center">
           <p className="text-sm font-black tracking-tight text-zinc-900">{monthLabel(ym)}</p>
-          <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-400">{monthTotal} release{monthTotal !== 1 ? 's' : ''}</p>
+          <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-500">{monthTotal} release{monthTotal !== 1 ? 's' : ''}</p>
         </div>
-        <button type="button" onClick={() => onShift(1)} aria-label="Next month" className="p-1.5 text-zinc-400 hover:text-zinc-900 transition-colors">
+        <button type="button" onClick={() => onShift(1)} aria-label="Next month" className="p-1.5 text-zinc-500 hover:text-zinc-900 transition-colors">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
         </button>
       </div>
       <div className="grid grid-cols-7 border-b border-zinc-100">
         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
-          <p key={d} className="py-2 text-center text-[9px] font-bold tracking-widest uppercase text-zinc-400">{d}</p>
+          <p key={d} className="py-2 text-center text-[9px] font-bold tracking-widest uppercase text-zinc-500">{d}</p>
         ))}
       </div>
       <div className="grid grid-cols-7">
@@ -261,11 +261,11 @@ export default function DropsClient({ upcoming, recent, initial = {} }: Props) {
       {next && (
         <section className="relative bg-zinc-950 text-white mb-8 overflow-hidden">
           {next.image && (
-            <Image src={next.image} alt="" fill className="object-cover opacity-20 blur-sm scale-110" sizes="100vw" aria-hidden />
+            <Image src={next.image} alt="" fill className="object-cover opacity-20 blur-sm scale-110" sizes="100vw" aria-hidden priority fetchPriority="high" />
           )}
           <div className="relative flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-8 p-5 sm:p-7">
             <Link href={`/drops/${next.slug}`} className="relative w-24 h-24 sm:w-28 sm:h-28 shrink-0 bg-zinc-900 overflow-hidden rounded-sm ring-1 ring-white/10">
-              {next.image && <Image src={next.image} alt={next.name} fill className="object-cover" sizes="112px" priority />}
+              {next.image && <Image src={next.image} alt={next.name} fill className="object-cover" sizes="112px" loading="eager" />}
             </Link>
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-black tracking-[0.3em] uppercase text-zinc-400 mb-1.5 flex items-center gap-2">
@@ -343,7 +343,7 @@ export default function DropsClient({ upcoming, recent, initial = {} }: Props) {
       {view === 'calendar' && (
         <div className="mb-16">
           <MonthGrid ym={calMonth} byDay={byDay} today={today} onShift={(d) => setCalMonth((m) => shiftMonth(m, d))} onPick={pickDay} />
-          <p className="text-[10px] text-zinc-400 mt-3">Tap a date to see that day&apos;s releases. Past dates jump to recently released.</p>
+          <p className="text-[10px] text-zinc-500 mt-3">Tap a date to see that day&apos;s releases. Past dates jump to recently released.</p>
         </div>
       )}
 
@@ -351,7 +351,7 @@ export default function DropsClient({ upcoming, recent, initial = {} }: Props) {
       {view === 'list' && (
         groups.length === 0 ? (
           <div className="py-20 text-center border border-dashed border-zinc-200 mb-16">
-            <p className="text-sm text-zinc-400">No upcoming drops match{brand !== ALL ? ` ${brand}` : ''}{debouncedSearch ? ` “${debouncedSearch}”` : ''}.</p>
+            <p className="text-sm text-zinc-500">No upcoming drops match{brand !== ALL ? ` ${brand}` : ''}{debouncedSearch ? ` “${debouncedSearch}”` : ''}.</p>
             {isFiltering && (
               <button type="button" onClick={() => { setBrand(ALL); setSearch(''); setRange('all'); }} className="mt-3 text-xs text-zinc-500 underline underline-offset-4 hover:text-zinc-900">
                 Clear filters
@@ -371,7 +371,7 @@ export default function DropsClient({ upcoming, recent, initial = {} }: Props) {
                         {String(d.getUTCDate()).padStart(2, '0')}
                       </p>
                       <div className="pb-0.5">
-                        <p className="text-[10px] font-black tracking-[0.3em] uppercase text-zinc-400 leading-none mb-1">
+                        <p className="text-[10px] font-black tracking-[0.3em] uppercase text-zinc-500 leading-none mb-1">
                           {d.toLocaleDateString('en-IN', { weekday: 'long', timeZone: 'UTC' })}
                         </p>
                         <p className="text-sm font-bold text-zinc-900 leading-none">
@@ -379,7 +379,7 @@ export default function DropsClient({ upcoming, recent, initial = {} }: Props) {
                         </p>
                       </div>
                       <div className="pb-1"><CountdownBadge days={days} /></div>
-                      <p className="ml-auto pb-1 text-[10px] font-bold tracking-widest uppercase text-zinc-400">
+                      <p className="ml-auto pb-1 text-[10px] font-bold tracking-widest uppercase text-zinc-500">
                         {drops.length} release{drops.length !== 1 ? 's' : ''}
                       </p>
                     </div>
@@ -399,7 +399,7 @@ export default function DropsClient({ upcoming, recent, initial = {} }: Props) {
         <section id="recent-releases" className="scroll-mt-24">
           <div className="flex items-center gap-4 mb-6">
             <div className="flex-1 h-px bg-zinc-100" />
-            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400">Recently released</p>
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-500">Recently released</p>
             <div className="flex-1 h-px bg-zinc-100" />
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
@@ -419,10 +419,10 @@ export default function DropsClient({ upcoming, recent, initial = {} }: Props) {
                     <span className="absolute top-2 left-2 bg-zinc-900 text-white text-[8px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded-sm">In Store</span>
                   )}
                 </Link>
-                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest truncate">{drop.brand}</p>
+                <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest truncate">{drop.brand}</p>
                 <Link href={`/drops/${drop.slug}`} className="block text-[11px] font-bold text-zinc-600 leading-tight truncate group-hover:text-zinc-900 transition-colors">{drop.name}</Link>
                 <div className="flex items-center justify-between mt-0.5">
-                  <p className="text-[9px] text-zinc-400">{formatDropDate(drop.releaseDate, { day: 'numeric', month: 'short' })}</p>
+                  <p className="text-[9px] text-zinc-500">{formatDropDate(drop.releaseDate, { day: 'numeric', month: 'short' })}</p>
                   {drop.availableAtStore && drop.productSlug && (
                     <Link href={`/products/${drop.productSlug}`} className="text-[9px] font-bold tracking-widest uppercase text-zinc-900 hover:underline underline-offset-2">Shop</Link>
                   )}

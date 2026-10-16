@@ -326,7 +326,7 @@ export default async function ProductDetailPage(props: PageProps) {
         />
       )}
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 text-[10px] sm:text-xs text-zinc-400 mb-6 sm:mb-8 font-medium tracking-wide flex-wrap">
+      <nav className="flex items-center gap-1.5 text-[10px] sm:text-xs text-zinc-500 mb-6 sm:mb-8 font-medium tracking-wide flex-wrap">
         <Link href="/" className="hover:text-zinc-900 transition-colors shrink-0">Home</Link>
         <span>/</span>
         <Link href={categoryHref} className="hover:text-zinc-900 transition-colors shrink-0">{categoryLabel}</Link>
@@ -354,11 +354,11 @@ export default async function ProductDetailPage(props: PageProps) {
         <div className="flex flex-col">
           {/* Brand + name */}
           <div className="flex items-center gap-2 mb-1">
-            <p className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-400">
+            <p className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-500">
               {product.brand}
             </p>
             {product.gender && (
-              <span className="text-[10px] font-semibold tracking-wider uppercase text-zinc-400 border border-zinc-200 px-1.5 py-0.5">
+              <span className="text-[10px] font-semibold tracking-wider uppercase text-zinc-500 border border-zinc-200 px-1.5 py-0.5">
                 {product.gender === 'men' ? "Men's" : product.gender === 'women' ? "Women's" : 'Unisex'}
               </span>
             )}
@@ -385,7 +385,7 @@ export default async function ProductDetailPage(props: PageProps) {
       <div className="mt-12 pt-10 border-t border-zinc-100 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
         {/* Left — full description */}
         <div>
-          <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-4">About This Product</h3>
+          <h2 className="text-xs font-bold tracking-widest uppercase text-zinc-900 mb-4">About This Product</h2>
           <div
             className="text-sm text-zinc-600 leading-relaxed prose prose-sm prose-zinc max-w-none"
             dangerouslySetInnerHTML={{ __html: serverSanitize(product.description) }}
@@ -455,7 +455,7 @@ export default async function ProductDetailPage(props: PageProps) {
         <section className="mt-20 pt-10 border-t border-zinc-100">
           <div className="flex items-end justify-between mb-8">
             <div>
-              <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-400 mb-1">More From</p>
+              <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-500 mb-1">More From</p>
               <h2 className="text-xl font-bold tracking-[0.15em] uppercase text-zinc-900">{product.brand}</h2>
             </div>
             <Link
@@ -483,7 +483,7 @@ export default async function ProductDetailPage(props: PageProps) {
           <section className="mt-16 pt-10 border-t border-zinc-100">
             <div className="flex items-end justify-between mb-8">
               <div>
-                <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-400 mb-1">Curated</p>
+                <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-500 mb-1">Curated</p>
                 <h2 className="text-xl font-bold tracking-[0.15em] uppercase text-zinc-900">You Might Also Like</h2>
               </div>
             </div>
@@ -501,7 +501,7 @@ export default async function ProductDetailPage(props: PageProps) {
         <section className="mt-16 pt-10 border-t border-zinc-100">
           <div className="flex items-end justify-between mb-6">
             <div>
-              <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-400 mb-1">From the Blog</p>
+              <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-500 mb-1">From the Blog</p>
               <h2 className="text-xl font-bold tracking-[0.15em] uppercase text-zinc-900">{product.brand} Reads</h2>
             </div>
             <Link
@@ -561,8 +561,8 @@ export default async function ProductDetailPage(props: PageProps) {
               <details key={i} {...(i === 0 ? { open: true } : {})} className="group border-b border-zinc-200">
                 <summary className="flex items-center justify-between py-5 cursor-pointer list-none text-base font-semibold text-zinc-900 hover:text-zinc-600 transition-colors">
                   {faq.question}
-                  <span className="shrink-0 ml-4 text-xl font-light text-zinc-400 group-open:hidden">+</span>
-                  <span className="shrink-0 ml-4 text-xl font-light text-zinc-400 hidden group-open:block">−</span>
+                  <span className="shrink-0 ml-4 text-xl font-light text-zinc-500 group-open:hidden">+</span>
+                  <span className="shrink-0 ml-4 text-xl font-light text-zinc-500 hidden group-open:block">−</span>
                 </summary>
                 <div
                   className="pb-5 text-sm text-zinc-600 leading-relaxed prose prose-sm prose-zinc max-w-none"

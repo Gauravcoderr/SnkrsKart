@@ -139,7 +139,7 @@ export default function ProductReviews({ productSlug, productName, initialReview
 
   return (
     <section className="mt-16 pt-10 border-t border-zinc-100">
-      <h2 className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">Customer Reviews</h2>
+      <h2 className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-500 mb-1">Customer Reviews</h2>
       <p className="text-xl font-bold tracking-tight text-zinc-900 mb-8">What People Are Saying</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -150,20 +150,20 @@ export default function ProductReviews({ productSlug, productName, initialReview
               <div className="text-center">
                 <p className="text-4xl font-black text-zinc-900">{avgRating.toFixed(1)}</p>
                 <StarRating value={Math.round(avgRating)} size="sm" />
-                <p className="text-xs text-zinc-400 mt-1">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
+                <p className="text-xs text-zinc-500 mt-1">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
               </div>
               <div className="flex-1 space-y-1.5">
                 {ratingCounts.map(({ star, count }) => (
                   <div key={star} className="flex items-center gap-2 text-xs">
                     <span className="text-zinc-500 w-4 text-right">{star}</span>
-                    <svg className="w-3 h-3 text-zinc-400" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-3 h-3 text-zinc-500" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                     <div className="flex-1 h-1.5 bg-zinc-200 rounded-full overflow-hidden">
                       {/* dynamic width — inline style required for runtime calculation */}
                       <div className="h-full bg-amber-400 rounded-full" style={{ width: reviews.length ? `${(count / reviews.length) * 100}%` : '0%' }} />
                     </div>
-                    <span className="text-zinc-400 w-4">{count}</span>
+                    <span className="text-zinc-500 w-4">{count}</span>
                   </div>
                 ))}
               </div>
@@ -206,7 +206,7 @@ export default function ProductReviews({ productSlug, productName, initialReview
 
                 {/* Fit picker */}
                 <div>
-                  <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-2">How Did It Fit? <span className="text-zinc-400 normal-case font-normal">(optional)</span></label>
+                  <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-2">How Did It Fit? <span className="text-zinc-500 normal-case font-normal">(optional)</span></label>
                   <div className="flex gap-2">
                     {(['small', 'true', 'large'] as const).map((fit) => (
                       <button
@@ -233,11 +233,11 @@ export default function ProductReviews({ productSlug, productName, initialReview
                 <div>
                   <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-1">Email Address *</label>
                   <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. rahul@example.com" className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors" />
-                  <p className="text-[10px] text-zinc-400 mt-1">Not shown publicly</p>
+                  <p className="text-[10px] text-zinc-500 mt-1">Not shown publicly</p>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-1">State <span className="text-zinc-400 normal-case font-normal">(optional)</span></label>
+                  <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-1">State <span className="text-zinc-500 normal-case font-normal">(optional)</span></label>
                   <select value={location} onChange={(e) => setLocation(e.target.value)} title="Select your state" className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors bg-white appearance-none">
                     <option value="">Select your state</option>
                     {INDIA_STATES.map((state) => (
@@ -254,7 +254,7 @@ export default function ProductReviews({ productSlug, productName, initialReview
                 {/* Photo upload */}
                 <div>
                   <label className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 block mb-2">
-                    Add Photos <span className="text-zinc-400 normal-case font-normal">(optional, max 3)</span>
+                    Add Photos <span className="text-zinc-500 normal-case font-normal">(optional, max 3)</span>
                   </label>
                   {photoPreviews.length > 0 && (
                     <div className="flex gap-2 mb-2">
@@ -292,7 +292,7 @@ export default function ProductReviews({ productSlug, productName, initialReview
                   )}
                 </div>
 
-                {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
+                {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
 
                 <button type="submit" disabled={loading} className="w-full py-3 bg-zinc-900 text-white text-sm font-bold tracking-widest uppercase hover:bg-zinc-700 disabled:bg-zinc-400 transition-colors">
                   {photoUploading ? 'Uploading Photos...' : loading ? 'Submitting...' : 'Post Review'}
@@ -307,14 +307,14 @@ export default function ProductReviews({ productSlug, productName, initialReview
           {reviews.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 text-center">
               <p className="text-sm font-semibold text-zinc-900 mb-1">No reviews yet</p>
-              <p className="text-xs text-zinc-400">Be the first to review this shoe.</p>
+              <p className="text-xs text-zinc-500">Be the first to review this shoe.</p>
             </div>
           ) : (
             reviews.map((review) => (
               <div key={review.id} className="p-4 border border-zinc-100 bg-white">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <p className="text-sm font-bold text-zinc-900">{review.name}{review.location && <span className="ml-1.5 text-xs font-normal text-zinc-400">· {review.location}</span>}</p>
+                    <p className="text-sm font-bold text-zinc-900">{review.name}{review.location && <span className="ml-1.5 text-xs font-normal text-zinc-500">· {review.location}</span>}</p>
                     <div className="flex items-center gap-2">
                       <StarRating value={review.rating} size="sm" />
                       {review.fitRating && (
@@ -328,7 +328,7 @@ export default function ProductReviews({ productSlug, productName, initialReview
                       )}
                     </div>
                   </div>
-                  <span className="text-[11px] text-zinc-400">{timeAgo(review.createdAt)}</span>
+                  <span className="text-[11px] text-zinc-500">{timeAgo(review.createdAt)}</span>
                 </div>
                 <p className="text-sm text-zinc-600 leading-relaxed mb-3">{review.comment}</p>
                 {review.photos && review.photos.length > 0 && (

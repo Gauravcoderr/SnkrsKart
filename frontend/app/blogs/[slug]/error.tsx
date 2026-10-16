@@ -10,7 +10,7 @@ export default function BlogError({ error, reset }: { error: Error & { digest?: 
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-24 text-center">
-      <p className="text-xs font-bold tracking-widest uppercase text-zinc-400 mb-3">Something went wrong</p>
+      <p className="text-xs font-bold tracking-widest uppercase text-zinc-500 mb-3">Something went wrong</p>
       <h1 className="text-2xl font-black text-zinc-900 mb-3">Couldn&apos;t load this post</h1>
       <p className="text-sm text-zinc-500 mb-8">
         The article failed to load. Try refreshing the page or come back in a moment.

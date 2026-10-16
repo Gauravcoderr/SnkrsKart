@@ -36,7 +36,7 @@ export default function CartItem({ item, compact = false }: CartItemProps) {
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-400">
+            <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
               {product.brand}
             </p>
             <Link href={`/products/${product.slug}`}>
@@ -44,7 +44,7 @@ export default function CartItem({ item, compact = false }: CartItemProps) {
                 {product.name}
               </p>
             </Link>
-            <p className="text-xs text-zinc-400 mt-0.5">{product.colorway}</p>
+            <p className="text-xs text-zinc-500 mt-0.5">{product.colorway}</p>
             <p className="text-xs text-zinc-500 mt-0.5">Size: {typeof size === 'number' ? `UK ${size}` : size}</p>
             {item.availability && (
               <p className="flex items-center gap-1.5 text-[11px] text-zinc-500 mt-1">
@@ -83,7 +83,7 @@ export default function CartItem({ item, compact = false }: CartItemProps) {
           <button
             type="button"
             onClick={() => removeItem(product.id, size)}
-            className="text-xs font-medium text-zinc-400 hover:text-red-500 transition-colors underline"
+            className="text-xs font-medium text-zinc-500 hover:text-red-500 transition-colors underline"
           >
             Remove
           </button>

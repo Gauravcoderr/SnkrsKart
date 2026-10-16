@@ -38,13 +38,13 @@ export default function FitIndicator({ fitSummary }: FitIndicatorProps) {
         />
       </div>
 
-      <div className="flex justify-between text-[10px] text-zinc-400">
+      <div className="flex justify-between text-[10px] text-zinc-500">
         <span>Runs Small</span>
         <span>True to Size</span>
         <span>Runs Large</span>
       </div>
 
-      <p className="text-[10px] text-zinc-400 mt-2 text-center">
+      <p className="text-[10px] text-zinc-500 mt-2 text-center">
         Based on {fitSummary.total} buyer{fitSummary.total !== 1 ? 's' : ''}
         {' · '}
         {fitSummary.small} small · {fitSummary.true} true · {fitSummary.large} large

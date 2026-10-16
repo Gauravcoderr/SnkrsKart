@@ -26,7 +26,7 @@ export default function ComingSoonModal({ product, onClose }: ComingSoonModalPro
       <span className="text-2xl font-black text-white tabular-nums leading-none">
         {String(value).padStart(2, '0')}
       </span>
-      <span className="text-[9px] font-semibold tracking-widest uppercase text-zinc-600 mt-1">
+      <span className="text-[9px] font-semibold tracking-widest uppercase text-zinc-400 mt-1">
         {label}
       </span>
     </div>
@@ -101,7 +101,7 @@ export default function ComingSoonModal({ product, onClose }: ComingSoonModalPro
               </p>
 
               {/* Brand */}
-              <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-500 mb-1">
+              <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-400 mb-1">
                 {product.brand}
               </p>
 
@@ -112,14 +112,14 @@ export default function ComingSoonModal({ product, onClose }: ComingSoonModalPro
 
               {/* Colorway */}
               {product.colorway && (
-                <p className="text-xs text-zinc-500 mb-4">{product.colorway}</p>
+                <p className="text-xs text-zinc-400 mb-4">{product.colorway}</p>
               )}
 
               {/* Price */}
               <div className="flex items-baseline gap-2 mb-6">
                 <span className="text-xl font-bold text-white">{formatPrice(product.price)}</span>
                 {product.originalPrice && product.originalPrice > product.price && (
-                  <span className="text-sm text-zinc-600 line-through">
+                  <span className="text-sm text-zinc-400 line-through">
                     {formatPrice(product.originalPrice)}
                   </span>
                 )}
@@ -127,7 +127,7 @@ export default function ComingSoonModal({ product, onClose }: ComingSoonModalPro
 
               {/* Countdown */}
               <div className="mb-6">
-                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-3">
+                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-3">
                   Drop Date
                 </p>
 
@@ -147,7 +147,7 @@ export default function ComingSoonModal({ product, onClose }: ComingSoonModalPro
                 )}
 
                 {!hasDate && (
-                  <p className="text-sm text-zinc-500">
+                  <p className="text-sm text-zinc-400">
                     Date to be announced. Wishlist to get notified.
                   </p>
                 )}
@@ -187,7 +187,7 @@ export default function ComingSoonModal({ product, onClose }: ComingSoonModalPro
                 <Link
                   href={`/products/${product.slug}`}
                   onClick={onClose}
-                  className="w-full py-3 text-center text-xs font-semibold tracking-widest uppercase text-zinc-500 hover:text-white transition-colors"
+                  className="w-full py-3 text-center text-xs font-semibold tracking-widest uppercase text-zinc-400 hover:text-white transition-colors"
                 >
                   View Details →
                 </Link>

@@ -98,13 +98,13 @@ export default async function TagPage(props: { params: Promise<{ tag: string }> 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         {/* Header */}
         <div className="mb-10">
-          <Link href="/blogs" className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-700 transition-colors mb-4 font-medium">
+          <Link href="/blogs" className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-700 transition-colors mb-4 font-medium">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
             All posts
           </Link>
-          <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1.5">Tag</p>
+          <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-1.5">Tag</p>
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-zinc-900">{displayLabel}</h1>
             <span className={`text-sm font-bold px-3 py-1 rounded-full ${a.tagBg} ${a.tagText}`}>
@@ -129,7 +129,6 @@ export default async function TagPage(props: { params: Promise<{ tag: string }> 
                       src={blog.coverImage}
                       alt={blog.title}
                       fill
-                      unoptimized
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                       sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
                     />
@@ -159,7 +158,7 @@ export default async function TagPage(props: { params: Promise<{ tag: string }> 
                     <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2 mb-4">{blog.excerpt}</p>
                   )}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                    <div className="flex items-center gap-1.5 text-[11px] text-zinc-500">
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${ca.dot}`} />
                       <span>{formatDate(blog.createdAt)}</span>
                       <span>&middot;</span>

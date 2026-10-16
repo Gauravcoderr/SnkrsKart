@@ -40,7 +40,7 @@ export default function ActiveFilterTags({
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <span className="text-xs font-semibold tracking-widest uppercase text-zinc-400 mr-1">
+      <span className="text-xs font-semibold tracking-widest uppercase text-zinc-500 mr-1">
         Filters:
       </span>
       {filters.productTypes.map((type) => (
