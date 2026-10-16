@@ -44,7 +44,7 @@ export default async function TermsOfService() {
   if (content?.htmlContent) {
     return (
       <main className="max-w-3xl mx-auto px-4 py-16">
-        <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Legal</p>
+        <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-2">Legal</p>
         <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-8">Terms of Service</h1>
         <div
           className="prose prose-zinc prose-sm max-w-none"
@@ -56,7 +56,7 @@ export default async function TermsOfService() {
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-16">
-      <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Legal</p>
+      <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-2">Legal</p>
       <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-8">Terms of Service</h1>
 
       <p className="text-sm text-zinc-500 mb-8">SNKRS CART is owned and operated by Ashutosh Lingwal, a sole proprietor.</p>
@@ -97,7 +97,7 @@ export default async function TermsOfService() {
           <p>Questions about these Terms? Reach us at <a href="mailto:info@snkrscart.com" className="text-zinc-900 underline">info@snkrscart.com</a>.</p>
         </section>
 
-        <p className="text-xs text-zinc-400 pt-4 border-t border-zinc-100">Last updated: May 2026</p>
+        <p className="text-xs text-zinc-500 pt-4 border-t border-zinc-100">Last updated: May 2026</p>
       </div>
     </main>
   );

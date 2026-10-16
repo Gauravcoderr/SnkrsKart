@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import { User } from '../models/User';
 import { Order } from '../models/Order';
-import { customerAuth, AuthRequest } from '../middleware/customerAuth';
+import { customerAuth, AuthRequest, anonymousAsNull } from '../middleware/customerAuth';
 import { sendMail } from '../lib/mailer';
 import { EMAIL_REASON, transactionalShell } from '../lib/emailLayout';
 import { sendSMS } from '../services/sms';
@@ -380,7 +380,7 @@ router.post('/logout', async (req: Request, res: Response): Promise<void> => {
 
 // ─── Get Profile ───────────────────────────────────────────────────────────
 
-router.get('/me', customerAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/me', anonymousAsNull, customerAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const user = await User.findById(req.user!.id).select('-otp -otpExpiry -otpAttempts -lastOtpSent -refreshToken -refreshTokens -__v').lean();
     if (!user) { res.status(404).json({ error: 'User not found' }); return; }

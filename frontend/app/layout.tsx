@@ -232,7 +232,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-        <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" />
+        <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer />
       </head>
       <body className="bg-zinc-50 text-zinc-900 font-sans antialiased">
         <GoogleAuthProvider>

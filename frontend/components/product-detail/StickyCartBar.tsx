@@ -83,14 +83,14 @@ export default function StickyCartBar({
 
         {/* Name + price */}
         <div className="shrink-0 min-w-0 hidden md:block">
-          <p className="text-xs font-bold tracking-widest uppercase text-zinc-400 leading-none">{product.brand}</p>
+          <p className="text-xs font-bold tracking-widest uppercase text-zinc-500 leading-none">{product.brand}</p>
           <p className="text-sm font-semibold uppercase text-zinc-900 truncate max-w-[180px]">{product.name}</p>
           <p className="text-sm font-bold text-zinc-900">{formatPrice(product.price)}</p>
         </div>
 
         {/* Size pills */}
         <div className="flex items-center gap-1.5 flex-1 overflow-x-auto scrollbar-hide">
-          <span className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 shrink-0 hidden sm:block">{isStringMode ? 'Size' : 'Size (UK)'}</span>
+          <span className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 shrink-0 hidden sm:block">{isStringMode ? 'Size' : 'Size (UK)'}</span>
           {quickSizes.map((size) => (
             <button
               key={size}
@@ -106,7 +106,7 @@ export default function StickyCartBar({
             </button>
           ))}
           {totalSizes > 6 && (
-            <span className="text-xs text-zinc-400 shrink-0 pl-1">+{totalSizes - 6} more</span>
+            <span className="text-xs text-zinc-500 shrink-0 pl-1">+{totalSizes - 6} more</span>
           )}
         </div>
 

@@ -36,7 +36,7 @@ export default function ProductRatingDisplay({ initialRating, initialCount }: Pr
         ))}
       </div>
       <span className="text-xs font-semibold text-zinc-700">{count > 0 ? rating.toFixed(1) : '0'}</span>
-      <span className="text-xs text-zinc-400">({count.toLocaleString()} {count === 1 ? 'review' : 'reviews'})</span>
+      <span className="text-xs text-zinc-500">({count.toLocaleString()} {count === 1 ? 'review' : 'reviews'})</span>
     </div>
   );
 }

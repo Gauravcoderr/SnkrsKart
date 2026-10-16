@@ -34,8 +34,8 @@ export default function ProductGrid({ products, loading = false }: ProductGridPr
             d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <p className="text-lg font-semibold text-zinc-400">No products found</p>
-        <p className="text-sm text-zinc-400 mt-1">Try adjusting your filters</p>
+        <p className="text-lg font-semibold text-zinc-500">No products found</p>
+        <p className="text-sm text-zinc-500 mt-1">Try adjusting your filters</p>
       </div>
     );
   }

@@ -428,7 +428,7 @@ export default function CheckoutPage() {
                     </svg>
                   ) : s}
                 </div>
-                <span className={`text-xs font-bold tracking-widest uppercase hidden sm:block ${step >= s ? 'text-zinc-900' : 'text-zinc-400'}`}>{label}</span>
+                <span className={`text-xs font-bold tracking-widest uppercase hidden sm:block ${step >= s ? 'text-zinc-900' : 'text-zinc-500'}`}>{label}</span>
               </div>
             </div>
           );
@@ -469,9 +469,9 @@ export default function CheckoutPage() {
                   inputMode="tel"
                   className="w-full border border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors"
                 />
-                <p className="text-[10px] text-zinc-400 mt-1">Indian number — 10 digits starting with 6, 7, 8, or 9</p>
+                <p className="text-[10px] text-zinc-500 mt-1">Indian number — 10 digits starting with 6, 7, 8, or 9</p>
               </div>
-              {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
+              {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
               <button type="submit" className="w-full py-3.5 bg-zinc-900 text-white text-sm font-bold tracking-widest uppercase hover:bg-zinc-700 transition-colors">
                 Continue to Address →
               </button>
@@ -485,7 +485,7 @@ export default function CheckoutPage() {
               {/* Saved addresses quick select */}
               {isLoggedIn && user?.addresses && user.addresses.length > 0 && (
                 <div className="space-y-2 mb-2">
-                  <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400">Saved Addresses</p>
+                  <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500">Saved Addresses</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {user.addresses.map((a) => (
                       <button
@@ -503,7 +503,7 @@ export default function CheckoutPage() {
                       </button>
                     ))}
                   </div>
-                  <p className="text-[10px] text-zinc-400">Or enter a new address below</p>
+                  <p className="text-[10px] text-zinc-500">Or enter a new address below</p>
                 </div>
               )}
               <div>
@@ -549,7 +549,7 @@ export default function CheckoutPage() {
                   {INDIAN_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
-              {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
+              {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
               <div className="flex gap-3">
                 <button type="button" onClick={() => setStep(1)} className="flex-1 py-3.5 border border-zinc-200 text-sm font-bold tracking-widest uppercase text-zinc-700 hover:border-zinc-900 transition-colors">
                   ← Back
@@ -570,7 +570,7 @@ export default function CheckoutPage() {
                 <div className="border border-zinc-100 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500">Contact</p>
-                    <button type="button" onClick={() => setStep(1)} className="text-[10px] text-zinc-400 hover:text-zinc-900 underline">Edit</button>
+                    <button type="button" onClick={() => setStep(1)} className="text-[10px] text-zinc-500 hover:text-zinc-900 underline">Edit</button>
                   </div>
                   <p className="text-sm font-semibold text-zinc-900">{contact.name}</p>
                   <p className="text-xs text-zinc-500">{contact.email}</p>
@@ -579,7 +579,7 @@ export default function CheckoutPage() {
                 <div className="border border-zinc-100 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500">Delivery</p>
-                    <button type="button" onClick={() => setStep(2)} className="text-[10px] text-zinc-400 hover:text-zinc-900 underline">Edit</button>
+                    <button type="button" onClick={() => setStep(2)} className="text-[10px] text-zinc-500 hover:text-zinc-900 underline">Edit</button>
                   </div>
                   <p className="text-sm font-semibold text-zinc-900">{address.addressLine}</p>
                   <p className="text-xs text-zinc-500">{address.city}, {address.state} — {address.pincode}</p>
@@ -596,7 +596,7 @@ export default function CheckoutPage() {
                       )}
                     </Link>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400">{item.product.brand}</p>
+                      <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500">{item.product.brand}</p>
                       <Link href={`/products/${item.product.slug}`} className="text-sm font-semibold text-zinc-900 truncate hover:text-zinc-500 transition-colors block">
                         {item.product.name}
                       </Link>
@@ -626,7 +626,7 @@ export default function CheckoutPage() {
                       <button
                         type="button"
                         onClick={() => { setAppliedCoupon(null); setCouponInput(''); }}
-                        className="text-xs text-zinc-400 hover:text-zinc-700 underline ml-4 shrink-0"
+                        className="text-xs text-zinc-500 hover:text-zinc-700 underline ml-4 shrink-0"
                       >
                         Remove
                       </button>
@@ -652,7 +652,7 @@ export default function CheckoutPage() {
                       </button>
                     </div>
                   )}
-                  {couponError && <p className="text-xs text-red-500 mt-2">{couponError}</p>}
+                  {couponError && <p className="text-xs text-red-600 mt-2">{couponError}</p>}
                 </div>
               )}
 
@@ -715,13 +715,13 @@ export default function CheckoutPage() {
                     <div>
                       <p className="text-xs text-zinc-500 mb-3 text-center">Enter the code sent to your email</p>
                       <OtpInput value={otpValues} onChange={setOtpValues} onComplete={verifyCheckoutOtp} />
-                      {otpLoading && <p className="text-xs text-zinc-400 text-center mt-3">Verifying...</p>}
+                      {otpLoading && <p className="text-xs text-zinc-500 text-center mt-3">Verifying...</p>}
                       <div className="flex items-center justify-between mt-4">
                         <button type="button" onClick={() => { setOtpSent(false); setOtpError(''); }} className="text-xs text-zinc-500 hover:text-zinc-900 transition">
                           Change email
                         </button>
                         {otpCountdown > 0 ? (
-                          <span className="text-xs text-zinc-400">Resend in {otpCountdown}s</span>
+                          <span className="text-xs text-zinc-500">Resend in {otpCountdown}s</span>
                         ) : (
                           <button type="button" onClick={sendCheckoutOtp} className="text-xs font-semibold text-zinc-900 hover:text-zinc-600 transition">
                             Resend code
@@ -730,7 +730,7 @@ export default function CheckoutPage() {
                       </div>
                     </div>
                   )}
-                  {otpError && <p className="text-xs text-red-500 mt-3 text-center">{otpError}</p>}
+                  {otpError && <p className="text-xs text-red-600 mt-3 text-center">{otpError}</p>}
                 </div>
               )}
 
@@ -814,7 +814,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
+              {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
 
               <div className="flex gap-3">
                 <button type="button" onClick={() => setStep(2)} className="flex-1 py-3.5 border border-zinc-200 text-sm font-bold tracking-widest uppercase text-zinc-700 hover:border-zinc-900 transition-colors">
@@ -838,7 +838,7 @@ export default function CheckoutPage() {
           <div className="border border-zinc-100 p-6">
             <div className="flex items-center justify-between mb-4">
               <p className="text-xs font-bold tracking-widest uppercase text-zinc-900">Order Summary</p>
-              <span className="text-[10px] text-zinc-400 font-medium">{checkoutItems.length} {checkoutItems.length === 1 ? 'item' : 'items'}</span>
+              <span className="text-[10px] text-zinc-500 font-medium">{checkoutItems.length} {checkoutItems.length === 1 ? 'item' : 'items'}</span>
             </div>
             <div className="space-y-3 mb-4">
               {checkoutItems.map((item) => (
@@ -852,9 +852,9 @@ export default function CheckoutPage() {
                     <Link href={`/products/${item.product.slug}`} className="text-xs font-semibold text-zinc-900 truncate hover:text-zinc-500 transition-colors block">
                       {item.product.name}
                     </Link>
-                    <p className="text-[10px] text-zinc-400 mt-0.5">{typeof item.size === 'number' ? `UK ${item.size}` : item.size} · Qty {item.quantity}</p>
+                    <p className="text-[10px] text-zinc-500 mt-0.5">{typeof item.size === 'number' ? `UK ${item.size}` : item.size} · Qty {item.quantity}</p>
                     {item.availability && (
-                      <p className="text-[10px] text-zinc-400 mt-0.5">Est. {formatDeliveryWindow(item.availability)}</p>
+                      <p className="text-[10px] text-zinc-500 mt-0.5">Est. {formatDeliveryWindow(item.availability)}</p>
                     )}
                   </div>
                   <p className="text-xs font-bold text-zinc-900 shrink-0">{formatPrice(item.product.price * item.quantity)}</p>
@@ -891,7 +891,7 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          <p className="text-[11px] text-zinc-400 text-center mt-4 leading-relaxed">
+          <p className="text-[11px] text-zinc-500 text-center mt-4 leading-relaxed">
             🚚 Estimated delivery {formatDeliveryWindow(slowestAvailability(checkoutItems.map((item) => item.availability)))} after payment confirmation.
           </p>
         </div>

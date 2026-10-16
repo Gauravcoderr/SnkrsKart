@@ -8,6 +8,7 @@ import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import Badge from '@/components/ui/Badge';
+import { fullProductName } from '@/lib/productTitle';
 
 interface ProductCardProps {
   product: Product;
@@ -62,11 +63,12 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           {product.images?.[0] ? (
             <Image
               src={product.images[0]}
-              alt={`${product.brand} ${product.name}`}
+              alt={fullProductName(product.brand, product.name)}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="object-cover img-default group-hover:scale-105 transition-transform duration-500"
               priority={priority}
+              fetchPriority={priority ? 'high' : undefined}
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-zinc-100">
@@ -98,7 +100,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
               aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
               className="w-7 h-7 flex items-center justify-center bg-white/90 rounded-full shadow-sm hover:scale-110 transition-transform"
             >
-              <svg className={`w-4 h-4 transition-colors ${wishlisted ? 'fill-red-500 text-red-500' : 'fill-none text-zinc-400'}`} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className={`w-4 h-4 transition-colors ${wishlisted ? 'fill-red-500 text-red-600' : 'fill-none text-zinc-500'}`} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </button>
@@ -145,11 +147,11 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         {/* Product info */}
         <div className="pt-4 pb-5 px-4">
           <div className="flex items-center justify-between mb-1.5">
-            <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-400">
+            <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
               {product.brand}
             </p>
             {product.gender && (
-              <span className="text-[10px] font-semibold tracking-wider uppercase text-zinc-400 border border-zinc-200 px-1.5 py-0.5">
+              <span className="text-[10px] font-semibold tracking-wider uppercase text-zinc-500 border border-zinc-200 px-1.5 py-0.5">
                 {product.gender === 'men' ? "Men's" : product.gender === 'women' ? "Women's" : 'Unisex'}
               </span>
             )}
@@ -157,11 +159,11 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           <p className="text-sm font-semibold uppercase text-zinc-900 leading-snug">
             {product.name}
           </p>
-          <p className="text-xs text-zinc-400 mt-1">{product.colorway}</p>
+          <p className="text-xs text-zinc-500 mt-1">{product.colorway}</p>
           <div className="flex items-baseline gap-2 mt-2.5">
             <span className="text-sm font-bold text-zinc-900 transition-all duration-150">{formatPrice(displayPrice)}</span>
             {displayOriginalPrice && displayOriginalPrice > displayPrice && (
-              <span className="text-xs text-zinc-400 line-through">
+              <span className="text-xs text-zinc-500 line-through">
                 {formatPrice(displayOriginalPrice)}
               </span>
             )}

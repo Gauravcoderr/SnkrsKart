@@ -121,7 +121,7 @@ function ProductCard({ product }: { product: Product }) {
           />
         )}
         {product.discount ? (
-          <span className="absolute top-1.5 left-1.5 text-[9px] font-bold text-white bg-emerald-500 rounded px-1 py-0.5 leading-none">
+          <span className="absolute top-1.5 left-1.5 text-[9px] font-bold text-white bg-emerald-700 rounded px-1 py-0.5 leading-none">
             {product.discount}% off
           </span>
         ) : null}
@@ -130,7 +130,7 @@ function ProductCard({ product }: { product: Product }) {
         )}
       </div>
       <div className="px-2.5 py-2">
-        <p className="text-[10px] text-zinc-400 truncate">{product.brand}</p>
+        <p className="text-[10px] text-zinc-500 truncate">{product.brand}</p>
         <p className="text-[11px] font-semibold text-zinc-900 line-clamp-1 leading-tight">{product.name}</p>
         <div className="flex items-center gap-1 mt-0.5">
           <span className="text-xs font-bold text-zinc-900">{formatPrice(product.price)}</span>
@@ -163,7 +163,7 @@ function BlogCard({ blog }: { blog: Blog }) {
           {blog.title}
         </p>
         {blog.excerpt && (
-          <p className="text-[11px] text-zinc-400 truncate mt-0.5">{blog.excerpt}</p>
+          <p className="text-[11px] text-zinc-500 truncate mt-0.5">{blog.excerpt}</p>
         )}
       </div>
     </Link>
@@ -180,7 +180,7 @@ function TypingIndicator({ hint }: { hint: string }) {
           <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:150ms]" />
           <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:300ms]" />
         </div>
-        <span className="text-[11px] text-zinc-400 italic">{hint}</span>
+        <span className="text-[11px] text-zinc-500 italic">{hint}</span>
       </div>
     </div>
   );
@@ -224,7 +224,7 @@ function LeadCaptureCard({ onSubmit, onSkip }: { onSubmit: (name: string, email:
               Submit
             </button>
             <button type="button" onClick={onSkip}
-              className="text-xs text-zinc-400 hover:text-zinc-600 transition-colors px-2">
+              className="text-xs text-zinc-500 hover:text-zinc-600 transition-colors px-2">
               Skip
             </button>
           </div>
@@ -443,7 +443,7 @@ export default function ChatBot() {
                           </div>
                           <Link
                             href={href}
-                            className="mt-1.5 block text-[11px] font-semibold text-zinc-400 hover:text-zinc-700 transition-colors text-right"
+                            className="mt-1.5 block text-[11px] font-semibold text-zinc-500 hover:text-zinc-700 transition-colors text-right"
                           >
                             {label}
                           </Link>
@@ -458,7 +458,7 @@ export default function ChatBot() {
                         <div className="bg-zinc-900 px-3 py-2 flex items-center justify-between">
                           <span className="text-[10px] font-bold tracking-widest uppercase text-zinc-400">Order #{msg.order.orderNumber}</span>
                           <span className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-sm ${
-                            msg.order.status === 'Delivered' ? 'bg-emerald-500 text-white' :
+                            msg.order.status === 'Delivered' ? 'bg-emerald-700 text-white' :
                             msg.order.status === 'Shipped' ? 'bg-blue-500 text-white' :
                             msg.order.status === 'Cancelled' ? 'bg-red-500 text-white' :
                             'bg-amber-400 text-zinc-900'
@@ -473,7 +473,7 @@ export default function ChatBot() {
                           <p className="text-[11px] font-bold text-zinc-900">₹{msg.order.total?.toLocaleString('en-IN')}</p>
                         </div>
                         <div className="px-3 pb-2.5">
-                          <span className="text-[11px] font-semibold text-zinc-400 group-hover:text-zinc-700 transition-colors">View full order details →</span>
+                          <span className="text-[11px] font-semibold text-zinc-500 group-hover:text-zinc-700 transition-colors">View full order details →</span>
                         </div>
                       </Link>
                     )}

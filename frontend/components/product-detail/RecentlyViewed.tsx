@@ -17,7 +17,7 @@ export default function RecentlyViewed({ currentProduct }: RecentlyViewedProps) 
     <section className="mt-20 pt-10 border-t border-zinc-100">
       <div className="flex items-end justify-between mb-8">
         <div>
-          <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-400 mb-1">Continue Browsing</p>
+          <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-500 mb-1">Continue Browsing</p>
           <h2 className="text-xl font-bold tracking-[0.15em] uppercase text-zinc-900">Recently Viewed</h2>
         </div>
       </div>

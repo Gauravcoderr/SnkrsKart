@@ -46,6 +46,7 @@ export default function ImageGallery({ images, productName }: ImageGalleryProps)
               alt={productName}
               fill
               priority
+              fetchPriority="high"
               sizes="(max-width: 768px) 100vw, 60vw"
               className="object-cover transition-transform duration-500 hover:scale-105"
             />
@@ -63,21 +64,26 @@ export default function ImageGallery({ images, productName }: ImageGalleryProps)
 
           {/* Mobile prev/next */}
           <div className="flex sm:hidden items-center justify-center gap-3 mt-3">
-            <button onClick={prev} className="p-2">
+            <button type="button" onClick={prev} aria-label="Previous image" className="p-2">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <div className="flex gap-1.5">
+            <div className="flex">
               {images.map((_, i) => (
                 <button
                   key={i}
+                  type="button"
+                  aria-label={`Show image ${i + 1}`}
+                  aria-current={i === activeIndex ? 'true' : undefined}
                   onClick={() => setActiveIndex(i)}
-                  className={`h-1.5 rounded-full transition-all ${i === activeIndex ? 'bg-zinc-900 w-4' : 'bg-zinc-300 w-1.5'}`}
-                />
+                  className="p-[9px]"
+                >
+                  <span className={`block h-1.5 rounded-full transition-all ${i === activeIndex ? 'bg-zinc-900 w-4' : 'bg-zinc-300 w-1.5'}`} />
+                </button>
               ))}
             </div>
-            <button onClick={next} className="p-2">
+            <button type="button" onClick={next} aria-label="Next image" className="p-2">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>

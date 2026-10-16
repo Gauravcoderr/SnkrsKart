@@ -14,11 +14,11 @@ export default function CartPageClient() {
       {/* Header */}
       <div className="flex items-end justify-between mb-10">
         <div>
-          <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-400 mb-1">Review</p>
+          <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-500 mb-1">Review</p>
           <h1 className="text-3xl font-bold tracking-[0.1em] uppercase text-zinc-900">
             Your Bag{' '}
             {items.length > 0 && (
-              <span className="text-zinc-400 font-normal text-lg">({items.reduce((a, i) => a + i.quantity, 0)} items)</span>
+              <span className="text-zinc-500 font-normal text-lg">({items.reduce((a, i) => a + i.quantity, 0)} items)</span>
             )}
           </h1>
         </div>
@@ -26,7 +26,7 @@ export default function CartPageClient() {
           {items.length > 0 && (
             <button
               onClick={clearCart}
-              className="text-xs font-semibold tracking-widest uppercase text-zinc-400 hover:text-red-500 transition-colors"
+              className="text-xs font-semibold tracking-widest uppercase text-zinc-500 hover:text-red-500 transition-colors"
             >
               Clear Bag
             </button>
@@ -47,8 +47,8 @@ export default function CartPageClient() {
           {/* Items */}
           <div>
             <div className="hidden sm:grid grid-cols-[1fr_auto] gap-4 pb-3 border-b border-zinc-200 mb-2">
-              <p className="text-xs font-bold tracking-widest uppercase text-zinc-400">Product</p>
-              <p className="text-xs font-bold tracking-widest uppercase text-zinc-400">Total</p>
+              <p className="text-xs font-bold tracking-widest uppercase text-zinc-500">Product</p>
+              <p className="text-xs font-bold tracking-widest uppercase text-zinc-500">Total</p>
             </div>
             {items.map((item) => (
               <CartItem key={`${item.product.id}-${item.size}`} item={item} />

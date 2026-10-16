@@ -38,7 +38,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-1 flex-shrink-0">
             <span className="text-xl font-black tracking-tight text-zinc-900">SNKRS</span>
-            <span className="text-xl font-black tracking-tight text-zinc-400">CART</span>
+            <span className="text-xl font-black tracking-tight text-zinc-500">CART</span>
           </Link>
 
           {/* Nav */}
@@ -93,7 +93,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   aria-label="Close search"
-                  className="p-1.5 text-zinc-400 hover:text-zinc-900"
+                  className="p-1.5 text-zinc-500 hover:text-zinc-900"
                   onClick={() => { setSearchOpen(false); setSearchValue(''); }}
                 >
                   <XIcon />

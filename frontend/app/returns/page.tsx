@@ -48,7 +48,7 @@ export default async function Returns() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(returnPolicySchema) }} />
       <main className="max-w-3xl mx-auto px-4 py-16">
-        <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Help</p>
+        <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-2">Help</p>
         <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-3">Cancellation & Refund Policy</h1>
         <p className="text-sm text-zinc-500 mb-10">Last updated: July 2026 · Applies to all orders on snkrscart.com</p>
 

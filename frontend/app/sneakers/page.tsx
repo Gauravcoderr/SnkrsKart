@@ -46,7 +46,7 @@ export default async function SneakersIndexPage(props: Props) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Breadcrumb */}
-      <nav className="text-[10px] text-zinc-400 mb-6 flex items-center gap-1.5">
+      <nav className="text-[10px] text-zinc-500 mb-6 flex items-center gap-1.5">
         <Link href="/" className="hover:text-zinc-900 transition-colors">Home</Link>
         <span>/</span>
         <span className="text-zinc-900 font-semibold">Sneaker Guide</span>
@@ -57,7 +57,7 @@ export default async function SneakersIndexPage(props: Props) {
         <div className="flex items-baseline gap-4 mb-2">
           <h1 className="text-3xl font-black tracking-tight text-zinc-900">Sneaker Guide</h1>
           {profiles.length > 0 && (
-            <span className="text-xs font-bold text-zinc-400 tracking-widest uppercase">
+            <span className="text-xs font-bold text-zinc-500 tracking-widest uppercase">
               {profiles.length} models · {totalBrands} brands
             </span>
           )}
@@ -69,7 +69,7 @@ export default async function SneakersIndexPage(props: Props) {
 
       {profiles.length === 0 ? (
         <div className="py-24 text-center border border-dashed border-zinc-200">
-          <p className="text-sm text-zinc-400">Sneaker profiles coming soon.</p>
+          <p className="text-sm text-zinc-500">Sneaker profiles coming soon.</p>
         </div>
       ) : (
         <SneakersClient profiles={profiles} initial={initial} />

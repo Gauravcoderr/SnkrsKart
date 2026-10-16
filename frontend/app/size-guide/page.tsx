@@ -47,7 +47,7 @@ const womensData = [
 export default function SizeGuide() {
   return (
     <main className="max-w-4xl mx-auto px-4 py-16">
-      <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Help</p>
+      <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-2">Help</p>
       <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-3">Size Guide</h1>
       <p className="text-sm text-zinc-500 mb-10">All sizes on SNKRS CART are listed in UK sizing. Use the charts below to find your perfect fit.</p>
 
@@ -110,7 +110,7 @@ export default function SizeGuide() {
         </table>
       </div>
 
-      <div className="border-t border-zinc-100 pt-6 text-xs text-zinc-400">
+      <div className="border-t border-zinc-100 pt-6 text-xs text-zinc-500">
         Size charts are based on standard Nike/Jordan sizing. Fit may vary slightly by model. When in doubt, contact us at <a href="mailto:info@snkrscart.com" className="underline text-zinc-600">info@snkrscart.com</a>.
       </div>
     </main>

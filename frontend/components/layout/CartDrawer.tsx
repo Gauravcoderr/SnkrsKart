@@ -30,7 +30,7 @@ export default function CartDrawer() {
           <h2 className="text-sm font-bold tracking-widest uppercase text-zinc-900">
             Your Bag{' '}
             {itemCount > 0 && (
-              <span className="text-zinc-400 font-normal">({itemCount})</span>
+              <span className="text-zinc-500 font-normal">({itemCount})</span>
             )}
           </h2>
           <button
@@ -58,7 +58,7 @@ export default function CartDrawer() {
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-4 text-center py-16">
               <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="w-8 h-8 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
                 </svg>
               </div>
@@ -86,9 +86,9 @@ export default function CartDrawer() {
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400">{item.product.brand}</p>
+                        <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500">{item.product.brand}</p>
                         <p className="text-sm font-semibold text-zinc-900 truncate">{item.product.name}</p>
-                        <p className="text-xs text-zinc-400 mt-0.5">{typeof item.size === 'number' ? `UK ${item.size}` : item.size} · {item.product.colorway}</p>
+                        <p className="text-xs text-zinc-500 mt-0.5">{typeof item.size === 'number' ? `UK ${item.size}` : item.size} · {item.product.colorway}</p>
                         {item.availability && (
                           <p className="flex items-center gap-1.5 text-[10px] text-zinc-500 mt-1">
                             <span className={`w-1.5 h-1.5 rounded-full ${AVAILABILITY_META[item.availability].dotClass}`} />
@@ -108,7 +108,7 @@ export default function CartDrawer() {
                         type="button"
                         onClick={() => removeItem(item.product.id, item.size)}
                         aria-label="Remove item"
-                        className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                        className="p-1.5 text-zinc-500 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

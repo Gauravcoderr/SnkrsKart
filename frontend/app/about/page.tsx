@@ -100,7 +100,7 @@ export default async function AboutPage() {
       {/* Hero */}
       <section className="border-b border-zinc-800 py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-zinc-500 mb-4">
+          <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-zinc-400 mb-4">
             Est. 2020 · Pauri Garhwal, Uttarakhand
           </p>
           <h1
@@ -109,7 +109,7 @@ export default async function AboutPage() {
           >
             BUILT ON
             <br />
-            <span className="text-zinc-600">PASSION.</span>
+            <span className="text-zinc-400">PASSION.</span>
           </h1>
           <p className="text-lg text-zinc-400 max-w-xl leading-relaxed">
             We didn't start in a warehouse. We started in the hills — a couple of sneakerheads
@@ -122,7 +122,7 @@ export default async function AboutPage() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-800">
         <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-16 items-start">
           <div>
-            <p className="text-[10px] font-bold tracking-[0.35em] uppercase text-zinc-500 mb-6">Our Story</p>
+            <p className="text-[10px] font-bold tracking-[0.35em] uppercase text-zinc-400 mb-6">Our Story</p>
             <h2 className="text-3xl font-black uppercase tracking-tight mb-6">
               From the mountains<br />to your doorstep.
             </h2>
@@ -151,10 +151,10 @@ export default async function AboutPage() {
               { year: '2025', label: 'Today', desc: 'Hundreds of happy sneakerheads across India.' },
             ].map(({ year, label, desc }) => (
               <div key={year} className="flex gap-6 items-start">
-                <span className="text-xs font-mono text-zinc-600 pt-0.5 w-10 shrink-0">{year}</span>
+                <span className="text-xs font-mono text-zinc-400 pt-0.5 w-10 shrink-0">{year}</span>
                 <div>
                   <p className="text-sm font-bold text-white mb-0.5">{label}</p>
-                  <p className="text-sm text-zinc-500">{desc}</p>
+                  <p className="text-sm text-zinc-400">{desc}</p>
                 </div>
               </div>
             ))}
@@ -165,7 +165,7 @@ export default async function AboutPage() {
       {/* Values */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-800">
         <div className="max-w-4xl mx-auto">
-          <p className="text-[10px] font-bold tracking-[0.35em] uppercase text-zinc-500 mb-10">What we stand for</p>
+          <p className="text-[10px] font-bold tracking-[0.35em] uppercase text-zinc-400 mb-10">What we stand for</p>
           <div className="grid sm:grid-cols-3 gap-8">
             {[
               { title: '100% Legit', body: 'Every sneaker is verified for authenticity before it reaches you. No fakes. Ever.' },
@@ -174,7 +174,7 @@ export default async function AboutPage() {
             ].map(({ title, body }) => (
               <div key={title} className="border border-zinc-800 p-6">
                 <h3 className="text-sm font-black uppercase tracking-widest text-white mb-3">{title}</h3>
-                <p className="text-sm text-zinc-500 leading-relaxed">{body}</p>
+                <p className="text-sm text-zinc-400 leading-relaxed">{body}</p>
               </div>
             ))}
           </div>
@@ -184,7 +184,7 @@ export default async function AboutPage() {
       {/* Business Model */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-800">
         <div className="max-w-4xl mx-auto">
-          <p className="text-[10px] font-bold tracking-[0.35em] uppercase text-zinc-500 mb-6">How we operate</p>
+          <p className="text-[10px] font-bold tracking-[0.35em] uppercase text-zinc-400 mb-6">How we operate</p>
           <h2 className="text-3xl font-black uppercase tracking-tight mb-10">Our Business Model</h2>
           <div className="grid md:grid-cols-2 gap-10 text-sm text-zinc-400 leading-relaxed">
             <div className="space-y-4">
@@ -202,13 +202,13 @@ export default async function AboutPage() {
               <div className="border border-zinc-700 p-5">
                 <h3 className="text-xs font-black uppercase tracking-widest text-white mb-3">How We Verify Authenticity</h3>
                 <ul className="space-y-2 text-xs text-zinc-400">
-                  <li className="flex gap-2"><span className="text-zinc-600 shrink-0">01</span> Buy only from vetted suppliers and verified independent sellers</li>
-                  <li className="flex gap-2"><span className="text-zinc-600 shrink-0">02</span> Physical inspection of stitching, box labels, insole print, and sole patterns</li>
-                  <li className="flex gap-2"><span className="text-zinc-600 shrink-0">03</span> Photo-verify every seller pair from six angles before it ships</li>
-                  <li className="flex gap-2"><span className="text-zinc-600 shrink-0">04</span> Full refund for any authenticity concern raised within 48 hours of delivery</li>
+                  <li className="flex gap-2"><span className="text-zinc-400 shrink-0">01</span> Buy only from vetted suppliers and verified independent sellers</li>
+                  <li className="flex gap-2"><span className="text-zinc-400 shrink-0">02</span> Physical inspection of stitching, box labels, insole print, and sole patterns</li>
+                  <li className="flex gap-2"><span className="text-zinc-400 shrink-0">03</span> Photo-verify every seller pair from six angles before it ships</li>
+                  <li className="flex gap-2"><span className="text-zinc-400 shrink-0">04</span> Full refund for any authenticity concern raised within 48 hours of delivery</li>
                 </ul>
               </div>
-              <p className="text-xs text-zinc-600">
+              <p className="text-xs text-zinc-400">
                 We do not sell replicas, fakes, or unauthorised products. All items are new, unused, and come with original packaging.
               </p>
             </div>
@@ -219,7 +219,7 @@ export default async function AboutPage() {
       {/* Contact */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          <p className="text-[10px] font-bold tracking-[0.35em] uppercase text-zinc-500 mb-6">Get in touch</p>
+          <p className="text-[10px] font-bold tracking-[0.35em] uppercase text-zinc-400 mb-6">Get in touch</p>
           <h2 className="text-3xl font-black uppercase tracking-tight mb-10">Contact Us</h2>
           <div className="grid sm:grid-cols-2 gap-6">
             <a
@@ -227,14 +227,14 @@ export default async function AboutPage() {
               className="group flex items-start gap-4 border border-zinc-800 p-6 hover:border-zinc-600 transition-colors"
             >
               <div className="mt-0.5 shrink-0">
-                <svg className="w-5 h-5 text-zinc-500 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                 </svg>
               </div>
               <div>
-                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-600 mb-1">Email</p>
+                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">Email</p>
                 <p className="text-sm text-white font-medium">info@snkrscart.com</p>
-                <p className="text-xs text-zinc-500 mt-1">Click to send us a message</p>
+                <p className="text-xs text-zinc-400 mt-1">Click to send us a message</p>
               </div>
             </a>
 
@@ -243,28 +243,28 @@ export default async function AboutPage() {
               className="group flex items-start gap-4 border border-zinc-800 p-6 hover:border-zinc-600 transition-colors"
             >
               <div className="mt-0.5 shrink-0">
-                <svg className="w-5 h-5 text-zinc-500 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                 </svg>
               </div>
               <div>
-                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-600 mb-1">Phone / WhatsApp</p>
+                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">Phone / WhatsApp</p>
                 <p className="text-sm text-white font-medium">+91 94109 03791</p>
-                <p className="text-xs text-zinc-500 mt-1">Mon – Sat, 10am – 7pm IST</p>
+                <p className="text-xs text-zinc-400 mt-1">Mon – Sat, 10am – 7pm IST</p>
               </div>
             </a>
 
             <div className="flex items-start gap-4 border border-zinc-800 p-6 sm:col-span-2">
               <div className="mt-0.5 shrink-0">
-                <svg className="w-5 h-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="w-5 h-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                 </svg>
               </div>
               <div>
-                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-600 mb-1">Based in</p>
+                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">Based in</p>
                 <p className="text-sm text-white font-medium">Pauri Garhwal, Uttarakhand, India</p>
-                <p className="text-xs text-zinc-500 mt-1">Shipping across India · Orders dispatched within 3 business days</p>
+                <p className="text-xs text-zinc-400 mt-1">Shipping across India · Orders dispatched within 3 business days</p>
               </div>
             </div>
 
@@ -283,43 +283,43 @@ export default async function AboutPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-600 mb-1">Find Us on Google</p>
+                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">Find Us on Google</p>
                 <p className="text-sm text-white font-medium group-hover:underline">View our Business Profile</p>
-                <p className="text-xs text-zinc-500 mt-1">Verified location, hours, and directions</p>
+                <p className="text-xs text-zinc-400 mt-1">Verified location, hours, and directions</p>
               </div>
             </a>
           </div>
 
           {/* Legal Information */}
           <div className="mt-12 border border-zinc-700 p-6">
-            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-4">Legal Information</p>
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-4">Legal Information</p>
             <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
               <div>
-                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Business Name</dt>
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-400 mb-0.5">Business Name</dt>
                 <dd className="text-zinc-300">SNKRS CART</dd>
               </div>
               <div>
-                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Operated By</dt>
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-400 mb-0.5">Operated By</dt>
                 <dd className="text-zinc-300">Ashutosh Lingwal (Sole Proprietor)</dd>
               </div>
               <div>
-                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Business Type</dt>
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-400 mb-0.5">Business Type</dt>
                 <dd className="text-zinc-300">Independent Sneaker Reseller — not an official brand retailer</dd>
               </div>
               <div>
-                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Business Type</dt>
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-400 mb-0.5">Business Type</dt>
                 <dd className="text-zinc-300">Sole Proprietorship — registered business entity</dd>
               </div>
               <div className="sm:col-span-2">
-                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Registered Address</dt>
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-400 mb-0.5">Registered Address</dt>
                 <dd className="text-zinc-300">House No. 4, Lingwal Bhawan, Circuit House Road, Pauri Garhwal – 246001, Uttarakhand, India</dd>
               </div>
               <div>
-                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Email</dt>
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-400 mb-0.5">Email</dt>
                 <dd className="text-zinc-300">info@snkrscart.com</dd>
               </div>
               <div>
-                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-600 mb-0.5">Phone</dt>
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-400 mb-0.5">Phone</dt>
                 <dd className="text-zinc-300">+91 94109 03791</dd>
               </div>
             </dl>

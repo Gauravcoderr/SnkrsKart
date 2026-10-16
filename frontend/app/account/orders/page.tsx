@@ -18,27 +18,27 @@ const STATUS_STYLES: Record<string, { dot: string; text: string; bg: string; lab
   confirmed: { dot: 'bg-blue-400',    text: 'text-blue-700',    bg: 'bg-blue-50',    label: 'Confirmed',       accent: 'text-blue-500',    heroBg: 'from-blue-950 to-zinc-950',    heroText: 'text-blue-300',   strip: 'bg-gradient-to-b from-blue-400 to-blue-600' },
   shipped:   { dot: 'bg-violet-400',  text: 'text-violet-700',  bg: 'bg-violet-50',  label: 'Shipped',         accent: 'text-violet-500',  heroBg: 'from-violet-950 to-zinc-950',  heroText: 'text-violet-300', strip: 'bg-gradient-to-b from-violet-400 to-violet-600' },
   delivered: { dot: 'bg-emerald-400', text: 'text-emerald-700', bg: 'bg-emerald-50', label: 'Delivered',       accent: 'text-emerald-500', heroBg: 'from-emerald-950 to-zinc-950', heroText: 'text-emerald-300',strip: 'bg-gradient-to-b from-emerald-400 to-emerald-600' },
-  cancelled: { dot: 'bg-red-400',     text: 'text-red-700',     bg: 'bg-red-50',     label: 'Cancelled',       accent: 'text-red-500',     heroBg: 'from-red-950 to-zinc-950',     heroText: 'text-red-300',    strip: 'bg-gradient-to-b from-red-400 to-red-600' },
+  cancelled: { dot: 'bg-red-400',     text: 'text-red-700',     bg: 'bg-red-50',     label: 'Cancelled',       accent: 'text-red-600',     heroBg: 'from-red-950 to-zinc-950',     heroText: 'text-red-300',    strip: 'bg-gradient-to-b from-red-400 to-red-600' },
 };
 
 const STEPS = [
   { label: 'Order Placed', icon: (filled: boolean) => (
-    <svg className={`w-4 h-4 ${filled ? 'text-white' : 'text-zinc-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg className={`w-4 h-4 ${filled ? 'text-white' : 'text-zinc-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
     </svg>
   )},
   { label: 'Confirmed', icon: (filled: boolean) => (
-    <svg className={`w-4 h-4 ${filled ? 'text-white' : 'text-zinc-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+    <svg className={`w-4 h-4 ${filled ? 'text-white' : 'text-zinc-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
     </svg>
   )},
   { label: 'Shipped', icon: (filled: boolean) => (
-    <svg className={`w-4 h-4 ${filled ? 'text-white' : 'text-zinc-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg className={`w-4 h-4 ${filled ? 'text-white' : 'text-zinc-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
     </svg>
   )},
   { label: 'Delivered', icon: (filled: boolean) => (
-    <svg className={`w-4 h-4 ${filled ? 'text-white' : 'text-zinc-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg className={`w-4 h-4 ${filled ? 'text-white' : 'text-zinc-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
     </svg>
   )},
@@ -102,7 +102,7 @@ function StatusStepper({ status, cancelReason, compact = false }: { status: stri
       <div className="py-1">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-            <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <svg className="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
@@ -137,7 +137,7 @@ function StatusStepper({ status, cancelReason, compact = false }: { status: stri
                 {step.icon(done)}
               </div>
               {!compact && (
-                <span className={`text-[9px] font-black tracking-wider uppercase text-center leading-tight transition-colors max-w-[52px] ${done ? colors.label : 'text-zinc-400'}`}>
+                <span className={`text-[9px] font-black tracking-wider uppercase text-center leading-tight transition-colors max-w-[52px] ${done ? colors.label : 'text-zinc-500'}`}>
                   {step.label}
                 </span>
               )}
@@ -167,7 +167,7 @@ function OrderCard({ order, onViewDetails }: { order: Order; onViewDetails: (o: 
           <div className="flex items-center gap-3 min-w-0">
             <span className="text-xs font-mono font-bold text-zinc-700 shrink-0">{order.orderNumber}</span>
             <span className="text-zinc-300 text-xs shrink-0">·</span>
-            <span className="text-xs text-zinc-400 shrink-0">{date}</span>
+            <span className="text-xs text-zinc-500 shrink-0">{date}</span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${s.bg}`}>
@@ -208,7 +208,7 @@ function OrderCard({ order, onViewDetails }: { order: Order; onViewDetails: (o: 
                 <div className="flex items-center gap-1.5 mt-1">
                   <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-md">UK {item.size}</span>
                   {item.qty > 1 && (
-                    <span className="text-[10px] font-bold bg-zinc-100 text-zinc-500 px-1.5 py-0.5 rounded-md">×{item.qty}</span>
+                    <span className="text-[10px] font-bold bg-zinc-100 text-zinc-600 px-1.5 py-0.5 rounded-md">×{item.qty}</span>
                   )}
                 </div>
               </div>
@@ -221,7 +221,7 @@ function OrderCard({ order, onViewDetails }: { order: Order; onViewDetails: (o: 
         {/* Footer: total + stepper */}
         <div className="px-4 py-3 mt-1 border-t border-zinc-50 flex items-center justify-between gap-4">
           <div>
-            <p className="text-[9px] font-black tracking-widest uppercase text-zinc-400 mb-0.5">Order Total</p>
+            <p className="text-[9px] font-black tracking-widest uppercase text-zinc-500 mb-0.5">Order Total</p>
             <p className="text-base font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               {formatPrice(order.total)}
             </p>
@@ -415,7 +415,7 @@ function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-black tracking-widest uppercase text-indigo-500">{item.brand}</p>
                 <p className="text-sm font-bold text-zinc-900 leading-snug mt-0.5 group-hover/item:text-indigo-600 transition-colors">{item.name}</p>
-                {item.colorway && <p className="text-xs text-zinc-400 mt-0.5">{item.colorway}</p>}
+                {item.colorway && <p className="text-xs text-zinc-500 mt-0.5">{item.colorway}</p>}
                 <div className="flex items-center gap-2 mt-1.5">
                   <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md">UK {item.size}</span>
                   <span className="text-[10px] font-bold bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-md">Qty {item.qty}</span>
@@ -438,12 +438,12 @@ function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
       {/* Summary + Address */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl p-5 text-white">
-          <p className="text-[10px] font-black tracking-widest uppercase text-zinc-400 mb-4">Payment Summary</p>
+          <p className="text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-4">Payment Summary</p>
           <div className="space-y-2.5 text-sm">
-            <div className="flex justify-between text-zinc-400">
+            <div className="flex justify-between text-zinc-500">
               <span>Subtotal</span><span className="font-semibold text-white">{formatPrice(order.subtotal)}</span>
             </div>
-            <div className="flex justify-between text-zinc-400">
+            <div className="flex justify-between text-zinc-500">
               <span>Shipping</span>
               <span className={order.shipping === 0 ? 'text-emerald-400 font-bold' : 'font-semibold text-white'}>
                 {order.shipping === 0 ? 'FREE' : formatPrice(order.shipping)}
@@ -456,7 +456,7 @@ function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
           </div>
         </div>
         <div className="bg-white rounded-2xl p-5 border border-zinc-100 shadow-sm">
-          <p className="text-[10px] font-black tracking-widest uppercase text-zinc-400 mb-4">Delivery Address</p>
+          <p className="text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-4">Delivery Address</p>
           <div className="flex gap-3">
             <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -468,7 +468,7 @@ function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
               <p className="text-sm font-bold text-zinc-900">{order.name}</p>
               <p className="text-xs text-zinc-500 mt-0.5">{order.addressLine}</p>
               <p className="text-xs text-zinc-500">{order.city}, {order.state} — {order.pincode}</p>
-              <p className="text-xs text-zinc-400 mt-1">{order.phone}</p>
+              <p className="text-xs text-zinc-500 mt-1">{order.phone}</p>
             </div>
           </div>
         </div>
@@ -489,10 +489,10 @@ function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
 }
 
 const TABS: { key: FilterTab; label: string; color: string; activeColor: string }[] = [
-  { key: 'all',       label: 'All Orders', color: 'text-zinc-500 bg-zinc-100',           activeColor: 'bg-zinc-900 text-white' },
+  { key: 'all',       label: 'All Orders', color: 'text-zinc-600 bg-zinc-100',           activeColor: 'bg-zinc-900 text-white' },
   { key: 'active',    label: 'Active',     color: 'text-blue-600 bg-blue-50',             activeColor: 'bg-blue-600 text-white' },
   { key: 'delivered', label: 'Delivered',  color: 'text-emerald-600 bg-emerald-50',       activeColor: 'bg-emerald-600 text-white' },
-  { key: 'cancelled', label: 'Cancelled',  color: 'text-red-500 bg-red-50',               activeColor: 'bg-red-500 text-white' },
+  { key: 'cancelled', label: 'Cancelled',  color: 'text-red-600 bg-red-50',               activeColor: 'bg-red-500 text-white' },
 ];
 
 export default function OrdersPage() {
@@ -569,7 +569,7 @@ export default function OrdersPage() {
               <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-indigo-300/60 mb-0.5">Account</p>
               <h1 className="text-2xl font-black tracking-tight text-white">My Orders</h1>
               {isLoggedIn && myOrders.length > 0 && (
-                <p className="text-xs text-zinc-400 mt-0.5">{myOrders.length} order{myOrders.length > 1 ? 's' : ''} total</p>
+                <p className="text-xs text-zinc-500 mt-0.5">{myOrders.length} order{myOrders.length > 1 ? 's' : ''} total</p>
               )}
             </div>
           </div>
@@ -644,7 +644,7 @@ export default function OrdersPage() {
                   type="button"
                   onClick={() => setActiveTab(tab.key)}
                   className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all ${
-                    isActive ? tab.activeColor + ' shadow-sm' : 'text-zinc-500 bg-zinc-100 hover:bg-zinc-200'
+                    isActive ? tab.activeColor + ' shadow-sm' : 'text-zinc-600 bg-zinc-100 hover:bg-zinc-200'
                   }`}
                 >
                   {tab.label}
@@ -661,7 +661,7 @@ export default function OrdersPage() {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <div className="w-8 h-8 border-[3px] border-indigo-100 border-t-indigo-600 rounded-full animate-spin" />
-              <p className="text-xs text-zinc-400 font-medium">Loading your orders…</p>
+              <p className="text-xs text-zinc-500 font-medium">Loading your orders…</p>
             </div>
           ) : filteredOrders.length > 0 ? (
             <div className="space-y-4">
@@ -690,7 +690,7 @@ export default function OrdersPage() {
       )}
 
       <div className="mt-10 pt-6 border-t border-zinc-100 flex items-center justify-between">
-        <Link href="/account" className="text-xs text-zinc-400 hover:text-zinc-700 transition-colors flex items-center gap-1">
+        <Link href="/account" className="text-xs text-zinc-500 hover:text-zinc-700 transition-colors flex items-center gap-1">
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>

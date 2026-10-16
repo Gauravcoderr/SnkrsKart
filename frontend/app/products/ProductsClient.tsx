@@ -61,7 +61,7 @@ export default function ProductsClient() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page header */}
         <div className="mb-8">
-          <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-400 mb-1">
+          <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-500 mb-1">
             Sneakers
           </p>
           <div className="flex items-center gap-3">
@@ -164,7 +164,7 @@ export default function ProductsClient() {
                     )}
                   </button>
                 ) : (
-                  <p className="text-xs text-zinc-400">You&apos;ve seen them all</p>
+                  <p className="text-xs text-zinc-500">You&apos;ve seen them all</p>
                 )}
               </div>
             )}
@@ -184,7 +184,7 @@ export default function ProductsClient() {
                 <button
                   type="button"
                   onClick={() => setMobileFiltersOpen(false)}
-                  className="p-1 text-zinc-400 hover:text-zinc-900"
+                  className="p-1 text-zinc-500 hover:text-zinc-900"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

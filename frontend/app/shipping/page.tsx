@@ -40,7 +40,7 @@ export default async function ShippingInfo() {
   if (content?.htmlContent) {
     return (
       <main className="max-w-3xl mx-auto px-4 py-16">
-        <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Help</p>
+        <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-2">Help</p>
         <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-3">Shipping Info</h1>
         <div className="prose prose-zinc prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: content.htmlContent }} />
       </main>
@@ -49,7 +49,7 @@ export default async function ShippingInfo() {
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-16">
-      <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-400 mb-2">Help</p>
+      <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-zinc-500 mb-2">Help</p>
       <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-3">Shipping Info</h1>
       <p className="text-sm text-zinc-500 mb-10">We ship all orders across India with free delivery. Here&apos;s what to expect.</p>
 

@@ -21,7 +21,7 @@ export const BRANDS = [
     accent: '#e11d48',
     cardBg: '#111',
     cardImage:
-      'https://images.vegnonveg.com/resized/800X800/14383/jordan-air-jordan-1-mid-se-summit-whiteblue-chill-black-6915be658c878.jpg?format=webp',
+      'https://res.cloudinary.com/dadulg5bs/image/upload/f_auto,q_auto,w_800/v1792175826/site-images/brand-card-jordan.webp',
   },
   {
     slug: 'nike',
@@ -30,7 +30,7 @@ export const BRANDS = [
     accent: '#ea580c',
     cardBg: '#111',
     cardImage:
-      'https://images.vegnonveg.com/resized/800X800/14783/nike-dunk-low-retro-sailfir-6985d59229395.jpg?format=webp',
+      'https://res.cloudinary.com/dadulg5bs/image/upload/f_auto,q_auto,w_800/v1792175828/site-images/brand-card-nike.webp',
   },
   {
     slug: 'adidas',
@@ -39,7 +39,7 @@ export const BRANDS = [
     accent: '#2563eb',
     cardBg: '#111',
     cardImage:
-      'https://images.vegnonveg.com/resized/800X800/14808/adidas-originals-adizero-evo-sl-whitecore-black-6985cf7dc9358.jpg?format=webp',
+      'https://res.cloudinary.com/dadulg5bs/image/upload/f_auto,q_auto,w_800/v1792175831/site-images/brand-card-adidas.webp',
   },
   {
     slug: 'new-balance',
@@ -48,7 +48,7 @@ export const BRANDS = [
     accent: '#059669',
     cardBg: '#111',
     cardImage:
-      'https://images.vegnonveg.com/resized/800X800/13828/new-balance-9060-new-spruce-68a83ec87633b.jpg?format=webp',
+      'https://res.cloudinary.com/dadulg5bs/image/upload/f_auto,q_auto,w_800/v1792175833/site-images/brand-card-new-balance.webp',
   },
   {
     slug: 'crocs',
@@ -57,7 +57,7 @@ export const BRANDS = [
     accent: '#d97706',
     cardBg: '#111',
     cardImage:
-      'https://images.vegnonveg.com/resized/800X800/14886/crocs-crush-clog-lunar-dusk-69a57b7789d80.jpg?format=webp',
+      'https://res.cloudinary.com/dadulg5bs/image/upload/f_auto,q_auto,w_800/v1792175836/site-images/brand-card-crocs.webp',
   },
 ] as const;
 

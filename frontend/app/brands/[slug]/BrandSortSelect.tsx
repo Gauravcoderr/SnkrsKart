@@ -17,6 +17,7 @@ export default function BrandSortSelect() {
 
   return (
     <select
+      aria-label="Sort products"
       value={current}
       onChange={(e) => {
         const p = new URLSearchParams(params.toString());

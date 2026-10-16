@@ -11,6 +11,7 @@ import BrandSortSelect from './BrandSortSelect';
 import { fullProductName } from '@/lib/productTitle';
 import { brandSeo, isShoe } from '@/lib/brandSeo';
 import { isLive, lowestLivePrice } from '@/lib/productMatch';
+import { readableTextOn } from '@/lib/color';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -192,8 +193,8 @@ export default async function BrandPage(props: Props) {
             )}
             <div className="flex items-center gap-4 justify-center md:justify-start">
               <span
-                className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase text-white"
-                style={{ backgroundColor: accent }}
+                className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase"
+                style={{ backgroundColor: accent, color: readableTextOn(accent) }}
               >
                 {Array.isArray(products) ? products.length : 0}+ Styles
               </span>
@@ -217,7 +218,7 @@ export default async function BrandPage(props: Props) {
 
       {/* ── Breadcrumb ──────────────────────────────────────────────────────── */}
       <div className="border-b border-zinc-100 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2 text-xs text-zinc-400">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2 text-xs text-zinc-500">
           <Link href="/" className="hover:text-zinc-700 transition-colors">Home</Link>
           <span>/</span>
           <Link href="/products" className="hover:text-zinc-700 transition-colors">All Products</Link>
@@ -245,7 +246,7 @@ export default async function BrandPage(props: Props) {
           </div>
         ) : (
           <div className="py-24 text-center">
-            <p className="text-zinc-400 text-sm">No products found for {brand.name} yet.</p>
+            <p className="text-zinc-500 text-sm">No products found for {brand.name} yet.</p>
             <Link href="/products" className="mt-4 inline-block text-sm font-semibold text-zinc-900 underline underline-offset-4">
               Browse all sneakers
             </Link>

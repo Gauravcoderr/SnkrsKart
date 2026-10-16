@@ -30,6 +30,22 @@ function verifyAny(tokens: string[]): Decoded | null {
   return null;
 }
 
+export function hasAnyCredential(req: Request): boolean {
+  const authHeader = req.headers.authorization;
+  return Boolean(
+    authHeader?.startsWith('Bearer ') || req.cookies?.access_token || req.cookies?.refresh_token,
+  );
+}
+
+export function anonymousAsNull(req: Request, res: Response, next: NextFunction): void {
+  if (hasAnyCredential(req)) {
+    next();
+    return;
+  }
+  res.set('Cache-Control', 'private, no-cache');
+  res.json(null);
+}
+
 export function customerAuth(req: AuthRequest, res: Response, next: NextFunction): void {
   const tokens = candidateTokens(req);
   if (tokens.length === 0) {

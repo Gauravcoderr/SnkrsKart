@@ -57,9 +57,9 @@ export default function BlogsGrid({ initialBlogs, initialPage, totalPages, total
       {/* ── Section divider ────────────────────────────────── */}
       {blogs.length > 0 && (
         <div className="flex items-center gap-3 mb-8">
-          <p className="text-[11px] font-bold tracking-[0.25em] uppercase text-zinc-400">Latest Posts</p>
+          <p className="text-[11px] font-bold tracking-[0.25em] uppercase text-zinc-500">Latest Posts</p>
           <div className="flex-1 h-px bg-zinc-200" />
-          <span className="text-[11px] text-zinc-400">{total} article{total !== 1 ? 's' : ''}</span>
+          <span className="text-[11px] text-zinc-500">{total} article{total !== 1 ? 's' : ''}</span>
         </div>
       )}
 
@@ -80,7 +80,6 @@ export default function BlogsGrid({ initialBlogs, initialPage, totalPages, total
                       src={blog.coverImage}
                       alt={blog.title}
                       fill
-                      unoptimized
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                       sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
                     />
@@ -113,7 +112,7 @@ export default function BlogsGrid({ initialBlogs, initialPage, totalPages, total
                     </p>
                   )}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                    <div className="flex items-center gap-1.5 text-[11px] text-zinc-500">
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${a.dot}`} />
                       <span>{formatDate(blog.createdAt)}</span>
                       <span>&middot;</span>
@@ -137,14 +136,14 @@ export default function BlogsGrid({ initialBlogs, initialPage, totalPages, total
       <div ref={sentinelRef} className="h-1" />
       {loading && (
         <div className="flex justify-center py-10">
-          <div className="flex items-center gap-3 text-zinc-400 text-sm">
+          <div className="flex items-center gap-3 text-zinc-500 text-sm">
             <span className="w-4 h-4 border-2 border-zinc-300 border-t-zinc-600 rounded-full animate-spin" />
             Loading more articles…
           </div>
         </div>
       )}
       {!hasMore && blogs.length > 0 && (
-        <p className="text-center text-xs text-zinc-400 tracking-widest uppercase py-6">
+        <p className="text-center text-xs text-zinc-500 tracking-widest uppercase py-6">
           You&apos;ve seen all articles
         </p>
       )}

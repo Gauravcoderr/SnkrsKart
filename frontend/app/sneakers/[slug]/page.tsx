@@ -157,7 +157,7 @@ export default async function SneakerHubPage(props: Props) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Breadcrumb */}
-        <nav className="text-[10px] text-zinc-400 mb-6 flex items-center gap-1.5">
+        <nav className="text-[10px] text-zinc-500 mb-6 flex items-center gap-1.5">
           <Link href="/" className="hover:text-zinc-900 transition-colors">Home</Link>
           <span>/</span>
           <Link href="/sneakers" className="hover:text-zinc-900 transition-colors">Sneaker Guide</Link>
@@ -179,7 +179,7 @@ export default async function SneakerHubPage(props: Props) {
 
           {/* Right — content */}
           <div>
-            <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-1">{profile.brand}</p>
+            <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1">{profile.brand}</p>
             <h1 className="text-3xl font-black tracking-tight text-zinc-900 mb-2">{profile.name}</h1>
             {profile.tagline && <p className="text-sm text-zinc-500 italic mb-5">{profile.tagline}</p>}
 
@@ -194,7 +194,7 @@ export default async function SneakerHubPage(props: Props) {
                 ['India Retail', indiaRetail ? formatPrice(indiaRetail) : null],
               ].filter(([, v]) => v).map(([label, value]) => (
                 <div key={label as string} className="p-3 bg-zinc-50 border border-zinc-100">
-                  <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-400 mb-0.5">{label}</p>
+                  <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 mb-0.5">{label}</p>
                   <p className="text-sm font-semibold text-zinc-900">{value as string}</p>
                 </div>
               ))}
@@ -202,7 +202,7 @@ export default async function SneakerHubPage(props: Props) {
 
             {market && (
               <div className="mb-6 p-4 border border-zinc-200">
-                <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-400 mb-1">Current price in India</p>
+                <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 mb-1">Current price in India</p>
                 <p className="text-sm font-semibold text-zinc-900">{marketLabel}</p>
                 {marketHref && (
                   <Link href={marketHref} className="inline-block mt-2 text-xs font-bold underline underline-offset-2 text-zinc-900 hover:text-zinc-600">
@@ -214,7 +214,7 @@ export default async function SneakerHubPage(props: Props) {
 
             {sizeNotes && (
               <div className="mb-6">
-                <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-2">Sizing</p>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-2">Sizing</p>
                 <p className="text-sm text-zinc-600 leading-relaxed">{sizeNotes}</p>
               </div>
             )}
@@ -222,7 +222,7 @@ export default async function SneakerHubPage(props: Props) {
             {/* Description */}
             {profile.description && (
               <div className="mb-6">
-                <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-2">About</p>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-2">About</p>
                 <p className="text-sm text-zinc-600 leading-relaxed">{profile.description}</p>
               </div>
             )}
@@ -231,7 +231,7 @@ export default async function SneakerHubPage(props: Props) {
 
         {/* Available at SNKRS CART */}
         <div className="border-t border-zinc-100 pt-10 mb-16">
-          <h2 className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">
+          <h2 className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-500 mb-1">
             {matchingProducts.length > 0 ? 'Available at SNKRS CART' : 'Not In Stock Right Now'}
           </h2>
           <p className="text-xl font-bold tracking-tight text-zinc-900 mb-6">
@@ -253,7 +253,7 @@ export default async function SneakerHubPage(props: Props) {
 
         {faqs.length > 0 && (
           <div className="border-t border-zinc-100 pt-10 mb-16">
-            <h2 className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">FAQ</h2>
+            <h2 className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-500 mb-1">FAQ</h2>
             <p className="text-xl font-bold tracking-tight text-zinc-900 mb-6">{profile.name} Questions</p>
             <dl className="divide-y divide-zinc-100 border-y border-zinc-100 max-w-3xl">
               {faqs.map((f) => (
@@ -269,7 +269,7 @@ export default async function SneakerHubPage(props: Props) {
         {/* Related models */}
         {relatedProfiles.length > 0 && (
           <div className="border-t border-zinc-100 pt-10">
-            <h2 className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-400 mb-1">Related Models</h2>
+            <h2 className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-500 mb-1">Related Models</h2>
             <p className="text-xl font-bold tracking-tight text-zinc-900 mb-6">You Might Also Like</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {relatedProfiles.map((p) => (
@@ -279,7 +279,7 @@ export default async function SneakerHubPage(props: Props) {
                   </div>
                   <div className="p-3">
                     <p className="text-xs font-bold text-zinc-900">{p.name}</p>
-                    <p className="text-[10px] text-zinc-400">{p.brand}</p>
+                    <p className="text-[10px] text-zinc-500">{p.brand}</p>
                   </div>
                 </Link>
               ))}

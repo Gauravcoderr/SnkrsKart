@@ -19,6 +19,12 @@ export default function GoogleReviewsBadge() {
       onLoad={() => {
         (window as unknown as { merchantwidget?: { start: (o: Record<string, unknown>) => void } })
           .merchantwidget?.start({ merchant_id: Number(MERCHANT_ID), position: 'BOTTOM_LEFT', region: 'IN' });
+        let tries = 0;
+        const timer = window.setInterval(() => {
+          const frame = document.getElementById('merchantwidgetiframe');
+          if (frame) frame.setAttribute('title', 'Google Customer Reviews');
+          if (frame || ++tries > 40) window.clearInterval(timer);
+        }, 250);
       }}
     />
   );

@@ -105,7 +105,7 @@ export default function SizeSelector({
           </span>
         )}
         {meta && available && showLegend && (
-          <span className={`flex items-center gap-1 text-[8px] font-semibold uppercase tracking-wider leading-none mt-0.5 ${selected ? 'text-white/60' : 'text-zinc-400'}`}>
+          <span className={`flex items-center gap-1 text-[8px] font-semibold uppercase tracking-wider leading-none mt-0.5 ${selected ? 'text-white/60' : 'text-zinc-500'}`}>
             <span className={`w-1 h-1 rounded-full ${selected ? 'bg-white/70' : meta.dotClass}`} />
             {meta.short}
           </span>
@@ -125,7 +125,7 @@ export default function SizeSelector({
         <p className="text-xs font-bold tracking-widest uppercase text-zinc-900">
           {isStringMode ? 'Select Size' : 'Select Size (UK)'}
           {selectedSize !== null && selectedSize !== undefined && (
-            <span className="ml-2 text-zinc-400 normal-case font-normal tracking-normal">
+            <span className="ml-2 text-zinc-500 normal-case font-normal tracking-normal">
               — {isStringMode ? selectedSize : `UK ${selectedSize}`}
             </span>
           )}
@@ -160,7 +160,7 @@ export default function SizeSelector({
       )}
 
       {showError && (
-        <p className="text-xs text-red-500 mt-2 font-medium">Please select a size to continue</p>
+        <p className="text-xs text-red-600 mt-2 font-medium">Please select a size to continue</p>
       )}
     </div>
   );

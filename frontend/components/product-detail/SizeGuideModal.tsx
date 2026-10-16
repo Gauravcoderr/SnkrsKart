@@ -81,14 +81,14 @@ export default function SizeGuideModal({ open, onClose, gender }: SizeGuideModal
           <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 shrink-0">
             <div>
               <Dialog.Title asChild>
-                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-400">Size Guide</p>
+                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-zinc-500">Size Guide</p>
               </Dialog.Title>
               <Dialog.Description asChild>
                 <p className="text-sm font-bold text-zinc-900 mt-0.5">{label} Sneaker Sizes</p>
               </Dialog.Description>
             </div>
             <Dialog.Close asChild>
-              <button type="button" aria-label="Close" className="p-1 text-zinc-400 hover:text-zinc-900 transition-colors">
+              <button type="button" aria-label="Close" className="p-1 text-zinc-500 hover:text-zinc-900 transition-colors">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>

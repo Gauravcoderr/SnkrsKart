@@ -143,7 +143,7 @@ export default function FilterSidebar({ filters, onFilterChange }: FilterSidebar
           {showShoesSizes && (
             <div>
               {(showClothingSizes || showAccessorySizes) && (
-                <p className="text-[10px] text-zinc-400 uppercase tracking-widest mb-1.5">Shoes (UK)</p>
+                <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1.5">Shoes (UK)</p>
               )}
               <div className="grid grid-cols-4 gap-1.5">
                 {SHOE_SIZES.map((size) => (
@@ -167,7 +167,7 @@ export default function FilterSidebar({ filters, onFilterChange }: FilterSidebar
           {showClothingSizes && (
             <div>
               {(showShoesSizes || showAccessorySizes) && (
-                <p className="text-[10px] text-zinc-400 uppercase tracking-widest mb-1.5">Clothing</p>
+                <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1.5">Clothing</p>
               )}
               <div className="flex flex-wrap gap-1.5">
                 {CLOTHING_SIZES.map((size) => (
@@ -191,7 +191,7 @@ export default function FilterSidebar({ filters, onFilterChange }: FilterSidebar
           {showAccessorySizes && (
             <div>
               {(showShoesSizes || showClothingSizes) && (
-                <p className="text-[10px] text-zinc-400 uppercase tracking-widest mb-1.5">Accessories</p>
+                <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1.5">Accessories</p>
               )}
               <div className="flex flex-wrap gap-1.5">
                 {ACCESSORY_SIZES.map((size) => (
@@ -219,7 +219,7 @@ export default function FilterSidebar({ filters, onFilterChange }: FilterSidebar
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <div className="flex-1">
-              <label className="text-[10px] text-zinc-400 uppercase tracking-wider">Min (₹)</label>
+              <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Min (₹)</label>
               <Input
                 type="number"
                 value={filters.minPrice || ''}
@@ -229,9 +229,9 @@ export default function FilterSidebar({ filters, onFilterChange }: FilterSidebar
                 className="mt-0.5"
               />
             </div>
-            <span className="text-zinc-400 mt-4">–</span>
+            <span className="text-zinc-500 mt-4">–</span>
             <div className="flex-1">
-              <label className="text-[10px] text-zinc-400 uppercase tracking-wider">Max (₹)</label>
+              <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Max (₹)</label>
               <Input
                 type="number"
                 value={filters.maxPrice || ''}
@@ -242,7 +242,7 @@ export default function FilterSidebar({ filters, onFilterChange }: FilterSidebar
               />
             </div>
           </div>
-          <p className="text-xs text-zinc-400">₹4,995 – ₹28,995</p>
+          <p className="text-xs text-zinc-500">₹4,995 – ₹28,995</p>
         </div>
       </FilterSection>
     </aside>

@@ -221,7 +221,7 @@ export default function AuthModal() {
       <div className="absolute bottom-0 left-0 right-0 sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-md sm:w-full">
         <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden">
           <div className="flex justify-end p-4 pb-0">
-            <button type="button" onClick={closeAuthModal} aria-label="Close" className="p-1.5 text-zinc-400 hover:text-zinc-900 transition">
+            <button type="button" onClick={closeAuthModal} aria-label="Close" className="p-1.5 text-zinc-500 hover:text-zinc-900 transition">
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12" /></svg>
             </button>
           </div>
@@ -234,7 +234,7 @@ export default function AuthModal() {
                   <h2 className="text-2xl font-black tracking-tight text-zinc-900">Welcome</h2>
                   <p className="text-sm text-zinc-500 mt-1">Sign in or create an account</p>
                 </div>
-                {error && <p className="text-sm text-red-500 text-center mb-4">{error}</p>}
+                {error && <p className="text-sm text-red-600 text-center mb-4">{error}</p>}
 
                 {loginMode === 'email' && (
                   <>
@@ -251,7 +251,7 @@ export default function AuthModal() {
                     </div>
                     <div className="flex items-center gap-3 mb-4">
                       <div className="flex-1 h-px bg-zinc-200" />
-                      <span className="text-xs text-zinc-400 uppercase tracking-widest">or</span>
+                      <span className="text-xs text-zinc-500 uppercase tracking-widest">or</span>
                       <div className="flex-1 h-px bg-zinc-200" />
                     </div>
                   </>
@@ -297,12 +297,12 @@ export default function AuthModal() {
                 </p>
 
                 {loginMode === 'email' && (
-                  <p className="text-[11px] text-zinc-400 text-center mt-2 leading-relaxed">
+                  <p className="text-[11px] text-zinc-500 text-center mt-2 leading-relaxed">
                     We&apos;ll send a 6-digit code to your email. No passwords needed.
                   </p>
                 )}
                 {loginMode === 'phone' && (
-                  <p className="text-[11px] text-zinc-400 text-center mt-2 leading-relaxed">
+                  <p className="text-[11px] text-zinc-500 text-center mt-2 leading-relaxed">
                     We&apos;ll send a 6-digit code via WhatsApp or email. No passwords needed.
                   </p>
                 )}
@@ -323,15 +323,15 @@ export default function AuthModal() {
                     </span>
                   </p>
                 </div>
-                {error && <p className="text-sm text-red-500 text-center mb-4">{error}</p>}
+                {error && <p className="text-sm text-red-600 text-center mb-4">{error}</p>}
                 <OtpInput value={otp} onChange={setOtp} onComplete={handleVerifyOtp} />
-                {isLoading && <p className="text-sm text-zinc-400 text-center mt-4">Verifying...</p>}
+                {isLoading && <p className="text-sm text-zinc-500 text-center mt-4">Verifying...</p>}
                 <div className="flex items-center justify-between mt-6">
                   <button type="button" onClick={() => { setStep('email'); setError(''); }} className="text-xs text-zinc-500 hover:text-zinc-900 transition">
                     {loginMode === 'phone' ? 'Change number' : 'Change email'}
                   </button>
                   {countdown > 0 ? (
-                    <span className="text-xs text-zinc-400">Resend in {countdown}s</span>
+                    <span className="text-xs text-zinc-500">Resend in {countdown}s</span>
                   ) : (
                     <button type="button" onClick={() => handleSendOtp()} className="text-xs font-semibold text-zinc-900 hover:text-zinc-600 transition">Resend code</button>
                   )}
@@ -363,7 +363,7 @@ export default function AuthModal() {
                   `}</style>
                 </div>
                 <p className="text-lg font-black text-zinc-900 tracking-tight">Verified!</p>
-                <p className="text-sm text-zinc-400 mt-1">You&apos;re all set</p>
+                <p className="text-sm text-zinc-500 mt-1">You&apos;re all set</p>
               </div>
             )}
 
@@ -374,7 +374,7 @@ export default function AuthModal() {
                   <h2 className="text-2xl font-black tracking-tight text-zinc-900">Almost there</h2>
                   <p className="text-sm text-zinc-500 mt-1">Tell us a bit about yourself</p>
                 </div>
-                {error && <p className="text-sm text-red-500 text-center mb-4">{error}</p>}
+                {error && <p className="text-sm text-red-600 text-center mb-4">{error}</p>}
                 <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-1.5">Your name</label>
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" autoFocus required
                   className="w-full border-2 border-zinc-200 rounded-xl px-4 py-3 text-base outline-none focus:border-zinc-900 transition mb-3" />

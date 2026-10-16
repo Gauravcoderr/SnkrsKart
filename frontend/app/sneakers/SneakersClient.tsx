@@ -152,7 +152,7 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
     <div>
       {/* Search */}
       <div className="relative mb-4 max-w-md">
-        <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input
@@ -163,7 +163,7 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
           className="w-full pl-10 pr-10 py-2.5 text-sm border border-zinc-200 focus:border-zinc-400 focus:outline-none bg-white placeholder:text-zinc-400"
         />
         {search && (
-          <button type="button" aria-label="Clear search" onClick={() => setSearch('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700">
+          <button type="button" aria-label="Clear search" onClick={() => setSearch('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -181,16 +181,16 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
             className={`px-4 py-1.5 text-[11px] font-bold tracking-widest uppercase transition-all duration-150 rounded-sm ${
               activeBrand === b
                 ? 'bg-zinc-900 text-white'
-                : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
+                : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
             }`}
           >
             {b}
             {b !== ALL && (
-              <span className="ml-1.5 text-[9px] opacity-60">{brandCounts[b] ?? 0}</span>
+              <span className="ml-1.5 text-[9px]">{brandCounts[b] ?? 0}</span>
             )}
           </button>
         ))}
-        <label className="ml-auto inline-flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-zinc-400">
+        <label className="ml-auto inline-flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-zinc-500">
           Sort
           <select
             value={sort}
@@ -230,7 +230,7 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
 
       {Object.keys(byBrand).length === 0 ? (
         <div className="py-20 text-center border border-dashed border-zinc-200">
-          <p className="text-sm text-zinc-400">No sneakers match{debouncedSearch ? ` “${debouncedSearch}”` : ' these filters'}.</p>
+          <p className="text-sm text-zinc-500">No sneakers match{debouncedSearch ? ` “${debouncedSearch}”` : ' these filters'}.</p>
           <button type="button" onClick={() => { setSearch(''); setActiveBrand(ALL); setActiveCategory(ALL); setSort('name'); }} className="mt-3 text-xs text-zinc-500 underline">Clear filters</button>
         </div>
       ) : (
@@ -251,7 +251,7 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
               {!isFiltering && (
                 <Link
                   href={brandHref(brand)}
-                  className="text-[10px] font-bold tracking-widest uppercase text-zinc-400 hover:text-zinc-900 transition-colors"
+                  className="text-[10px] font-bold tracking-widest uppercase text-zinc-500 hover:text-zinc-900 transition-colors"
                 >
                   Shop {brand} →
                 </Link>
@@ -289,13 +289,13 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
                   </div>
                   <div className="p-3 pb-3.5">
                     {(isFiltering || activeBrand === ALL) && (
-                      <p className="text-[8px] font-black tracking-[0.25em] uppercase text-zinc-400 mb-0.5">{p.brand}</p>
+                      <p className="text-[8px] font-black tracking-[0.25em] uppercase text-zinc-500 mb-0.5">{p.brand}</p>
                     )}
                     <p className="text-xs font-black text-zinc-900 leading-snug group-hover:text-zinc-600 transition-colors mb-0.5">
                       {p.name}
                     </p>
                     {p.tagline && (
-                      <p className="text-[10px] text-zinc-400 truncate mb-2">{p.tagline}</p>
+                      <p className="text-[10px] text-zinc-500 truncate mb-2">{p.tagline}</p>
                     )}
                     <div className="flex items-center justify-between gap-2">
                       <CategoryPill category={p.category} />
@@ -314,7 +314,7 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 border-t border-zinc-100 mt-8">
-          <span className="text-xs text-zinc-400">
+          <span className="text-xs text-zinc-500">
             {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)} of {filtered.length} models
           </span>
           <div className="flex items-center gap-1">
@@ -322,7 +322,7 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
               type="button"
               onClick={() => { setPage((p) => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               disabled={page === 1}
-              className="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded transition disabled:opacity-30 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 text-sm text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded transition disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Prev
             </button>
@@ -342,7 +342,7 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
                     type="button"
                     onClick={() => { setPage(p as number); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                     className={`min-w-[32px] h-8 text-sm rounded transition ${
-                      p === page ? 'bg-zinc-900 text-white font-semibold' : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100'
+                      p === page ? 'bg-zinc-900 text-white font-semibold' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
                     }`}
                   >
                     {p}
@@ -353,7 +353,7 @@ export default function SneakersClient({ profiles, initial = {} }: Props) {
               type="button"
               onClick={() => { setPage((p) => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               disabled={page === totalPages}
-              className="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded transition disabled:opacity-30 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 text-sm text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded transition disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Next
             </button>

@@ -4,7 +4,7 @@
 - **Frontend**: Next.js 15.5 (App Router, React 19), TypeScript, Tailwind CSS → Vercel at `https://snkrs-kart.vercel.app`
 - **Backend**: Express + TypeScript + MongoDB (Mongoose) → Render at `https://snkrskart.onrender.com`
 - **AI Chatbot**: Gemini 2.0 Flash (primary) → Groq llama-3.3-70b (fallback)
-- **Auth**: OTP via email/phone or Google, JWT access (15m) + refresh (30d) in httpOnly cookies. Refresh tokens are per-device: `User.refreshTokens[]` (sha256 hashes, max 10, legacy `refreshToken` still honoured on first refresh). Frontend session restore is cookie-first (`lib/session.ts` single shared refresh lock, `fetchWithAuth` retries once). Only a 401 from `/auth/refresh` logs out; network/5xx keep the session and retry.
+- **Auth**: OTP via email/phone or Google, JWT access (15m) + refresh (30d) in httpOnly cookies. Refresh tokens are per-device: `User.refreshTokens[]` (sha256 hashes, max 10, legacy `refreshToken` still honoured on first refresh). Frontend session restore is cookie-first (`lib/session.ts` single shared refresh lock, `fetchWithAuth` retries once). Only a 401 from `/auth/refresh` logs out; network/5xx keep the session and retry. `GET /auth/me` with no Bearer, no `access_token` and no `refresh_token` cookie answers 200 `null` (`anonymousAsNull`), so anonymous visitors log no 401s; any credential still goes through `customerAuth` and 401s so the client refreshes.
 - **Admin auth**: username/password → JWT in `localStorage` as `admin_token`
 - **Images**: Cloudinary (`NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dadulg5bs`)
 - **No PostgreSQL** — everything is MongoDB. Supabase keys exist in .env but are unused for main data.
@@ -215,6 +215,7 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Cart links: `/cart/add?items=<slug>:<size>[:<qty>],...` (max 10, qty max 5, `lib/cartLink.ts`). Server page validates each pair, the client adds them with the same price + `listingId`/`availability` meta as Add to Bag, then goes to `/cart`; problems are listed with links. `CartContext` has a `hydrated` flag: adds wait for it and localStorage is only written after hydration (before, StrictMode wiped the bag on reload in dev).
 - MCP server: `frontend/app/mcp/route.ts` at `/mcp` (mcp-handler 2.2.0 + @modelcontextprotocol/server 2.1.0, pinned; 1.x pinned an SDK with GHSA-6qxp-vccf-f47h). Stateless Streamable HTTP, no auth, all tools `readOnlyHint`: `search_products`, `get_product`, `build_cart_link`, `get_upcoming_drops` (same-shoe matcher as the drop page), `get_store_policies`. Browser `Origin` must be on `ALLOWED_ORIGIN_HOSTS` (403 otherwise); no Origin passes. No orders, no customer data.
 - `lib/storeFacts.ts` holds what agents are told (shipping mirrors `SHIPPING_COST` in `backend/src/routes/orders.ts`: free on every order, payment mirrors `app/faqs/faqs-data.ts`: online only, no COD). `/agents.md` is generated from it. `llms.txt`/`llms-full.txt` list the MCP endpoint, agents.md and the cart link format; sizes are UK.
+- `llms.txt` follows llmstxt.org: one H1 (`# SNKRS CART`), a `>` summary, then `##` sections of `- [text](url): note` links (products and blogs included). Lighthouse 13's `llms-txt` audit fails a file without any `[text](url)` link even when it has an H1.
 - `chatgpt-action-schema.yaml` (root and `frontend/public/`, keep identical) points at `api.snkrscart.com`, caps `limit` at 48 and lists size/price/sort filters. `/.well-known/ai-plugin.json` is the dead 2024 plugin format; kept only as a pointer to MCP.
 
 ## Data exposure fixes + Next 15 (2026-10-10)
@@ -275,6 +276,15 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Order is always: coming soon → in stock → sold out, then the user sort (`newest` = createdAt desc, `price_asc/desc`, `popular` = reviewCount desc), then `_id`. "In stock" means the product has at least one purchasable size after `attachSellerOffers()` (store sizes or active seller listings), so a product with `soldOut: false` but no available sizes still ranks with sold-out items.
 - Implemented in `backend/src/lib/productSort.ts` (`compareForGrid`) and applied in memory in `getAllProducts` while the filtered catalogue is ≤ 1000 products; above that it falls back to the Mongo `comingSoon:-1, soldOut:1` sort. `ProductCard` mirrors the rule and shows "Sold Out" whenever a non-coming-soon product has zero quick sizes.
 - Legacy docs missing `comingSoon` were backfilled to `false` on 2026-10-06 (a missing field sorted them after the sold-out block).
+
+## PageSpeed / Lighthouse (2026-10-16)
+- Next 15.5 `priority` preloads an image but adds no `fetchpriority`; LCP images pass both `priority` and `fetchPriority="high"` (hero first slide, product gallery main image, first 4 grid cards, blog hero, drops next-drop backdrop).
+- Grey text: `text-zinc-500` on white/zinc-50, `text-zinc-600` on zinc-100 or tinted panels, `text-zinc-400` only on dark sections (footer, newsletter bar, drop banner, about page, dark modals and cards). `zinc-400` on white is 2.5:1 and fails.
+- Badges with white text: emerald-700, red-600, orange-700, indigo-600, zinc-600. WhatsApp buttons use `#075E54` (white text 7.7:1), not `#25D366`.
+- `StarRating` display mode is one `role="img"` with an aria-label, no buttons. Carousel dots are 24px tap targets around the thin visual bar. Decorative ghost numbers render via `after:content-[attr(data-ghost)]` so contrast checks skip them.
+- Translate `element.js` is `defer`; the header logo is `public/logo-104.png` (5 KB); blog inline Cloudinary images get `f_auto,q_auto,w_1000` at render. Blog cover images no longer pass `unoptimized`, so the Cloudinary loader resizes them (the loader returns non-Cloudinary URLs unchanged anyway).
+- Known, not fixable here: Google Customer Reviews badge sets a third-party `NID` cookie.
+- Every product image and brand tile lives on Cloudinary (the custom loader only resizes Cloudinary URLs). `cd backend && npx ts-node --transpile-only src/scripts/moveProductImagesToCloudinary.ts --dry` lists products with images elsewhere; without `--dry` it backs up to `content-ml/data/backups/`, uploads to `product-images/{slug}-{img-N|hover}-{hash}` and rewrites `images`/`hoverImage`. Ran 2026-10-17: 21 products, 62 images (Supabase, Nike, Adidas, VegNonVeg). Brand tiles are `site-images/brand-card-{slug}` in `frontend/lib/constants.ts`.
 
 ## Important decisions / gotchas
 - Render free tier sleeps after 15 min inactivity → UptimeRobot pings `/health` every 5 min

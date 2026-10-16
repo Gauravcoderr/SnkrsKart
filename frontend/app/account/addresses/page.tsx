@@ -172,7 +172,7 @@ export default function AddressesPage() {
                 <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-emerald-300/60 mb-0.5">Account</p>
                 <h1 className="text-2xl font-black tracking-tight text-white">Saved Addresses</h1>
                 {addresses.length > 0 && (
-                  <p className="text-xs text-zinc-400 mt-0.5">{addresses.length} address{addresses.length > 1 ? 'es' : ''} saved</p>
+                  <p className="text-xs text-zinc-500 mt-0.5">{addresses.length} address{addresses.length > 1 ? 'es' : ''} saved</p>
                 )}
               </div>
             </div>
@@ -208,7 +208,7 @@ export default function AddressesPage() {
 
             <div className="space-y-3">
               <div>
-                <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-1.5">Address Line</label>
+                <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1.5">Address Line</label>
                 <input
                   type="text"
                   value={form.addressLine}
@@ -219,7 +219,7 @@ export default function AddressesPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-1.5">City</label>
+                  <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1.5">City</label>
                   <input
                     type="text"
                     value={form.city}
@@ -229,7 +229,7 @@ export default function AddressesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-1.5">State</label>
+                  <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1.5">State</label>
                   <input
                     type="text"
                     value={form.state}
@@ -240,7 +240,7 @@ export default function AddressesPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-400 mb-1.5">Pincode</label>
+                <label className="block text-[10px] font-bold tracking-widest uppercase text-zinc-500 mb-1.5">Pincode</label>
                 <input
                   type="text"
                   value={form.pincode}
@@ -274,7 +274,7 @@ export default function AddressesPage() {
               <button
                 type="button"
                 onClick={() => { setMode('list'); setFormError(''); }}
-                className="flex-1 py-2.5 border border-zinc-700 text-sm font-bold text-zinc-400 hover:text-white hover:border-zinc-500 rounded-xl transition"
+                className="flex-1 py-2.5 border border-zinc-700 text-sm font-bold text-zinc-500 hover:text-white hover:border-zinc-500 rounded-xl transition"
               >
                 Cancel
               </button>
@@ -302,7 +302,7 @@ export default function AddressesPage() {
                   </svg>
                 </div>
                 <p className="text-sm font-bold text-zinc-600 mb-1">No saved addresses</p>
-                <p className="text-xs text-zinc-400 mb-5">Add an address to speed up checkout</p>
+                <p className="text-xs text-zinc-500 mb-5">Add an address to speed up checkout</p>
                 <button
                   type="button"
                   onClick={startAdd}
@@ -328,7 +328,7 @@ export default function AddressesPage() {
                       <div className="flex items-start gap-4">
                         {/* Pin icon */}
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${addr.isDefault ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-zinc-100'}`}>
-                          <svg className={`w-5 h-5 ${addr.isDefault ? 'text-white' : 'text-zinc-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <svg className={`w-5 h-5 ${addr.isDefault ? 'text-white' : 'text-zinc-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                           </svg>
@@ -388,7 +388,7 @@ export default function AddressesPage() {
                             <button
                               type="button"
                               onClick={() => setDeleteConfirmId(null)}
-                              className="text-xs font-bold text-zinc-500 bg-zinc-100 hover:bg-zinc-200 px-3 py-1.5 rounded-lg transition-colors"
+                              className="text-xs font-bold text-zinc-600 bg-zinc-100 hover:bg-zinc-200 px-3 py-1.5 rounded-lg transition-colors"
                             >
                               No
                             </button>
@@ -397,7 +397,7 @@ export default function AddressesPage() {
                           <button
                             type="button"
                             onClick={() => setDeleteConfirmId(addr._id)}
-                            className="ml-auto flex items-center gap-1 text-xs font-bold text-zinc-400 hover:text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+                            className="ml-auto flex items-center gap-1 text-xs font-bold text-zinc-500 hover:text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
                           >
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
@@ -415,7 +415,7 @@ export default function AddressesPage() {
         )}
 
         <div className="mt-8 pt-6 border-t border-zinc-100">
-          <Link href="/account" className="text-xs text-zinc-400 hover:text-zinc-700 transition-colors flex items-center gap-1">
+          <Link href="/account" className="text-xs text-zinc-500 hover:text-zinc-700 transition-colors flex items-center gap-1">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { BannerSlide } from '@/types';
+import { readableTextOn } from '@/lib/color';
 
 const FLAT_BG = '#09090b';
 
@@ -70,11 +71,10 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
           {/* Faint large slide number */}
           <span
             aria-hidden="true"
-            className="absolute bottom-2 right-4 font-black text-white select-none pointer-events-none leading-none"
+            data-ghost={slideNum}
+            className="absolute bottom-2 right-4 font-black text-white select-none pointer-events-none leading-none after:content-[attr(data-ghost)]"
             style={{ fontSize: 'clamp(100px, 16vw, 180px)', opacity: 0.04, letterSpacing: '-0.04em' }}
-          >
-            {slideNum}
-          </span>
+          />
 
           <div key={textKey} className="animate-hero-text-in flex flex-col gap-6">
             {/* Brand tag */}
@@ -116,13 +116,13 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
                   {line}
                 </span>
               ))}
-              <p className="text-xs text-white/40 tracking-[0.25em] uppercase mt-2">{s.sub}</p>
+              <p className="text-xs text-white/60 tracking-[0.25em] uppercase mt-2">{s.sub}</p>
             </div>
 
             {/* Price */}
             {s.price && (
               <div className="flex items-baseline gap-2">
-                <span className="text-[10px] font-bold tracking-widest uppercase text-white/40">From</span>
+                <span className="text-[10px] font-bold tracking-widest uppercase text-white/60">From</span>
                 <span className="text-2xl font-black text-white tracking-tight">₹{s.price.toLocaleString('en-IN')}</span>
               </div>
             )}
@@ -134,7 +134,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
                 className="inline-flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3.5 text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase rounded-full transition-opacity hover:opacity-80 shadow-lg"
                 style={{
                   background: s.accent,
-                  color: ['#ffffff', '#FFD700'].includes(s.accent) ? '#000' : '#fff',
+                  color: readableTextOn(s.accent),
                 }}
               >
                 {s.cta}
@@ -154,29 +154,34 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
 
           {/* Dots + counter */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center -mx-[5px]">
               {slides.map((_, i) => (
                 <button
                   key={i}
                   type="button"
                   onClick={() => goTo(i)}
                   aria-label={`Slide ${i + 1}`}
-                  className="h-[3px] rounded-full overflow-hidden transition-all duration-500"
-                  style={{
-                    width: i === active ? 36 : 14,
-                    background: 'rgba(255,255,255,0.2)',
-                  }}
+                  aria-current={i === active ? 'true' : undefined}
+                  className="py-[11px] px-[5px]"
                 >
-                  {i === active && (
-                    <div
-                      key={progressKey}
-                      className="h-full rounded-full"
-                      style={{
-                        background: s.accent,
-                        animation: `banner-progress ${duration}ms linear forwards`,
-                      }}
-                    />
-                  )}
+                  <span
+                    className="block h-[3px] rounded-full overflow-hidden transition-all duration-500"
+                    style={{
+                      width: i === active ? 36 : 14,
+                      background: 'rgba(255,255,255,0.2)',
+                    }}
+                  >
+                    {i === active && (
+                      <span
+                        key={progressKey}
+                        className="block h-full rounded-full"
+                        style={{
+                          background: s.accent,
+                          animation: `banner-progress ${duration}ms linear forwards`,
+                        }}
+                      />
+                    )}
+                  </span>
                 </button>
               ))}
             </div>
@@ -211,6 +216,7 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
                   alt={slide.brand}
                   fill
                   priority={i === 0 && j === 0}
+                  fetchPriority={i === 0 && j === 0 ? 'high' : undefined}
                   className="object-cover object-center"
                   sizes="(max-width: 768px) 100vw, 48vw"
                 />
@@ -220,19 +226,24 @@ export default function HeroBanner({ slides }: { slides: BannerSlide[] }) {
 
           {/* Sub-image dots, only when this slide carries several images */}
           {activeImgs.length > 1 && (
-            <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5">
+            <div className="absolute bottom-2 right-2 z-20 flex items-center">
               {activeImgs.map((_, j) => (
                 <button
                   key={j}
                   type="button"
                   aria-label={`Image ${j + 1}`}
+                  aria-current={j === imgIdx ? 'true' : undefined}
                   onClick={() => setImgIdx(j)}
-                  className="h-1.5 rounded-full transition-all duration-300"
-                  style={{
-                    width: j === imgIdx ? 18 : 6,
-                    background: j === imgIdx ? s.accent : 'rgba(255,255,255,0.35)',
-                  }}
-                />
+                  className="p-[9px]"
+                >
+                  <span
+                    className="block h-1.5 rounded-full transition-all duration-300"
+                    style={{
+                      width: j === imgIdx ? 18 : 6,
+                      background: j === imgIdx ? s.accent : 'rgba(255,255,255,0.35)',
+                    }}
+                  />
+                </button>
               ))}
             </div>
           )}

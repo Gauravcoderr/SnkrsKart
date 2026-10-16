@@ -85,7 +85,7 @@ export default function EmailCaptureModal() {
         <button
           onClick={dismiss}
           aria-label="Close"
-          className="absolute top-4 right-4 text-zinc-600 hover:text-white transition-colors z-10"
+          className="absolute top-4 right-4 text-zinc-400 hover:text-white transition-colors z-10"
         >
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
             <path d="M14 4L4 14M4 4l10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

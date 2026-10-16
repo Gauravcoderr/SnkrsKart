@@ -89,12 +89,12 @@ export default function RestockNotify({ productSlug, selectedSize }: RestockNoti
         </button>
       </div>
       {state === 'error' && (
-        <p className="text-xs text-red-500 font-medium">{errorMsg}</p>
+        <p className="text-xs text-red-600 font-medium">{errorMsg}</p>
       )}
       <button
         type="button"
         onClick={() => { setState('idle'); setErrorMsg(''); }}
-        className="text-xs text-zinc-400 hover:text-zinc-600 transition-colors"
+        className="text-xs text-zinc-500 hover:text-zinc-600 transition-colors"
       >
         Cancel
       </button>

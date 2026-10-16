@@ -48,7 +48,7 @@ export default function CartSummary({ items, subtotal }: CartSummaryProps) {
             {formatPrice(subtotal + SHIPPING_FEE_INR)}
           </span>
         </div>
-        <p className="text-xs text-zinc-400 mt-1">Including all taxes</p>
+        <p className="text-xs text-zinc-500 mt-1">Including all taxes</p>
       </div>
 
       <Link
@@ -58,7 +58,7 @@ export default function CartSummary({ items, subtotal }: CartSummaryProps) {
         Proceed to Checkout →
       </Link>
 
-      <p className="text-center text-xs text-zinc-400">
+      <p className="text-center text-xs text-zinc-500">
         Secure online payment · Dispatch within 3 business days, delivery in 3–7
       </p>
     </div>

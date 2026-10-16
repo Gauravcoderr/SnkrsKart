@@ -26,7 +26,7 @@ export default function ComingSoon({ products }: ComingSoonProps) {
             <h2 className="text-2xl font-bold tracking-[0.15em] uppercase text-zinc-900">
               Dropping Soon
             </h2>
-            <p className="text-sm text-zinc-400 mt-1">
+            <p className="text-sm text-zinc-500 mt-1">
               Wishlist now. Be first when they drop.
             </p>
           </div>

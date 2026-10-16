@@ -41,7 +41,7 @@ export default function Footer() {
 
           {/* Shop */}
           <div>
-            <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-400 mb-4">Shop</h3>
+            <h2 className="text-xs font-bold tracking-widest uppercase text-zinc-400 mb-4">Shop</h2>
             <ul className="space-y-2">
               {FOOTER_SHOP_LINKS.map((item) => (
                 <li key={item.label}>
@@ -55,7 +55,7 @@ export default function Footer() {
 
           {/* Brands */}
           <div>
-            <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-400 mb-4">Brands</h3>
+            <h2 className="text-xs font-bold tracking-widest uppercase text-zinc-400 mb-4">Brands</h2>
             <ul className="space-y-2">
               {BRANDS.map((brand) => (
                 <li key={brand.slug}>
@@ -72,7 +72,7 @@ export default function Footer() {
 
           {/* Help */}
           <div>
-            <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-400 mb-4">Help</h3>
+            <h2 className="text-xs font-bold tracking-widest uppercase text-zinc-400 mb-4">Help</h2>
             <ul className="space-y-2">
               {FOOTER_HELP_LINKS.map((item) => (
                 <li key={item.label}>
@@ -86,7 +86,7 @@ export default function Footer() {
 
           {/* About */}
           <div>
-            <h3 className="text-xs font-bold tracking-widest uppercase text-zinc-400 mb-4">About</h3>
+            <h2 className="text-xs font-bold tracking-widest uppercase text-zinc-400 mb-4">About</h2>
             <ul className="space-y-2">
               {FOOTER_ABOUT_LINKS.map((item) => (
                 <li key={item.label}>
@@ -121,20 +121,20 @@ export default function Footer() {
       <div className="border-t border-zinc-800 py-6 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
           <div className="flex flex-col gap-1 text-center md:text-left">
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-zinc-400">
               © {new Date().getFullYear()} SNKRS CART. All rights reserved.
             </p>
-            <p className="text-[10px] text-zinc-600">
+            <p className="text-[10px] text-zinc-400">
               Independent reseller · Not brand-affiliated ·{' '}
               <Link href="/about" className="underline hover:text-zinc-400">Full disclaimer</Link>
             </p>
           </div>
           <div className="flex items-center gap-4 flex-wrap justify-center">
-            <Link href="/privacy" className="text-xs text-zinc-500 hover:text-zinc-300">Privacy Policy</Link>
-            <Link href="/terms" className="text-xs text-zinc-500 hover:text-zinc-300">Terms of Service</Link>
-            <Link href="/returns" className="text-xs text-zinc-500 hover:text-zinc-300">Cancellation & Refund</Link>
-            <Link href="/shipping" className="text-xs text-zinc-500 hover:text-zinc-300">Shipping</Link>
-            <Link href="/sitemap.xml" className="text-xs text-zinc-500 hover:text-zinc-300">Sitemap</Link>
+            <Link href="/privacy" className="text-xs text-zinc-400 hover:text-zinc-300">Privacy Policy</Link>
+            <Link href="/terms" className="text-xs text-zinc-400 hover:text-zinc-300">Terms of Service</Link>
+            <Link href="/returns" className="text-xs text-zinc-400 hover:text-zinc-300">Cancellation & Refund</Link>
+            <Link href="/shipping" className="text-xs text-zinc-400 hover:text-zinc-300">Shipping</Link>
+            <Link href="/sitemap.xml" className="text-xs text-zinc-400 hover:text-zinc-300">Sitemap</Link>
           </div>
         </div>
       </div>
