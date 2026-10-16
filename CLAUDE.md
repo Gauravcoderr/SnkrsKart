@@ -283,7 +283,8 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Badges with white text: emerald-700, red-600, orange-700, indigo-600, zinc-600. WhatsApp buttons use `#075E54` (white text 7.7:1), not `#25D366`.
 - `StarRating` display mode is one `role="img"` with an aria-label, no buttons. Carousel dots are 24px tap targets around the thin visual bar. Decorative ghost numbers render via `after:content-[attr(data-ghost)]` so contrast checks skip them.
 - Translate `element.js` is `defer`; the header logo is `public/logo-104.png` (5 KB); blog inline Cloudinary images get `f_auto,q_auto,w_1000` at render. Blog cover images no longer pass `unoptimized`, so the Cloudinary loader resizes them (the loader returns non-Cloudinary URLs unchanged anyway).
-- Known, not fixable here: Google Customer Reviews badge sets a third-party `NID` cookie; product photos hosted off Cloudinary (VegNonVeg, Supabase, Nike) are served at full size because the custom loader only resizes Cloudinary URLs.
+- Known, not fixable here: Google Customer Reviews badge sets a third-party `NID` cookie.
+- Every product image and brand tile lives on Cloudinary (the custom loader only resizes Cloudinary URLs). `cd backend && npx ts-node --transpile-only src/scripts/moveProductImagesToCloudinary.ts --dry` lists products with images elsewhere; without `--dry` it backs up to `content-ml/data/backups/`, uploads to `product-images/{slug}-{img-N|hover}-{hash}` and rewrites `images`/`hoverImage`. Ran 2026-10-17: 21 products, 62 images (Supabase, Nike, Adidas, VegNonVeg). Brand tiles are `site-images/brand-card-{slug}` in `frontend/lib/constants.ts`.
 
 ## Important decisions / gotchas
 - Render free tier sleeps after 15 min inactivity → UptimeRobot pings `/health` every 5 min
