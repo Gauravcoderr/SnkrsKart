@@ -93,11 +93,16 @@ export default async function TermsOfService() {
         </section>
 
         <section>
+          <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Grievance Officer</h2>
+          <p>In line with the Consumer Protection (E-Commerce) Rules, 2020, complaints can be sent to our Grievance Officer: Ashutosh Lingwal (Proprietor), <a href="mailto:info@snkrscart.com" className="text-zinc-900 underline">info@snkrscart.com</a>, +91 94109 03791, House No. 4, Lingwal Bhawan, Circuit House Road, Pauri Garhwal – 246001, Uttarakhand. We acknowledge every complaint within 48 hours and resolve it within one month.</p>
+        </section>
+
+        <section>
           <h2 className="text-base font-bold uppercase tracking-wider text-zinc-900 mb-3">Contact</h2>
           <p>Questions about these Terms? Reach us at <a href="mailto:info@snkrscart.com" className="text-zinc-900 underline">info@snkrscart.com</a>.</p>
         </section>
 
-        <p className="text-xs text-zinc-500 pt-4 border-t border-zinc-100">Last updated: May 2026</p>
+        <p className="text-xs text-zinc-500 pt-4 border-t border-zinc-100">Last updated: October 2026</p>
       </div>
     </main>
   );

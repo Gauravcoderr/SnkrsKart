@@ -120,7 +120,6 @@ export async function GET() {
   lines.push(link('RSS feed', `${SITE_URL}/rss.xml`));
   lines.push(link('Google Shopping feed', `${SITE_URL}/google-merchant-feed.xml`));
   lines.push(link('Instagram', 'https://www.instagram.com/snkrs_cart'));
-  lines.push(link('Twitter/X', 'https://twitter.com/snkrs_cart'));
   lines.push(``);
 
   return new NextResponse(lines.join('\n'), {

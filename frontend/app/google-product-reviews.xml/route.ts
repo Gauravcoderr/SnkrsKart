@@ -69,7 +69,7 @@ export async function GET() {
     <review>
       <review_id>${esc(rid)}</review_id>
       <reviewer>
-        <name>${esc(r.name || 'Verified Buyer')}</name>
+        <name>${esc(r.name || 'Customer')}</name>
         <reviewer_id>${esc(rid)}</reviewer_id>
       </reviewer>
       <review_timestamp>${isNaN(ts.getTime()) ? new Date().toISOString() : ts.toISOString()}</review_timestamp>

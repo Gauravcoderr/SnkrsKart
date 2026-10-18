@@ -101,7 +101,7 @@ export default async function AboutPage() {
       <section className="border-b border-zinc-800 py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-zinc-400 mb-4">
-            Est. 2020 · Pauri Garhwal, Uttarakhand
+            Pauri Garhwal, Uttarakhand
           </p>
           <h1
             className="font-black uppercase leading-none tracking-tighter text-white mb-6"
@@ -128,7 +128,7 @@ export default async function AboutPage() {
             </h2>
             <div className="space-y-4 text-sm text-zinc-400 leading-relaxed">
               <p>
-                SNKRS CART was founded in 2020 out of a simple frustration — getting legit, premium
+                SNKRS CART started out of a simple frustration — getting legit, premium
                 sneakers in the hills of Uttarakhand was nearly impossible. Fakes were everywhere.
                 Good stuff was out of reach.
               </p>
@@ -137,7 +137,7 @@ export default async function AboutPage() {
                 a curated destination for sneaker lovers who refuse to compromise on authenticity.
               </p>
               <p>
-                Every pair we carry is verified. Every drop is real. Because we're collectors
+                Every pair we sell is checked before it ships, because we're collectors
                 first — and we know what it means to get burned by a bad pair.
               </p>
             </div>
@@ -145,10 +145,10 @@ export default async function AboutPage() {
 
           <div className="space-y-6">
             {[
-              { year: '2020', label: 'Founded', desc: 'Started as a passion project in Pauri Garhwal.' },
-              { year: '2021', label: 'First Drop', desc: 'Our first curated collection — sold out in days.' },
-              { year: '2023', label: 'Going Digital', desc: 'Launched the SNKRS CART online store.' },
-              { year: '2025', label: 'Today', desc: 'Hundreds of happy sneakerheads across India.' },
+              { year: '01', label: 'Our own stock', desc: 'Pairs we hold ourselves are physically inspected before dispatch.' },
+              { year: '02', label: 'Independent sellers', desc: 'Seller pairs are photo-verified by our team from six angles before they ship.' },
+              { year: '03', label: 'Shipping', desc: 'Free across India. Dispatched within 3 business days.' },
+              { year: '04', label: 'Returns', desc: 'Damaged, wrong or authenticity issues reported within 48 hours of delivery.' },
             ].map(({ year, label, desc }) => (
               <div key={year} className="flex gap-6 items-start">
                 <span className="text-xs font-mono text-zinc-400 pt-0.5 w-10 shrink-0">{year}</span>
@@ -307,8 +307,8 @@ export default async function AboutPage() {
                 <dd className="text-zinc-300">Independent Sneaker Reseller — not an official brand retailer</dd>
               </div>
               <div>
-                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-400 mb-0.5">Business Type</dt>
-                <dd className="text-zinc-300">Sole Proprietorship — registered business entity</dd>
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-400 mb-0.5">Legal Form</dt>
+                <dd className="text-zinc-300">Sole Proprietorship</dd>
               </div>
               <div className="sm:col-span-2">
                 <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-400 mb-0.5">Registered Address</dt>
@@ -321,6 +321,10 @@ export default async function AboutPage() {
               <div>
                 <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-400 mb-0.5">Phone</dt>
                 <dd className="text-zinc-300">+91 94109 03791</dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-400 mb-0.5">Grievance Officer</dt>
+                <dd className="text-zinc-300">Ashutosh Lingwal (Proprietor), info@snkrscart.com, +91 94109 03791. Complaints are acknowledged within 48 hours and resolved within one month.</dd>
               </div>
             </dl>
           </div>

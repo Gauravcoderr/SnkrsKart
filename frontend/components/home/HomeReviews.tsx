@@ -6,36 +6,6 @@ import Link from 'next/link';
 import StarRating from '@/components/reviews/StarRating';
 import { INDIA_STATES, GOOGLE_REVIEW_URL } from '@/lib/constants';
 
-const FALLBACK_REVIEWS: Review[] = [
-  {
-    id: 'f1',
-    name: 'Aryan M.',
-    rating: 5,
-    comment: 'Absolutely love my Jordan 1s. Shipped fast, packaging was clean, and the kicks are 100% legit. Will definitely order again.',
-    productName: 'Air Jordan 1 Retro High OG',
-    productSlug: 'products',
-    createdAt: '2025-01-01T00:00:00.000Z',
-  },
-  {
-    id: 'f2',
-    name: 'Priya S.',
-    rating: 5,
-    comment: 'Got the New Balance 9060 and honestly blown away by the comfort. The team was super helpful with size queries too.',
-    productName: 'New Balance 9060',
-    productSlug: 'products',
-    createdAt: '2025-01-01T00:00:00.000Z',
-  },
-  {
-    id: 'f3',
-    name: 'Rohan K.',
-    rating: 5,
-    comment: 'Snagged a pair of Dunks at retail. Site was smooth, checkout was fast, delivered in 2 days. This is my go-to spot now.',
-    productName: 'Nike Dunk Low Retro',
-    productSlug: 'products',
-    createdAt: '2025-01-01T00:00:00.000Z',
-  },
-];
-
 interface HomeReviewsProps {
   reviews: Review[];
 }
@@ -58,7 +28,7 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const displayed = liveReviews.length > 0 ? liveReviews : FALLBACK_REVIEWS;
+  const displayed = liveReviews;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,7 +69,7 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
           <div>
-            <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-500 mb-1">Verified Buyers</p>
+            <p className="text-xs font-semibold tracking-[0.3em] uppercase text-zinc-500 mb-1">Reviews</p>
             <h2 className="text-xl sm:text-2xl font-black tracking-[0.1em] uppercase text-zinc-900">What Customers Say</h2>
           </div>
           {!showForm && !submitted && (
@@ -255,7 +225,12 @@ export default function HomeReviews({ reviews: initialReviews }: HomeReviewsProp
           </div>
         )}
 
-        {/* Review cards grid */}
+        {displayed.length === 0 && (
+          <p className="text-sm text-zinc-600">
+            No reviews yet. Bought a pair from us? Write the first review above or leave one on our Google Business Profile.
+          </p>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {displayed.map((review) => {
             const isGeneral = review.productSlug === 'general' || review.productSlug === 'products';

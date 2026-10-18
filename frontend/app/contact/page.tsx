@@ -103,6 +103,7 @@ export default function ContactPage() {
           <p><span className="font-semibold text-zinc-900">Operated By:</span> Ashutosh Lingwal (Sole Proprietor)</p>
           <p><span className="font-semibold text-zinc-900">Registration:</span> Sole Proprietorship</p>
           <p><span className="font-semibold text-zinc-900">Return Address:</span> House No. 4, Lingwal Bhawan, Circuit House Road, Pauri Garhwal – 246001, Uttarakhand, India</p>
+          <p><span className="font-semibold text-zinc-900">Grievance Officer:</span> Ashutosh Lingwal (Proprietor), <a href="mailto:info@snkrscart.com" className="text-zinc-900 underline">info@snkrscart.com</a>, +91 94109 03791. We acknowledge complaints within 48 hours and resolve them within one month, as required by the Consumer Protection (E-Commerce) Rules, 2020.</p>
         </div>
 
         <div className="mt-8 text-sm text-zinc-500 space-y-1">

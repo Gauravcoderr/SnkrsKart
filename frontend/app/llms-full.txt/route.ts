@@ -86,7 +86,6 @@ export async function GET() {
     ``,
     `## Social & Discovery`,
     `Instagram: https://www.instagram.com/snkrs_cart`,
-    `Twitter/X: https://twitter.com/snkrs_cart`,
     `Sitemap: ${SITE_URL}/sitemap.xml`,
     `RSS: ${SITE_URL}/rss.xml`,
     `Google Shopping Feed: ${SITE_URL}/google-merchant-feed.xml`,
