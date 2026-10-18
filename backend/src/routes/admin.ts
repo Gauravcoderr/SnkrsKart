@@ -1683,7 +1683,7 @@ router.post('/scraped-products/:id/publish', adminAuth, async (req: Request, res
     const isShoes = productType === 'shoes';
 
     const finalPrice = reqPrice ?? scraped.price ?? 0;
-    const finalOriginalPrice = reqOriginalPrice ?? scraped.originalPrice ?? finalPrice;
+    const finalOriginalPrice = reqOriginalPrice ?? finalPrice;
     const discount = finalOriginalPrice > finalPrice
       ? Math.round(((finalOriginalPrice - finalPrice) / finalOriginalPrice) * 100)
       : 0;
