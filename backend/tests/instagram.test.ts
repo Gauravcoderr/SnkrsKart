@@ -288,6 +288,11 @@ test('product facts: lowest price, sorted UK sizes, fastest delivery, real style
   assert.deepEqual(productFacts(royal), { from: '₹18,995', sizes: 'UK 7, 8, 9', ships: 'Ships in 24h', style: 'DZ5485-042' });
   assert.equal(sizeRange([6, 6.5, 7, 8, 9, 10, 11].map((size) => ({ size, price: 1, availability: 'inhand' as const }))), 'UK 6 to 11');
   assert.equal(styleCode('air-jordan-1-royal'), '');
+  assert.equal(styleCode('209622-3wh'), '209622-3WH');
+  assert.equal(styleCode('212125-90H'), '212125-90H');
+  assert.equal(styleCode('3WF10064657'), '3WF10064657');
+  assert.equal(styleCode('CROCS-BATMAN-BATMOBILE-210219-001'), '');
+  assert.equal(styleCode('AJ1LMO0001'), '');
 });
 
 test('product starter: single pair carousel with angles, and a roundup for several', () => {

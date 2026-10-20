@@ -10,6 +10,7 @@ import AuthModal from '@/components/auth/AuthModal';
 import GoogleAuthProvider from '@/components/auth/GoogleAuthProvider';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { GOOGLE_ADS_ID } from '@/lib/analytics';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -228,7 +229,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script src="https://www.googletagmanager.com/gtag/js?id=G-S7VRFS4LLG" async />
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-S7VRFS4LLG');`,
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-S7VRFS4LLG');${GOOGLE_ADS_ID ? `gtag('config','${GOOGLE_ADS_ID}');` : ''}`,
           }}
         />
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}

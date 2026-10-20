@@ -483,7 +483,7 @@ export interface ProductLike {
 const SHIP_TEXT: Record<ProductOfferLike['availability'], string> = { instant: 'Ships in 24h', inhand: 'Ships in 3 days', eta: 'Pre-order, about 20 days' };
 const AVAIL_ORDER: Record<ProductOfferLike['availability'], number> = { instant: 0, inhand: 1, eta: 2 };
 
-const STYLE_CODE = /^(?:[A-Z]{2}\d{4}-\d{3}|\d{6}-\d{2,3}|[A-Z]{2}\d{4}|\d{4}[A-Z]\d{3}-\d{3}|[MUW]\d{3,4}[A-Z]{2,4}\d?)$/i;
+const STYLE_CODE = /^(?:[A-Z]{2}\d{4}-\d{3}|\d{6}-\d{2,3}|\d{6}-\d{2}[A-Z]|\d{6}-\d[A-Z]{2}|[A-Z]{2}\d{4}|\d{4}[A-Z]\d{3}-\d{3}|[MUW]\d{3,4}[A-Z]{2,4}\d?|\d[A-Z]{2}\d{8})$/i;
 
 export function styleCode(sku?: string): string {
   const s = (sku ?? '').trim();

@@ -37,9 +37,36 @@ export function titleCaseName(name: string): string {
 
 const LEADING_BRAND_DUP = /^([a-z]+)\s*(?:[|\-:]\s*)?(?=(?:air\s+)?\1\b)/i;
 
+const NICKNAME_TAIL = /\s(?=\(|\d{4}\b|(?:GS|PS|TD)\b|-\s)/;
+
+export function balanceQuotes(name: string): string {
+  let out = name.replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
+  for (const q of ["'", '"']) {
+    const open = new RegExp(`(^|[\\s(])${q}(?=[A-Za-z0-9])`, 'g');
+    const close = new RegExp(`(?<=[A-Za-z0-9!?.)])${q}(?=$|[\\s),.:;-])`, 'g');
+    const opens = [...out.matchAll(open)].filter((m) => !(q === "'" && /^'\d{2}\b/.test(out.slice(m.index! + m[1].length))));
+    const closes = out.match(close)?.length ?? 0;
+    if (opens.length !== closes + 1) continue;
+    const start = opens[opens.length - 1].index! + opens[opens.length - 1][1].length + 1;
+    const tail = out.slice(start).search(NICKNAME_TAIL);
+    const end = tail === -1 ? out.length : start + tail;
+    out = `${out.slice(0, end).trimEnd()}${q}${out.slice(end)}`;
+  }
+  return out.replace(/(^|[\s(])(['"])([a-z])/g, (_, pre, q, c) => `${pre}${q}${c.toUpperCase()}`);
+}
+
 export function normalizeProductName(name: string): string {
-  const trimmed = String(name ?? '').replace(/\s+/g, ' ').trim().replace(LEADING_BRAND_DUP, '');
+  const trimmed = balanceQuotes(String(name ?? '').replace(/\s+/g, ' ').trim().replace(LEADING_BRAND_DUP, ''));
   return isShouting(trimmed) ? titleCaseName(trimmed) : trimmed;
+}
+
+export function normalizeColorway(colorway: string): string {
+  const c = String(colorway ?? '')
+    .replace(/["“”‘’]/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s|/,-]+|[\s|/,-]+$/g, '');
+  const lowerWord = c.split(/[\s|/-]+/).some((w) => /^[a-z]/.test(w) && !LOWER.has(w));
+  return isShouting(c) || lowerWord ? titleCaseName(c) : c;
 }
 
 export function fullProductName(brand: string, name: string): string {

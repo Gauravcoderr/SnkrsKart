@@ -13,6 +13,7 @@ import { AVAILABILITY_META, formatDeliveryWindow, slowestAvailability } from '@/
 import OtpInput from '@/components/auth/OtpInput';
 import { LoyaltyAccount } from '@/types';
 import { SHIPPING_FEE_INR } from '@/lib/storeFacts';
+import { trackPurchase } from '@/lib/analytics';
 
 declare global {
   interface Window {
@@ -298,7 +299,7 @@ export default function CheckoutPage() {
       const confirmBase = `id=${data.orderId}&order=${data.orderNumber}&total=${data.finalTotal}&email=${encodeURIComponent(contact.email.trim())}`;
 
       if (data.paymentMode === 'cashfree') {
-        await handleCashfreeCheckout(data.paymentSessionId, confirmBase);
+        await handleCashfreeCheckout(data.paymentSessionId, confirmBase, () => trackPurchase(data.orderNumber, Number(data.finalTotal), checkoutItems));
       } else if (data.paymentMode === 'razorpay') {
         await handleRazorpayCheckout(data, confirmBase);
       } else {
@@ -312,7 +313,7 @@ export default function CheckoutPage() {
     }
   }
 
-  async function handleCashfreeCheckout(paymentSessionId: string, confirmBase: string) {
+  async function handleCashfreeCheckout(paymentSessionId: string, confirmBase: string, onPaid: () => void) {
     try {
       const { load } = await import('@cashfreepayments/cashfree-js');
       const cfMode = (process.env.NEXT_PUBLIC_CASHFREE_ENV || 'sandbox') as 'sandbox' | 'production';
@@ -326,6 +327,7 @@ export default function CheckoutPage() {
         setError(isDropped ? 'Payment cancelled. You can try again.' : `Payment failed: ${result.error.message || 'Please try again.'}`);
         setLoading(false);
       } else {
+        onPaid();
         if (buyNowItem) clearBuyNowItem(); else clearCart();
         clearCheckoutSession();
         router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=paid`);
@@ -368,6 +370,7 @@ export default function CheckoutPage() {
             }),
           });
           if (verifyRes.ok) {
+            trackPurchase(data.orderNumber, Number(data.finalTotal), checkoutItems);
             if (buyNowItem) clearBuyNowItem(); else clearCart();
             clearCheckoutSession();
             router.push(`/checkout/confirmation?${confirmBase}&paymentStatus=paid`);

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchAllProducts } from '@/lib/catalog';
+import { fullProductName } from '@/lib/productTitle';
+import { validMpn, variantId, variants } from '@/lib/merchantFacts';
 
 /**
  * Google Merchant Center "Product Reviews" feed, schema 2.3.
@@ -65,6 +67,8 @@ export async function GET() {
       const rid = String(r.id ?? r._id ?? '');
       const url = `${SITE_URL}/products/${p.slug}`;
       const ts = new Date(r.createdAt);
+      const mpn = validMpn(p.sku);
+      const skus = variants(p).map((v) => `<sku>${esc(variantId(p.slug, v))}</sku>`).join('');
       return `
     <review>
       <review_id>${esc(rid)}</review_id>
@@ -81,10 +85,11 @@ export async function GET() {
       <products>
         <product>
           <product_ids>
-            ${p.sku ? `<mpns><mpn>${esc(p.sku)}</mpn></mpns>` : ''}
+            ${mpn ? `<mpns><mpn>${esc(mpn)}</mpn></mpns>` : ''}
+            ${skus ? `<skus>${skus}</skus>` : ''}
             <brands><brand>${esc(p.brand)}</brand></brands>
           </product_ids>
-          <product_name>${esc(`${p.brand} ${p.name}`)}</product_name>
+          <product_name>${esc(fullProductName(p.brand, p.name))}</product_name>
           <product_url>${esc(url)}</product_url>
         </product>
       </products>

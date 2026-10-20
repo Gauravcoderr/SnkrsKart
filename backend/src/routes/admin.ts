@@ -10,7 +10,7 @@ import { runRenderScraper, ScraperRunResult } from '../services/scraper/index';
 import { Brand } from '../models/Brand';
 import { pingIndexNow } from '../lib/indexNow';
 import { toSlug, buildProductSlug, cascadeProductSlug } from '../lib/productSlug';
-import { normalizeProductName } from '../lib/productName';
+import { normalizeColorway, normalizeProductName } from '../lib/productName';
 import { syncBrandCounts } from '../lib/brandCounts';
 
 // In-memory Render scraper state (resets on Render restart — intentional)
@@ -102,6 +102,7 @@ router.post('/products', adminAuth, async (req: Request, res: Response): Promise
       return;
     }
     data.name = normalizeProductName(data.name);
+    if (typeof data.colorway === 'string') data.colorway = normalizeColorway(data.colorway);
 
     data.slug = data.slug
       ? buildProductSlug(data.slug, data.brand, data.sku)
@@ -142,6 +143,7 @@ router.put('/products/:id', adminAuth, async (req: Request, res: Response): Prom
     const update = { ...req.body };
     delete update.previousSlugs;
     if (typeof update.name === 'string') update.name = normalizeProductName(update.name);
+    if (typeof update.colorway === 'string') update.colorway = normalizeColorway(update.colorway);
     const before = await Product.findById(req.params.id).select('slug brand sku').lean();
     if (update.slug) {
       update.slug = buildProductSlug(update.slug, update.brand ?? before?.brand, update.sku ?? before?.sku);
@@ -1692,7 +1694,7 @@ router.post('/scraped-products/:id/publish', adminAuth, async (req: Request, res
       name: normalizeProductName(scraped.name),
       brand: scraped.brand,
       slug,
-      colorway: scraped.colorway || 'N/A',
+      colorway: normalizeColorway(scraped.colorway || '') || 'N/A',
       price: finalPrice,
       originalPrice: finalOriginalPrice,
       discount,
