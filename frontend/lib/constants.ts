@@ -110,6 +110,7 @@ export const FOOTER_HELP_LINKS = [
   { label: 'Cancellation & Refund', href: '/returns' },
   { label: 'Track My Order', href: '/track-order' },
   { label: 'FAQs', href: '/faqs' },
+  { label: 'Free Legit Check', href: 'https://legitcheck.snkrscart.com/' },
 ];
 
 export const FOOTER_ABOUT_LINKS = [
