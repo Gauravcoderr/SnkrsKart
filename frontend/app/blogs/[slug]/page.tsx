@@ -251,7 +251,6 @@ export default async function BlogDetailPage(props: { params: Promise<{ slug: st
       // sameAs enables Google AI entity graph traversal to verify author identity
       sameAs: [
         'https://www.instagram.com/snkrs_cart',
-        'https://www.facebook.com/snkrscart',
       ],
     },
     publisher: {
@@ -262,7 +261,6 @@ export default async function BlogDetailPage(props: { params: Promise<{ slug: st
       logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
       sameAs: [
         'https://www.instagram.com/snkrs_cart',
-        'https://www.facebook.com/snkrscart',
       ],
     },
     ...(blog.coverImage ? {

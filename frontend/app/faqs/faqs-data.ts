@@ -33,7 +33,7 @@ export const faqs = [
   },
   {
     q: 'Where are you based?',
-    a: 'SNKRS CART was founded in Pauri Garhwal, Uttarakhand in 2020. We ship across India from our base in the hills.',
+    a: 'SNKRS CART is based in Pauri Garhwal, Uttarakhand. We ship across India from our base in the hills.',
   },
   {
     q: 'How can I contact you?',

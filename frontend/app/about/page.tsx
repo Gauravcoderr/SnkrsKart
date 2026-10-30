@@ -30,7 +30,6 @@ const organizationSchema = {
   url: SITE_URL,
   logo: `${SITE_URL}/logo.png`,
   description: 'Independent sneaker reseller based in Pauri Garhwal, India. We source and verify genuine Nike, Jordan, Adidas, New Balance & Crocs — not an official brand retailer.',
-  foundingDate: '2020',
   founder: {
     '@type': 'Person',
     name: 'Ashutosh Lingwal',
@@ -59,7 +58,6 @@ const organizationSchema = {
   ],
   sameAs: [
     'https://www.instagram.com/snkrs_cart',
-    'https://www.facebook.com/snkrscart',
   ],
   brand: [
     { '@type': 'Brand', name: 'Nike' },
@@ -74,7 +72,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const content = await getPageContent();
   const title = content?.metaTitle || "About SNKRS CART | India's Authentic Sneaker Store";
   const description = content?.metaDescription ||
-    'Founded in Pauri Garhwal, Uttarakhand in 2020 by sneakerheads who refused to settle for fakes. SNKRS CART delivers 100% authentic Nike, Jordan, Adidas & more across India.';
+    'An independent sneaker store in Pauri Garhwal, Uttarakhand, run by sneakerheads who refused to settle for fakes. SNKRS CART delivers 100% authentic Nike, Jordan, Adidas & more across India.';
   const ogTitle = content?.ogTitle || title;
   const ogDescription = content?.ogDescription || description;
   return {
