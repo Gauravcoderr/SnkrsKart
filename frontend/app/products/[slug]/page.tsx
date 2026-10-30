@@ -232,7 +232,7 @@ export default async function ProductDetailPage(props: PageProps) {
       },
       review: reviews.slice(0, 5).map((r) => ({
         '@type': 'Review',
-        author: { '@type': 'Person', name: r.name || 'Verified Buyer' },
+        author: { '@type': 'Person', name: r.name || 'Customer' },
         reviewRating: { '@type': 'Rating', ratingValue: String(r.rating), bestRating: '5', worstRating: '1' },
         reviewBody: r.comment || '',
         datePublished: r.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : undefined,
