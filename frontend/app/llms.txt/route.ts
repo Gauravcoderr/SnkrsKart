@@ -119,6 +119,7 @@ export async function GET() {
   lines.push(link('Sitemap', `${SITE_URL}/sitemap.xml`));
   lines.push(link('RSS feed', `${SITE_URL}/rss.xml`));
   lines.push(link('Google Shopping feed', `${SITE_URL}/google-merchant-feed.xml`));
+  lines.push(link('OpenAI product feed', `${SITE_URL}/openai-product-feed.jsonl`));
   lines.push(link('Instagram', 'https://www.instagram.com/snkrs_cart'));
   lines.push(``);
 
