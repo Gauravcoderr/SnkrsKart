@@ -1,64 +1,20 @@
 import { NextResponse } from 'next/server';
 import { fetchAllProducts } from '@/lib/catalog';
-import { fullProductName } from '@/lib/productTitle';
 import { AVAILABILITY_META } from '@/lib/availability';
 import { groupId, handlingDays, stockState, validMpn, variantId, variants, type Variant } from '@/lib/merchantFacts';
-import type { Availability } from '@/types';
+import {
+  ageGroup,
+  canonicalBrand,
+  colorParts,
+  description,
+  genderAttr,
+  googleCategory,
+  productTypeAttr,
+  titleFor,
+  type FeedProduct,
+} from '@/lib/feedText';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
-
-// Google product taxonomy paths (must be real taxonomy nodes)
-const CATEGORY_MAP: Record<string, string> = {
-  shoes: 'Apparel & Accessories > Shoes',
-  clothing: 'Apparel & Accessories > Clothing',
-  accessories: 'Apparel & Accessories',
-};
-
-const TYPE_LABEL: Record<string, string> = {
-  shoes: 'Sneakers',
-  clothing: 'Clothing',
-  accessories: 'Accessories',
-};
-
-interface Product {
-  id: string;
-  slug: string;
-  name: string;
-  brand: string;
-  colorway?: string;
-  gender: string;
-  price: number;
-  originalPrice?: number | null;
-  images: string[];
-  sizes?: number[];
-  availableSizes: number[];
-  stringSizes?: string[];
-  availableStringSizes?: string[];
-  soldOut: boolean;
-  comingSoon: boolean;
-  releaseDate?: string;
-  description?: string;
-  category?: string;
-  sku?: string;
-  productType?: string;
-  offers?: { size: number | string; price: number; availability: Availability }[];
-}
-
-const KNOWN_BRANDS = ['Nike', 'Jordan', 'Adidas', 'New Balance', 'Crocs', 'Puma', 'Asics', 'On', 'Coach', 'Converse', 'Vans', 'Reebok'];
-
-function canonicalBrand(raw: string): string {
-  const t = (raw || '').trim();
-  const lower = t.toLowerCase();
-  return KNOWN_BRANDS.find((b) => lower === b.toLowerCase() || lower.startsWith(`${b.toLowerCase()} `)) ?? t;
-}
-
-function colorParts(colorway?: string): string[] {
-  return (colorway ?? '')
-    .replace(/^\s*(?:and|&)\s+/i, '')
-    .split(/\s*[|/]\s*/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
 
 function escapeXml(str: string): string {
   return (str || '')
@@ -69,72 +25,11 @@ function escapeXml(str: string): string {
     .replace(/'/g, '&apos;');
 }
 
-/** Product descriptions are stored as HTML; the feed wants plain text (max 5000 chars). */
-function plainText(html: string): string {
-  return html
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 5000);
-}
-
-function genderAttr(gender: string): string {
-  if (gender === 'men') return 'male';
-  if (gender === 'women') return 'female';
-  return 'unisex';
-}
-
-function ageGroup(gender: string): string {
-  return gender === 'kids' ? 'kids' : 'adult';
-}
-
-function googleCategory(p: Product): string {
-  const type = p.productType ?? 'shoes';
-  return CATEGORY_MAP[type] ?? CATEGORY_MAP.shoes;
-}
-
-function productTypeAttr(p: Product): string {
-  const type = p.productType ?? 'shoes';
-  return `${TYPE_LABEL[type] ?? TYPE_LABEL.shoes} > ${canonicalBrand(p.brand)}`;
-}
-
-/** Fallback description when the product has none. Unique per product, not boilerplate. */
-function fallbackDescription(p: Product): string {
-  const isShoe = (p.productType ?? 'shoes') === 'shoes';
-  const who = p.gender === 'men' ? "Men's" : p.gender === 'women' ? "Women's" : 'Unisex';
-  const colors = colorParts(p.colorway).join(' / ');
-  const bits = [
-    `${fullProductName(canonicalBrand(p.brand), p.name)}${colors ? ` in ${colors}` : ''}.`,
-    `Brand new and checked for authenticity before dispatch.`,
-    isShoe ? `${who} sizing (UK).` : `${who} fit.`,
-    `Free shipping across India from SNKRS CART.`,
-  ];
-  return bits.join(' ');
-}
-
-function description(p: Product): string {
-  const plain = p.description ? plainText(p.description) : '';
-  return plain.length >= 60 ? plain : fallbackDescription(p);
-}
-
-function titleFor(p: Product, sizeSuffix: string): string {
-  const base = fullProductName(canonicalBrand(p.brand), p.name);
-  const colors = colorParts(p.colorway).join(' / ');
-  const withColor = colors && !base.toLowerCase().includes(colors.toLowerCase()) ? `${base} - ${colors}` : base;
-  return `${withColor.slice(0, 150 - sizeSuffix.length)}${sizeSuffix}`;
-}
-
 function isoDaysFromNow(days: number): string {
   return new Date(Date.now() + days * 86_400_000).toISOString();
 }
 
-function variantEntry(p: Product, v: Variant): string {
+function variantEntry(p: FeedProduct, v: Variant): string {
   const url = `${SITE_URL}/products/${p.slug}`;
   const image = p.images?.[0] || '';
   const extraImages = (p.images ?? []).slice(1, 11);
@@ -186,7 +81,7 @@ function variantEntry(p: Product, v: Variant): string {
   return `<item>\n      ${lines.join('\n      ')}\n    </item>`;
 }
 
-function productEntries(p: Product): string[] {
+function productEntries(p: FeedProduct): string[] {
   return variants(p).map((v) => variantEntry(p, v));
 }
 

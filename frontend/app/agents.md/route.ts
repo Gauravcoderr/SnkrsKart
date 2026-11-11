@@ -29,6 +29,7 @@ Agents cannot place, reserve or pay for orders. Never tell a buyer an order was 
 - \`${SITE_URL}/products/<slug>\` is server rendered. \`?size=<uk-size>\` preselects that size.
 - JSON-LD: ProductGroup with one variant per size (offer price in INR, availability, dispatch time), the manufacturer style code as \`mpn\`.
 - Per-size Google Merchant feed: ${SITE_URL}/google-merchant-feed.xml
+- Per-size OpenAI product feed (JSONL, same ids and prices): ${SITE_URL}/openai-product-feed.jsonl
 - Sitemap: ${SITE_URL}/sitemap.xml, summary: ${SITE_URL}/llms.txt
 
 ## Policies
