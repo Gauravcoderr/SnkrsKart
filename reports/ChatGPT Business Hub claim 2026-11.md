@@ -45,12 +45,31 @@ What is in each row: `item_id` (same as the Google `g:id`), `title`, plain-text 
 
 Not sent, on purpose: `accepts_returns` (OpenAI has no defective-only option, so the field stays unspecified and the policy URL carries the rule), `sale_price` (we never charge a reference price), `target_countries` and `store_country` (OpenAI says the standard upload targets the US; India must be enabled by OpenAI first).
 
-Upload: download the CSV or JSONL and upload it in Business Hub, or give OpenAI the URL if the Hub accepts a scheduled fetch. Refresh at least daily; the files regenerate on every request with a 1 hour cache.
+Upload: download the CSV or JSONL and upload it in Business Hub (launch-week press says the Hub takes CSV or JSONL; OpenAI's help article could not be read by us, so confirm the accepted format on the upload screen). Refresh at least daily; the files regenerate on every request with a 1 hour cache.
+
+What OpenAI's developer spec says about delivery (read 2026-11-11, https://developers.openai.com/commerce/specs/file-upload/overview): feeds are pushed over SFTP as a full daily snapshot, preferred formats parquet, then jsonl.gz, csv.gz or tsv.gz, UTF-8, same file name overwritten each run; a product missing from a snapshot is kept for up to 14 days. No public-URL fetch is documented. That SFTP route is "currently available to approved partners" who apply at https://chatgpt.com/merchants. If OpenAI asks for a gzip file, run `curl -s https://www.snkrscart.com/openai-product-feed.jsonl | gzip > snkrscart-products.jsonl.gz`.
+
+Deploy status: the feed routes were committed as 86b067f on branch `content/blogs-2026-11-11` (another session had checked that branch out). Production is deployed from `main`, which does not have them yet, so the URLs above return 404 until that branch is merged into `main`. The branch's Vercel preview deployment has the routes but sits behind Vercel Authentication, so only a signed-in Vercel team member can open it; it is not a URL to hand to OpenAI. Verified on 2026-11-11 by running the app locally against the production API: both files return 200 with 407 rows, the same count as the Google feed.
+
+Spec compliance of each row (checked with `cd frontend && NEXT_PUBLIC_API_URL=https://api.snkrscart.com/api/v1 npx --yes tsx --tsconfig tsconfig.json scripts/check-openai-feed.ts` against the live catalogue; exits 1 and names the rows on any violation):
+
+| Spec rule | How the feed meets it |
+|---|---|
+| 9 required fields (item_id, title, description, url, brand, seller_name, image_url, availability, price) | always present; the check fails on any empty one |
+| availability enum | in_stock, out_of_stock, backorder (Pre-order sizes), pre_order (coming soon) |
+| price "amount CURRENCY" | `12999.00 INR`; shipping_price `0.00 INR` (zero means free) |
+| title up to 150, description up to 5000 chars | enforced by the shared feed text helpers |
+| variants: group_id differs from item_id, listing_has_variations true, variant_dict of strings | per-size rows carry all three; un-sized products carry none |
+| CSV booleans lowercase true/false, arrays comma-joined with commas in URLs as %2C, objects as JSON | done in the CSV writer |
+| no placeholder values (null, unknown, n/a) | fields are omitted instead of filled |
+| mpn only with brand, never invented | real style codes only (`validMpn`) |
+| checkout flags | is_eligible_search true, is_eligible_checkout false (no checkout integration) |
 
 ## 4. Open questions for OpenAI
 
 1. Is India an eligible market for Business Hub claims, and is INR accepted in product feeds? The spec says the standard upload targets the US and that other countries and currencies need OpenAI confirmation.
 2. Does the Hub accept uncompressed CSV or JSONL uploads, or only the SFTP push with parquet or gzip files described in the commerce spec?
+   The developer spec names only SFTP push for approved partners (apply at chatgpt.com/merchants); the Hub's own upload format is undocumented outside press coverage.
 3. When do Business Agents open outside the US? (Not needed yet.)
 
 ## 5. What claiming does and does not do

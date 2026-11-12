@@ -63,6 +63,8 @@ interface Options {
   revalidate?: number;
   noStore?: boolean;
   signal?: AbortSignal;
+  /** Throw on any feed failure instead of walking the grid endpoint, which carries no sku or description. */
+  strict?: boolean;
 }
 
 function init(o: Options): RequestInit {
@@ -70,7 +72,17 @@ function init(o: Options): RequestInit {
   return o.signal ? { ...base, signal: o.signal } : base;
 }
 
+async function fetchFeedStrict(o: Options): Promise<CatalogProduct[]> {
+  const url = `${API}/products/feed`;
+  const res = await fetch(url, init(o));
+  if (!res.ok) throw new Error(`GET ${url} answered ${res.status}`);
+  const data = await res.json();
+  if (!Array.isArray(data.products) || data.products.length === 0) throw new Error(`GET ${url} returned no products`);
+  return data.products;
+}
+
 export async function fetchAllProducts(o: Options = {}): Promise<CatalogProduct[]> {
+  if (o.strict) return fetchFeedStrict(o);
   try {
     const res = await fetch(`${API}/products/feed`, init(o));
     if (res.ok) {
