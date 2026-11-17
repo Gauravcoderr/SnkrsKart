@@ -43,3 +43,21 @@ export function isNew(dateStr: string): boolean {
 }
 
 export const PAGE_SIZE = 30;
+
+export const MIN_TAG_POSTS = 3;
+
+export function tagSlug(tag: string): string {
+  return tag.toLowerCase().replace(/\s+/g, '-');
+}
+
+export function tagIsIndexable(postCount: number): boolean {
+  return postCount >= MIN_TAG_POSTS;
+}
+
+export function indexableTags(blogs: { tags?: string[] }[]): string[] {
+  const counts = new Map<string, number>();
+  for (const blog of blogs) {
+    for (const tag of new Set((blog.tags ?? []).map(tagSlug))) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+  }
+  return Array.from(counts).filter(([, n]) => tagIsIndexable(n)).map(([tag]) => tag).sort();
+}

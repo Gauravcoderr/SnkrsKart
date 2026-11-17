@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { fetchSneakerProfiles, fetchSneakerProfileBySlug, fetchProducts, NotFoundError } from '@/lib/api';
 import { cloudinaryOgImage } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils';
+import { priceInIndiaTitle } from '@/lib/productTitle';
 import ProductCard from '@/components/products/ProductCard';
 import RestockNotify from '@/components/product-detail/RestockNotify';
 
@@ -18,7 +19,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     const profile = await fetchSneakerProfileBySlug(params.slug);
     const url = `${SITE_URL}/sneakers/${params.slug}`;
     return {
-      title: { absolute: `${profile.name} Price India | Buy ${profile.brand} ${profile.name} Online | Snkrs Cart` },
+      title: { absolute: priceInIndiaTitle(profile.brand, profile.name) },
       description: `Buy ${profile.name} sneakers in India. ${profile.tagline ? profile.tagline + '. ' : ''}Authentic pairs, free pan-India shipping. ${profile.originalRetailPrice ? `Original retail: $${profile.originalRetailPrice}.` : ''} Shop at SNKRS CART.`,
       alternates: { canonical: url },
       openGraph: {

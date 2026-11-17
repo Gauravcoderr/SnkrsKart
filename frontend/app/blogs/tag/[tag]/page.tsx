@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound, permanentRedirect } from 'next/navigation';
+import { cache } from 'react';
 import type { Blog } from '@/types';
+import { tagIsIndexable, tagSlug } from '../../blogUtils';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
@@ -38,15 +40,15 @@ function isNew(d: string) {
 }
 
 /** Empty array only when the backend answered OK with no posts. Failures throw → 500, never a false 404. */
-async function fetchByTag(tag: string): Promise<Blog[]> {
+const fetchByTag = cache(async (tag: string): Promise<Blog[]> => {
   const res = await fetch(`${API}/blogs?tag=${encodeURIComponent(tag)}&limit=100`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Blogs for tag ${tag}: upstream ${res.status}`);
   const data = await res.json();
   return Array.isArray(data) ? data : (data.blogs ?? []);
-}
+});
 
 function normalizeTag(raw: string) {
-  return decodeURIComponent(raw).toLowerCase().replace(/\s+/g, '-');
+  return tagSlug(decodeURIComponent(raw));
 }
 
 export async function generateMetadata(props: { params: Promise<{ tag: string }> }) {
@@ -56,10 +58,12 @@ export async function generateMetadata(props: { params: Promise<{ tag: string }>
   const title = `${label.charAt(0).toUpperCase() + label.slice(1)} Sneaker Blog | Snkrs Cart`;
   const description = `Browse all SNKRS CART blog posts tagged "${label}" — release guides, news, and style tips.`;
   const url = `${SITE_URL}/blogs/tag/${encodeURIComponent(tag)}`;
+  const posts = await fetchByTag(tag);
   return {
     title: { absolute: title },
     description,
     alternates: { canonical: url },
+    robots: { index: tagIsIndexable(posts.length), follow: true },
     openGraph: { title, description, url, siteName: 'Snkrs Cart', type: 'website' },
     twitter: { card: 'summary_large_image', title, description },
   };

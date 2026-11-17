@@ -56,11 +56,11 @@ export function brandSeo(brandName: string, slug: string, products: Product[]) {
   const models = topModels(slug, products);
   const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`;
   let titleModels = models;
-  const modelTitle = (ms: string[]) => `${brandName} India: ${joinModels(ms)} Prices | SNKRS CART`;
+  const modelTitle = (ms: string[]) => `${brandName} Sneakers in India: ${joinModels(ms)} Prices | SNKRS CART`;
   while (titleModels.length > 2 && modelTitle(titleModels).length > 60) titleModels = titleModels.slice(0, -1);
   const title = titleModels.length >= 2 && modelTitle(titleModels).length <= 65
     ? modelTitle(titleModels)
-    : `${brandName} Shoes India${min ? `: Prices from ${inr(min)}` : ''} | SNKRS CART`;
+    : `${brandName} Shoes in India${min ? `: Prices from ${inr(min)}` : ''} | SNKRS CART`;
   const range = min && max ? (min === max ? `at ${inr(min)}` : `from ${inr(min)} to ${inr(max)}`) : '';
   const styles = shoes.length ? `${shoes.length} ${shoes.length === 1 ? 'style' : 'styles'}` : 'the latest styles';
   const description = `Authentic ${brandName} shoes in India: ${styles}${models.length ? ` including ${joinModels(models)}` : ''}${range ? `, ${range}` : ''}. Per-size prices, 100% authentic, free pan-India shipping.`;

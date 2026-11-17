@@ -184,6 +184,12 @@ export async function fetchDrops(days = 7): Promise<Drop[]> {
   return res.json();
 }
 
+export async function fetchDropsSince(from: string): Promise<Drop[]> {
+  const res = await fetch(`${BASE_URL}/drops?from=${from}`, { next: { revalidate: 300 } });
+  if (!res.ok) throw new Error('Failed to fetch drops');
+  return res.json();
+}
+
 export async function fetchDropBySlug(slug: string): Promise<Drop> {
   return fetchBySlug<Drop>(`/drops/${slug}`, 'Drop', { next: { revalidate: 300 } });
 }

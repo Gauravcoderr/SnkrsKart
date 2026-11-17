@@ -1,6 +1,10 @@
 import { MetadataRoute } from 'next';
 import { BRANDS } from '@/lib/constants';
 import { CATEGORY_FILTERS, categoryQuery } from '@/lib/categoryFilters';
+import { indexableTags } from '@/app/blogs/blogUtils';
+import { RELEASE_CALENDARS, calendarDrops } from '@/lib/releaseCalendars';
+import { todayKey } from '@/lib/calendar';
+import type { Drop } from '@/types';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 const API      = process.env.NEXT_PUBLIC_API_URL   || 'http://localhost:4000/api/v1';
@@ -39,32 +43,28 @@ async function fetchCount(endpoint: string, revalidate = 3600): Promise<number> 
 // ---------------------------------------------------------------------------
 // Page fetchers — each returns URLs for one 500-item page
 // ---------------------------------------------------------------------------
-async function fetchBlogPage(page: number): Promise<MetadataRoute.Sitemap> {
-  try {
-    const res = await fetch(`${API}/blogs?limit=${PAGE_SIZE}&page=${page + 1}`, opts(3600));
-    if (!res.ok) return [];
-    const data: { blogs?: BlogEntry[] } = await res.json();
-    const blogs: BlogEntry[] = data.blogs ?? [];
+// Throws instead of returning a partial page: tag pages are listed by post count, so a
+// missing blog page would silently drop tags (and posts) from the sitemap.
+async function fetchBlogPage(page: number): Promise<BlogEntry[]> {
+  const res = await fetch(`${API}/blogs?limit=${PAGE_SIZE}&page=${page + 1}`, opts(3600));
+  if (!res.ok) throw new Error(`sitemap: blogs page ${page + 1} returned ${res.status}, refusing to emit a truncated sitemap`);
+  const data: { blogs?: BlogEntry[] } = await res.json();
+  return data.blogs ?? [];
+}
 
-    const entries: MetadataRoute.Sitemap = blogs.map((b) => ({
-      url: `${SITE_URL}/blogs/${b.slug}`,
-      lastModified: b.updatedAt ? new Date(b.updatedAt) : new Date(b.createdAt),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    }));
-
-    if (page === 0) {
-      const allTags = new Set<string>();
-      blogs.forEach((b) => (b.tags ?? []).forEach((t) => allTags.add(t.toLowerCase().replace(/\s+/g, '-'))));
-      allTags.forEach((tag) => entries.push({
-        url: `${SITE_URL}/blogs/tag/${encodeURIComponent(tag)}`,
-        changeFrequency: 'weekly' as const,
-        priority: 0.6,
-      }));
-    }
-
-    return entries;
-  } catch { return []; }
+function blogPages(blogs: BlogEntry[]): MetadataRoute.Sitemap {
+  const posts = blogs.map((b) => ({
+    url: `${SITE_URL}/blogs/${b.slug}`,
+    lastModified: b.updatedAt ? new Date(b.updatedAt) : new Date(b.createdAt),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }));
+  const tags = indexableTags(blogs).map((tag) => ({
+    url: `${SITE_URL}/blogs/tag/${encodeURIComponent(tag)}`,
+    changeFrequency: 'weekly' as const,
+    priority: 0.6,
+  }));
+  return [...posts, ...tags];
 }
 
 async function fetchProductPage(page: number): Promise<MetadataRoute.Sitemap> {
@@ -167,6 +167,23 @@ async function categoryPages(): Promise<MetadataRoute.Sitemap> {
     }));
 }
 
+async function releaseCalendarPages(): Promise<MetadataRoute.Sitemap> {
+  const today = todayKey();
+  const res = await fetch(`${API}/drops?from=${today.slice(0, 4)}-01-01`, opts(300));
+  if (!res.ok) throw new Error('sitemap: drops unavailable, refusing to emit a truncated sitemap');
+  const drops: Drop[] = await res.json();
+  return RELEASE_CALENDARS
+    .filter((cal) => {
+      const { upcoming, released } = calendarDrops(cal, drops, today);
+      return upcoming.length + released.length > 0;
+    })
+    .map((cal) => ({
+      url: `${SITE_URL}/release-dates/${cal.slug}`,
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    }));
+}
+
 // ---------------------------------------------------------------------------
 // Main export — single /sitemap.xml, all pages fetched in parallel
 // ---------------------------------------------------------------------------
@@ -196,7 +213,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...staticPages(),
     ...brandPages(),
     ...(await categoryPages()),
-    ...blogChunks.flat(),
+    ...(await releaseCalendarPages()),
+    ...blogPages(blogChunks.flat()),
     ...productChunks.flat(),
     ...sneakerChunks.flat(),
     ...dropChunks.flat(),

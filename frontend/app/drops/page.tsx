@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { fetchDrops } from '@/lib/api';
 import { dateKey } from '@/lib/calendar';
+import { dropItemListJsonLd } from '@/lib/dropJsonLd';
+import { RELEASE_CALENDARS } from '@/lib/releaseCalendars';
 import DropsClient from './DropsClient';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
@@ -72,30 +74,7 @@ export default async function DropsPage(props: Props) {
 
   const brandCount = new Set(upcoming.map((d) => d.brand)).size;
 
-  const itemListJson = upcoming.length > 0 ? {
-    '@context': 'https://schema.org',
-    '@type': 'ItemList',
-    name: 'Upcoming sneaker releases in India',
-    url: `${SITE_URL}/drops`,
-    numberOfItems: upcoming.length,
-    itemListElement: upcoming.slice(0, 50).map((d, i) => ({
-      '@type': 'ListItem',
-      position: i + 1,
-      url: `${SITE_URL}/drops/${d.slug}`,
-      name: d.name,
-      item: {
-        '@type': 'Event',
-        name: d.name,
-        startDate: dateKey(d.releaseDate),
-        eventStatus: 'https://schema.org/EventScheduled',
-        eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
-        location: { '@type': 'VirtualLocation', url: `${SITE_URL}/drops/${d.slug}` },
-        url: `${SITE_URL}/drops/${d.slug}`,
-        ...(d.image ? { image: d.image } : {}),
-        organizer: { '@type': 'Organization', name: d.brand },
-      },
-    })),
-  } : null;
+  const itemListJson = dropItemListJsonLd(upcoming, 'Upcoming sneaker releases in India', `${SITE_URL}/drops`);
 
   const faqJson = {
     '@context': 'https://schema.org',
@@ -142,6 +121,14 @@ export default async function DropsPage(props: Props) {
           <p className="text-sm text-zinc-500 max-w-2xl">
             Every confirmed sneaker drop in India, by date. Official release dates, retail prices and where to buy — from Nike SNKRS, Jordan, adidas, New Balance and Crocs. Add any release to your calendar in one tap.
           </p>
+          <nav aria-label="Release calendars by brand" className="flex flex-wrap items-center gap-2 mt-4">
+            <span className="text-[10px] font-bold tracking-widest uppercase text-zinc-500">Release calendars</span>
+            {RELEASE_CALENDARS.map((c) => (
+              <Link key={c.slug} href={`/release-dates/${c.slug}`} className="text-xs font-semibold text-zinc-700 border border-zinc-200 rounded-full px-3 py-1 hover:border-zinc-900 hover:text-zinc-900 transition-colors">
+                {c.label}
+              </Link>
+            ))}
+          </nav>
         </div>
 
         {drops.length === 0 ? (

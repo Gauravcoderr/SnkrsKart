@@ -5,3 +5,7 @@ export function fullProductName(brand: string | undefined, name: string | undefi
   if (!n) return b;
   return n.toLowerCase().includes(b.toLowerCase()) ? n : `${b} ${n}`;
 }
+
+export function priceInIndiaTitle(brand: string | undefined, name: string | undefined): string {
+  return `${fullProductName(brand, name)} Price in India | Snkrs Cart`;
+}

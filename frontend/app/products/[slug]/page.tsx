@@ -10,7 +10,7 @@ import ProductRatingDisplay from '@/components/product-detail/ProductRatingDispl
 import RecentlyViewed from '@/components/product-detail/RecentlyViewed';
 import Link from 'next/link';
 import Image from 'next/image';
-import { fullProductName } from '@/lib/productTitle';
+import { fullProductName, priceInIndiaTitle } from '@/lib/productTitle';
 import { HANDLING_DAYS, SCHEMA_AVAILABILITY, groupId, handlingDays, stockState, validMpn, variantId, variants, type Variant } from '@/lib/merchantFacts';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -65,9 +65,10 @@ export async function generateMetadata(props: PageProps) {
       ? `${Math.round(((origPrice - product.price) / origPrice) * 100)}% off`
       : 'best price guaranteed';
     const fullName = fullProductName(product.brand, product.name);
-    const title = product.metaTitle?.trim() || `${fullName} | Buy in India | Snkrs Cart`;
+    const title = product.metaTitle?.trim() || priceInIndiaTitle(product.brand, product.name);
+    const styleCode = validMpn(product.sku);
     const description = product.metaDescription?.trim()
-      || `Buy ${fullName} for ₹${product.price.toLocaleString('en-IN')} (${discountNote}). 100% authentic ${product.brand} shoes in India — pan-India shipping. | Snkrs Cart`;
+      || `Buy ${fullName}${styleCode ? ` (${styleCode})` : ''} for ₹${product.price.toLocaleString('en-IN')} (${discountNote}). 100% authentic ${product.brand} shoes in India with pan-India shipping. | Snkrs Cart`;
     const url = `${SITE_URL}/products/${product.slug}`;
     const ogImage = cloudinaryOgImage(product.images?.[0] || '');
 
