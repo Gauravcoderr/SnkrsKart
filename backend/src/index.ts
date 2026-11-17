@@ -34,6 +34,7 @@ import { startAfterShipSyncJob } from './jobs/aftershipSyncJob';
 import { startScraperJob } from './jobs/scraperJob';
 import { startUnsubscribeSyncJob } from './jobs/unsubscribeSyncJob';
 import { startInstagramPublishJob } from './jobs/instagramPublishJob';
+import { startIndexNowSyncJob } from './jobs/indexNowSyncJob';
 import { initWhatsApp } from './services/whatsapp';
 
 const app = express();
@@ -157,6 +158,7 @@ app.listen(PORT, () => {
       startUnsubscribeSyncJob();
       startAfterShipSyncJob();
       startInstagramPublishJob();
+      startIndexNowSyncJob();
       if (process.env.WHATSAPP_ENABLED === 'true') initWhatsApp();
     })
     .catch((err) => {

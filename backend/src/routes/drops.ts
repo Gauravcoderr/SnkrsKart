@@ -3,11 +3,20 @@ import { Drop } from '../models/Drop';
 
 const router = Router();
 
+function sinceDate(query: Request['query']): Date {
+  const from = String(query.from ?? '');
+  const fromDate = new Date(`${from}T00:00:00Z`);
+  const isRealDate = /^\d{4}-\d{2}-\d{2}$/.test(from) && !Number.isNaN(fromDate.getTime()) && fromDate.toISOString().slice(0, 10) === from;
+  if (isRealDate) return fromDate;
+  const days = Math.min(90, Math.max(0, parseInt(String(query.days ?? '7')) || 7));
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+}
+
 // GET /api/v1/drops?days=N — upcoming published drops plus those released in the last N days (default 7, max 90)
+// GET /api/v1/drops?from=YYYY-MM-DD: published drops releasing on or after that date (release calendars)
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const days = Math.min(90, Math.max(0, parseInt(String(req.query.days ?? '7')) || 7));
-    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const since = sinceDate(req.query);
     const drops = await Drop.find({ published: true, releaseDate: { $gte: since } })
       .sort({ releaseDate: 1 })
       .lean();
