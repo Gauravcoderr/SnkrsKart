@@ -1,7 +1,7 @@
 # SNKRS CART — Claude Context
 
 ## Stack
-- **Frontend**: Next.js 15.5 (App Router, React 19), TypeScript, Tailwind CSS → Vercel at `https://snkrs-kart.vercel.app`
+- **Frontend**: Next.js 15.5 (App Router, React 19), TypeScript, Tailwind CSS → Vercel Hobby team `thesneakerbrief-4546`, project `snkrs-kart` (since 2026-11-18; `snkrs-kart-virid.vercel.app` and the old `snkrs-kart.vercel.app` 301 to `www.snkrscart.com` in `next.config.mjs`)
 - **Backend**: Express + TypeScript + MongoDB (Mongoose) → Render at `https://snkrskart.onrender.com`
 - **AI Chatbot**: Gemini 2.0 Flash (primary) → Groq llama-3.3-70b (fallback)
 - **Auth**: OTP via email/phone or Google, JWT access (15m) + refresh (30d) in httpOnly cookies. Refresh tokens are per-device: `User.refreshTokens[]` (sha256 hashes, max 10, legacy `refreshToken` still honoured on first refresh). Frontend session restore is cookie-first (`lib/session.ts` single shared refresh lock, `fetchWithAuth` retries once). Only a 401 from `/auth/refresh` logs out; network/5xx keep the session and retry. `GET /auth/me` with no Bearer, no `access_token` and no `refresh_token` cookie answers 200 `null` (`anonymousAsNull`), so anonymous visitors log no 401s; any credential still goes through `customerAuth` and 401s so the client refreshes.
