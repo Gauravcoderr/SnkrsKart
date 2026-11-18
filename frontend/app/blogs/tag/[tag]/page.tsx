@@ -41,7 +41,7 @@ function isNew(d: string) {
 
 /** Empty array only when the backend answered OK with no posts. Failures throw → 500, never a false 404. */
 const fetchByTag = cache(async (tag: string): Promise<Blog[]> => {
-  const res = await fetch(`${API}/blogs?tag=${encodeURIComponent(tag)}&limit=100`, { cache: 'no-store' });
+  const res = await fetch(`${API}/blogs?tag=${encodeURIComponent(tag)}&limit=100`, { next: { revalidate: 3600 } });
   if (!res.ok) throw new Error(`Blogs for tag ${tag}: upstream ${res.status}`);
   const data = await res.json();
   return Array.isArray(data) ? data : (data.blogs ?? []);
@@ -50,6 +50,12 @@ const fetchByTag = cache(async (tag: string): Promise<Blog[]> => {
 function normalizeTag(raw: string) {
   return tagSlug(decodeURIComponent(raw));
 }
+
+export async function generateStaticParams() {
+  return [];
+}
+
+export const revalidate = 3600;
 
 export async function generateMetadata(props: { params: Promise<{ tag: string }> }) {
   const params = await props.params;

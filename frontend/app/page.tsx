@@ -14,7 +14,7 @@ import NewsletterBar from '@/components/home/NewsletterBar';
 import type { Metadata } from 'next';
 import { fullProductName } from '@/lib/productTitle';
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'Buy Authentic Sneakers Online in India | Snkrs Cart',

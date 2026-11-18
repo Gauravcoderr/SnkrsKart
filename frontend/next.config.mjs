@@ -28,6 +28,8 @@ const nextConfig = {
   async headers() {
     const NOINDEX = [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }];
     const SELLER_CAMERA = [{ key: 'Permissions-Policy', value: 'camera=(self), microphone=(), geolocation=(self), payment=(self)' }];
+    const CDN_5M = [{ key: 'Vercel-CDN-Cache-Control', value: 's-maxage=300, stale-while-revalidate=3600' }];
+    const CDN_1H = [{ key: 'Vercel-CDN-Cache-Control', value: 's-maxage=3600, stale-while-revalidate=86400' }];
     return [
       { source: '/:path*', headers: SECURITY_HEADERS },
       { source: '/sellers', headers: SELLER_CAMERA },
@@ -45,6 +47,13 @@ const nextConfig = {
       { source: '/account', headers: NOINDEX },
       { source: '/account/:path*', headers: NOINDEX },
       { source: '/wishlist', headers: NOINDEX },
+      { source: '/products', headers: CDN_5M },
+      { source: '/brands/:slug', headers: CDN_5M },
+      { source: '/blogs', headers: CDN_5M },
+      { source: '/drops', headers: CDN_5M },
+      { source: '/sneakers', headers: CDN_5M },
+      { source: '/release-dates/:slug', headers: CDN_5M },
+      { source: '/sitemap.xml', headers: CDN_1H },
     ];
   },
   async redirects() {

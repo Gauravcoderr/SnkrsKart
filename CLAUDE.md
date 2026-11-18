@@ -313,6 +313,12 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Known, not fixable here: Google Customer Reviews badge sets a third-party `NID` cookie.
 - Every product image and brand tile lives on Cloudinary (the custom loader only resizes Cloudinary URLs). `cd backend && npx ts-node --transpile-only src/scripts/moveProductImagesToCloudinary.ts --dry` lists products with images elsewhere; without `--dry` it backs up to `content-ml/data/backups/`, uploads to `product-images/{slug}-{img-N|hover}-{hash}` and rewrites `images`/`hoverImage`. Ran 2026-10-17: 21 products, 62 images (Supabase, Nike, Adidas, VegNonVeg). Brand tiles are `site-images/brand-card-{slug}` in `frontend/lib/constants.ts`.
 
+## Vercel Hobby limits (2026-11-18)
+- Vercel paused the Hobby project for Fluid Active CPU (6h 20m of 4h; ISR writes 168K of 200K). Cause: `cache: 'no-store'` fetches made `/`, `/products/[slug]`, `/blogs/[slug]` and `/blogs/tag/[tag]` render on every request, bots included.
+- Rules: public server fetches never use `no-store` (use `next: { revalidate }`). A `[slug]` page needs `generateStaticParams() { return [] }` plus `export const revalidate` or Next 15 renders it on every request (products 300, blogs and tags 3600, sneakers 3600). Pages that read `searchParams` stay dynamic and get `Vercel-CDN-Cache-Control` in `next.config.mjs` (`CDN_5M`: `/products`, `/brands/:slug`, `/blogs`, `/drops`, `/sneakers`, `/release-dates/:slug`; `CDN_1H`: `/sitemap.xml`). Route handlers need `s-maxage` (plain `max-age` is browser only).
+- Check after any page change: `NEXT_PUBLIC_API_URL=https://api.snkrscart.com/api/v1 npm run build && npx next start -p 3100`, then `curl -sI` twice: cached pages answer `x-nextjs-cache: HIT` with `s-maxage`, never `private, no-cache, no-store`.
+- ISR writes count compressed 8 KB units and an unchanged regeneration writes nothing, so keep timestamps and random values out of cached output (the product `priceValidUntil` is date-only).
+
 ## Important decisions / gotchas
 - Render free tier sleeps after 15 min inactivity → UptimeRobot pings `/health` every 5 min
 - `trust proxy 1` set on Express for correct IP in rate-limiter behind Render/Vercel
