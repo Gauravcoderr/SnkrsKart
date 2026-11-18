@@ -60,6 +60,7 @@ const blogs = [
   // nike-kobe-mamba-eterno-dia-de-los-muertos-pack-india-2026, nike-shox-comeback-corteiz-r419-india-2026, crocs-india-kl-rahul-feel-it-all-festive-2026 - seeded 2026-10-24
   // air-jordan-14-forest-green-2026-india, adidas-record-quarter-samba-gazelle-discounts-india-2026, foot-locker-india-two-years-six-stores-bis-2026 - seeded 2026-10-27
   // air-jordan-4-bred-2026-black-friday-india, nike-investor-day-full-stride-ahead-india-2026, reebok-g-unit-g6-50-cent-restock-india-2026 - seeded 2026-11-18
+  // travis-scott-gta-6-nike-air-force-1-india-2026, air-jordan-reimagined-performance-retros-2027-india, space-jam-crocs-classic-clog-tune-squad-india-2026, nikeskims-hiking-boot-running-shoe-2027-india - seeded 2026-11-18
 ];
 
 async function seed() {
