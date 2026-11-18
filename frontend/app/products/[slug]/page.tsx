@@ -55,6 +55,12 @@ interface PageProps {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
+export async function generateStaticParams() {
+  return [];
+}
+
+export const revalidate = 300;
+
 export async function generateMetadata(props: PageProps) {
   const params = await props.params;
   try {

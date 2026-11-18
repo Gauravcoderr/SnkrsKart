@@ -31,7 +31,7 @@ export default async function BlogsPage(props: { searchParams?: Promise<{ tag?: 
 
   const { blogs: firstPage, total, pages } = await fetchPaginated<Blog>(
     `${API}/blogs?page=1&limit=${PAGE_SIZE}`,
-    { cache: 'no-store' },
+    { next: { revalidate: 600 } },
   );
 
   const [hero, ...gridBlogs] = firstPage;

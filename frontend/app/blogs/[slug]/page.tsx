@@ -69,7 +69,7 @@ function getAccent(tags: string[]) {
 
 /** null means the backend said 404. Any other failure throws → 500, so Googlebot retries instead of de-indexing. */
 async function fetchBlog(slug: string): Promise<Blog | null> {
-  const res = await fetch(`${API}/blogs/${slug}`, { cache: 'no-store' });
+  const res = await fetch(`${API}/blogs/${slug}`, { next: { revalidate: 3600 } });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Blog ${slug}: upstream ${res.status}`);
   return res.json();
@@ -81,7 +81,7 @@ async function fetchRelatedBlogs(tags: string[], currentSlug: string): Promise<B
     const seen = new Set<string>([currentSlug]);
     for (const tag of tags) {
       if (allRelated.length >= 6) break;
-      const res = await fetch(`${API}/blogs?tag=${encodeURIComponent(tag)}&limit=4`, { cache: 'no-store' });
+      const res = await fetch(`${API}/blogs?tag=${encodeURIComponent(tag)}&limit=4`, { next: { revalidate: 3600 } });
       if (!res.ok) continue;
       const data = await res.json();
       const blogs: Blog[] = data.blogs ?? data ?? [];
@@ -152,6 +152,12 @@ async function fetchProductsByTags(tags: string[]): Promise<Product[]> {
     return [];
   }
 }
+
+export async function generateStaticParams() {
+  return [];
+}
+
+export const revalidate = 3600;
 
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;

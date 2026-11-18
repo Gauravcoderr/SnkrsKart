@@ -54,7 +54,7 @@ async function fetchBySlug<T>(path: string, what: string, init: RequestInit): Pr
 
 export async function fetchProducts(
   filters: Partial<FilterState> & { page?: number; limit?: number } = {},
-  revalidate = 60
+  revalidate = 300
 ): Promise<ProductsResponse> {
   const qs = buildQueryString(filters);
   const res = await fetch(`${BASE_URL}/products${qs ? `?${qs}` : ''}`, {
@@ -70,7 +70,7 @@ export async function fetchProductBySlug(slug: string): Promise<Product> {
 
 export async function fetchFeaturedProducts(): Promise<Product[]> {
   const res = await fetch(`${BASE_URL}/products/featured`, {
-    next: { revalidate: 60 },
+    next: { revalidate: 300 },
   });
   if (!res.ok) throw new Error('Failed to fetch featured products');
   return res.json();
@@ -78,7 +78,7 @@ export async function fetchFeaturedProducts(): Promise<Product[]> {
 
 export async function fetchNewArrivals(): Promise<Product[]> {
   const res = await fetch(`${BASE_URL}/products/new-arrivals`, {
-    next: { revalidate: 60 },
+    next: { revalidate: 300 },
   });
   if (!res.ok) throw new Error('Failed to fetch new arrivals');
   return res.json();
@@ -86,7 +86,7 @@ export async function fetchNewArrivals(): Promise<Product[]> {
 
 export async function fetchTrendingProducts(): Promise<Product[]> {
   const res = await fetch(`${BASE_URL}/products/trending`, {
-    next: { revalidate: 60 },
+    next: { revalidate: 300 },
   });
   if (!res.ok) throw new Error('Failed to fetch trending products');
   return res.json();
@@ -94,21 +94,21 @@ export async function fetchTrendingProducts(): Promise<Product[]> {
 
 export async function fetchComingSoonProducts(): Promise<Product[]> {
   const res = await fetch(`${BASE_URL}/products/coming-soon`, {
-    next: { revalidate: 60 },
+    next: { revalidate: 300 },
   });
   if (!res.ok) throw new Error('Failed to fetch coming soon products');
   return res.json();
 }
 
 export async function fetchBanners(): Promise<BannerSlide[]> {
-  const res = await fetch(`${BASE_URL}/banners`, { cache: 'no-store' });
+  const res = await fetch(`${BASE_URL}/banners`, { next: { revalidate: 300 } });
   if (!res.ok) throw new Error('Failed to fetch banners');
   return res.json();
 }
 
 export async function fetchBrands(): Promise<Brand[]> {
   const res = await fetch(`${BASE_URL}/brands`, {
-    cache: 'no-store',
+    next: { revalidate: 300 },
   });
   if (!res.ok) throw new Error('Failed to fetch brands');
   return res.json();
@@ -119,13 +119,13 @@ export async function fetchBrandBySlug(slug: string): Promise<Brand> {
 }
 
 export async function fetchRecentReviews(): Promise<Review[]> {
-  const res = await fetch(`${BASE_URL}/reviews/recent`, { next: { revalidate: 60 } });
+  const res = await fetch(`${BASE_URL}/reviews/recent`, { next: { revalidate: 300 } });
   if (!res.ok) throw new Error('Failed to fetch reviews');
   return res.json();
 }
 
 export async function fetchProductReviews(productSlug: string): Promise<{ reviews: Review[]; fitSummary: FitSummary }> {
-  const res = await fetch(`${BASE_URL}/reviews?productSlug=${productSlug}`, { cache: 'no-store' });
+  const res = await fetch(`${BASE_URL}/reviews?productSlug=${productSlug}`, { next: { revalidate: 300 } });
   if (!res.ok) throw new Error('Failed to fetch product reviews');
   return res.json();
 }
