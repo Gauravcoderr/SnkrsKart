@@ -60,6 +60,141 @@ const blogs = [
   // nike-kobe-mamba-eterno-dia-de-los-muertos-pack-india-2026, nike-shox-comeback-corteiz-r419-india-2026, crocs-india-kl-rahul-feel-it-all-festive-2026 - seeded 2026-10-24
   // air-jordan-14-forest-green-2026-india, adidas-record-quarter-samba-gazelle-discounts-india-2026, foot-locker-india-two-years-six-stores-bis-2026 - seeded 2026-10-27
   // air-jordan-4-bred-2026-black-friday-india, nike-investor-day-full-stride-ahead-india-2026, reebok-g-unit-g6-50-cent-restock-india-2026 - seeded 2026-11-18
+  {
+    title: 'Nike Air Foamposite Pro "Mummy Duck" and the College Football Pack: Worth Importing to India?',
+    slug: 'nike-air-foamposite-pro-mummy-duck-college-football-pack-india-2026',
+    excerpt: 'Oregon\'s bandaged duck mascot spent a year as a player exclusive. Now it is a $230 Foamposite Pro on SNKRS, with four school colourways behind it, and landing one in India costs about ₹32,000 before shipping.',
+    coverImage: 'https://res.cloudinary.com/dadulg5bs/image/upload/v1794989345/blog-images/nike-air-foamposite-pro-mummy-duck-college-football-pack-india-2026-cover.webp',
+    author: 'SNKRS CART',
+    tags: ['nike', 'foamposite', 'basketball', 'new-release', 'college-football', 'india', 'resale'],
+    metaTitle: 'Nike Foamposite Pro Mummy Duck: India Price | SNKRS CART',
+    metaDescription: 'Nike Air Foamposite Pro Mummy Duck IZ7806-001: release date, $230 price, the LSU, FSU, Ohio State and TCU pack, and what importing one to India really costs.',
+    metaKeywords: 'Nike Air Foamposite Pro Mummy Duck, Foamposite Mummy Duck IZ7806-001, Mummy Duck release date, Foamposite price India, Nike Foamposite college football pack, LSU Foamposite IX2091-700, Foamposite import duty India',
+    published: false,
+    template: 'v3',
+    content: `
+<p>A duck wrapped in bandages, printed on the heel of a $230 Foamposite. That is where Nike landed this month. The Air Foamposite Pro "Mummy Duck" (style code IZ7806-001) launched on Nike SNKRS on November 3, 2026, in men's sizing, and it is the first time Oregon's mummified mascot has been sold to anyone who does not play for the Ducks.</p>
+
+<p>It is also not alone. Nike has spent this autumn turning the Foamposite Pro into a college football shoe, with four more school colourways lined up behind the Oregon pair. For a silhouette that started life as a late-1990s basketball shoe, that is a strange new job. For Indian buyers, it raises a simple question: is any of this worth the import bill?</p>
+
+<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1794989349/blog-images/nike-air-foamposite-pro-mummy-duck-college-football-pack-india-2026-inline-1.webp" alt="Nike Air Foamposite Pro Mummy Duck IZ7806-001 heel with mummified Oregon duck graphic" style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
+
+<h2>From Locker Room Exclusive to SNKRS</h2>
+
+<p>The Mummy Duck began as a player exclusive. In 2025, Oregon and Nike made a football-only Foamposite Pro with a matching Vaporposite cleat for the team. <a href="https://sneakerbardetroit.com/nike-air-foamposite-pro-mummy-duck-2026/" target="_blank" rel="noopener">Sneaker Bar Detroit</a> is blunt about what happened next: neither pair was sold to the public. That PE was white-based. The retail version flips it dark.</p>
+
+<p>So what does $230 buy? Black/Barely Volt-White, officially. The shell is the star: iridescent, sliding from deep green to black to a hint of purple as you turn it. Collar, tongue and eyestay stay black under white laces. Then the Swoosh, oversized and pale Volt, stitched over frayed white fabric that reads like a bandage coming loose. "OREGON" sits on the heel, the insoles and the pull tabs. The mummified duck shows up on both heels and inside, too. And per <a href="https://justfreshkicks.com/?p=240796" target="_blank" rel="noopener">Just Fresh Kicks</a>, those Swooshes glow in the dark.</p>
+
+<p>Oregon and the Foamposite go back a while. <a href="https://houseofheat.co/nike/oregon-nike-air-foamposite-pro-mummy-duck-iz7806-001" target="_blank" rel="noopener">House of Heat</a> traces the link past a decade, including a 2013 Air Foamposite One. Both House of Heat and Sneaker Bar Detroit also say a second Oregon Foamposite Pro is planned for the holiday window. House of Heat ties a white pair to style code JA5895-001, but no images have surfaced, so treat it as pending.</p>
+
+<p>One warning before you shop: the Mummy Duck release date is a mess online. Sneaker Bar Detroit, House of Heat and StockX all list November 3. Other pages still say November 16, December 1 or even December 31. The two mirrors we trust agree on November 3 at $230, and we are going with that.</p>
+
+<h2>The Four-School Pack Behind It</h2>
+
+<p>The bigger story is the pack. Sneaker Bar Detroit first reported the leaked codes back in October 2025, and they have held up:</p>
+
+<p><strong>Florida State</strong>: Team Maroon/White, IX2095-600.<br/>
+<strong>LSU</strong>: University Gold/White, IX2091-700.<br/>
+<strong>Ohio State</strong>: White/University Red, IX2094-100.<br/>
+<strong>TCU</strong>: New Orchid/White, IX2092-500.</p>
+
+<p>The LSU pair is the loudest. Per <a href="https://justfreshkicks.com/?p=245480" target="_blank" rel="noopener">Just Fresh Kicks' October 23 report</a>, it pairs a bright yellow shell with black tiger stripes, a purple collar and lining, LSU logos on the tongue and heel, and "Geaux Tigers" on the heel tabs. The same outlet reported a November 5 release at $250 through Foot Locker and Hibbett, while flagging that the date was not confirmed. We could not find a second source agreeing on that price, so read $250 as Just Fresh Kicks' figure, not a settled one.</p>
+
+<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1794989354/blog-images/nike-air-foamposite-pro-mummy-duck-college-football-pack-india-2026-inline-2.webp" alt="Nike Air Foamposite Pro LSU Tigers IX2091-700 yellow shell with tiger stripes" style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
+
+<h2>Why Any of This Matters in India</h2>
+
+<p>Let us be honest. Nobody in Pune is repping TCU. College football barely registers here, and the school logos mean little to most Indian buyers. What does travel is the Foamposite itself: a heavy molded shell, a shape you can spot across a room, and colours that do not exist on any other shoe. The Mummy Duck works here for the same reason it works in Oregon. The bandage Swoosh and the oil-slick shell are wild before you know the backstory.</p>
+
+<p>The maths is the problem. Using the open.er-api.com rate for November 18, 2026 (₹93.51 to the dollar), $230 converts to about ₹21,508. The <a href="https://eximpe.com/hsncode-finder/64039120" target="_blank" rel="noopener">eximpe duty table</a> for HSN 6403 (rates as at May 13, 2026) stacks 20% basic customs duty, a cess of 20% on that duty, a 10% welfare surcharge on both, then 18% IGST on the lot. That is roughly ₹4,302 duty, ₹860 cess, ₹516 surcharge and ₹4,894 IGST. Landed: about <strong>₹32,080</strong>, before shipping or a forwarder's cut. If the school pairs really retail at $250, each one lands near ₹34,870.</p>
+
+<p>No India retail listing for either the Mummy Duck or the school pack turned up in our research. So this is import or reseller territory only.</p>
+
+<p>Resale? We tried. StockX lists the Mummy Duck at $230 retail with a November 3 date, but its market panel showed only "Loading..." and no sales history when we checked. We will not guess a premium. Anyone quoting you one off a blank page is selling a story.</p>
+
+<p>Sizing next. Both mirrors list the Mummy Duck in men's sizing, so knock one off your US number to get UK (US 9 is UK 8). Fit notes? Neither mirror has any. If you already own a Foamposite, match that size. Get it wrong on a ₹32,000 import and you are stuck with it.</p>
+
+<h2>Our Verdict</h2>
+
+<p>The Mummy Duck is the one to want. It has a real story, a PE that nobody could buy for a year, and a design that does not need a fan's context to land. If you can get it near retail through a friend abroad, do it. Paying a reseller premium on top of ₹32,000 landed? No. That is a lot for a shoe that weighs this much and breathes this little in an Indian summer.</p>
+
+<p>The school pack we would skip. LSU is fun, and Florida State's maroon is the cleanest of the four. Still, with no team to cheer for, you are looking at four colour swaps on a shell the Foamposite has worn many times before.</p>
+
+<p>Wearing it? Keep everything else quiet. Black straight-leg denim or black cargos and a grey hoodie do the job. The green shell will catch the light without help.</p>
+
+<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1794989358/blog-images/nike-air-foamposite-pro-mummy-duck-college-football-pack-india-2026-inline-3.webp" alt="Nike Air Foamposite Pro Mummy Duck Black Barely Volt three quarter view" style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
+
+<p>A mummified duck was never supposed to leave the locker room. Now it has, and the Foamposite has a new identity on the field. Whether it earns a spot in your rotation comes down to one number: ₹32,080 before shipping. If that is too steep, see what is in stock and ready to ship across India on our <a href="/products?brand=Nike">Nike page</a>.</p>
+
+<p>Into darker, spookier Nike designs? Our round-up of <a href="/blogs/nike-halloween-sneakers-2026-air-jordan-5-dunk-shibuya-kd-19">Nike's Halloween 2026 sneakers</a> covers the rest of this season's darker drops.</p>
+
+`.trim(),
+  },
+  {
+    title: 'NOCTA x Nike Air Modmax "Pink Spell": Drake\'s Shox-Style Shoe and Its Real Cost in India',
+    slug: 'nocta-nike-air-modmax-pink-spell-india-2026',
+    excerpt: 'Six Air pods, four of them pumped to 17 psi under a raised heel, and a pink upper that hides nothing. NOCTA\'s first all-new Nike silhouette dropped on November 16 at $180, and importing one to India lands at about ₹25,000 before shipping.',
+    coverImage: 'https://res.cloudinary.com/dadulg5bs/image/upload/v1794988976/blog-images/nocta-nike-air-modmax-pink-spell-india-2026-cover.webp',
+    author: 'SNKRS CART',
+    tags: ['nike', 'nocta', 'drake', 'collaboration', 'new-release', 'air-modmax', 'india'],
+    metaTitle: 'NOCTA Nike Air Modmax Pink Spell: India Price | SNKRS CART',
+    metaDescription: 'NOCTA x Nike Air Modmax Pink Spell IQ6711-600 explained: six tuned Air pods, $180 retail, Nov 16 to 17 release and the landed cost of importing it to India.',
+    metaKeywords: 'NOCTA Nike Air Modmax, Air Modmax Pink Spell IQ6711-600, NOCTA Air Modmax price India, Drake NOCTA new shoe 2026, Nike Air Modmax release date, Nike modular Air cushioning, NOCTA sneakers India import duty',
+    published: false,
+    template: 'v2',
+    content: `
+<p>Drake's NOCTA has made a lot of Nike apparel. It has made far fewer shoes. On November 16, 2026, that changed in a loud way: the NOCTA x Nike Air Modmax "Pink Spell" (style code IQ6711-600) went live on NOCTA's own site, with Nike SNKRS and select retailers following on November 17. Retail is $180. The shoe is pink almost everywhere you look, and it sits on a heel that looks like it was borrowed from a Shox.</p>
+
+<p>This is not another Air Force 1 with a NOCTA logo on the heel. It is a new silhouette built on what Hypebeast describes as a first-of-its-kind modular cushioning system from Nike, and that makes it the most interesting thing the label has put on feet so far. Whether it is a shoe you should chase from India is a different question, and the maths is not kind.</p>
+
+<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1794988986/blog-images/nocta-nike-air-modmax-pink-spell-india-2026-inline-1.webp" alt="NOCTA x Nike Air Modmax Pink Spell IQ6711-600 lateral side view 2026" style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
+
+<h2>Six Air Pods and a Raised Heel: What the Air Modmax Actually Is</h2>
+
+<p>Strip the colour away and the idea is simple. Instead of one long Air bag, the Modmax uses six separate, semi-transparent Air units sitting between a thin outsole and a curved synthetic support frame. <a href="https://hypebeast.com/?post=6817098" target="_blank" rel="noopener">Hypebeast's November 15 report</a> gives the split: the four rear units in the heel are pressurised to 17 psi to soak up impact, while the two forward units run at 7 psi to help the foot roll from midfoot to forefoot. Under that sits a Cushlon foam midsole, a TPU carrier that doubles as heel cage and midfoot shank, TPU bumpers on the toe and both sides, and a sticky G-Tek rubber outsole.</p>
+
+<p>Most of the cushioning lives at the back, so the heel rides high. From the side it looks like a Shox, and <a href="https://sneakerbardetroit.com/nocta-nike-air-modmax-pink-spell/" target="_blank" rel="noopener">Sneaker Bar Detroit</a> says so outright, adding that the exposed pods borrow from the Air Liquid Max. Sole Retriever's Zach Harris put it in one line: "a Shox-like design with columns of cushioning built into a raised heel." Hard to argue.</p>
+
+<p>Up top, it gets stranger. The leather is pale pink. The toe box is thin and perforated. Down each side run wavy quilted panels, and both Sole Retriever and Hypebeast reached for the same comparison: a football boot. The lace area and the top of the tongue go a shade brighter, and a yellow hit glows through the heel pods. Official colourway, per <a href="https://www.soleretriever.com/news/articles/nocta-nike-air-modmax-pink-spell-official-images" target="_blank" rel="noopener">Sole Retriever</a>: Pink Spell/Pink Spell-Amarillo-Volt. Unisex sizing.</p>
+
+<h2>Release Details and the $160 vs $180 Confusion</h2>
+
+<p>Three sources line up on the basics. The style code is IQ6711-600. NOCTA sold it first on November 16, 2026, and Nike SNKRS plus select retailers got it a day later. The price is $180.</p>
+
+<p>One wrinkle. Hypebeast's own article lists $180 in its spec box but says $160 in the body text. Sneaker Bar Detroit marks $180 as confirmed and Sole Retriever lists $180 too, so that is the number we are working from. If you see $160 quoted elsewhere, that is where it came from.</p>
+
+<p>NOCTA's footwear record is short. Sneaker Bar Detroit lists the Hot Step, the Air Glide and a handful of Air Force 1 releases, and notes that an Air Max Plus collaboration was rumoured for a while and never showed up. The Modmax quietly answers that rumour: the curving lines across the padded upper carry some of the Air Max Plus spirit, just on a completely different base.</p>
+
+<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1794989000/blog-images/nocta-nike-air-modmax-pink-spell-india-2026-inline-2.webp" alt="NOCTA Nike Air Modmax Pink Spell heel close-up showing modular Air units" style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
+
+<h2>What It Costs to Get a Pair to India</h2>
+
+<p>No India retail listing for the Air Modmax turned up during our research this week, and the confirmed launch channels are NOCTA, Nike SNKRS and select retailers. So for most Indian buyers the realistic route is an import or a reseller who imported one. Here is what that looks like on paper.</p>
+
+<p>At the rate published by open.er-api.com on November 18, 2026 (₹93.51 to the dollar), the $180 retail price works out to about ₹16,832. Footwear coming into India under HSN 6403 attracts, per the <a href="https://eximpe.com/hsncode-finder/64039120" target="_blank" rel="noopener">eximpe duty table</a> (rates as at May 13, 2026): 20% basic customs duty, an agriculture cess of 20% of that duty, a 10% social welfare surcharge on both, and 18% IGST on top of everything. On ₹16,832 that is roughly ₹3,366 duty, ₹673 cess, ₹404 surcharge and ₹3,830 IGST. Landed: about <strong>₹25,106</strong>, before you have paid a rupee of international shipping or a forwarder's fee.</p>
+
+<p>Call it ₹26,000 to ₹28,000 by the time a box reaches Mumbai or Bengaluru through a forwarder. For a first-colourway, first-generation silhouette from a celebrity label, that is a lot of money for an unknown.</p>
+
+<p>Resale is the other route, and we cannot give you a number for it honestly. The StockX page we tried returned a 404, and the shoe has been on sale for barely two days. Any premium quoted to you this week is a guess dressed up as a market. Wait for a few weeks of real sales before you pay anyone above landed cost.</p>
+
+<p>Sizing note: Sole Retriever lists the pair as unisex, which in Nike's system means men's US sizing. Most Indian buyers wear UK sizes, so take one off your US number (UK 8 is US 9). There are no on-foot fit reports for the Modmax yet, so if you sit between sizes, wait for them before committing to an import you cannot return.</p>
+
+<h2>Is the Hype Real? Our Take</h2>
+
+<p>The technology is the most promising part of the Modmax, and it is better than we expected. Tuning front and rear Air pods to different pressures is a real idea, not a paint job, and NOCTA getting first use of it says Nike sees this as more than a merch play. If the Modmax system shows up later on general-release Nike pairs, this is the shoe people will point back to.</p>
+
+<p>The Pink Spell pair, though, is a shoe for weekends and photos. Pink upper, pink laces, pink midsole. Delhi dust will find it on day one. Love it? Buy it at retail and wear it hard. But ₹25,000-plus to import it, or a reseller's markup stacked on that, is too much for the first version of a sole nobody has walked through a monsoon in.</p>
+
+<p>Styling, if you go for it: let the shoe carry the outfit. Washed black denim or charcoal cargos, a plain white or grey tee, nothing else pink. At a Saturday gig in Mumbai or Bengaluru it will turn heads. Pair it with a busy print and it starts to look like a costume.</p>
+
+<img src="https://res.cloudinary.com/dadulg5bs/image/upload/v1794989009/blog-images/nocta-nike-air-modmax-pink-spell-india-2026-inline-3.webp" alt="NOCTA x Nike Air Modmax Pink Spell outsole G-Tek rubber lug pattern" style="width:100%;border-radius:12px;margin:32px 0;box-shadow:0 4px 24px rgba(0,0,0,0.10);" />
+
+<p>The smart move for most Indian buyers is patience. Let the first pairs land, let fit reports and real resale data settle, and see whether a quieter colourway follows. The Modmax could be the start of something. It does not need your ₹25,000 in its first week. In the meantime, browse what is actually in stock and ready to ship across India on our <a href="/products?brand=Nike">Nike page</a>.</p>
+
+<p>If the raised-heel look is what pulled you in, our breakdown of the <a href="/blogs/nike-shox-comeback-corteiz-r419-india-2026">Nike Shox comeback and the Corteiz R419</a> covers the original column-cushioning shoe and which Shox models are worth buying in India today.</p>
+
+`.trim(),
+  },
 ];
 
 async function seed() {
