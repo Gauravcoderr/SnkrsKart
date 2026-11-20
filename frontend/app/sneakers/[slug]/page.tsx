@@ -5,7 +5,10 @@ import Image from 'next/image';
 import { fetchSneakerProfiles, fetchSneakerProfileBySlug, fetchProducts, NotFoundError } from '@/lib/api';
 import { cloudinaryOgImage } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils';
-import { priceInIndiaTitle } from '@/lib/productTitle';
+import { profileTitle } from '@/lib/productTitle';
+import { hasIndiaPrice, indiaRetailPrice, listingCount, marketRange, modelOfferJsonLd, ownPairCount, priceAnswer } from '@/lib/sneakerPrice';
+import SneakerPairsTable from '@/components/sneakers/SneakerPairsTable';
+import { safeJsonLd } from '@/lib/jsonLd';
 import ProductCard from '@/components/products/ProductCard';
 import RestockNotify from '@/components/product-detail/RestockNotify';
 
@@ -18,9 +21,11 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   try {
     const profile = await fetchSneakerProfileBySlug(params.slug);
     const url = `${SITE_URL}/sneakers/${params.slug}`;
+    const answer = priceAnswer(profile, new Date(), formatPrice);
+    const guideDescription = `Buy ${profile.name} sneakers in India. ${profile.tagline ? profile.tagline + '. ' : ''}Authentic pairs, free pan-India shipping. ${profile.originalRetailPrice ? `Original retail: $${profile.originalRetailPrice}.` : ''} Shop at SNKRS CART.`;
     return {
-      title: { absolute: priceInIndiaTitle(profile.brand, profile.name) },
-      description: `Buy ${profile.name} sneakers in India. ${profile.tagline ? profile.tagline + '. ' : ''}Authentic pairs, free pan-India shipping. ${profile.originalRetailPrice ? `Original retail: $${profile.originalRetailPrice}.` : ''} Shop at SNKRS CART.`,
+      title: { absolute: profileTitle(profile.brand, profile.name, hasIndiaPrice(profile)) },
+      description: answer ? `${profile.name} price in India. ${answer}` : guideDescription,
       alternates: { canonical: url },
       openGraph: {
         title: `${profile.name} | Snkrs Cart`,
@@ -77,14 +82,13 @@ export default async function SneakerHubPage(props: Props) {
   const url = `${SITE_URL}/sneakers/${params.slug}`;
 
   const market = profile.market ?? null;
-  const indiaRetail = profile.indiaRetailPrice && profile.indiaRetailPrice > 0 ? profile.indiaRetailPrice : null;
+  const indiaRetail = indiaRetailPrice(profile);
+  const answer = priceAnswer(profile, new Date(), formatPrice);
+  const ownPairs = market?.pairs ?? [];
+  const ownCount = ownPairCount(market);
+  const modelOfferJson = modelOfferJsonLd(profile, url);
   const sizeNotes = profile.sizeNotes?.trim() || '';
-  const marketRange = market
-    ? market.inrMin === market.inrMax
-      ? formatPrice(market.inrMin)
-      : `${formatPrice(market.inrMin)} to ${formatPrice(market.inrMax)}`
-    : '';
-  const marketLabel = market ? `${marketRange} across ${market.listings} ${market.listings === 1 ? 'listing' : 'listings'}` : '';
+  const marketLabel = market ? `${marketRange(market, formatPrice)} across ${listingCount(market.listings)}` : '';
   const marketHref = !market || market.productSlugs.length === 0
     ? null
     : market.productSlugs.length === 1
@@ -105,7 +109,11 @@ export default async function SneakerHubPage(props: Props) {
     faqs.push({ question: `What is the official retail price of the ${profile.name} in India?`, answer: `The official India retail price (MRP) of the ${profile.name} is ${formatPrice(indiaRetail)}.` });
   }
   if (market) {
-    faqs.push({ question: `How much does the ${profile.name} cost in India right now?`, answer: `The ${profile.name} currently sells for ${marketLabel} in India.` });
+    faqs.push({ question: `How much does the ${profile.name} cost in India right now?`, answer: `The ${profile.name} is currently listed at ${marketLabel} in India.` });
+  }
+  if (ownPairs.length > 0) {
+    const pairCount = ownCount === 1 ? '1 pair' : `${ownCount} pairs`;
+    faqs.push({ question: `Where can I buy the ${profile.name} in India?`, answer: `SNKRS CART has ${pairCount} of the ${profile.name} in stock from ${formatPrice(ownPairs[0].priceFrom)}, with free shipping across India.` });
   }
   if (sizeNotes) {
     faqs.push({ question: `How does the ${profile.name} fit?`, answer: sizeNotes });
@@ -152,9 +160,10 @@ export default async function SneakerHubPage(props: Props) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJson) }} />
-      {itemListJson && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJson) }} />}
-      {faqJson && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJson) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJson) }} />
+      {itemListJson && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(itemListJson) }} />}
+      {faqJson && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJson) }} />}
+      {modelOfferJson && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(modelOfferJson) }} />}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Breadcrumb */}
@@ -201,10 +210,10 @@ export default async function SneakerHubPage(props: Props) {
               ))}
             </div>
 
-            {market && (
+            {answer && (
               <div className="mb-6 p-4 border border-zinc-200">
-                <p className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 mb-1">Current price in India</p>
-                <p className="text-sm font-semibold text-zinc-900">{marketLabel}</p>
+                <h2 className="text-[9px] font-bold tracking-widest uppercase text-zinc-500 mb-1">{profile.name} price in India</h2>
+                <p className="text-sm font-semibold text-zinc-900 leading-relaxed">{answer}</p>
                 {marketHref && (
                   <Link href={marketHref} className="inline-block mt-2 text-xs font-bold underline underline-offset-2 text-zinc-900 hover:text-zinc-600">
                     Shop {profile.name}
@@ -231,6 +240,8 @@ export default async function SneakerHubPage(props: Props) {
         </div>
 
         {/* Available at SNKRS CART */}
+        <SneakerPairsTable modelName={profile.name} pairs={ownPairs} totalPairs={ownCount} />
+
         <div className="border-t border-zinc-100 pt-10 mb-16">
           <h2 className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-500 mb-1">
             {matchingProducts.length > 0 ? 'Available at SNKRS CART' : 'Not In Stock Right Now'}

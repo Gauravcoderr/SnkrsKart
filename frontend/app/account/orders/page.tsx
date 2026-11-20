@@ -10,6 +10,7 @@ import { getTrackingUrl, isDeepLink, isAfterShipLink, shipmentHeadline, shipment
 import type { Shipment } from '@/types/seller';
 import { useAuth } from '@/context/AuthContext';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
+import { orderItemLink } from '@/lib/orderItemLink';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -400,9 +401,9 @@ function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
           <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{order.items.length} item{order.items.length > 1 ? 's' : ''}</span>
         </div>
         {order.items.map((item, i) => {
-          const href = item.slug ? `/products/${item.slug}` : `/products?search=${encodeURIComponent(item.name)}`;
+          const link = orderItemLink(item, order.status);
           return (
-            <Link key={i} href={href} className="flex gap-4 p-4 border-b border-zinc-50 last:border-0 hover:bg-zinc-50/50 transition-colors group/item">
+            <Link key={i} href={link.href} className="flex gap-4 p-4 border-b border-zinc-50 last:border-0 hover:bg-zinc-50/50 transition-colors group/item">
               {item.image ? (
                 <div className="relative w-[72px] h-[72px] bg-zinc-100 rounded-xl shrink-0 overflow-hidden ring-1 ring-zinc-100">
                   <Image src={item.image} alt={item.name} fill className="object-cover" sizes="72px" />
@@ -428,7 +429,7 @@ function OrderDetail({ order, onBack }: { order: Order; onBack: () => void }) {
               </div>
               <div className="flex flex-col items-end gap-1 shrink-0">
                 <p className="text-sm font-black text-zinc-900">{formatPrice(item.price * item.qty)}</p>
-                <span className="text-[10px] font-bold text-indigo-400 group-hover/item:text-indigo-600 transition-colors">View →</span>
+                <span className="text-[10px] font-bold text-indigo-400 group-hover/item:text-indigo-600 transition-colors">{link.label} →</span>
               </div>
             </Link>
           );

@@ -9,3 +9,12 @@ export function fullProductName(brand: string | undefined, name: string | undefi
 export function priceInIndiaTitle(brand: string | undefined, name: string | undefined): string {
   return `${fullProductName(brand, name)} Price in India | Snkrs Cart`;
 }
+
+export function sneakerGuideTitle(brand: string | undefined, name: string | undefined): string {
+  return `${fullProductName(brand, name)} Guide: History and Specs | Snkrs Cart`;
+}
+
+export function profileTitle(brand: string | undefined, name: string | undefined, hasIndiaPrice: boolean): string {
+  if (hasIndiaPrice) return priceInIndiaTitle(brand, name);
+  return sneakerGuideTitle(brand, name);
+}

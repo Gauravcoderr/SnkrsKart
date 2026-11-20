@@ -184,6 +184,15 @@ async function releaseCalendarPages(): Promise<MetadataRoute.Sitemap> {
     }));
 }
 
+async function sneakerPricePage(): Promise<MetadataRoute.Sitemap> {
+  const res = await fetch(`${API}/sneaker-profiles/prices`, opts(3600));
+  if (res.status === 404) return [];
+  if (!res.ok) throw new Error(`sitemap: sneaker prices answered ${res.status}, refusing to emit a truncated sitemap`);
+  const rows: unknown[] = await res.json();
+  if (rows.length === 0) return [];
+  return [{ url: `${SITE_URL}/sneakers/price-in-india`, changeFrequency: 'daily' as const, priority: 0.8 }];
+}
+
 // ---------------------------------------------------------------------------
 // Main export — single /sitemap.xml, all pages fetched in parallel
 // ---------------------------------------------------------------------------
@@ -214,6 +223,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...brandPages(),
     ...(await categoryPages()),
     ...(await releaseCalendarPages()),
+    ...(await sneakerPricePage()),
     ...blogPages(blogChunks.flat()),
     ...productChunks.flat(),
     ...sneakerChunks.flat(),

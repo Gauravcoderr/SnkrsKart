@@ -1,4 +1,4 @@
-import { Product, Brand, BannerSlide, ProductsResponse, FilterState, Review, FitSummary, LoyaltyAccount, SneakerProfile, Drop } from '@/types';
+import { Product, Brand, BannerSlide, ProductsResponse, FilterState, Review, FitSummary, LoyaltyAccount, SneakerProfile, SneakerPriceRow, Drop } from '@/types';
 import { fetchWithAuth } from './fetchWithAuth';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -168,6 +168,12 @@ export async function restockNotify(email: string, productSlug: string, size?: n
 export async function fetchSneakerProfiles(): Promise<SneakerProfile[]> {
   const res = await fetch(`${BASE_URL}/sneaker-profiles`, { next: { revalidate: 300 } });
   if (!res.ok) throw new Error('Failed to fetch sneaker profiles');
+  return res.json();
+}
+
+export async function fetchSneakerPrices(): Promise<SneakerPriceRow[]> {
+  const res = await fetch(`${BASE_URL}/sneaker-profiles/prices`, { next: { revalidate: 300 } });
+  if (!res.ok) throw new Error(`Failed to fetch sneaker prices (HTTP ${res.status})`);
   return res.json();
 }
 

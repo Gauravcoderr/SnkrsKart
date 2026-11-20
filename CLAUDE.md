@@ -1,6 +1,7 @@
 # SNKRS CART — Claude Context
 
 ## Stack
+
 - **Frontend**: Next.js 15.5 (App Router, React 19), TypeScript, Tailwind CSS → Vercel Hobby team `thesneakerbrief-4546`, project `snkrs-kart` (since 2026-11-18; `snkrs-kart-virid.vercel.app` and the old `snkrs-kart.vercel.app` 301 to `www.snkrscart.com` in `next.config.mjs`)
 - **Backend**: Express + TypeScript + MongoDB (Mongoose) → Render at `https://snkrskart.onrender.com`
 - **AI Chatbot**: Gemini 2.0 Flash (primary) → Groq llama-3.3-70b (fallback)
@@ -10,6 +11,7 @@
 - **No PostgreSQL** — everything is MongoDB. Supabase keys exist in .env but are unused for main data.
 
 ## Key env vars (frontend)
+
 ```
 NEXT_PUBLIC_API_URL        → backend base (e.g. https://snkrskart.onrender.com/api/v1)
 NEXT_PUBLIC_SUPABASE_URL   → exists but NOT used for core data
@@ -19,6 +21,7 @@ NEXT_PUBLIC_GOOGLE_ADS_PURCHASE → optional `AW-XXXXXXXXX/label`; when set the 
 ```
 
 ## Key env vars (backend)
+
 ```
 ADMIN_NOTIFICATION_EMAIL   → email to notify on new deal submission (optional, falls back to EMAIL_FROM)
 AFTERSHIP_API_KEY          → AfterShip tracking API (server-side only); AFTERSHIP_WEBHOOK_SECRET verifies webhooks
@@ -31,6 +34,7 @@ IG_CRON_SECRET             → Bearer for POST /api/v1/instagram/run-due (also a
 ```
 
 ## Directory structure
+
 ```
 frontend/
   app/                        Next.js App Router pages
@@ -95,43 +99,46 @@ backend/src/
 ```
 
 ## API routes (backend)
+
 All prefixed `/api/v1/`. Admin routes require `Authorization: Bearer <admin_token>`.
 
-| Route | Notes |
-|-------|-------|
-| `GET /products` | supports `search`, `brand`, `gender`, `limit`, `page` query params |
-| `GET /products/:slug` | single product |
-| `GET /drops?days=N` | published drops: upcoming + released in last N days (default 7, max 90) |
-| `GET /sneaker-profiles` | list select includes `releaseYear originalRetailPrice designer` for cards |
-| `GET /sneaker-profiles/:slug` | profile + computed `market: {inrMin, inrMax, listings, productSlugs}` or null (brand + whole-word model prefix match on store products incl. seller offers and scraped prices; kids/coming-soon excluded; no store names; cached 5 min per slug) |
-| `POST /api/v1/chat/lead` | save KickBot lead (name, email, phone, interests[]) |
-| `GET /admin/chat-leads` | admin: list chat leads |
-| `DELETE /admin/chat-leads/:id` | admin: delete chat lead |
-| `GET /admin/orders` | admin: all orders |
-| `PUT /admin/orders/:id` | admin: update status/tracking/notes |
-| `GET /admin/users` | admin: users with orderCount + totalSpend |
-| `GET /admin/newsletter` | admin: newsletter subscribers |
-| `POST /api/v1/deals/send-otp` | send OTP to deal submitter email (in-memory, 5 min TTL) |
-| `POST /api/v1/deals/submit` | verify OTP + create DealVerification + notify admin |
-| `GET /admin/deal-verifications` | admin: list all deal submissions |
-| `PUT /admin/deal-verifications/:id` | admin: set verdict + note → emails user result |
-| `POST /seller-portal/auth/login` | seller login → JWT (type seller) |
-| `GET/POST/PUT/DELETE /seller-portal/listings` | seller's own listings (sizes must exist on the product) |
-| `GET /seller-portal/catalog?search=` + `/catalog/:id` | catalog search + current best offer per size with `beat` price hints |
-| `GET /seller-portal/orders`, `POST /orders/:id/verification`, `POST /orders/:id/tracking` | seller orders (no customer PII), photo verification, one-time tracking |
-| `GET/POST /seller-portal/requests` | new-product requests |
-| `GET/POST /admin/sellers`, `POST /admin/sellers/:id/activate|reset-password`, `PUT /admin/sellers/:id` | seller account management |
-| `GET /admin/seller-orders`, `PUT /admin/seller-orders/:id/verification|tracking` | review photos, override tracking |
-| `GET/PUT /admin/product-requests` | approve (needs `productId`) / reject requests |
-| `GET /admin/payouts`, `PUT /admin/seller-orders/:id/payout` | delivered seller orders; mark paid (screenshotUrl required) → seller emailed |
-| `POST /tracking/aftership/webhook` | AfterShip tracking updates (HMAC verified) |
-| `POST /admin/seller-orders/:id/sync-tracking` | pull latest AfterShip status for one seller order |
-| `GET /admin/instagram` · `GET /admin/instagram/status` | Instagram queue (`status` filter) and publisher, token and quota status |
-| `POST /admin/instagram/:id/approve\|unapprove\|reject\|reopen\|retry\|publish-now` | Instagram lifecycle; approve takes optional `scheduledAt` |
-| `POST /instagram/run-due` | Bearer `IG_CRON_SECRET`; publishes due Instagram posts (hourly GitHub Actions backup) |
-| `/health` | keep-alive ping (UptimeRobot pings every 5 min) |
+| Route                                                                                     | Notes                                                                                                                                                                                                                                            |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /products`                                                                           | supports `search`, `brand`, `gender`, `limit`, `page` query params                                                                                                                                                                               |
+| `GET /products/:slug`                                                                     | single product                                                                                                                                                                                                                                   |
+| `GET /drops?days=N`                                                                       | published drops: upcoming + released in last N days (default 7, max 90)                                                                                                                                                                          |
+| `GET /sneaker-profiles`                                                                   | list select includes `releaseYear originalRetailPrice designer` for cards                                                                                                                                                                        |
+| `GET /sneaker-profiles/:slug`                                                             | profile + computed `market: {inrMin, inrMax, listings, productSlugs}` or null (brand + whole-word model prefix match on store products incl. seller offers and scraped prices; kids/coming-soon excluded; no store names; cached 5 min per slug) |
+| `GET /sneaker-profiles/prices`                                                            | published profiles that have India price data (a market or `indiaRetailPrice`): `{slug, name, brand, image, category, indiaRetailPrice, market: {inrMin, inrMax, inrMedian, listings, ownPairs} or null}`; feeds `/sneakers/price-in-india`      |
+| `POST /api/v1/chat/lead`                                                                  | save KickBot lead (name, email, phone, interests[])                                                                                                                                                                                              |
+| `GET /admin/chat-leads`                                                                   | admin: list chat leads                                                                                                                                                                                                                           |
+| `DELETE /admin/chat-leads/:id`                                                            | admin: delete chat lead                                                                                                                                                                                                                          |
+| `GET /admin/orders`                                                                       | admin: all orders                                                                                                                                                                                                                                |
+| `PUT /admin/orders/:id`                                                                   | admin: update status/tracking/notes                                                                                                                                                                                                              |
+| `GET /admin/users`                                                                        | admin: users with orderCount + totalSpend                                                                                                                                                                                                        |
+| `GET /admin/newsletter`                                                                   | admin: newsletter subscribers                                                                                                                                                                                                                    |
+| `POST /api/v1/deals/send-otp`                                                             | send OTP to deal submitter email (in-memory, 5 min TTL)                                                                                                                                                                                          |
+| `POST /api/v1/deals/submit`                                                               | verify OTP + create DealVerification + notify admin                                                                                                                                                                                              |
+| `GET /admin/deal-verifications`                                                           | admin: list all deal submissions                                                                                                                                                                                                                 |
+| `PUT /admin/deal-verifications/:id`                                                       | admin: set verdict + note → emails user result                                                                                                                                                                                                   |
+| `POST /seller-portal/auth/login`                                                          | seller login → JWT (type seller)                                                                                                                                                                                                                 |
+| `GET/POST/PUT/DELETE /seller-portal/listings`                                             | seller's own listings (sizes must exist on the product)                                                                                                                                                                                          |
+| `GET /seller-portal/catalog?search=` + `/catalog/:id`                                     | catalog search + current best offer per size with `beat` price hints                                                                                                                                                                             |
+| `GET /seller-portal/orders`, `POST /orders/:id/verification`, `POST /orders/:id/tracking` | seller orders (no customer PII), photo verification, one-time tracking                                                                                                                                                                           |
+| `GET/POST /seller-portal/requests`                                                        | new-product requests                                                                                                                                                                                                                             |
+| `GET/POST /admin/sellers`, `POST /admin/sellers/:id/activate                              | reset-password`, `PUT /admin/sellers/:id`                                                                                                                                                                                                        | seller account management        |
+| `GET /admin/seller-orders`, `PUT /admin/seller-orders/:id/verification                    | tracking`                                                                                                                                                                                                                                        | review photos, override tracking |
+| `GET/PUT /admin/product-requests`                                                         | approve (needs `productId`) / reject requests                                                                                                                                                                                                    |
+| `GET /admin/payouts`, `PUT /admin/seller-orders/:id/payout`                               | delivered seller orders; mark paid (screenshotUrl required) → seller emailed                                                                                                                                                                     |
+| `POST /tracking/aftership/webhook`                                                        | AfterShip tracking updates (HMAC verified)                                                                                                                                                                                                       |
+| `POST /admin/seller-orders/:id/sync-tracking`                                             | pull latest AfterShip status for one seller order                                                                                                                                                                                                |
+| `GET /admin/instagram` · `GET /admin/instagram/status`                                    | Instagram queue (`status` filter) and publisher, token and quota status                                                                                                                                                                          |
+| `POST /admin/instagram/:id/approve\|unapprove\|reject\|reopen\|retry\|publish-now`        | Instagram lifecycle; approve takes optional `scheduledAt`                                                                                                                                                                                        |
+| `POST /instagram/run-due`                                                                 | Bearer `IG_CRON_SECRET`; publishes due Instagram posts (hourly GitHub Actions backup)                                                                                                                                                            |
+| `/health`                                                                                 | keep-alive ping (UptimeRobot pings every 5 min)                                                                                                                                                                                                  |
 
 ## KickBot (ChatBot.tsx) — key behaviours
+
 - Greeting shown on mount, not counted as a user message
 - After **5 user messages** → `LeadCaptureCard` appears inline
 - Lead saved to MongoDB via `POST /api/v1/chat/lead` (email unique — duplicates silently skipped)
@@ -143,12 +150,15 @@ All prefixed `/api/v1/`. Admin routes require `Authorization: Bearer <admin_toke
 - Rate limit: 5 requests/IP/minute
 
 ## Admin sidebar nav order
+
 Orders → Users → Products → Inquiries → Reviews → Banners → Sellers → Seller Orders → Product Requests → Payouts → Blogs → Chat Leads → Deal Checks (Instagram sits after Email Blast)
 
 ## Brands available in store
+
 Nike, Jordan (Air Jordan), Adidas, New Balance, Crocs
 
 ## Drop calendar + Sneaker guide (SSR)
+
 - `/drops` and `/sneakers` are `force-dynamic`: filter/sort/view state read from `searchParams` and passed as `initial` to the client component, which mirrors state back to the URL with `history.replaceState` (no refetch). Data fetches cached 5 min.
 - `/drops` UI: next-drop strip with live `Countdown`, search, brand chips, date-range chips, list view grouped by date (sticky day headers) or month calendar view, recently released (30 days), SEO copy + FAQ (FAQPage + ItemList JSON-LD).
 - `AddToCalendar` (Google URL + .ics download) lives in `components/drops/`; date helpers in `lib/calendar.ts` (all UTC-date based, matching stored midnight-UTC release dates).
@@ -158,23 +168,29 @@ Nike, Jordan (Air Jordan), Adidas, New Balance, Crocs
 - Drop detail hero is `components/drops/DropGallery.tsx` (client): 4:3 stage, `object-contain` (never crop), slides = `[image, ...images]` deduped. Slider chrome (thumbs, arrows, counter, swipe, arrow keys, lightbox) only when 2+ images. `Drop.images: string[]` optional; admin form has multi-upload + reorder.
 
 ## Release calendars (`/release-dates/[slug]`, 2026-11-18)
+
 - Config in `frontend/lib/releaseCalendars.ts` (`RELEASE_CALENDARS`: `jordan`, `nike`, `kobe`, `nike-caitlin-1`; brand calendars match `drop.brand`, model calendars match the name, so the Caitlin Clark Kobe 5 shows on both Kobe and Caitlin). `calendarDrops()` splits into upcoming (soonest first) and released this calendar year (latest first). Copy helpers (`calendarSummary`, `retailPriceText`, USD rows say "US retail") in `lib/releaseCalendarCopy.ts`.
 - Data: backend `GET /drops?from=YYYY-MM-DD` (published drops on or after that date; a missing or impossible date falls back to `days`), frontend `fetchDropsSince()`. Page is `force-dynamic`, fetch cached 5 min, fetch failures throw (500, never an empty indexable page), noindex when a calendar has no drops, unknown slug 404.
 - Page: H1 with the year, one answer sentence (next release, date, price, how many more), upcoming table, released-this-year table, Event `ItemList` (shared with `/drops` through `lib/dropJsonLd.ts` `dropItemListJsonLd()`) and `BreadcrumbList`. `/drops` links to every calendar; the sitemap lists a calendar when it has drops. Why: Bing AI Topics (2026-11-17) showed release-date queries ("jordan release dates 2026", Caitlin 1, Kobe 2026) citing other sites.
 - Add a calendar: one `calendar(slug, label, matches, heading?)` row; nothing else.
 
 ## Content ML (`content-ml/`)
+
 - Free, local pre-publish model that the /blog, /drop and /sneaker skills run in their "Content ML Loop" step (repo copies of the skills live in `.claude/commands/`, mirrored in `~/.claude/commands/`; keep them identical). Python 3.9 venv at `content-ml/.venv`; `data/`, `models/` and `secrets/` are git-ignored.
 - `src/enhance.py <draft.json>` (exit 0 pass, 2 revise): blocking checks are facts (prices/dates/style codes vs `data/catalog.jsonl`, or a source link / draft `sources`) and near-duplicates (TF-IDF vs all posts of the same kind incl. unpublished and other drafts). Advisory: style score, stock words, Google India autocomplete + Search Console queries. Safe swaps (no global re-capitalisation, quotes and blockquotes untouched). Paragraph rewrites use the LoRA rewriter behind `factlock.py` placeholders and one shared gate `accept()`.
 - Style scorer: LightGBM on 30 style features + TF-IDF LR, trained only on matched pairs (pre-Nov-2022 human sneaker articles vs local Qwen rewrites vs Claude blog-voice rewrites of the same paragraphs); thresholds from human out-of-fold scores, frozen per version.
 - Rewriter: Qwen2.5-1.5B-Instruct-4bit + MLX LoRA. `train.sh rewriter` trains a candidate, `promote.py` picks the lowest-val checkpoint and promotes only if it beats the live adapter by 5+ accepted paragraphs on the frozen `models/eval_ours.jsonl` (100 of our own paragraphs). `train.sh retrain-if-due` runs at the end of `scripts/auto-content.sh` under `caffeinate` (needs 30 new published flywheel pairs).
 - Search Console: `src/gsc.py pull|queue|queries <slug>` (service account key in `content-ml/secrets/gsc.json`, setup in `content-ml/GSC_SETUP.md`) writes `data/gsc_pages.json` and `data/refresh_queue.json` (position 8 to 20, 50+ impressions). Live since 2026-10-09 with service account `snkrs-cart@snkrs-cart.iam.gserviceaccount.com` (Restricted) in GCP project `snkrs-cart`; `auto-content.sh` pulls it on every scheduled run. The EMB work org blocks service-account keys, so GSC keys must come from the personal-account project.
 - Growth analysis: `content-ml/commands/growth.sh` pulls 16 months of Search Console history (`src/gsc_history.py`), the Merchant Center state and reports (`src/merchant.py`, Merchant API v1 only; v1beta is dead) and the live feed, then `src/growth.py` writes `data/growth/growth_report.json` (trend, isotonic CTR curve, CTR gap and rank lift per page and query, TF-IDF + KMeans query clusters, momentum, cannibalisation, `#heading-N` fragment leaks, commercial queries without a shop page, product coverage, Merchant demand coverage, ranked actions). Findings of 2026-10-10 are in `reports/Growth from Search Console and Merchant Center 2026-10.md`: Merchant account suspended for misrepresentation (review requested 2026-10-09) and capped so 390 of 398 feed items are rejected; India is 30 percent of impressions; product pages got 354 impressions in 90 days against 5,220 for one blog post; TOC anchors split 46 percent of the festival post's impressions.
+- Since 2026-11-21 `src/merchant_insights.py` feeds three `merchant` sections of the growth report: `product_performance_90d` (free listing clicks and impressions summed from the pulled rows; a missing file reads `available: false`, never a zero), `price_competitiveness` (our price against Google's India benchmark, 5 percent band, products above it grouped across sizes) and `sourcing_list` (top India shoe clusters from brands we carry that are not in our stock, cap 40; `null` when the best-seller file was never pulled). Each section carries the `pulled` date of its file and the sentences print it; a file without a `rows` key reads as not available. The rank-1 action follows the account state: restricted only on a CRITICAL account issue or zero eligible items, unknown when the product rows or the account issue list were not pulled, otherwise the price and stock action. `commands/sourcing.sh` prints the report for sellers. On 2026-11-21: 11 clicks on 352 impressions in 90 days, 54 of 85 benchmarked items more than 5 percent above benchmark.
+- `src/topics.py` (`commands/topics.sh`, `--json` for raw output) turns the growth report, `data/growth/gsc_page_query_90.json` and `data/refresh_queue.json` into three lists for /blog Step 1.0: posts to refresh first, rising India queries no post of ours answers, and query clusters ranking past page one. It exits 1 with a message when the report, one of its sections or the page-query file is missing. Blog refresh update files live in `data/refresh/`, never in `data/drafts/` (the gate reads every file there as a draft and crashes on a list).
+- content-ml tests: `cd content-ml && .venv/bin/python -m unittest discover -s tests` (stdlib unittest, no pytest in the venv).
 - `content-ml/commands/*.sh` are owner-runnable wrappers (status, check-draft, check-post with `--no-log`, keywords, export-content, gsc-pull, train-scorer, train-rewriter, promote, retrain, make-pairs, stop, setup, run-auto-content); heavy ones refuse under 30W unless `FORCE=1`. Keep `commands/README.md` in sync when changing them.
 - Hardware: the M1 8 GB cannot run MLX training on a weak charger; run heavy jobs alone and check `pmset -g batt` first.
 - `scripts/com.snkrscart.autocontent.plist` runs Mon/Wed/Fri 13:30 (`StartCalendarInterval`, fires on next wake if asleep). `auto-content.sh` refuses to start on a dirty working tree.
 
 ## Content to product linking (2026-10-10)
+
 - `frontend/lib/productMatch.ts` has two matchers. `matchSameProduct(release, products)` is for drops and answers "is this the same shoe": style code equal to the product `sku`, or every product name token (colour words included, because in sneakers the colour nickname is the identity) appears in the drop name and colorway, the drop's own nickname words (name minus brand, model and generic words like retro, og, low, high) appear on the product, and the colorways overlap by at least 2 words and 80 percent of the shorter one (a product colorway under 2 words cannot vouch). `matchProducts(text, products, limit)` is model level (colour words stripped) and only feeds the blog "Shop this model" block. `mentionsProduct()` (full name inside the text) gates the blog `mentions` JSON-LD. `isLive()` and `lowestLivePrice()` read per-size `offers`. Catalogue comes from `lib/catalog.ts` `fetchAllProducts({ revalidate: 3600 })`.
 - Never use the model-level matcher for anything that says "this pair": on 2026-10-10 it linked 44 of 119 drops, 43 of them to a different colourway (Air Jordan 1 High OG "Royal" showed the "Metallic Gold" pair, price table and "Yes, we sell it" FAQ included). The same-shoe matcher links 3 (Comic, Laser, Last Dance to the Garden pair).
 - Blog page: model matches render first under "Same model, in stock / Shop this model" (falls back to brand-tag products). Heading ids are stable slugs of the heading text (`app/blogs/[slug]/headings.ts`); `TableOfContents` takes `headings`. Search Console rows for `#id` URLs are Google jump links, keep the anchors.
@@ -186,13 +202,16 @@ Nike, Jordan (Air Jordan), Adidas, New Balance, Crocs
 - Frontend tests: `cd frontend && node --test 'tests/*.test.mjs'` (Node 26 strips TypeScript types, no test package). Test files are `.mjs` so Next's type check skips them; the modules they import must have no runtime `@/` imports (type-only imports are fine).
 
 ## Brand pages (`/brands/[slug]`)
+
 - 2026-11-18: titles read `<Brand> Sneakers in India: <models> Prices | SNKRS CART` (fallback `<Brand> Shoes in India: Prices from ...`). The 2026-10-09 form `New Balance India: ...` read like the brand's own site, and "new balance india" fell from position 5 to 20 after it (cause not proven); the pre-October title that ranked also said "Sneakers India". Check the query in `growth.sh` before changing it again.
 - `<title>` and meta description come from `frontend/lib/brandSeo.ts` `brandSeo()`: top 2 to 3 stocked models per brand (NB variants grouped, shared prefixes compressed, title kept to 60 chars), footwear-only price range (`productType` shoes, not coming soon). The on-page "starting from" price is also footwear-only. Added 2026-10-09 because `/brands/new-balance` had 3,378 impressions at position 8 and 1 click for "new balance india".
 
 ## Homepage section order
+
 MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → TrendingNow → WhyChooseUs → ComingSoon → NewsletterBar
 
 ## Seller portal (`/sellers`)
+
 - Separate auth: `POST /api/v1/seller-portal/auth/login` (email + password, bcrypt, 10 tries/15 min) or email OTP (`POST /auth/send-otp` → 6-digit code, sha256 hash in `Seller.loginOtp*` (select:false), 5 min TTL, 60 s resend cooldown, 5 attempts; `POST /auth/verify-otp` → same token/seller payload as password login; only `status: active` sellers can request a code, same limiter as login). Both → JWT `{type:'seller'}` 7d in `localStorage` as `seller_token` (`lib/sellerApi.ts`). Login page defaults to the Email code tab. First login: `mustChangePassword` makes `SellerShell` redirect every route to `/sellers/settings?reset=1`, where the seller must request `POST /auth/send-verify-otp` (sellerAuth, same OTP fields) and submit `POST /auth/change-password { otp, newPassword }`; while `mustChangePassword` is true the route requires the OTP instead of `currentPassword` and stamps `Seller.emailVerifiedAt`. Normal password changes still need `currentPassword`. `middleware/sellerAuth.ts` re-checks `Seller.status === 'active'` on every request. Mounted at `/seller-portal` (not `/seller`) so the 100 POST/day limiter on the public application form does not apply.
 - Admin creates accounts: `POST /admin/sellers` (new) or `POST /admin/sellers/:id/activate` (from a `/sell` application). Both generate a temp password, email it (`lib/sellerEmails.ts`) and return it once; `mustChangePassword` forces a reset on first login. `reset-password` and `PUT status: suspended` (pauses all listings) also exist.
 - `SellerListing` = (seller, product, size) unique. Seller enters `sellerPrice`; public `listPrice = ceil((sellerPrice * 1.10) / 10) * 10` (`computeListPrice`, mirrored in `frontend/lib/availability.ts`). Availability: `instant` (ships 24h) / `inhand` (3 days) / `eta` (~20 days). Sellers can list any standard UK size (1 to 16, half steps) on an existing shoe even if the product does not carry it yet (the offers merge adds it to the size grid); clothing is limited to the product's `stringSizes`. Listing responses (GET/POST/PUT `/seller-portal/listings`) carry `competition`: `{lowest:true}` when the seller's listing is the best offer for that size per `buildOffers()` (store stock counts), `{lowest:false, beat, by:'store'|'seller', tie}` when beaten (`beat` = highest seller price that would win), `null` for paused/sold-out. Portal listings page shows a green Lowest tag or a Not lowest tag plus hint. New products go through `ProductRequest` (name, brand, sizes, supporting URLs) which admin approves by picking the catalog product they created.
@@ -205,6 +224,7 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Seller dashboard (`GET /seller-portal/dashboard`) adds `profile` (fulfilment `score` 0-5 = 50% on-time + 30% low cancellations + 20% photos approved first try, null until 3 shipped orders; `rank` = position among sellers with confirmed sales this month, `ranked` count, never total seller count), `health` (avg ship days per availability vs `AVAILABILITY_SHIP_DAYS` target, `onTimeRate`, `cancellationRate`, `photoApprovalRate`, `lowestOffers` share via `buildOffers`), `inventory` (active listing value = sum sellerPrice*qty) and `sales` (all time / 7d / 30d / avg). UI: dark hero + `components/seller/DashboardWidgets.tsx` segmented scale bars (red to green, marker at value, reversed axis for lower-is-better).
 
 ## Shipment tracking (AfterShip)
+
 - Links: `frontend/lib/tracking.ts` `getTrackingUrl()` → native deep link for Shiprocket/Blue Dart/FedEx/DHL, else public `https://www.aftership.com/track/{slug}/{awb}` (free, no key). Slugs: delhivery, dtdc, bluedart, ekart, xpressbees, shadowfax, ecom-express, india-post, fedex, dhl.
 - API: `backend/src/services/aftership.ts` (header `as-api-key`, base `https://api.aftership.com/tracking/{AFTERSHIP_API_VERSION, default 2025-07}`). Env: `AFTERSHIP_API_KEY`, `AFTERSHIP_WEBHOOK_SECRET`, `AFTERSHIP_API_VERSION`. Key is server-side only.
 - Registration: `applySellerTrackingToOrder()` → `registerSellerShipment()` (mirrors to `Order.shipment` when the order is a single seller shipment); admin `PUT /admin/orders/:id` with new tracking on a store-only order → `registerOrderShipment()`. Result stored in `shipment` sub-doc (`models/Shipment.ts`: aftershipId, tag, subtag, lastCheckpoint, checkpoints[≤15], expectedDelivery) on both `Order` and `SellerOrder`.
@@ -213,6 +233,7 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - UI: live status card on customer `/account/orders`, seller order detail, admin orders and admin seller-orders.
 
 ## Google Merchant Center (account 5750742430)
+
 - Data source "PRODUCTS SOURCE 1" (id 10624791824) must fetch `https://www.snkrscart.com/google-merchant-feed.xml`, country IN only (we ship to India only, INR). Website autofeed stays off so the crawl never adds a second copy of the catalogue.
 - Feed (`frontend/app/google-merchant-feed.xml/route.ts`): one item per size. Price + availability per size come from `offers` (backend `GET /products/feed` runs `attachSellerOffers`), `eta` sizes go out as `backorder` with `availability_date` and handling 15 to 20 days, other in-stock sizes carry `min/max_handling_time`. Title = `fullProductName(canonicalBrand, name)` + colors, colors `/`-joined (max 3), `mpn` only when `sku` looks like a real style code (no `identifier_exists` otherwise), description falls back to a generated one when the stored text is under 60 chars.
 - Policy text must agree everywhere Google can read it (shipping, returns, terms, FAQ, contact, about, checkout confirmation, llms-full, MC shipping + return settings): dispatch within 3 business days, delivery 3 to 7 business days, Pre-order sizes about 20 days; returns only for damaged/wrong/authenticity issues within 48 h. Admin CMS `site-content` (`shipping`, `terms`, `privacy`) overrides the page code whenever `htmlContent` is set, so edit both.
@@ -224,6 +245,7 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Merchant API: GCP project `snkrs-cart` is registered (2026-10-09). Owner OAuth refresh token in `content-ml/secrets/merchant_token.json` (web client `merchant_oauth_client.json`, redirect `https://snkrs-kart.vercel.app`, code pasted back from the address bar). Service accounts cannot call `registerGcp`. Set request timeouts, some calls hang.
 
 ## Misrepresentation trust rules (2026-10-18)
+
 - Merchant Center 5750742430 is suspended for "Misrepresentation of business identity, business model, and policies" (manual check; review requested 2026-10-10). The domain is from 2026-04-14 and the store had 2 orders (both failed payments), so any claim a reviewer can contradict reads as invented.
 - Never ship invented social proof: no hardcoded testimonials (the three `FALLBACK_REVIEWS` in `HomeReviews` were removed), no "Verified" labels on reviews not tied to an order, no customer or sales counts, no founding or launch dates without proof (the `foundingDate: '2020'` in the Organization JSON-LD, the About meta description and the "Where are you based?" FAQ answer still said 2020 after the 2026-10-18 fix and were removed on 2026-10-30, together with the Facebook `sameAs` link). `Product.rating`/`reviewCount` must be computed from `Review` docs only (the reviews route recomputes them on submit).
 - No reference prices we never charged: `originalPrice` and `discount` are null on every product. Scraped publish in `routes/admin.ts` no longer copies the source store's compare-at price. Only set `originalPrice` for a genuine printed brand MRP, never another store's price.
@@ -232,6 +254,7 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Social links: only Instagram is real; `twitter.com/snkrs_cart` 404s and was removed from JSON-LD and llms files.
 
 ## AI agents / AAO (2026-10-10)
+
 - Research and priorities: `reports/Assistive Agent Optimization 2026-10.md`. Merchant Center is the biggest lever (Google AI Mode + Gemini shopping in India read the Shopping Graph; ChatGPT's carousel mostly mirrors Google Shopping). No agent checkout (ACP, UCP, Copilot, Perplexity) accepts Indian INR merchants yet.
 - `frontend/lib/merchantFacts.ts` is the one source for per-size facts: `variants()`, `stockState()`, `handlingDays()`, `variantId()` (= feed `g:id`), `groupId()` (= feed `item_group_id`), `validMpn()` (style code or null, never the slug). The Merchant feed, product page JSON-LD and MCP all build from it, so they can never disagree (a mismatch reads as misrepresentation). Refactor of the feed onto it was byte-identical (402 items).
 - Product page JSON-LD is a `ProductGroup` (`productGroupID` = feed group id, `variesBy` size) with one `Product` per size: `sku` = feed id, `mpn` only for real style codes, `size` as `SizeSpecification` with `WearableSizeSystemUK`, offer price/availability/handling days equal to the feed, offer `url` = `?size=<uk>`. Products without sizes fall back to a single `Product`. The specs table shows the style code.
@@ -244,6 +267,7 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Businesses in ChatGPT (OpenAI Business Hub + Business Agents, launched 2026-11-10): not claimed yet. The claim needs the owner's ChatGPT login, a phone/email/DNS code and a Persona ID check; the paste-ready profile copy, steps and open questions (India eligibility and INR are unconfirmed, non-US claims were waitlisted at launch) are in `reports/ChatGPT Business Hub claim 2026-11.md`. Feeds for it: `/openai-product-feed.jsonl` and `/openai-product-feed.csv` (`lib/openaiFeed.ts`, OpenAI commerce feed spec, one row per size, `item_id` = Google `g:id`, `price` as `12999.00 INR`, `is_eligible_checkout` false, no `accepts_returns` because OpenAI has no defective-only option). Text helpers shared by the Google and OpenAI feeds live in `lib/feedText.ts`. `cd frontend && NEXT_PUBLIC_API_URL=https://api.snkrscart.com/api/v1 npx --yes tsx --tsconfig tsconfig.json scripts/check-openai-feed.ts` checks every row of the live catalogue against the spec (required fields, enums, `amount INR` prices, lengths, https URLs, unique ids, variant rules, no placeholders) and exits 1 with the offending rows grouped by kind; it calls `fetchAllProducts({ strict: true })`, which throws on any `GET /products/feed` failure instead of walking the grid endpoint (grid cards carry no `sku` or `description`, so the silent fallback would pass a degraded feed). OpenAI's own delivery route is SFTP push of gzip or parquet snapshots for approved partners (apply at chatgpt.com/merchants); India and INR are not confirmed anywhere in the spec. Instant Checkout was retired by OpenAI in March 2026, so ChatGPT is discovery only.
 
 ## Data exposure fixes + Next 15 (2026-10-10)
+
 - Reviews: public `GET /reviews`, `/reviews/recent` and the POST response never include `email` (`PUBLIC_FIELDS` in `routes/reviews.ts`); only admin routes return it.
 - Order lookups (`GET /orders/lookup`, `GET /orders/:id`) go through `backend/src/lib/orderAccess.ts`: `lookupLimiter` (30 per IP per 15 min) and `lookupGuessLimiter` (10 failed tries per order number per hour, case-insensitive, successes not counted). The signed-in owner gets `customerOrderView`; anyone else with order number + email/phone gets `trackingOrderView` (status, items, totals, tracking, city/state; no name, email, phone, address, pincode or payment ids). No customer response (incl. `/orders/my`) carries `sellerId/sellerName/sellerPrice/listingId`. Account page track box calls lookup with `fetchWithAuth` so owners still see the full order. KickBot lookups come from Vercel IPs and share the per-IP limit. Tests: `backend/tests/orderAccess.test.ts`.
 - FAQs: `GET /api/v1/faqs` (`routes/faqs.ts`) serves the admin CMS page `faq` items as plain `{question, answer}` (the same answers `/faqs` shows; tests in `tests/faqs.test.ts`) and is listed again in `chatgpt-action-schema.yaml`. The CMS overrides `frontend/app/faqs/faqs-data.ts`; on 2026-10-10 the CMS still said 7–12 day delivery and "enquire, then buy on WhatsApp" while every other surface says dispatch within 3 business days, delivery 3–7 business days after dispatch, real checkout. `cd backend && npx ts-node --transpile-only scripts/syncFaqContent.ts --dry` shows the diff; without `--dry` it backs up to `content-ml/data/backups/` and copies `faqs-data.ts` into the CMS. One wording everywhere: free shipping, dispatch within 3 business days (Pre-order sizes about 20), delivery 3–7 business days after dispatch, cancel free before dispatch, returns only for damaged/wrong/authenticity issues within 48 hours of delivery, online payment only.
@@ -252,6 +276,7 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Dependency audit (2026-10-10): 0 critical, 0 moderate; 5 high remain, all from `braces` (no patched release exists) under Tailwind 3's file scanner (chokidar, micromatch, fast-glob, tailwindcss). Build-time only, never shipped; clearing it needs a Tailwind 4 migration. `package.json` `overrides` force patched `postcss` everywhere (`$postcss`, also Next's pinned 8.4.31), `postcss-selector-parser` 7.1.6 and `nanoid` 3.3.19; the compiled CSS was byte-identical before and after. tiptap pinned at 3.31.3. Prefer releases at least two weeks old; when bumping a package with overrides or peers stuck on an old lock entry, delete its lock entries and `node_modules` folder, then `npm install`.
 
 ## Instagram automation (2026-10-10)
+
 - Official Instagram API with Instagram Login only (`graph.instagram.com`, v25.0, scopes `instagram_business_basic` + `instagram_business_content_publish`, Standard Access, no App Review for our own account). The Meta app must be Live or its posts are visible only to app roles. Never browser automation. Owner setup: `INSTAGRAM_INTEGRATION.md`; research with Meta doc links: `research_notes/instagram-graph-api-2026-10.md`.
 - Flow: `/drop`, `/sneaker` Step 5b and `/blog` Step 5c → `backend/src/scripts/igDraft.ts starter|render|create` → `InstagramPost` status `draft` → `/admin/instagram` approve (optional IST time) → `jobs/instagramPublishJob.ts` every 5 min (+ hourly `.github/workflows/instagram.yml` calling `POST /api/v1/instagram/run-due`) → `published` with permalink. Unattended `auto-content.sh` runs make drafts without asking and never approve.
 - Lifecycle only through `lib/instagramState.ts` (draft → approved → publishing → published or failed; rejected). Claim is an atomic `findOneAndUpdate`. Editing content sends an approved post back to draft. A post stuck in publishing for 15 min becomes failed and is never auto-retried (it may be live). Transient container errors retry 3 times, 15 min apart, never once `media_publish` was called.
@@ -272,6 +297,7 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Screenshot path: `deal-screenshots/{timestamp}-{random}.{ext}` in Vercel Blob
 
 ## Product scraper
+
 - Two runners, same schedule (01:17 + 04:43 IST): Render cron (`backend/src/services/scraper/shopify.ts`, LimitedEdt + Superkicks JSON) and GitHub Actions (`.github/scripts/scraper/run.ts`) → `POST /api/v1/scraper/ingest` (Bearer `SCRAPER_SECRET`, batched 40/request because `express.json()` caps bodies at 100kb)
 - Brands: Nike, Jordan, Adidas, New Balance, Crocs (`SCRAPED_BRANDS` in `models/ScrapedProduct.ts`). Sites: myntra, footlocker, vegnonveg, limitededt, superkicks, nike, tatacliq, tatacliqluxury, ajio (`SCRAPED_SITES`)
 - Transport: `http.ts` `stealthGet` = got-scraping (real Chrome TLS/HTTP2 fingerprint + generated headers, per-host cookie jar) → backoff retries → per-host circuit breaker after 3 blocks → ScrapingAnt fallback (1 credit raw, serialised). Optional `SCRAPER_PROXY_URL` secret routes direct requests through a proxy
@@ -281,30 +307,36 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Footlocker: SSR `__PRELOADED_STATE__.listingV2.products` first (0 credits), then ScrapingAnt JS render, then Puppeteer. Akamai flags an IP after heavy probing (403 on everything for a while)
 
 ## Admin panel mobile patterns
+
 - `app/admin/layout.tsx`: desktop sidebar is `hidden md:flex`; below `md` a sticky top bar with a hamburger opens a slide-in drawer (same NAV, Escape + backdrop + route change close, body scroll lock).
 - Tables: every admin `<table>` has `className="admin-table"` and each non-title cell carries `data-label="..."`. `app/globals.css` stacks rows into labelled cards below `md` (thead hidden, `td[data-label]` becomes a 2-col grid with the label on the left). First cell = card title (no label), last cell without a label = actions (right-aligned). Wrap tables in `overflow-x-auto` for tablet widths.
 - List + detail pages (orders, seller-orders) wrap the detail panel in `_components/DetailPane.tsx`: inline grid column at `xl`, right slide-over sheet with backdrop below `xl`.
 - Form grids use `grid-cols-1 sm:grid-cols-N`; tall modals need `max-h-[90vh] overflow-y-auto`.
 
 ## Product slugs
+
 - `backend/src/lib/productSlug.ts` `buildProductSlug(text, brand?, sku?)` is the only way product slugs are made (admin create/edit, scraper publish). It takes the last path segment if a URL was pasted, drops leading `snkrscart-com-products-` style tokens, removes style codes anywhere (`HQ6998-600`, `KT3851`, `553558-045`, `1203B302-100`) and the product `sku`, strips a duplicated brand prefix and collapses repeated runs. Model numbers like `U9060`, `1906R`, `Mind 001` are left alone.
 - Renaming a slug (admin PUT or `scripts/fixProductSlugs.ts`) pushes the old slug into `Product.previousSlugs` and cascades to reviews/orders/inquiries/drops/restocks; `GET /products/:slug` falls back to `previousSlugs`, and the product page issues a `permanentRedirect` when the returned slug differs, so old URLs 301.
 - Audit/migrate: `npx ts-node --transpile-only scripts/fixProductSlugs.ts --dry` (drop `--dry` to apply). Ran 2026-10-06: 7 slugs cleaned, `air-jordan-1-retro-low-og-chicago-2025` kept as an alias of `air-jordan-1-low-og-chicago-2025` because 8 blogs linked to it.
 
 ## Product names + page titles
+
 - `backend/src/lib/productName.ts` `normalizeProductName()` runs on admin create/update and scraper publish: collapses whitespace, strips a leading duplicated brand (`Jordan Air Jordan 1` / `Jordan | Air Jordan 1` → `Air Jordan 1`), and title-cases names that are 80%+ caps (keeps OG/SB/GS/TD/AMG etc., roman numerals, lowercases `x`/`of`/`the`, `990V6` → `990v6`). Mixed-case names are left alone. Google rewrote all-caps titles to lowercase, which is why this exists.
 - Backfill: `npx ts-node --transpile-only scripts/fixProductNames.ts --dry` (drop `--dry` to apply, pings IndexNow). Ran 2026-10-06: 42 names fixed.
-- `normalizeProductName()` also runs `balanceQuotes()` (closes an unclosed nickname quote before `(GS)`, a year or ` - `, curly quotes become straight, `'07`/`Women's` untouched, lowercase first letter of a nickname capitalised). `normalizeColorway()` runs on admin create/update and scraper publish: strips quotes and leading/trailing `|/,-`, title-cases shouting or lowercase colourways, leaves clean mixed case alone. `fixProductNames.ts` backfills both and backs up to `content-ml/data/backups/` first. Tests: `backend/tests/productName.test.ts`.
+- `normalizeProductName()` also runs `balanceQuotes()` (closes an unclosed nickname quote before `(GS)`, a year or `-`, curly quotes become straight, `'07`/`Women's` untouched, lowercase first letter of a nickname capitalised). `normalizeColorway()` runs on admin create/update and scraper publish: strips quotes and leading/trailing `|/,-`, title-cases shouting or lowercase colourways, leaves clean mixed case alone. `fixProductNames.ts` backfills both and backs up to `content-ml/data/backups/` first. Tests: `backend/tests/productName.test.ts`.
 - Product page `<title>`, description, JSON-LD name, gallery alt and details line use `frontend/lib/productTitle.ts` `fullProductName(brand, name)`: brand is only prefixed when the name does not already contain it, so no more `Jordan Air Jordan 1 ...` titles.
 - Product and sneaker profile `<title>` default to `priceInIndiaTitle(brand, name)` = `<full name> Price in India | Snkrs Cart` (the query shape people search, see `reports/Culture Circle vs SNKRS CART 2026-11.md`). A product `metaTitle` still overrides it (16 products had one on 2026-11-18, one of them broken: `n Women's Cloud 6 ...`). The fallback product description carries the style code when `validMpn(sku)` returns one.
+- Since 2026-11-21 a sneaker profile gets the Price in India title only when it has India price data; see "Sneaker price pages". Products are unchanged.
 - Storefront shows names in caps via the Tailwind `uppercase` class (product H1, ProductCard, wishlist, cart, sticky bar, header search, coming-soon + purchase modals). Data stays Title Case; CSS gives the look without feeding Google a shouting title.
 
 ## Product grid ordering (`GET /products`)
+
 - Order is always: coming soon → in stock → sold out, then the user sort (`newest` = createdAt desc, `price_asc/desc`, `popular` = reviewCount desc), then `_id`. "In stock" means the product has at least one purchasable size after `attachSellerOffers()` (store sizes or active seller listings), so a product with `soldOut: false` but no available sizes still ranks with sold-out items.
 - Implemented in `backend/src/lib/productSort.ts` (`compareForGrid`) and applied in memory in `getAllProducts` while the filtered catalogue is ≤ 1000 products; above that it falls back to the Mongo `comingSoon:-1, soldOut:1` sort. `ProductCard` mirrors the rule and shows "Sold Out" whenever a non-coming-soon product has zero quick sizes.
 - Legacy docs missing `comingSoon` were backfilled to `false` on 2026-10-06 (a missing field sorted them after the sold-out block).
 
 ## PageSpeed / Lighthouse (2026-10-16)
+
 - Next 15.5 `priority` preloads an image but adds no `fetchpriority`; LCP images pass both `priority` and `fetchPriority="high"` (hero first slide, product gallery main image, first 4 grid cards, blog hero, drops next-drop backdrop).
 - Grey text: `text-zinc-500` on white/zinc-50, `text-zinc-600` on zinc-100 or tinted panels, `text-zinc-400` only on dark sections (footer, newsletter bar, drop banner, about page, dark modals and cards). `zinc-400` on white is 2.5:1 and fails.
 - Badges with white text: emerald-700, red-600, orange-700, indigo-600, zinc-600. WhatsApp buttons use `#075E54` (white text 7.7:1), not `#25D366`.
@@ -313,13 +345,39 @@ MarqueeStrip → HeroBanner → NewArrivals → HomeReviews → BrandGrid → Tr
 - Known, not fixable here: Google Customer Reviews badge sets a third-party `NID` cookie.
 - Every product image and brand tile lives on Cloudinary (the custom loader only resizes Cloudinary URLs). `cd backend && npx ts-node --transpile-only src/scripts/moveProductImagesToCloudinary.ts --dry` lists products with images elsewhere; without `--dry` it backs up to `content-ml/data/backups/`, uploads to `product-images/{slug}-{img-N|hover}-{hash}` and rewrites `images`/`hoverImage`. Ran 2026-10-17: 21 products, 62 images (Supabase, Nike, Adidas, VegNonVeg). Brand tiles are `site-images/brand-card-{slug}` in `frontend/lib/constants.ts`.
 
+## Product grid + brand page speed (2026-11-21)
+
+- Why: Vercel Speed Insights showed `/products` at RES 77 on mobile. The grid was built in the browser after a 2 s `GET /products` call, so the first product image (the LCP element) was requested at 2.6 s. Shipped in PR #4 (merged 2026-11-21). Lighthouse mobile on the live site went from 62 to 82 (simulated LCP 9.4 s to 3.3 s); the first product image request moved from 2581 ms to 173 ms and product images on load from 24 to 12. The brand page score did not move (71 before, 68 after on a heavily loaded Mac); its simulated LCP went from 8.8 s to 6.8 s and images from 33 to 19.
+- `/products` page 1 is fetched on the server: `app/products/page.tsx` calls `fetchProducts` (revalidate 300) and passes `initial` to `ProductsClient`, and `useProductFilters(initial)` seeds `useInfiniteQuery` `initialData` when `filterKey(filters)` matches. URL to filter parsing lives in `lib/productFilters.ts` (pure, shared by server and browser, tests in `tests/productFilters.test.mjs`).
+- The server fetch runs only for known filter values (`prefetchable()`: no `search`, known brand, gender, product type and sort), so the Data Cache keys stay bounded. Search and unknown values load in the browser as before. The fetch is capped at 4 s and any failure falls back to the browser fetch.
+- No `<Suspense>` around `ProductsClient`. React 19.3 outlines a large boundary (fallback first, then a `$RC` swap), which put the skeleton in the first paint. The route is dynamic, so `useSearchParams` needs no boundary.
+- Hook `loading` is `isPending || isPlaceholderData`. The old `isFetching && !isFetchingNextPage` replaced the whole grid with skeletons on every tab refocus after 30 s (React Query refetch on focus) and dropped the scroll position.
+- Brand page: the hero `<img>` carries `fetchPriority="high"` (it is the LCP element); its grid cards take no `priority` because they sit below the fold on phones. On `/products` the first 4 cards keep `priority`.
+- `ProductCard` hover photo has `hidden [@media(hover:hover)]:block` and the hover-swap CSS sits inside `@media (hover: hover)`, so touch devices never download it (a lazy image with `display: none` is not loaded). Image requests halved on phones.
+- Checks: local `next start` on port 3000 (the API allows `localhost:3000` only, so browser fetches fail CORS on other ports), then Lighthouse mobile. A phone profile in puppeteer-core 23 is `KnownDevices['Pixel 5']`; `'Pixel 7'` is undefined and silently tests desktop.
+- Still open: third-party scripts are about 700 KB of the 930 KB of script on both pages (gtag 196 KB, Customer Reviews badge 255 KB, Translate 111 KB, Google sign-in 101 KB) and dominate the lab LCP that remains.
+
 ## Vercel Hobby limits (2026-11-18)
+
 - Vercel paused the Hobby project for Fluid Active CPU (6h 20m of 4h; ISR writes 168K of 200K). Cause: `cache: 'no-store'` fetches made `/`, `/products/[slug]`, `/blogs/[slug]` and `/blogs/tag/[tag]` render on every request, bots included.
 - Rules: public server fetches never use `no-store` (use `next: { revalidate }`). A `[slug]` page needs `generateStaticParams() { return [] }` plus `export const revalidate` or Next 15 renders it on every request (products 300, blogs and tags 3600, sneakers 3600). Pages that read `searchParams` stay dynamic and get `Vercel-CDN-Cache-Control` in `next.config.mjs` (`CDN_5M`: `/products`, `/brands/:slug`, `/blogs`, `/drops`, `/sneakers`, `/release-dates/:slug`; `CDN_1H`: `/sitemap.xml`). Route handlers need `s-maxage` (plain `max-age` is browser only).
 - Check after any page change: `NEXT_PUBLIC_API_URL=https://api.snkrscart.com/api/v1 npm run build && npx next start -p 3100`, then `curl -sI` twice: cached pages answer `x-nextjs-cache: HIT` with `s-maxage`, never `private, no-cache, no-store`.
 - ISR writes count compressed 8 KB units and an unchanged regeneration writes nothing, so keep timestamps and random values out of cached output (the product `priceValidUntil` is date-only).
 
+## Sneaker price pages (2026-11-21)
+
+- Why: research in `reports/India sneaker web reach growth.md`. People search `<model> price in india` (Google India autocomplete returned that exact phrase for all 46 models checked), and Google's scaled-content policy punishes template pages without real data, so price pages are the existing sneaker profiles, gated on data we hold. No page is created for a model without a profile.
+- One market rule lives in `backend/src/lib/sneakerMarket.ts`: `buildMarkets(profiles, own, scraped)` is pure (whole-token model prefix, kids out, a longer sibling model wins, own offers through `attachSellerOffers` plus scraped prices of the last 30 days) and `getMarkets()` loads everything in one pass (profiles, products, scraped listings, cached 5 minutes) instead of the old per-profile queries. A market now also carries `inrMedian`, `pairs` (our own in-stock pairs: slug, name, colorway, sku, priceFrom, sizes; the 12 cheapest), `ownCount`, `ownMin`, `ownMax` (every own pair, not only the 12 shown) and `pricedAt` (now when we stock the model, else the newest `scrapedAt`). `createMarketCache()` keeps the last good map: a failed reload is logged, serves the last good prices and is retried after 30 s; with no good map yet `GET /sneaker-profiles/:slug` answers 503 (the page then keeps its cached render) and never `market: null`, because a null market would drop the price and change the title for an hour. On 2026-11-21 the batch result matched the live per-profile result for all 58 models with a market; a cold run took about 0.6 s.
+- `frontend/lib/sneakerPrice.ts` holds the page rules: `hasIndiaPrice()`, `priceAnswer()` (the sentence "As of <month>, the X is listed from A to B in India across N listings", dated by `pricedAt`, built only from stored fields; the middle listing shows from 3 listings), `modelOfferJsonLd()` (Product + AggregateOffer built only from pairs we sell, from 2 own pairs up; other stores' prices never go into structured data), `trackedCount()` and `latestPriceDate()` for the hub, `sortPriceRows()`, `monthLabel()` (India time). `profileTitle()` in `lib/productTitle.ts` gives the Price in India title only when `hasIndiaPrice()`; other profiles get `<name> Guide: History and Specs`.
+- Profile page: price box with the answer sentence, a "Prices by pair" table of our own pairs (`components/sneakers/SneakerPairsTable.tsx`, style code through `validMpn`), an extra FAQ when we stock the model. Hub: `/sneakers/price-in-india` (force-dynamic, CDN_5M header, table + ItemList, noindex when empty, fetch failure is a 500), linked from `/sneakers`, in the sitemap only when the prices endpoint answers with rows (a 404 from an older backend leaves it out, any other failure fails the sitemap like the other fetches).
+- New JSON-LD scripts go through `lib/jsonLd.ts` `safeJsonLd()` (escapes `<`). Older pages still call `JSON.stringify` directly.
+- Never name the stores behind scraped prices; show only the range and the listing count.
+- `/account/orders`: a delivered item links to `/products/<slug>#reviews` with "Write a review" (`lib/orderItemLink.ts`).
+- Not built: verified-purchase flag on reviews (needs a signed link from the delivery email), India MRP for more models (9 of 222 have one), profiles for searched models we lack (AJ1 High, Court Vision, Downshifter, Adizero Evo SL, Gel-Kayano 14, V2K Run, Killshot 2, Air Max Plus, Cloud 6, Initiator).
+- Tests: `backend/tests/sneakerMarket.test.ts`, `frontend/tests/sneakerPrice.test.mjs`, `frontend/tests/orderItemLink.test.mjs`.
+
 ## Important decisions / gotchas
+
 - Render free tier sleeps after 15 min inactivity → UptimeRobot pings `/health` every 5 min
 - `trust proxy 1` set on Express for correct IP in rate-limiter behind Render/Vercel
 - Backend is reachable on both `snkrskart.onrender.com` and `api.snkrscart.com` (Hostinger CNAME → Render custom domain). `sameSiteFor()` in `routes/auth.ts` picks `SameSite=Lax` only when request host AND Origin are under `snkrscart.com` (Safari/iOS keep the refresh cookie), else `SameSite=None` (old host, localhost dev). `COOKIE_SAMESITE` env overrides. Frontend must use `NEXT_PUBLIC_API_URL=https://api.snkrscart.com/api/v1` for first-party cookies. `http://localhost:3000` is always CORS-allowed.

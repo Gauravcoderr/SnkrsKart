@@ -164,6 +164,25 @@ export interface Blog {
 
 export type BlogTemplate = 'v1' | 'v2' | 'v3';
 
+export interface SneakerMarketPair {
+  slug: string;
+  name: string;
+  colorway: string;
+  sku: string;
+  priceFrom: number;
+  sizes: Array<number | string>;
+}
+
+export interface SneakerPriceRow {
+  slug: string;
+  name: string;
+  brand: string;
+  image: string;
+  category: string;
+  indiaRetailPrice: number | null;
+  market: { inrMin: number; inrMax: number; inrMedian: number; listings: number; ownPairs: number; pricedAt?: string | null } | null;
+}
+
 export interface SneakerProfile {
   _id: string;
   slug: string;
@@ -184,7 +203,18 @@ export interface SneakerProfile {
   published: boolean;
   createdAt: string;
   updatedAt: string;
-  market?: { inrMin: number; inrMax: number; listings: number; productSlugs: string[] } | null;
+  market?: {
+    inrMin: number;
+    inrMax: number;
+    inrMedian?: number;
+    listings: number;
+    ownCount?: number;
+    ownMin?: number | null;
+    ownMax?: number | null;
+    pricedAt?: string | null;
+    productSlugs: string[];
+    pairs?: SneakerMarketPair[];
+  } | null;
 }
 
 export interface Drop {
