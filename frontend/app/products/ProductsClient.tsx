@@ -7,6 +7,7 @@ import ProductGrid from '@/components/products/ProductGrid';
 import SortDropdown from '@/components/products/SortDropdown';
 import ActiveFilterTags from '@/components/products/ActiveFilterTags';
 import { SortOption } from '@/types';
+import type { InitialGrid } from '@/lib/productFilters';
 
 const BANNER_SLIDES = [
   {
@@ -23,7 +24,7 @@ const BANNER_SLIDES = [
   },
 ];
 
-export default function ProductsClient() {
+export default function ProductsClient({ initial }: { initial?: InitialGrid }) {
   const {
     filters,
     products,
@@ -40,7 +41,7 @@ export default function ProductsClient() {
     handleRemoveProductType,
     handleRemoveGender,
     handleClearAll,
-  } = useProductFilters();
+  } = useProductFilters(initial);
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
