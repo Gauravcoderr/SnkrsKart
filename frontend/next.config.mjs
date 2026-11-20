@@ -52,6 +52,7 @@ const nextConfig = {
       { source: '/blogs', headers: CDN_5M },
       { source: '/drops', headers: CDN_5M },
       { source: '/sneakers', headers: CDN_5M },
+      { source: '/sneakers/price-in-india', headers: CDN_5M },
       { source: '/release-dates/:slug', headers: CDN_5M },
       { source: '/sitemap.xml', headers: CDN_1H },
     ];

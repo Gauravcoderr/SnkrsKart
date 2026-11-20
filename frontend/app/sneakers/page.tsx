@@ -65,6 +65,9 @@ export default async function SneakersIndexPage(props: Props) {
         <p className="text-sm text-zinc-500 max-w-2xl">
           The complete history and buying guide for every iconic sneaker model. Find specs, origin stories, and shop authentic pairs in India.
         </p>
+        <Link href="/sneakers/price-in-india" className="inline-block mt-3 text-xs font-bold underline underline-offset-2 text-zinc-900 hover:text-zinc-600">
+          See sneaker prices in India
+        </Link>
       </div>
 
       {profiles.length === 0 ? (

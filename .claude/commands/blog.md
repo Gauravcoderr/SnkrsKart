@@ -19,6 +19,7 @@ This skill can be invoked unattended by `scripts/auto-content.sh` (launchd, ever
 | Step 5b sends the marketing blast | **Skipped entirely.** Do not run or edit `sendBlogEmail.ts` |
 | Step 6 strips objects, commits, pushes | Run **no git commands**. Leave the objects in `seedBlogs.ts` so they appear in the review diff. The wrapper script owns branch/commit/push |
 | Step 4b gate is a checklist item | Gate is **blocking**. It is the only quality check with no human in the loop |
+| Step 1.1 `refresh-blog.sh apply` updates a live post | **Do not apply.** Save the updates file in `content-ml/data/refresh/` and name it in `SUMMARY:` so a human applies it |
 | Step 5c asks before making the Instagram draft | Make the draft without asking. The blog is seeded unpublished, so the admin panel refuses to approve the post until a human publishes the blog |
 
 Two further rules specific to unattended runs:
@@ -57,6 +58,46 @@ An empty string is falsy. So `TEST_EMAIL=` with nothing after the `=` means the 
 ---
 
 ## Step 1 — Research Topics
+
+### 1.0 Demand first (run this before opening any news site)
+
+Search Console (audit of 2026-11-20) shows India-local topics earn 92 percent of blog clicks, and 163 of 269 published posts got no impressions in 90 days. Global release news with "India" in the slug earns almost nothing. So topics start from what India searches, not from the news feed.
+
+```bash
+cd /Users/gauravrauthan/snkrs-cart/content-ml
+commands/topics.sh
+```
+
+`topics.sh` reads `data/growth/growth_report.json`, `data/growth/gsc_page_query_90.json` and `data/refresh_queue.json` and prints three lists. If the report date it prints is more than 7 days old, run `commands/growth.sh` first (it needs the Search Console key in `secrets/gsc.json`).
+
+Pick the 3 topics in this order:
+
+1. **REFRESH FIRST.** If a listed post already ranks for the query you were about to write on, refresh that post (Step 1.1) and do not write a second post on the same query. One refresh counts as one of the 3 topics.
+2. **NEW TOPICS.** Rising India queries where no post of ours ranks.
+3. **WEAK CLUSTERS.** Demand where we rank past page one. Write the missing angle or refresh the listed page.
+
+Rules:
+
+- Run `commands/keywords.sh "<phrase>"` for every candidate. Keep it only if Google India suggests the phrase or a close variant. Put the best phrase in the draft `keyword` field in Step 4a.
+- At least 2 of the 3 topics come from these lists or from an India-local hook: an Indian brand or collab, an Indian event, an India launch date or an India price question.
+- At most 1 topic is a global release story, and only when the keyword check shows India demand for it (for example `<shoe> price in india` or `<shoe> india` is suggested).
+- Query shapes that earn impressions for us: `<shoe> price in india`, `<shoe> myntra`, `<model> review`, Indian collabs and events, and plain comparison questions.
+- If `topics.sh` cannot run (no report, no key), say so in the final report and use the news sites below. The keyword check still applies.
+
+### 1.1 Refreshing a post that already ranks
+
+```bash
+cd /Users/gauravrauthan/snkrs-cart/content-ml
+commands/refresh-blog.sh show <slug>
+```
+
+Write an updates file `data/refresh/refresh-<slug>.json` (not in `data/drafts/`: the Step 4a gate reads every file there as a draft) holding only the fields that change (`title`, `excerpt`, `content`, `metaTitle`, `metaDescription`, `metaKeywords`, `tags`), as `[{"slug": "<slug>", ...}]`. Put the exact query wording from `topics.sh` into the title, the first paragraph and one H2. Every added fact follows the verification rules below. Run the Step 4a gate on the new text, then:
+
+```bash
+commands/refresh-blog.sh apply data/refresh/refresh-<slug>.json
+```
+
+`apply` backs the post up to `data/backups/` first and pings IndexNow. A refresh needs no new cover image, no seed step and no email blast.
 
 Search these sites for the latest sneaker news (today's date matters — write about what is happening THIS WEEK):
 
@@ -99,8 +140,8 @@ Find **3 compelling topics** that are:
 
 - Happening this week or month (date-relevant)
 - NOT already in the MongoDB blog database (check slugs — see Step 2)
-- India-relevant or globally significant for sneakerheads
-- Diverse (one drop/release, one trend/style, one industry or cultural story)
+- Chosen by the Step 1.0 rules: at least 2 of 3 from the demand lists or an India-local hook, at most 1 global release story
+- Different in angle (never three posts on the same model)
 
 For each topic collect: exact retail prices, resale prices from StockX/GOAT, release dates, style codes, colourways, specific athlete/celebrity names, community reactions, India pricing/availability, source URLs.
 

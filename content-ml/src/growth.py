@@ -10,6 +10,8 @@ from pathlib import Path
 
 import numpy as np
 
+import merchant_insights
+
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 G = DATA / "growth"
@@ -25,6 +27,16 @@ def load(name):
     if not p.is_file():
         return []
     return json.loads(p.read_text(encoding="utf-8")).get("rows", [])
+
+
+def pulled_rows(name):
+    p = G / f"{name}.json"
+    if not p.is_file():
+        return None, None
+    data = json.loads(p.read_text(encoding="utf-8"))
+    if "rows" not in data:
+        return None, data.get("pulled")
+    return data["rows"], data.get("pulled")
 
 
 def canon(url):
@@ -552,7 +564,7 @@ def merchant_section(out, products):
         if d == plat[0]:
             plat[1].append(v)
     clusters = sorted(plat[1], key=lambda v: int(v["rank"])) if plat else []
-    sneaker_words = {"sneaker", "sneakers", "shoe", "shoes", "running", "jordan", "dunk", "samba", "air", "force", "new balance", "nike", "adidas", "puma", "asics", "crocs"}
+    sneaker_words = merchant_insights.SHOE_WORDS
     top_sneaker_clusters = [{"rank": int(v["rank"]), "title": v.get("title", ""), "brand": v.get("brand", ""), "demand": v.get("relativeDemand"), "change": v.get("relativeDemandChange"), "inventory": v.get("inventoryStatus")}
                             for v in clusters if any(w in (v["title"] + " " + v.get("brand", "")).lower() for w in sneaker_words)][:40]
     brand_demand = collections.Counter(v.get("brand", "") for v in clusters)
@@ -563,7 +575,10 @@ def merchant_section(out, products):
         "accepted_status": dict(statuses), "item_issue_codes": dict(issues),
         "latest_upload": latest_upload_summary(),
         "review_requested": review_requested(),
-        "product_performance_90d": "0 rows (no product clicks or impressions, listings never live)",
+        "account_issues_pulled": (G / "merchant_account_issues_list.json").is_file(),
+        "product_performance_90d": merchant_insights.product_performance_summary(*pulled_rows("merchant_product_performance_90")),
+        "price_competitiveness": merchant_insights.price_competitiveness(*pulled_rows("merchant_price_competitiveness")),
+        "sourcing_list": merchant_insights.sourcing_list(clusters, our_brands) if (G / "merchant_best_sellers_products.json").is_file() else None,
         "non_product_performance_90d": {"clicks": sum(t[1] for t in npp_rows), "impressions": sum(t[2] for t in npp_rows),
                                         "first_half_clicks": sum(t[1] for t in npp_rows[:half]), "second_half_clicks": sum(t[1] for t in npp_rows[half:]),
                                         "last_7_days": [(f"{d['year']}-{d['month']:02d}-{d['day']:02d}", c, i) for d, c, i in npp_rows[-7:]]},
@@ -582,11 +597,7 @@ def actions_section(out):
     gaps = out["commercial_gap_totals"]
     per_month = lambda v90: round(v90 / 3)
     acts = [
-        {"rank": 1, "action": "Clear the Merchant Center misrepresentation suspension and the item capacity cap",
-         "why": f"All {m['feed_items_sent']} feed items are invisible: latest upload {m['latest_upload']}; {m['products_accepted_by_google']} accepted, status {m['accepted_status']}. Zero product clicks in 90 days while non-product surfaces still brought {m['non_product_performance_90d']['clicks']} clicks. Review requested {m['review_requested']}.",
-         "how": "Finish Google's root-cause list: business info and verified phone/address in Merchant Center, Google Business Profile linked, policy text identical on site and in MC, visible reviews, no placeholder images; after approval ask support to lift the item limit (new accounts start capped). Re-fetch the feed and confirm itemsTotal equals processed.",
-         "expected": "Free listings for about 200 in-stock sizes across ~130 products; comparable Indian sneaker stores see product free listings at 1 to 3 percent CTR, so the ceiling is a new channel rather than a lift on the current 300 clicks a month.",
-         "effort": "M", "confidence": "high", "metric": "merchant product_performance_view clicks > 0; productStatuses approved share"},
+        merchant_insights.listings_action(m),
         {"rank": 2, "action": "Fix CTR on pages that already rank on page one (titles, meta, rich results)",
          "why": f"Isotonic CTR curve on 90 days of our own page by query data puts {int(o['ctr_gap_clicks'])} missed clicks per 90 days ({per_month(o['ctr_gap_clicks'])} per month) on pages whose CTR sits below the site's own curve at their position. /brands/new-balance alone: {nb['impressions'] if nb else 0} impressions, {nb['clicks'] if nb else 0} clicks at position {nb['position'] if nb else 0}.",
          "how": "Rewrite title and description for the top 10 pages in opportunities_by_page (ordered in growth_report.json), add Product and Offer structured data to brand and category pages (PRODUCT_SNIPPETS already run at 5 percent CTR vs 2 percent site average), show INR price and in-stock count in the title for brand pages.",
@@ -616,11 +627,11 @@ def actions_section(out):
          "expected": "Higher share of clicks that can convert", "effort": "S", "confidence": "medium", "metric": "india_click_share"},
         {"rank": 8, "action": "Grow the non-product Merchant surfaces that already work",
          "why": f"Merchant non_product_performance_view (store and page links on Google surfaces, not product offers) brought {m['non_product_performance_90d']['clicks']} clicks on {m['non_product_performance_90d']['impressions']} impressions in 90 days, and the second half ({m['non_product_performance_90d']['second_half_clicks']}) was 2.5x the first half ({m['non_product_performance_90d']['first_half_clicks']}). This channel is not in Search Console.",
-         "how": "Keep the business profile, logo, store policies and the collection pages complete in Merchant Center; add brand and category pages to the sitemap Merchant Center crawls; once products are approved these surfaces also show offers.",
+         "how": "Keep the business profile, logo, store policies and the collection pages complete in Merchant Center; add brand and category pages to the sitemap Merchant Center crawls; eligible products also show as offers on these surfaces.",
          "expected": "Holds the 500 clicks a month this surface already gives and compounds with action 1", "effort": "S", "confidence": "medium", "metric": "non_product_performance clicks per week"},
         {"rank": 9, "action": "Stock what Google says India buys",
          "why": "Merchant best-seller brand ranks for Shoes in India and product clusters show which models have VERY_HIGH demand and whether we carry them (see merchant.best_seller_product_clusters_latest_week).",
-         "how": "Use brands_we_carry_in_top40 and sneaker_like_top as the sourcing list for sellers; add a drop or profile page for every top cluster we do not stock.",
+         "how": "Give sellers merchant.sourcing_list (top India shoe clusters from brands we carry that are not in our stock; commands/sourcing.sh prints it); add a drop or profile page for every top cluster we do not stock.",
          "expected": "Demand-led catalogue growth", "effort": "L", "confidence": "medium", "metric": "in_inventory share of top clusters"},
     ]
     out["actions"] = acts
