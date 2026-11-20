@@ -93,11 +93,13 @@ body { top: 0 !important; }
     opacity: 0;
     transition: opacity 0.25s ease;
   }
-  .img-hover-swap:hover .img-default {
-    opacity: 0;
-  }
-  .img-hover-swap:hover .img-hover {
-    opacity: 1;
+  @media (hover: hover) {
+    .img-hover-swap:hover .img-default {
+      opacity: 0;
+    }
+    .img-hover-swap:hover .img-hover {
+      opacity: 1;
+    }
   }
 
   .quick-size-panel {

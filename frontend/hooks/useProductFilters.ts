@@ -3,44 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
-import { FilterState, ProductsResponse, SortOption } from '@/types';
+import { FilterState, ProductsResponse } from '@/types';
 import { fetchProductsClient } from '@/lib/api';
+import { DEFAULT_FILTERS, GRID_PAGE_SIZE, InitialGrid, filterKey, filtersFromParams, parseFilterParams } from '@/lib/productFilters';
 
-const DEFAULT_FILTERS: FilterState = {
-  brands: [],
-  sizes: [],
-  stringSizes: [],
-  productTypes: [],
-  colors: [],
-  gender: [],
-  minPrice: 0,
-  maxPrice: 0,
-  sort: 'popular',
-  search: '',
-};
-
-const LIMIT = 12;
 // Max pages auto-loaded when landing on /products?page=N (back button, shared link)
 const MAX_RESTORE_PAGES = 20;
-
-function slugToDisplayName(slug: string): string {
-  return slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function parseSearchParams(params: URLSearchParams): Partial<FilterState> {
-  const out: Partial<FilterState> = {};
-  const brand = params.get('brand');
-  if (brand) out.brands = brand.split(',').map((b) => slugToDisplayName(b.trim())).filter(Boolean);
-  const gender = params.get('gender');
-  if (gender) out.gender = gender.split(',').map((g) => g.trim().toLowerCase()).filter(Boolean);
-  const productType = params.get('productType');
-  if (productType) out.productTypes = productType.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean);
-  const search = params.get('search');
-  if (search) out.search = search;
-  const sort = params.get('sort') as SortOption | null;
-  if (sort) out.sort = sort;
-  return out;
-}
 
 function parsePageParam(params: URLSearchParams): number {
   const n = parseInt(params.get('page') ?? '1', 10);
@@ -55,15 +23,14 @@ function filterParamsKey(params: URLSearchParams): string {
   return copy.toString();
 }
 
-export function useProductFilters() {
+export function useProductFilters(initial?: InitialGrid) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [filters, setFilters] = useState<FilterState>(() => ({
-    ...DEFAULT_FILTERS,
-    ...parseSearchParams(searchParams),
-  }));
+  const [filters, setFilters] = useState<FilterState>(() => filtersFromParams(searchParams));
+  const [seededAt] = useState(() => Date.now());
+  const seeded = initial !== undefined && initial.key === filterKey(filters);
 
   // How many pages to restore on first load (from ?page=N). Consumed once.
   const restoreTarget = useRef(parsePageParam(searchParams));
@@ -74,13 +41,15 @@ export function useProductFilters() {
     const curr = filterParamsKey(searchParams);
     if (curr !== prevParams.current) {
       prevParams.current = curr;
-      setFilters((f) => ({ ...f, ...parseSearchParams(searchParams) }));
+      setFilters((f) => ({ ...f, ...parseFilterParams(searchParams) }));
       restoreTarget.current = 1;
     }
   }, [searchParams]);
 
   const {
     data,
+    isPending,
+    isPlaceholderData,
     isFetching,
     isFetchingNextPage,
     hasNextPage,
@@ -88,10 +57,12 @@ export function useProductFilters() {
   } = useInfiniteQuery<ProductsResponse>({
     queryKey: ['products', filters],
     queryFn: ({ pageParam }) =>
-      fetchProductsClient({ ...filters, page: pageParam as number, limit: LIMIT }),
+      fetchProductsClient({ ...filters, page: pageParam as number, limit: GRID_PAGE_SIZE }),
     initialPageParam: 1,
     getNextPageParam: (last) => (last.page < last.totalPages ? last.page + 1 : undefined),
     placeholderData: keepPreviousData,
+    initialData: seeded ? { pages: [initial.page], pageParams: [1] } : undefined,
+    initialDataUpdatedAt: seededAt,
     staleTime: 30_000,
   });
 
@@ -181,10 +152,9 @@ export function useProductFilters() {
     loadedPages,
     totalPages,
     hasMore: Boolean(hasNextPage),
-    // Skeleton grid only on initial load / filter change, not while appending
-    loading: isFetching && !isFetchingNextPage,
+    loading: isPending || isPlaceholderData,
     loadingMore: isFetchingNextPage,
-    limit: LIMIT,
+    limit: GRID_PAGE_SIZE,
     loadMore,
     handleFilterChange,
     handleRemoveBrand,

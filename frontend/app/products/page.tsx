@@ -1,7 +1,10 @@
-import { Suspense } from 'react';
 import ProductsClient from './ProductsClient';
 import { fetchAllProducts } from '@/lib/catalog';
+import { fetchProducts } from '@/lib/api';
+import { BRANDS, GENDERS, PRODUCT_TYPES, SORT_OPTIONS } from '@/lib/constants';
 import { fullProductName } from '@/lib/productTitle';
+import { GRID_PAGE_SIZE, filterKey, filtersFromParams, prefetchable, toSearchParams } from '@/lib/productFilters';
+import type { FilterState, ProductsResponse } from '@/types';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.snkrscart.com';
 
@@ -31,6 +34,32 @@ const BRAND_SLUGS: Record<string, string> = {
 
 function brandSlug(raw: string): string | null {
   return BRAND_SLUGS[raw.toLowerCase().trim()] ?? null;
+}
+
+type SearchParams = Record<string, string | string[] | undefined>;
+
+const KNOWN_FILTER_VALUES = {
+  brands: BRANDS.map((b) => b.label),
+  genders: GENDERS,
+  productTypes: PRODUCT_TYPES,
+  sorts: SORT_OPTIONS.map((o) => o.value),
+};
+
+const FIRST_PAGE_TIMEOUT_MS = 4000;
+
+async function fetchFirstPage(filters: FilterState): Promise<ProductsResponse | null> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), FIRST_PAGE_TIMEOUT_MS);
+  });
+  try {
+    return await Promise.race([
+      fetchProducts({ ...filters, page: 1, limit: GRID_PAGE_SIZE }).catch(() => null),
+      timeout,
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export async function generateMetadata(props: { searchParams: Promise<{ brand?: string }> }) {
@@ -70,7 +99,9 @@ export async function generateMetadata(props: { searchParams: Promise<{ brand?: 
   };
 }
 
-export default async function ProductsPage() {
+export default async function ProductsPage(props: { searchParams: Promise<SearchParams> }) {
+  const filters = filtersFromParams(toSearchParams(await props.searchParams));
+  const firstPageRequest = prefetchable(filters, KNOWN_FILTER_VALUES) ? fetchFirstPage(filters) : null;
   let catalogSchema = null;
   try {
     const products = await fetchAllProducts();
@@ -122,35 +153,14 @@ export default async function ProductsPage() {
       };
     }
   } catch { /* non-critical — page still renders */ }
+  const firstPage = await firstPageRequest;
 
   return (
     <>
       {catalogSchema && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(catalogSchema) }} />
       )}
-      <Suspense fallback={<ProductsLoadingFallback />}>
-        <ProductsClient />
-      </Suspense>
+      <ProductsClient initial={firstPage ? { key: filterKey(filters), page: firstPage } : undefined} />
     </>
-  );
-}
-
-function ProductsLoadingFallback() {
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="h-8 w-40 bg-zinc-200 animate-pulse mb-8" />
-      <div className="flex gap-8">
-        <div className="hidden lg:block w-56 space-y-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-32 bg-zinc-200 animate-pulse" />
-          ))}
-        </div>
-        <div className="flex-1 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="aspect-square bg-zinc-200 animate-pulse" />
-          ))}
-        </div>
-      </div>
-    </div>
   );
 }

@@ -82,7 +82,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
               alt={`${product.brand} ${product.name} alternate`}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover img-hover absolute inset-0 group-hover:scale-105 transition-transform duration-500"
+              className="object-cover img-hover absolute inset-0 hidden [@media(hover:hover)]:block group-hover:scale-105 transition-transform duration-500"
             />
           )}
 

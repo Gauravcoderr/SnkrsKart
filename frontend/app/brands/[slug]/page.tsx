@@ -207,6 +207,7 @@ export default async function BrandPage(props: Props) {
             <img
               src={meta.cardImage}
               alt={`${brand.name} sneakers`}
+              fetchPriority="high"
               className="w-full h-full object-contain drop-shadow-2xl"
             />
           </div>
@@ -240,8 +241,8 @@ export default async function BrandPage(props: Props) {
 
         {sortedProducts.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {sortedProducts.map((product, i) => (
-              <ProductCard key={product.id} product={product} priority={i < 4} />
+            {sortedProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         ) : (
