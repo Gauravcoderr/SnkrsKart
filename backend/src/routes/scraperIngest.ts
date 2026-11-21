@@ -1,7 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { ScrapedProduct, SCRAPED_BRANDS, SCRAPED_SITES } from '../models/ScrapedProduct';
+import { SCRAPED_BRANDS, SCRAPED_SITES } from '../models/ScrapedProduct';
 import { RejectedUrl } from '../models/RejectedUrl';
 import { ScrapedItem } from '../services/scraper/utils';
+import { saveScrapedItems } from '../lib/scrapedIngest';
 
 const router = Router();
 
@@ -14,22 +15,14 @@ function scraperAuth(req: Request, res: Response, next: NextFunction): void {
   next();
 }
 
-router.post('/ingest', scraperAuth, async (req: Request, res: Response): Promise<void> => {
-  const { products } = req.body as { products: ScrapedItem[] };
-
-  if (!Array.isArray(products) || products.length === 0) {
-    res.status(400).json({ error: 'products array required' });
-    return;
-  }
-
-  let inserted = 0;
-  let updated = 0;
+async function ingestProducts(products: ScrapedItem[]) {
   let skipped = 0;
   const errors: string[] = [];
+  const accepted: ScrapedItem[] = [];
 
   // Pre-fetch all rejected URLs/SKUs for this batch in one query
-  const urls = products.map((p) => p.sourceUrl).filter(Boolean);
-  const skus = products.map((p) => p.sku).filter(Boolean) as string[];
+  const urls = products.map((p) => p?.sourceUrl).filter(Boolean);
+  const skus = products.map((p) => p?.sku).filter(Boolean) as string[];
   const rejected = await RejectedUrl.find({
     $or: [
       { sourceUrl: { $in: urls } },
@@ -40,8 +33,8 @@ router.post('/ingest', scraperAuth, async (req: Request, res: Response): Promise
   const rejectedSkus = new Set(rejected.map((r) => r.sku).filter(Boolean) as string[]);
 
   for (const p of products) {
-    if (!p.sourceUrl || !p.name || !p.brand) {
-      errors.push(`Skipped invalid item: ${p.name ?? 'unnamed'}`);
+    if (!p || typeof p.sourceUrl !== 'string' || typeof p.name !== 'string' || !p.sourceUrl || !p.name || !p.brand) {
+      errors.push(`Skipped invalid item: ${typeof p?.name === 'string' ? p.name : 'unnamed'}`);
       continue;
     }
     if (!(SCRAPED_BRANDS as readonly string[]).includes(p.brand) || !(SCRAPED_SITES as readonly string[]).includes(p.sourceSite)) {
@@ -52,21 +45,27 @@ router.post('/ingest', scraperAuth, async (req: Request, res: Response): Promise
       skipped++;
       continue;
     }
-    try {
-      const existing = await ScrapedProduct.findOne({ sourceUrl: p.sourceUrl }).lean();
-      await ScrapedProduct.findOneAndUpdate(
-        { sourceUrl: p.sourceUrl },
-        { $set: { ...p, scrapedAt: new Date() } },
-        { upsert: true }
-      );
-      if (existing) updated++;
-      else inserted++;
-    } catch (err) {
-      errors.push(`${p.sourceUrl}: ${(err as Error).message}`);
-    }
+    accepted.push(p);
   }
 
-  res.json({ inserted, updated, skipped, errors });
+  const saved = await saveScrapedItems(accepted);
+  return { inserted: saved.inserted, updated: saved.updated, pricePoints: saved.pricePoints, skipped, errors: [...errors, ...saved.errors] };
+}
+
+router.post('/ingest', scraperAuth, async (req: Request, res: Response): Promise<void> => {
+  const { products } = req.body as { products: ScrapedItem[] };
+
+  if (!Array.isArray(products) || products.length === 0) {
+    res.status(400).json({ error: 'products array required' });
+    return;
+  }
+
+  try {
+    res.json(await ingestProducts(products));
+  } catch (err) {
+    console.error('[ingest] failed:', (err as Error).message);
+    res.status(500).json({ error: 'Ingest failed' });
+  }
 });
 
 export default router;

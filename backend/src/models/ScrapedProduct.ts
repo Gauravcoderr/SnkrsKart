@@ -19,6 +19,10 @@ export interface IScrapedProduct extends Document {
   sizes: string[];
   colorway?: string;
   sku?: string;
+  variantSku?: string;
+  styleCode?: string;
+  previousPrice?: number;
+  priceChangedAt?: Date;
   description?: string;
   gender: 'men' | 'women' | 'unisex' | 'kids';
   tags: string[];
@@ -46,6 +50,10 @@ const scrapedProductSchema = new Schema<IScrapedProduct>(
     sizes: [{ type: String }],
     colorway: { type: String },
     sku: { type: String },
+    variantSku: { type: String },
+    styleCode: { type: String, index: true },
+    previousPrice: { type: Number },
+    priceChangedAt: { type: Date, index: true },
     description: { type: String },
     gender: { type: String, enum: ['men', 'women', 'unisex', 'kids'], default: 'unisex' },
     tags: [{ type: String }],

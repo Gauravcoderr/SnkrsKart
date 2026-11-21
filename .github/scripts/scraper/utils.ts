@@ -152,6 +152,7 @@ export interface ScrapedItem {
   sizes: string[];
   colorway?: string;
   sku?: string;
+  variantSku?: string;
   description?: string;
   gender?: 'men' | 'women' | 'unisex' | 'kids';
   tags?: string[];

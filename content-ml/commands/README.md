@@ -16,6 +16,7 @@ commands/status.sh
 | `commands/check-post.sh <slug>` | Same check on a post that is already in MongoDB (blog, drop or sneaker profile). Not logged as training data | under a minute |
 | `commands/keywords.sh <phrase>` | Real Google India search suggestions for a phrase, e.g. `commands/keywords.sh adidas samba` | seconds |
 | `commands/topics.sh` | Blog topics from real demand: posts to refresh first, rising India searches we have no post for, and search groups where we rank past page one. Add `--json` for raw output | seconds |
+| `commands/trending.sh` | Ranked shortlist of sneaker models in demand in India or about to launch, fused from Google best sellers, our Search Console, our drop dates and (with `--autocomplete`, online) Google suggestions; writes `data/trending/shortlist.json`. Add `--limit N`, `--all-brands` or `--json` | seconds |
 | `commands/sourcing.sh` | Seller sourcing list (in demand on Google India, not in our stock) and our pairs priced above Google's India benchmark, from the last `growth.sh` run | seconds |
 | `commands/export-content.sh` | Re-exports blogs, drops, profiles and the fact catalog from MongoDB. Run it before `check-post.sh` if a post is new | under a minute |
 | `commands/refresh-blog.sh show|backup|apply ...` | Shows, backs up or updates live blog posts. `apply <updates.json>` always backs up first to `data/backups/` and pings IndexNow | seconds |

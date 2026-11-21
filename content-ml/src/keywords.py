@@ -10,7 +10,7 @@ MODIFIERS = ["", " price in india", " release date", " india", " vs", " size", "
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126 Safari/537.36"
 
 
-def suggest(q: str):
+def suggest(q: str, strict: bool = False):
     url = ("https://suggestqueries.google.com/complete/search?client=firefox&hl=en&gl=in&q="
            + urllib.parse.quote(q))
     req = urllib.request.Request(url, headers={"User-Agent": UA})
@@ -19,6 +19,8 @@ def suggest(q: str):
             data = json.loads(r.read().decode("utf-8", "ignore"))
             return data[1] if len(data) > 1 else []
     except Exception:
+        if strict:
+            raise
         return []
 
 

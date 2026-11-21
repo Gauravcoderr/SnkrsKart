@@ -33,7 +33,7 @@ async function waitForBackend(maxAttempts = 12, delayMs = 5000): Promise<boolean
 
 const INGEST_BATCH = 40;
 
-async function postBatch(products: ScrapedItem[]): Promise<{ inserted: number; updated: number; skipped: number; errors: string[] } | null> {
+async function postBatch(products: ScrapedItem[]): Promise<{ inserted: number; updated: number; skipped: number; pricePoints?: number; errors: string[] } | null> {
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       const res = await fetch(`${BACKEND_URL}/api/v1/scraper/ingest`, {
@@ -46,7 +46,7 @@ async function postBatch(products: ScrapedItem[]): Promise<{ inserted: number; u
       });
       const contentType = res.headers.get('content-type') ?? '';
       if (res.ok && contentType.includes('application/json')) {
-        return (await res.json()) as { inserted: number; updated: number; skipped: number; errors: string[] };
+        return (await res.json()) as { inserted: number; updated: number; skipped: number; pricePoints?: number; errors: string[] };
       }
       const bodySnippet = (await res.text()).slice(0, 300);
       console.error(`[run] Ingest batch failed (attempt ${attempt}): status=${res.status} content-type=${contentType} body=${bodySnippet}`);
@@ -67,7 +67,7 @@ async function ingest(products: ScrapedItem[]): Promise<void> {
 
   await waitForBackend();
 
-  const totals = { inserted: 0, updated: 0, skipped: 0, errors: [] as string[], failedBatches: 0 };
+  const totals = { inserted: 0, updated: 0, skipped: 0, pricePoints: 0, errors: [] as string[], failedBatches: 0 };
   for (let i = 0; i < products.length; i += INGEST_BATCH) {
     const data = await postBatch(products.slice(i, i + INGEST_BATCH));
     if (!data) {
@@ -77,11 +77,17 @@ async function ingest(products: ScrapedItem[]): Promise<void> {
     totals.inserted += data.inserted;
     totals.updated += data.updated;
     totals.skipped += data.skipped ?? 0;
+    totals.pricePoints += data.pricePoints ?? 0;
     totals.errors.push(...data.errors);
   }
 
-  console.log(`[run] Ingest result: inserted=${totals.inserted}, updated=${totals.updated}, skipped=${totals.skipped}, errors=${totals.errors.length}, failedBatches=${totals.failedBatches}`);
+  console.log(`[run] Ingest result: inserted=${totals.inserted}, updated=${totals.updated}, skipped=${totals.skipped}, pricePoints=${totals.pricePoints}, errors=${totals.errors.length}, failedBatches=${totals.failedBatches}`);
   totals.errors.slice(0, 5).forEach((e) => console.warn('[run] Error:', e));
+  const saved = totals.inserted + totals.updated + totals.skipped;
+  if (totals.failedBatches > 0 || saved === 0) {
+    console.error(`[run] Ingest incomplete: ${totals.failedBatches} batch(es) failed, ${saved} of ${products.length} items accepted`);
+    process.exitCode = 1;
+  }
 }
 
 async function main(): Promise<void> {
