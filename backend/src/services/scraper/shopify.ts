@@ -8,6 +8,7 @@ interface ShopifyVariant {
   price: string;
   compare_at_price: string | null;
   available: boolean;
+  sku?: string | null;
 }
 
 interface ShopifyProduct {
@@ -113,6 +114,7 @@ async function fetchJson(
       originalPrice: originalPrice && originalPrice > price ? originalPrice : undefined,
       images: p.images.map((i) => i.src),
       sizes: parseSizes(p.variants),
+      variantSku: p.variants[0]?.sku || undefined,
       description: cheerio.load(p.body_html).text().trim().slice(0, 500),
       tags: p.tags ?? [],
       flags: extractFlags(p.tags ?? [], p.title),

@@ -7,7 +7,7 @@ interface SKProduct {
   handle?: string;
   title?: string;
   vendor?: string;
-  variants?: { price?: string; compare_at_price?: string | null; available?: boolean; title?: string }[];
+  variants?: { price?: string; compare_at_price?: string | null; available?: boolean; title?: string; sku?: string | null }[];
   images?: { src?: string }[];
   tags?: string[];
   product_type?: string;
@@ -49,6 +49,7 @@ function parseProducts(json: { products?: SKProduct[] }, seen: Set<string>): Scr
       originalPrice: originalPrice && originalPrice > price ? originalPrice : undefined,
       images: (p.images ?? []).map((i) => i.src ?? '').filter(Boolean),
       sizes,
+      variantSku: p.variants?.[0]?.sku || undefined,
       tags: p.tags ?? [],
       gender: inferGender(p.title, ...(p.tags ?? [])),
       sourceListedAt: p.created_at ? new Date(p.created_at) : undefined,

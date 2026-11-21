@@ -18,7 +18,7 @@ const EditModal = dynamic(() => import('@/components/admin/scraped-products/Edit
 
 type ScraperStatus = {
   github: { status: string; conclusion: string | null; startedAt: string; updatedAt: string; runUrl: string } | null;
-  render: { status: string; startedAt?: string; finishedAt?: string; error?: string; result?: { inserted: number; updated: number; shopifyFailed: boolean; nikeFailed: boolean } };
+  render: { status: string; startedAt?: string; finishedAt?: string; error?: string; result?: { inserted: number; updated: number; shopifyFailed: boolean; nikeFailed: boolean; failed?: number } };
 };
 
 type Tab = Status | 'blacklist';

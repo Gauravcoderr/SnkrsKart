@@ -41,6 +41,7 @@ const NAV = [
   { href: '/admin/drops',             label: 'Drops',            Icon: StarIcon },
   { href: '/admin/coupons',           label: 'Coupons',          Icon: BannersIcon },
   { href: '/admin/scraped-products',   label: 'Scraped Products', Icon: SearchIcon },
+  { href: '/admin/insights',           label: 'Insights',         Icon: SearchIcon },
   { href: '/admin/chat-leads',           label: 'Chat Leads',    Icon: ChatLeadsIcon },
   { href: '/admin/deal-verifications',   label: 'Deal Checks',   Icon: DealVerifIcon },
   { href: '/admin/newsletter',           label: 'Newsletter',    Icon: MailIcon },

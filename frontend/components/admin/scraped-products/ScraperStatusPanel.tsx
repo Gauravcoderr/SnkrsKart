@@ -3,7 +3,7 @@
 interface ScraperStatusPanelProps {
   status: {
     github: { status: string; conclusion: string | null; startedAt: string; updatedAt: string; runUrl: string } | null;
-    render: { status: string; startedAt?: string; finishedAt?: string; error?: string; result?: { inserted: number; updated: number; shopifyFailed: boolean; nikeFailed: boolean } };
+    render: { status: string; startedAt?: string; finishedAt?: string; error?: string; result?: { inserted: number; updated: number; shopifyFailed: boolean; nikeFailed: boolean; failed?: number } };
   };
 }
 
@@ -40,15 +40,16 @@ export default function ScraperStatusPanel({ status }: ScraperStatusPanelProps) 
         const isRunning = r.status === 'running';
         const isDone = r.status === 'done';
         const isFailed = r.status === 'failed';
+        const notSaved = r.result?.failed ?? 0;
         return (
           <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium ${
-            isDone && !r.result?.shopifyFailed && !r.result?.nikeFailed ? 'bg-green-950/40 border-green-800 text-green-300' :
-            isFailed || (isDone && (r.result?.shopifyFailed || r.result?.nikeFailed)) ? 'bg-red-950/40 border-red-800 text-red-300' :
+            isDone && !r.result?.shopifyFailed && !r.result?.nikeFailed && notSaved === 0 ? 'bg-green-950/40 border-green-800 text-green-300' :
+            isFailed || (isDone && (r.result?.shopifyFailed || r.result?.nikeFailed || notSaved > 0)) ? 'bg-red-950/40 border-red-800 text-red-300' :
             'bg-yellow-950/40 border-yellow-800 text-yellow-300'
           }`}>
             <span className={`w-1.5 h-1.5 rounded-full ${
-              isDone && !r.result?.shopifyFailed && !r.result?.nikeFailed ? 'bg-green-400' :
-              isFailed || (isDone && (r.result?.shopifyFailed || r.result?.nikeFailed)) ? 'bg-red-400' :
+              isDone && !r.result?.shopifyFailed && !r.result?.nikeFailed && notSaved === 0 ? 'bg-green-400' :
+              isFailed || (isDone && (r.result?.shopifyFailed || r.result?.nikeFailed || notSaved > 0)) ? 'bg-red-400' :
               'bg-yellow-400 animate-pulse'
             }`} />
             <span>Render (Shopify + Nike)</span>
@@ -62,6 +63,7 @@ export default function ScraperStatusPanel({ status }: ScraperStatusPanelProps) 
                  `+${r.result?.inserted ?? 0} new`}
               </span>
             )}
+            {isDone && notSaved > 0 && <span>, {notSaved} not saved</span>}
             {isFailed && <span title={r.error}>failed</span>}
           </div>
         );
